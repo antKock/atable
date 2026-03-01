@@ -7,6 +7,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { t } from "@/lib/i18n/fr";
+import type { Recipe } from "@/types/recipe";
+
+interface CreateProps {
+  mode: "create";
+  initialData?: never;
+  recipeId?: never;
+}
+
+interface EditProps {
+  mode: "edit";
+  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags">;
+  recipeId: string;
+}
+
+type RecipeFormProps = CreateProps | EditProps;
+
+function tagsToString(tags: string[]): string {
+  return tags.join(", ");
+}
 
 function stringToTags(value: string): string[] {
   return value
@@ -15,12 +34,16 @@ function stringToTags(value: string): string[] {
     .filter(Boolean);
 }
 
-export default function RecipeForm() {
+export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormProps) {
   const router = useRouter();
-  const [title, setTitle] = useState("");
-  const [ingredients, setIngredients] = useState("");
-  const [steps, setSteps] = useState("");
-  const [tagsInput, setTagsInput] = useState("");
+  const isEdit = mode === "edit";
+
+  const [title, setTitle] = useState(initialData?.title ?? "");
+  const [ingredients, setIngredients] = useState(initialData?.ingredients ?? "");
+  const [steps, setSteps] = useState(initialData?.steps ?? "");
+  const [tagsInput, setTagsInput] = useState(
+    initialData?.tags ? tagsToString(initialData.tags) : ""
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const canSave = title.trim().length > 0;
@@ -31,28 +54,41 @@ export default function RecipeForm() {
 
     setIsSaving(true);
     try {
-      const response = await fetch("/api/recipes", {
-        method: "POST",
+      const url = isEdit ? `/api/recipes/${recipeId}` : "/api/recipes";
+      const method = isEdit ? "PUT" : "POST";
+
+      const response = await fetch(url, {
+        method,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: title.trim(),
-          ingredients: ingredients.trim() || undefined,
-          steps: steps.trim() || undefined,
+          ingredients: ingredients.trim() || null,
+          steps: steps.trim() || null,
           tags: stringToTags(tagsInput),
         }),
       });
 
       if (!response.ok) {
         const data = await response.json();
-        throw new Error(data.error ?? t.feedback.saveError);
+        throw new Error(
+          data.error ?? (isEdit ? t.feedback.updateError : t.feedback.saveError)
+        );
       }
 
-      toast.success(t.feedback.recipeSaved, { duration: 2500 });
-      router.push("/");
+      toast.success(
+        isEdit ? t.feedback.recipeUpdated : t.feedback.recipeSaved,
+        { duration: 2500 }
+      );
+      router.push(isEdit ? `/recipes/${recipeId}` : "/");
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t.feedback.saveError, {
-        duration: Infinity,
-      });
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : isEdit
+            ? t.feedback.updateError
+            : t.feedback.saveError,
+        { duration: Infinity }
+      );
       setIsSaving(false);
     }
   }
@@ -73,7 +109,7 @@ export default function RecipeForm() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder={t.form.titlePlaceholder}
-          autoFocus
+          autoFocus={!isEdit}
           autoComplete="off"
           className="h-12 text-base"
         />
@@ -92,7 +128,7 @@ export default function RecipeForm() {
         </label>
         <Textarea
           id="ingredients"
-          value={ingredients}
+          value={ingredients ?? ""}
           onChange={(e) => setIngredients(e.target.value)}
           placeholder={t.form.ingredientsPlaceholder}
           rows={4}
@@ -110,7 +146,7 @@ export default function RecipeForm() {
         </label>
         <Textarea
           id="steps"
-          value={steps}
+          value={steps ?? ""}
           onChange={(e) => setSteps(e.target.value)}
           placeholder={t.form.stepsPlaceholder}
           rows={5}

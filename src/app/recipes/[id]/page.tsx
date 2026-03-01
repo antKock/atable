@@ -3,11 +3,12 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { t } from "@/lib/i18n/fr";
 import WakeLockActivator from "@/components/recipes/WakeLockActivator";
+import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -22,9 +23,7 @@ export default async function RecipeDetailPage({ params }: Props) {
     .eq("id", id)
     .single();
 
-  if (!data) {
-    notFound();
-  }
+  if (!data) notFound();
 
   const recipe = mapDbRowToRecipe(data);
 
@@ -32,8 +31,8 @@ export default async function RecipeDetailPage({ params }: Props) {
     <div className="mx-auto max-w-2xl pb-8">
       <WakeLockActivator />
 
-      {/* Back button */}
-      <div className="px-4 pb-4 pt-6">
+      {/* Top bar: back + actions */}
+      <div className="flex items-center justify-between px-4 pb-4 pt-6">
         <Link
           href="/"
           aria-label={t.a11y.backButton}
@@ -41,6 +40,16 @@ export default async function RecipeDetailPage({ params }: Props) {
         >
           <ArrowLeft size={20} />
         </Link>
+        <div className="flex items-center gap-1">
+          <Link
+            href={`/recipes/${id}/edit`}
+            aria-label={t.actions.edit}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Pencil size={18} />
+          </Link>
+          <ConfirmDeleteDialog recipeId={id} />
+        </div>
       </div>
 
       {/* Photo hero or warm placeholder */}
@@ -83,7 +92,7 @@ export default async function RecipeDetailPage({ params }: Props) {
           </div>
         )}
 
-        {/* Ingredients section — only rendered when content exists */}
+        {/* Ingredients — only rendered when content exists */}
         {recipe.ingredients && (
           <section className="mt-8" aria-labelledby="ingredients-heading">
             <h2
@@ -98,7 +107,7 @@ export default async function RecipeDetailPage({ params }: Props) {
           </section>
         )}
 
-        {/* Steps section — only rendered when content exists */}
+        {/* Steps — only rendered when content exists */}
         {recipe.steps && (
           <section className="mt-8" aria-labelledby="steps-heading">
             <h2
