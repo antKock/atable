@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { t } from "@/lib/i18n/fr";
+import { usePhotoUpload } from "@/hooks/usePhotoUpload";
+import PhotoPicker from "./PhotoPicker";
 import type { Recipe } from "@/types/recipe";
 
 interface CreateProps {
@@ -17,7 +19,7 @@ interface CreateProps {
 
 interface EditProps {
   mode: "edit";
-  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags">;
+  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags" | "photoUrl">;
   recipeId: string;
 }
 
@@ -37,6 +39,7 @@ function stringToTags(value: string): string[] {
 export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormProps) {
   const router = useRouter();
   const isEdit = mode === "edit";
+  const { uploadPhoto } = usePhotoUpload();
 
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [ingredients, setIngredients] = useState(initialData?.ingredients ?? "");
@@ -44,6 +47,8 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
   const [tagsInput, setTagsInput] = useState(
     initialData?.tags ? tagsToString(initialData.tags) : ""
   );
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoRemoved, setPhotoRemoved] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   const canSave = title.trim().length > 0;
@@ -54,32 +59,76 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
 
     setIsSaving(true);
     try {
-      const url = isEdit ? `/api/recipes/${recipeId}` : "/api/recipes";
-      const method = isEdit ? "PUT" : "POST";
+      if (isEdit) {
+        // Edit: upload photo synchronously before PUT (if changed)
+        let resolvedPhotoUrl: string | null | undefined = undefined;
 
-      const response = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        if (photoRemoved) {
+          resolvedPhotoUrl = null;
+        } else if (photoFile) {
+          const uploadResult = await uploadPhoto(photoFile, recipeId);
+          if ("error" in uploadResult) {
+            toast.error(t.feedback.photoError, { duration: Infinity });
+            setIsSaving(false);
+            return;
+          }
+          resolvedPhotoUrl = uploadResult.url;
+        }
+
+        const body: Record<string, unknown> = {
           title: title.trim(),
           ingredients: ingredients.trim() || null,
           steps: steps.trim() || null,
           tags: stringToTags(tagsInput),
-        }),
-      });
+        };
+        if (resolvedPhotoUrl !== undefined) {
+          body.photoUrl = resolvedPhotoUrl;
+        }
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(
-          data.error ?? (isEdit ? t.feedback.updateError : t.feedback.saveError)
-        );
+        const response = await fetch(`/api/recipes/${recipeId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error ?? t.feedback.updateError);
+        }
+
+        toast.success(t.feedback.recipeUpdated, { duration: 2500 });
+        router.push(`/recipes/${recipeId}`);
+      } else {
+        // Create: POST text first, then upload photo in background
+        const response = await fetch("/api/recipes", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: title.trim(),
+            ingredients: ingredients.trim() || null,
+            steps: steps.trim() || null,
+            tags: stringToTags(tagsInput),
+          }),
+        });
+
+        if (!response.ok) {
+          const data = await response.json();
+          throw new Error(data.error ?? t.feedback.saveError);
+        }
+
+        const created = await response.json();
+        toast.success(t.feedback.recipeSaved, { duration: 2500 });
+        router.push("/");
+
+        // Fire-and-forget background upload after redirect
+        if (photoFile) {
+          uploadPhoto(photoFile, created.id).then((result) => {
+            if ("error" in result) {
+              toast.error(t.feedback.photoError, { duration: Infinity });
+            }
+          });
+        }
       }
-
-      toast.success(
-        isEdit ? t.feedback.recipeUpdated : t.feedback.recipeSaved,
-        { duration: 2500 }
-      );
-      router.push(isEdit ? `/recipes/${recipeId}` : "/");
     } catch (err) {
       toast.error(
         err instanceof Error
@@ -114,6 +163,21 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
           className="h-12 text-base"
         />
       </div>
+
+      {/* Photo */}
+      <PhotoPicker
+        currentUrl={isEdit ? initialData.photoUrl : null}
+        previewFile={photoFile}
+        removed={photoRemoved}
+        onChange={(file) => {
+          setPhotoFile(file);
+          setPhotoRemoved(false);
+        }}
+        onRemove={() => {
+          setPhotoFile(null);
+          setPhotoRemoved(true);
+        }}
+      />
 
       {/* Ingredients */}
       <div className="flex flex-col gap-1.5">

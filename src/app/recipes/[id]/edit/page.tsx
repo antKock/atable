@@ -52,6 +52,7 @@ export default async function EditRecipePage({ params }: Props) {
           ingredients: recipe.ingredients,
           steps: recipe.steps,
           tags: recipe.tags,
+          photoUrl: recipe.photoUrl,
         }}
       />
     </div>

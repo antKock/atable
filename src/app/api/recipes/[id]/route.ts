@@ -55,16 +55,21 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
 
+    const updatePayload: Record<string, unknown> = {
+      title: result.data.title,
+      ingredients: result.data.ingredients ?? null,
+      steps: result.data.steps ?? null,
+      tags: result.data.tags ?? [],
+      updated_at: new Date().toISOString(),
+    };
+    // Only update photo_url when explicitly provided (null = remove, string = set)
+    if (result.data.photoUrl !== undefined) {
+      updatePayload.photo_url = result.data.photoUrl;
+    }
+
     const { data, error } = await supabase
       .from("recipes")
-      .update({
-        title: result.data.title,
-        ingredients: result.data.ingredients ?? null,
-        steps: result.data.steps ?? null,
-        tags: result.data.tags ?? [],
-        photo_url: result.data.photoUrl ?? null,
-        updated_at: new Date().toISOString(),
-      })
+      .update(updatePayload)
       .eq("id", id)
       .select()
       .single();
