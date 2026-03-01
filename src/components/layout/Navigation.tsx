@@ -31,18 +31,19 @@ export default function Navigation() {
                   href={href}
                   aria-label={label}
                   aria-current={isActive ? "page" : undefined}
-                  className={`flex min-h-[44px] min-w-[44px] flex-col items-center justify-center gap-0.5 text-xs transition-colors ${
+                  className={`flex min-h-[44px] min-w-[44px] flex-col items-center text-xs transition-colors ${
                     isAdd
-                      ? "relative"
-                      : isActive
-                        ? "text-accent"
-                        : "text-muted-foreground hover:text-foreground"
+                      ? "-mt-5 justify-start gap-1"
+                      : `justify-center gap-0.5 ${isActive ? "text-accent" : "text-muted-foreground hover:text-foreground"}`
                   }`}
                 >
                   {isAdd ? (
-                    <span className="flex h-13 w-13 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-md">
-                      <Icon size={24} />
-                    </span>
+                    <>
+                      <span className="flex h-13 w-13 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-md">
+                        <Icon size={24} />
+                      </span>
+                      <span className="text-muted-foreground">{label}</span>
+                    </>
                   ) : (
                     <>
                       <Icon size={22} />
@@ -62,7 +63,9 @@ export default function Navigation() {
         className="fixed left-0 top-0 hidden h-full w-56 flex-col border-r border-border bg-surface lg:flex"
       >
         <div className="px-6 py-8">
-          <span className="text-xl font-semibold text-foreground">{t.appName}</span>
+          <span className="text-xl font-extrabold tracking-tight text-foreground">
+            a<span className="text-accent">table</span>
+          </span>
         </div>
         <ul className="flex flex-col gap-1 px-3">
           {navItems.map(({ href, label, icon: Icon, isAdd }) => {

@@ -19,10 +19,10 @@ export default function RecipeCard({
       href={`/recipes/${recipe.id}`}
       aria-label={t.a11y.recipeCard(recipe.title)}
       className={`group relative block overflow-hidden rounded-xl bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-        isCarousel ? "w-44 flex-none lg:w-56" : "w-full"
+        isCarousel ? "w-56 flex-none lg:w-64" : "w-full"
       }`}
     >
-      <div className="relative aspect-[3/4] w-full">
+      <div className={`relative w-full ${isCarousel ? "aspect-[3/2]" : "aspect-[3/4]"}`}>
         {recipe.photoUrl ? (
           <Image
             src={recipe.photoUrl}
@@ -31,7 +31,7 @@ export default function RecipeCard({
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
             sizes={
               isCarousel
-                ? "(max-width: 1024px) 176px, 224px"
+                ? "(max-width: 1024px) 224px, 256px"
                 : "(max-width: 768px) 50vw, 33vw"
             }
           />
@@ -41,10 +41,15 @@ export default function RecipeCard({
           </div>
         )}
         {/* Title overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
-          <p className="line-clamp-2 text-sm font-medium leading-snug text-white">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/68 to-transparent p-3">
+          <p className="line-clamp-2 text-sm font-bold leading-snug text-white">
             {recipe.title}
           </p>
+          {isCarousel && recipe.tags[0] && (
+            <p className="mt-0.5 text-[10px] text-white/72 leading-tight">
+              {recipe.tags[0]}
+            </p>
+          )}
         </div>
       </div>
     </Link>

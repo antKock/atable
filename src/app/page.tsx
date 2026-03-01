@@ -53,8 +53,9 @@ export default async function HomePage() {
 
   return (
     <div className="pb-6 pt-6">
-      <h1 className="mb-4 px-4 text-2xl font-semibold text-foreground">
-        {t.appName}
+      <h1 className="mb-4 px-4 text-[22px] font-extrabold tracking-tight">
+        <span className="text-foreground">a</span>
+        <span className="text-accent">table</span>
       </h1>
       <HomeContent recipes={recipes} carousels={carousels} />
     </div>
