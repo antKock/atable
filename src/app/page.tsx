@@ -1,5 +1,3 @@
-export const dynamic = "force-dynamic";
-
 import { createServerClient } from "@/lib/supabase/server";
 import { t } from "@/lib/i18n/fr";
 import HomeContent from "@/components/recipes/HomeContent";
