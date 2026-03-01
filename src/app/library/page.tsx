@@ -10,12 +10,13 @@ export default async function LibraryPage() {
   const supabase = createServerClient();
   const { data } = await supabase
     .from("recipes")
-    .select("id, title, tags, photo_url, created_at")
+    .select("id, title, ingredients, tags, photo_url, created_at")
     .order("created_at", { ascending: false });
 
   const recipes: RecipeListItem[] = (data ?? []).map((row) => ({
     id: row.id,
     title: row.title,
+    ingredients: row.ingredients,
     tags: row.tags ?? [],
     photoUrl: row.photo_url,
     createdAt: row.created_at,

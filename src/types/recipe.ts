@@ -10,7 +10,7 @@ export type Recipe = {
   updatedAt: string;
 };
 
-export type RecipeListItem = Pick<Recipe, "id" | "title" | "tags" | "photoUrl" | "createdAt">;
+export type RecipeListItem = Pick<Recipe, "id" | "title" | "ingredients" | "tags" | "photoUrl" | "createdAt">;
 
 export type RecipeFormData = {
   title: string;
