@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { t } from "@/lib/i18n/fr";
