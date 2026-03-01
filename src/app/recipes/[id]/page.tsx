@@ -9,6 +9,7 @@ import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { t } from "@/lib/i18n/fr";
 import WakeLockActivator from "@/components/recipes/WakeLockActivator";
 import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
+import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -50,11 +51,10 @@ export default async function RecipeDetailPage({ params }: Props) {
             priority
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-accent/10">
-              <div className="h-10 w-10 rounded-full border-4 border-accent/20" />
-            </div>
-          </div>
+          <div
+            className="absolute inset-0"
+            style={{ background: getRecipePlaceholderGradient(recipe.id) }}
+          />
         )}
 
         {/* Back button — frosted glass, overlaid top-left */}

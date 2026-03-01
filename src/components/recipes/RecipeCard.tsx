@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { t } from "@/lib/i18n/fr";
+import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 import type { RecipeListItem } from "@/types/recipe";
 
 interface RecipeCardProps {
@@ -36,9 +37,10 @@ export default function RecipeCard({
             }
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-            <div className="h-12 w-12 rounded-full border-4 border-accent/20" />
-          </div>
+          <div
+            className="absolute inset-0"
+            style={{ background: getRecipePlaceholderGradient(recipe.id) }}
+          />
         )}
         {/* Title overlay */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/68 to-transparent p-3">
