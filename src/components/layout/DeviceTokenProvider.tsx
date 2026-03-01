@@ -1,12 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
+import { getDeviceToken } from "@/hooks/useDeviceToken";
 
 export default function DeviceTokenProvider() {
   useEffect(() => {
-    if (!localStorage.getItem("atable_device_token")) {
-      localStorage.setItem("atable_device_token", crypto.randomUUID());
-    }
+    getDeviceToken();
   }, []);
 
   return null;

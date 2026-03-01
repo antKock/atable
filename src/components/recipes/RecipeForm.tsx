@@ -60,29 +60,17 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
     setIsSaving(true);
     try {
       if (isEdit) {
-        // Edit: upload photo synchronously before PUT (if changed)
-        let resolvedPhotoUrl: string | null | undefined = undefined;
-
-        if (photoRemoved) {
-          resolvedPhotoUrl = null;
-        } else if (photoFile) {
-          const uploadResult = await uploadPhoto(photoFile, recipeId);
-          if ("error" in uploadResult) {
-            toast.error(t.feedback.photoError, { duration: Infinity });
-            setIsSaving(false);
-            return;
-          }
-          resolvedPhotoUrl = uploadResult.url;
-        }
-
+        // Edit: save text fields immediately; photo upload is fire-and-forget (non-blocking).
+        // This matches the create-mode pattern: recipe is always accessible regardless of photo state.
         const body: Record<string, unknown> = {
           title: title.trim(),
           ingredients: ingredients.trim() || null,
           steps: steps.trim() || null,
           tags: stringToTags(tagsInput),
         };
-        if (resolvedPhotoUrl !== undefined) {
-          body.photoUrl = resolvedPhotoUrl;
+        // Only set photoUrl when explicitly removing — new photos upload asynchronously after save.
+        if (photoRemoved) {
+          body.photoUrl = null;
         }
 
         const response = await fetch(`/api/recipes/${recipeId}`, {
@@ -98,6 +86,15 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
 
         toast.success(t.feedback.recipeUpdated, { duration: 2500 });
         router.push(`/recipes/${recipeId}`);
+
+        // Fire-and-forget background upload after redirect (same pattern as create mode)
+        if (photoFile) {
+          uploadPhoto(photoFile, recipeId).then((result) => {
+            if ("error" in result) {
+              toast.error(t.feedback.photoError, { duration: Infinity });
+            }
+          });
+        }
       } else {
         // Create: POST text first, then upload photo in background
         const response = await fetch("/api/recipes", {
@@ -236,7 +233,7 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
           className="h-12 text-base"
         />
         <p className="text-xs text-muted-foreground">
-          Séparez les tags par des virgules
+          {t.form.tagsHelper}
         </p>
       </div>
 

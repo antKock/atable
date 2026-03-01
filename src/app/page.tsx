@@ -33,10 +33,12 @@ function buildCarousels(recipes: RecipeListItem[]) {
 
 export default async function HomePage() {
   const supabase = createServerClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("recipes")
     .select("id, title, ingredients, tags, photo_url, created_at")
     .order("created_at", { ascending: false });
+
+  if (error) throw error;
 
   const recipes: RecipeListItem[] = (data ?? []).map((row) => ({
     id: row.id,

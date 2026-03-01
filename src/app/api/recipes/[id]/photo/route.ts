@@ -23,6 +23,18 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     }
 
     const supabase = createServerClient();
+
+    // Verify the recipe exists before updating
+    const { data: existing } = await supabase
+      .from("recipes")
+      .select("id")
+      .eq("id", id)
+      .single();
+
+    if (!existing) {
+      return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+    }
+
     const { error } = await supabase
       .from("recipes")
       .update({
@@ -36,7 +48,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     revalidatePath("/");
     revalidatePath("/recipes/[id]");
 
-    return NextResponse.json({ success: true });
+    return new NextResponse(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Erreur serveur" },

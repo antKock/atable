@@ -21,7 +21,7 @@ export default function Error({
         onClick={reset}
         className="text-sm text-accent underline underline-offset-4"
       >
-        Réessayer
+        {t.retry}
       </button>
     </div>
   );

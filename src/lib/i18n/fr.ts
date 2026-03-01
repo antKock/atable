@@ -36,6 +36,7 @@ export const t = {
     stepsOptional: "(optionnel)",
     tagsLabel: "Tags",
     tagsOptional: "(optionnel)",
+    tagsHelper: "Séparez les tags par des virgules",
     photoOptional: "(optionnel)",
   },
 
@@ -79,6 +80,9 @@ export const t = {
     confirm: "Supprimer",
     cancel: "Annuler",
   },
+
+  // Generic actions
+  retry: "Réessayer",
 
   // Search
   search: {
