@@ -14,12 +14,11 @@ export default function LandingScreen() {
   async function handleTryApp() {
     setDemoLoading(true)
     try {
-      const response = await fetch('/api/demo/session', {
-        method: 'POST',
-        redirect: 'follow',
-      })
-      if (response.redirected) {
-        window.location.href = response.url
+      const response = await fetch('/api/demo/session', { method: 'POST' })
+      if (response.ok) {
+        window.location.href = '/home'
+      } else {
+        setDemoLoading(false)
       }
     } catch {
       setDemoLoading(false)

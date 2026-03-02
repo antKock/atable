@@ -54,20 +54,17 @@ export default function CodeEntryForm({ onCancel }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code }),
-        redirect: 'follow',
       })
 
-      if (response.redirected) {
-        window.location.href = response.url
+      if (response.ok) {
+        window.location.href = '/home'
         return
       }
 
-      if (!response.ok) {
-        const data = await response.json()
-        const error = response.status === 429 ? t.join.rateLimited : (data.error ?? t.join.notFound)
-        setState({ phase: 'entry', error })
-        setCode('')
-      }
+      const data = await response.json()
+      const error = response.status === 429 ? t.join.rateLimited : (data.error ?? t.join.notFound)
+      setState({ phase: 'entry', error })
+      setCode('')
     } catch {
       setState({ phase: 'entry', error: t.join.notFound })
     }
