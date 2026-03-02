@@ -13,6 +13,7 @@ const PUBLIC_PREFIXES = [
   '/api/demo/',
   '/api/auth/session',
   '/api/cron/',
+  '/api/debug',
 ]
 
 export async function middleware(request: NextRequest) {
