@@ -1,69 +1,77 @@
 'use client'
 
-import { useState, useEffect, useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useState, useEffect } from 'react'
 import { t } from '@/lib/i18n/fr'
-import { joinHousehold } from '@/app/actions/auth'
 
 const CODE_REGEX = /^[A-Z]+-\d{4}$/
 
-type LookupState =
+type JoinState =
   | { phase: 'entry'; error?: string }
   | { phase: 'loading' }
   | { phase: 'preview'; householdName: string }
+  | { phase: 'joining' }
 
 type Props = {
   onCancel: () => void
 }
 
-function JoinButton() {
-  const { pending } = useFormStatus()
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="min-h-[44px] flex-1 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-    >
-      {pending ? '…' : t.join.confirm}
-    </button>
-  )
-}
-
 export default function CodeEntryForm({ onCancel }: Props) {
   const [code, setCode] = useState('')
-  const [lookup, setLookup] = useState<LookupState>({ phase: 'entry' })
-  const [joinState, joinAction] = useActionState(joinHousehold, null)
+  const [state, setState] = useState<JoinState>({ phase: 'entry' })
 
   // Auto-lookup when code matches valid format
   useEffect(() => {
     if (!CODE_REGEX.test(code)) return
 
     let cancelled = false
-    setLookup({ phase: 'loading' })
+    setState({ phase: 'loading' })
 
     fetch(`/api/households/lookup?code=${encodeURIComponent(code)}`)
       .then(async (res) => {
         if (cancelled) return
         const data = await res.json()
         if (res.ok) {
-          setLookup({ phase: 'preview', householdName: data.householdName })
+          setState({ phase: 'preview', householdName: data.householdName })
         } else if (res.status === 429) {
-          setLookup({ phase: 'entry', error: t.join.rateLimited })
+          setState({ phase: 'entry', error: t.join.rateLimited })
         } else {
-          setLookup({ phase: 'entry', error: data.error ?? t.join.notFound })
+          setState({ phase: 'entry', error: data.error ?? t.join.notFound })
         }
       })
       .catch(() => {
-        if (!cancelled) setLookup({ phase: 'entry', error: t.join.notFound })
+        if (!cancelled) setState({ phase: 'entry', error: t.join.notFound })
       })
 
     return () => { cancelled = true }
   }, [code])
 
-  // Surface join errors back to entry phase
-  const displayError =
-    (lookup.phase === 'entry' && lookup.error) ||
-    (joinState?.error ?? null)
+  async function handleJoin() {
+    if (state.phase !== 'preview') return
+    setState({ phase: 'joining' })
+
+    try {
+      const response = await fetch('/api/households/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }),
+        redirect: 'follow',
+      })
+
+      if (response.redirected) {
+        window.location.href = response.url
+        return
+      }
+
+      if (!response.ok) {
+        const data = await response.json()
+        const error = response.status === 429 ? t.join.rateLimited : (data.error ?? t.join.notFound)
+        setState({ phase: 'entry', error })
+        setCode('')
+      }
+    } catch {
+      setState({ phase: 'entry', error: t.join.notFound })
+    }
+  }
 
   return (
     <div className="flex w-full max-w-sm flex-col gap-4">
@@ -75,36 +83,36 @@ export default function CodeEntryForm({ onCancel }: Props) {
         onChange={(e) => {
           const upper = e.target.value.toUpperCase()
           setCode(upper)
-          if (lookup.phase === 'entry' && lookup.error) {
-            setLookup({ phase: 'entry' })
+          if (state.phase === 'entry' && state.error) {
+            setState({ phase: 'entry' })
           }
         }}
         placeholder={t.join.placeholder}
         autoFocus
-        disabled={lookup.phase === 'loading'}
+        disabled={state.phase === 'loading' || state.phase === 'joining'}
         className="min-h-[44px] rounded-lg border border-border bg-background px-3 font-mono text-base text-foreground placeholder:font-sans placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
       />
 
       {/* Inline validation hint */}
-      {code && !CODE_REGEX.test(code) && lookup.phase === 'entry' && (
+      {code && !CODE_REGEX.test(code) && state.phase === 'entry' && (
         <p className="text-sm text-muted-foreground">{t.join.invalidFormat}</p>
       )}
 
       {/* Error */}
-      {displayError && (
-        <p className="text-sm text-destructive">{displayError}</p>
+      {state.phase === 'entry' && state.error && (
+        <p className="text-sm text-destructive">{state.error}</p>
       )}
 
       {/* Loading */}
-      {lookup.phase === 'loading' && (
+      {state.phase === 'loading' && (
         <p className="text-sm text-muted-foreground">{t.join.searching}</p>
       )}
 
-      {/* Preview + join form */}
-      {lookup.phase === 'preview' && (
+      {/* Preview */}
+      {state.phase === 'preview' && (
         <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-3">
           <p className="text-sm font-medium text-foreground">
-            {t.join.preview(lookup.householdName)}
+            {t.join.preview(state.householdName)}
           </p>
         </div>
       )}
@@ -113,16 +121,29 @@ export default function CodeEntryForm({ onCancel }: Props) {
         <button
           type="button"
           onClick={onCancel}
+          disabled={state.phase === 'joining'}
           className="min-h-[44px] flex-1 rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
         >
           {t.actions.cancel}
         </button>
 
-        {lookup.phase === 'preview' && (
-          <form action={joinAction}>
-            <input type="hidden" name="code" value={code} />
-            <JoinButton />
-          </form>
+        {state.phase === 'preview' && (
+          <button
+            type="button"
+            onClick={handleJoin}
+            className="min-h-[44px] flex-1 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+          >
+            {t.join.confirm}
+          </button>
+        )}
+
+        {state.phase === 'joining' && (
+          <button
+            disabled
+            className="min-h-[44px] flex-1 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground opacity-50"
+          >
+            …
+          </button>
         )}
       </div>
     </div>

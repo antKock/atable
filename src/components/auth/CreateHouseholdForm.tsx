@@ -1,33 +1,51 @@
 'use client'
 
-import { useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
+import { useState } from 'react'
 import { t } from '@/lib/i18n/fr'
-import { createHousehold } from '@/app/actions/auth'
 
 type Props = {
   onCancel: () => void
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus()
-  return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="min-h-[44px] flex-1 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
-    >
-      {pending ? '…' : t.actions.save}
-    </button>
-  )
-}
-
 export default function CreateHouseholdForm({ onCancel }: Props) {
-  const [state, formAction] = useActionState(createHousehold, null)
+  const [name, setName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    const trimmed = name.trim()
+    if (!trimmed) return
+
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await fetch('/api/households', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: trimmed }),
+        redirect: 'follow',
+      })
+
+      if (response.redirected) {
+        window.location.href = response.url
+        return
+      }
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error ?? t.household.createError)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t.household.createError)
+      setLoading(false)
+    }
+  }
 
   return (
     <form
-      action={formAction}
+      onSubmit={handleSubmit}
       className="flex w-full max-w-sm flex-col gap-4"
     >
       <h2 className="text-xl font-semibold text-foreground">
@@ -43,8 +61,9 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
         </label>
         <input
           id="household-name"
-          name="name"
           type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           placeholder={t.household.namePlaceholder}
           maxLength={50}
           required
@@ -53,19 +72,26 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
         />
       </div>
 
-      {state?.error && (
-        <p className="text-sm text-destructive">{state.error}</p>
+      {error && (
+        <p className="text-sm text-destructive">{error}</p>
       )}
 
       <div className="flex gap-3">
         <button
           type="button"
           onClick={onCancel}
+          disabled={loading}
           className="min-h-[44px] flex-1 rounded-lg border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-muted disabled:opacity-50"
         >
           {t.actions.cancel}
         </button>
-        <SubmitButton />
+        <button
+          type="submit"
+          disabled={loading || !name.trim()}
+          className="min-h-[44px] flex-1 rounded-lg bg-accent px-4 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {loading ? '…' : t.actions.save}
+        </button>
       </div>
     </form>
   )

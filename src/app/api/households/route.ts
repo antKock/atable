@@ -64,8 +64,11 @@ export async function POST(request: NextRequest) {
     const payload = { hid, sid, iat: Math.floor(Date.now() / 1000) }
     const token = await signSession(payload)
 
-    const redirectTo = `/home?code=${encodeURIComponent(joinCode)}&householdName=${encodeURIComponent(name)}`
-    const response = NextResponse.json({ redirectTo })
+    const redirectUrl = new URL(
+      `/home?code=${encodeURIComponent(joinCode)}&householdName=${encodeURIComponent(name)}`,
+      request.url
+    )
+    const response = NextResponse.redirect(redirectUrl, { status: 303 })
     setSessionCookie(response, token)
 
     return response

@@ -27,7 +27,9 @@ export async function POST(request: NextRequest) {
     const payload = { hid: demoHouseholdId, sid: session.id, iat: Math.floor(Date.now() / 1000) }
     const token = await signSession(payload)
 
-    const response = NextResponse.json({ ok: true })
+    const response = NextResponse.redirect(new URL('/home', request.url), {
+      status: 303,
+    })
     setSessionCookie(response, token)
 
     return response
