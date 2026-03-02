@@ -1,4 +1,5 @@
 import { SignJWT, jwtVerify } from 'jose'
+import type { NextResponse } from 'next/server'
 import type { SessionPayload } from '@/types/household'
 
 // This is the ONLY file that imports jose directly.
@@ -35,7 +36,7 @@ export async function verifySession(token: string): Promise<SessionPayload | nul
 }
 
 export function setSessionCookie(
-  response: { cookies: { set: (opts: object) => void } },
+  response: NextResponse,
   token: string
 ): void {
   response.cookies.set({
@@ -49,9 +50,7 @@ export function setSessionCookie(
   })
 }
 
-export function clearSessionCookie(response: {
-  cookies: { set: (opts: object) => void }
-}): void {
+export function clearSessionCookie(response: NextResponse): void {
   response.cookies.set({
     name: COOKIE_NAME,
     value: '',

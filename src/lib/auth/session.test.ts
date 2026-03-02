@@ -51,7 +51,7 @@ describe('setSessionCookie', () => {
     const setCalls: object[] = []
     const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } }
 
-    setSessionCookie(mockResponse, token)
+    setSessionCookie(mockResponse as never, token)
 
     expect(setCalls).toHaveLength(1)
     const opts = setCalls[0] as Record<string, unknown>
@@ -70,7 +70,7 @@ describe('clearSessionCookie', () => {
     const setCalls: object[] = []
     const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } }
 
-    clearSessionCookie(mockResponse)
+    clearSessionCookie(mockResponse as never)
 
     expect(setCalls).toHaveLength(1)
     const opts = setCalls[0] as Record<string, unknown>
