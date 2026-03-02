@@ -25,7 +25,7 @@ export async function middleware(request: NextRequest) {
 
   const token = request.cookies.get('atable_session')?.value
 
-  let payload = null
+  let payload: Awaited<ReturnType<typeof verifySession>> = null
   let verifyError = ''
   if (token) {
     try {
