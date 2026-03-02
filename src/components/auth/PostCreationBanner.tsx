@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Copy, Check } from 'lucide-react'
+import { Share2, Copy, Check } from 'lucide-react'
 import { toast } from 'sonner'
 import { t } from '@/lib/i18n/fr'
 
@@ -13,9 +13,20 @@ type Props = {
 export default function PostCreationBanner({ householdName, code }: Props) {
   const [copied, setCopied] = useState(false)
 
-  async function handleCopy() {
+  async function handleShare() {
+    const url = `${window.location.origin}/join/${code}`
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: t.household.shareTitle(householdName), url })
+        return
+      } catch {
+        // User cancelled or share failed — fall through to clipboard
+      }
+    }
+
     try {
-      await navigator.clipboard.writeText(`${window.location.origin}/join/${code}`)
+      await navigator.clipboard.writeText(url)
       setCopied(true)
       toast.success(t.household.inviteLinkCopied)
       setTimeout(() => setCopied(false), 2000)
@@ -31,16 +42,16 @@ export default function PostCreationBanner({ householdName, code }: Props) {
           {t.household.createSuccess(householdName)}
         </p>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {t.household.code} : <span className="font-mono font-medium text-foreground">{code}</span>
+          {t.household.inviteCodeLabel} : <span className="font-mono font-medium text-foreground">{code}</span>
         </p>
       </div>
       <button
         type="button"
-        onClick={handleCopy}
+        onClick={handleShare}
         aria-label={copied ? t.household.copied : t.household.copy}
         className="flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/20"
       >
-        {copied ? <Check size={18} /> : <Copy size={18} />}
+        {copied ? <Check size={18} /> : <Share2 size={18} />}
       </button>
     </div>
   )

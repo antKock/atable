@@ -4,7 +4,7 @@ export default function LandingLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-background to-[#EDE8E0]">
+    <div className="flex min-h-screen flex-col bg-gradient-to-b from-background to-[#EDE8E0]">
       {children}
     </div>
   )
