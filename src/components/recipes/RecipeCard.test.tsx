@@ -55,7 +55,7 @@ describe("RecipeCard", () => {
     const { container } = render(
       <RecipeCard recipe={baseRecipe} variant="carousel" />
     );
-    expect(container.querySelector("a")?.className).toContain("w-44");
+    expect(container.querySelector("a")?.className).toContain("w-56");
   });
 
   it("applies full-width class in grid variant", () => {

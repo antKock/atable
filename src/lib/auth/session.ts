@@ -15,8 +15,10 @@ function getSecret(): Uint8Array {
 }
 
 export async function signSession(payload: SessionPayload): Promise<string> {
-  return new SignJWT({ hid: payload.hid, sid: payload.sid, iat: payload.iat })
+  return new SignJWT({ hid: payload.hid, sid: payload.sid })
     .setProtectedHeader({ alg: 'HS256' })
+    .setIssuedAt()
+    .setExpirationTime('1y')
     .sign(getSecret())
 }
 
@@ -48,7 +50,7 @@ export function setSessionCookie(
     name: COOKIE_NAME,
     value: token,
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     maxAge: 60 * 60 * 24 * 365,
     path: '/',
@@ -60,7 +62,7 @@ export function clearSessionCookie(response: NextResponse): void {
     name: COOKIE_NAME,
     value: '',
     httpOnly: true,
-    secure: true,
+    secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax' as const,
     maxAge: 0,
     path: '/',

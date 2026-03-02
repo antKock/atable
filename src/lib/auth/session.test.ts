@@ -19,10 +19,17 @@ describe('signSession', () => {
 
 describe('verifySession', () => {
   it('round-trips a valid payload', async () => {
-    const payload: SessionPayload = { hid: 'hh-abc', sid: 'ss-xyz', iat: 1234567890 }
+    const before = Math.floor(Date.now() / 1000)
+    const payload: SessionPayload = { hid: 'hh-abc', sid: 'ss-xyz', iat: before }
     const token = await signSession(payload)
     const result = await verifySession(token)
-    expect(result).toEqual(payload)
+    const after = Math.floor(Date.now() / 1000)
+    expect(result).not.toBeNull()
+    expect(result!.hid).toBe('hh-abc')
+    expect(result!.sid).toBe('ss-xyz')
+    // iat is set by signSession via setIssuedAt() — just verify it's a plausible timestamp
+    expect(result!.iat).toBeGreaterThanOrEqual(before)
+    expect(result!.iat).toBeLessThanOrEqual(after + 1)
   })
 
   it('returns null for a tampered token', async () => {
@@ -58,7 +65,7 @@ describe('setSessionCookie', () => {
     expect(opts.name).toBe('atable_session')
     expect(opts.value).toBe(token)
     expect(opts.httpOnly).toBe(true)
-    expect(opts.secure).toBe(true)
+    expect(opts.secure).toBe(false) // NODE_ENV is 'test', not 'production'
     expect(opts.sameSite).toBe('lax')
     expect(opts.maxAge).toBe(60 * 60 * 24 * 365)
     expect(opts.path).toBe('/')
@@ -78,7 +85,7 @@ describe('clearSessionCookie', () => {
     expect(opts.value).toBe('')
     expect(opts.maxAge).toBe(0)
     expect(opts.httpOnly).toBe(true)
-    expect(opts.secure).toBe(true)
+    expect(opts.secure).toBe(false) // NODE_ENV is 'test', not 'production'
     expect(opts.sameSite).toBe('lax')
   })
 })

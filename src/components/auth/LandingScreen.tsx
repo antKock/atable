@@ -10,9 +10,11 @@ type View = 'menu' | 'create' | 'join'
 export default function LandingScreen() {
   const [view, setView] = useState<View>('menu')
   const [demoLoading, setDemoLoading] = useState(false)
+  const [demoError, setDemoError] = useState<string | null>(null)
 
   async function handleTryApp() {
     setDemoLoading(true)
+    setDemoError(null)
     try {
       const response = await fetch('/api/demo/session', {
         method: 'POST',
@@ -20,8 +22,14 @@ export default function LandingScreen() {
       })
       if (response.redirected) {
         window.location.href = response.url
+        return
       }
-    } catch {
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}))
+        throw new Error((data as { error?: string }).error ?? 'Erreur serveur')
+      }
+    } catch (err) {
+      setDemoError(err instanceof Error ? err.message : 'Erreur serveur')
       setDemoLoading(false)
     }
   }
@@ -47,6 +55,10 @@ export default function LandingScreen() {
 
       {/* CTAs */}
       <div className="flex w-full flex-col gap-3">
+        {demoError && (
+          <p className="text-center text-sm text-destructive">{demoError}</p>
+        )}
+
         {/* Primary: Demo */}
         <button
           type="button"
