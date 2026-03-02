@@ -18,60 +18,64 @@ const PUBLIC_PREFIXES = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  console.log(`[middleware] → ${pathname}`)
 
   const isPublic =
     PUBLIC_ROUTES.includes(pathname) ||
     PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 
-  console.log(`[middleware] isPublic=${isPublic}`)
-
   const token = request.cookies.get('atable_session')?.value
-  console.log(`[middleware] cookie present=${!!token} length=${token?.length ?? 0}`)
 
   let payload = null
+  let verifyError = ''
   if (token) {
     try {
       payload = await verifySession(token)
-      console.log(`[middleware] verifySession=${payload ? `ok hid=${payload.hid} sid=${payload.sid}` : 'null (invalid token)'}`)
+      if (!payload) verifyError = 'returned-null'
     } catch (err) {
-      console.error(`[middleware] verifySession threw:`, err)
+      verifyError = String(err)
     }
+  }
+
+  // Helper: attach debug headers to any response
+  function withDebug(res: NextResponse, extra?: Record<string, string>) {
+    res.headers.set('x-dbg-cookie', token ? `yes:${token.length}` : 'no')
+    res.headers.set('x-dbg-payload', payload ? `ok:${payload.hid.slice(0, 8)}` : `null:${verifyError}`)
+    if (extra) {
+      for (const [k, v] of Object.entries(extra)) res.headers.set(k, v)
+    }
+    return res
   }
 
   // Authenticated user visiting landing → redirect to /home
   if (pathname === '/' && payload) {
-    console.log(`[middleware] authenticated on / → redirect /home`)
-    return NextResponse.redirect(new URL('/home', request.url))
+    return withDebug(NextResponse.redirect(new URL('/home', request.url)), { 'x-dbg-action': 'redirect-home' })
   }
 
   if (!isPublic) {
     if (!payload) {
-      console.log(`[middleware] no valid session on protected route → redirect /`)
-      return NextResponse.redirect(new URL('/', request.url))
+      return withDebug(NextResponse.redirect(new URL('/', request.url)), { 'x-dbg-action': 'redirect-landing:no-payload' })
     }
-    // Check revocation cache
-    console.log(`[middleware] calling redis.get(revoked:${payload.sid})`)
+
+    let redisResult = 'skip'
     try {
       const isRevoked = await redis.get(`revoked:${payload.sid}`)
-      console.log(`[middleware] isRevoked=${JSON.stringify(isRevoked)}`)
+      redisResult = isRevoked ? 'revoked' : 'ok'
       if (isRevoked) {
-        console.log(`[middleware] session revoked → redirect /`)
-        return NextResponse.redirect(new URL('/', request.url))
+        return withDebug(NextResponse.redirect(new URL('/', request.url)), { 'x-dbg-action': 'redirect-landing:revoked', 'x-dbg-redis': redisResult })
       }
     } catch (err) {
-      console.error(`[middleware] redis.get threw:`, err)
-      // fail-open: continue so we can observe behavior from logs
+      redisResult = `error:${String(err).slice(0, 80)}`
     }
-    // Forward household context via headers
-    console.log(`[middleware] forwarding x-household-id=${payload.hid} → next()`)
+
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-household-id', payload.hid)
     requestHeaders.set('x-session-id', payload.sid)
-    return NextResponse.next({ request: { headers: requestHeaders } })
+    return withDebug(
+      NextResponse.next({ request: { headers: requestHeaders } }),
+      { 'x-dbg-action': 'next:ok', 'x-dbg-redis': redisResult }
+    )
   }
 
-  console.log(`[middleware] public route → next()`)
   return NextResponse.next()
 }
 
