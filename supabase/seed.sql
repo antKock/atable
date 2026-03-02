@@ -157,26 +157,4 @@ VALUES
     '00000000-0000-0000-0000-000000000000',
     true,
     NOW() - interval '4 days'
-  ),
-  (
-    gen_random_uuid(),
-    'Soupe à l''oignon gratinée',
-    '1 kg d''oignons' || chr(10) || '80 g de beurre' || chr(10) || '1 c. à soupe de farine' || chr(10) || '20 cl de vin blanc sec' || chr(10) || '1,5 litre de bouillon de bœuf' || chr(10) || 'Pain rassis en tranches' || chr(10) || 'Gruyère râpé' || chr(10) || 'Sel, poivre',
-    'Émincer finement les oignons.' || chr(10) || 'Faire fondre le beurre dans une cocotte à feu doux.' || chr(10) || 'Faire caraméliser les oignons 40 minutes en remuant régulièrement.' || chr(10) || 'Saupoudrer de farine, bien mélanger.' || chr(10) || 'Déglacer au vin blanc, ajouter le bouillon, cuire 20 minutes.' || chr(10) || 'Répartir la soupe dans des bols allant au four.' || chr(10) || 'Poser les tranches de pain, couvrir de gruyère râpé.' || chr(10) || 'Passer sous le grill jusqu''à gratinage.',
-    ARRAY['soupe', 'hiver', 'plat'],
-    null,
-    '00000000-0000-0000-0000-000000000000',
-    true,
-    NOW() - interval '3 days'
-  ),
-  (
-    gen_random_uuid(),
-    'Pâtes carbonara',
-    '400 g de spaghetti' || chr(10) || '200 g de pancetta ou guanciale' || chr(10) || '4 jaunes d''œufs' || chr(10) || '100 g de pecorino romano râpé' || chr(10) || 'Poivre noir fraîchement moulu',
-    'Cuire les pâtes al dente dans une grande quantité d''eau salée.' || chr(10) || 'Faire revenir la pancetta à sec dans une poêle jusqu''à ce qu''elle soit croustillante.' || chr(10) || 'Mélanger les jaunes d''œufs avec le pecorino et beaucoup de poivre.' || chr(10) || 'Égoutter les pâtes en réservant une tasse d''eau de cuisson.' || chr(10) || 'Mélanger les pâtes chaudes avec la pancetta hors du feu.' || chr(10) || 'Ajouter le mélange œufs-fromage et un peu d''eau de cuisson.' || chr(10) || 'Mélanger vigoureusement jusqu''à obtenir une sauce crémeuse.',
-    ARRAY['pâtes', 'rapide', 'plat'],
-    null,
-    '00000000-0000-0000-0000-000000000000',
-    true,
-    NOW() - interval '2 days'
   );
