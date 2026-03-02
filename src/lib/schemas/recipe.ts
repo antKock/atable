@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const RecipeCreateSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
-  ingredients: z.string().optional(),
-  steps: z.string().optional(),
+  ingredients: z.string().nullable().optional(),
+  steps: z.string().nullable().optional(),
   tags: z.array(z.string()).optional().default([]),
   photoUrl: z.string().url().nullable().optional(),
 });

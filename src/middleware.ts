@@ -61,7 +61,17 @@ export async function middleware(request: NextRequest) {
       const isRevoked = await redis.get(`revoked:${payload.sid}`)
       redisResult = isRevoked ? 'revoked' : 'ok'
       if (isRevoked) {
-        return withDebug(NextResponse.redirect(new URL('/', request.url)), { 'x-dbg-action': 'redirect-landing:revoked', 'x-dbg-redis': redisResult })
+        const res = NextResponse.redirect(new URL('/', request.url))
+        res.cookies.set({
+          name: 'atable_session',
+          value: '',
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          maxAge: 0,
+          path: '/',
+        })
+        return withDebug(res, { 'x-dbg-action': 'redirect-landing:revoked', 'x-dbg-redis': redisResult })
       }
     } catch (err) {
       redisResult = `error:${String(err).slice(0, 80)}`

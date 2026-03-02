@@ -1,14 +1,21 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { t } from "@/lib/i18n/fr";
 import RecipeCard from "@/components/recipes/RecipeCard";
 import type { RecipeListItem } from "@/types/recipe";
 
 export default async function LibraryPage() {
+  const hdrs = await headers();
+  const householdId = hdrs.get("x-household-id");
+  if (!householdId) redirect("/");
+
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("recipes")
     .select("id, title, ingredients, tags, photo_url, created_at")
+    .eq("household_id", householdId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
