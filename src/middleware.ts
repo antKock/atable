@@ -17,35 +17,60 @@ const PUBLIC_PREFIXES = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+  console.log(`[middleware] → ${pathname}`)
 
   const isPublic =
     PUBLIC_ROUTES.includes(pathname) ||
     PUBLIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 
+  console.log(`[middleware] isPublic=${isPublic}`)
+
   const token = request.cookies.get('atable_session')?.value
-  const payload = token ? await verifySession(token) : null
+  console.log(`[middleware] cookie present=${!!token} length=${token?.length ?? 0}`)
+
+  let payload = null
+  if (token) {
+    try {
+      payload = await verifySession(token)
+      console.log(`[middleware] verifySession=${payload ? `ok hid=${payload.hid} sid=${payload.sid}` : 'null (invalid token)'}`)
+    } catch (err) {
+      console.error(`[middleware] verifySession threw:`, err)
+    }
+  }
 
   // Authenticated user visiting landing → redirect to /home
   if (pathname === '/' && payload) {
+    console.log(`[middleware] authenticated on / → redirect /home`)
     return NextResponse.redirect(new URL('/home', request.url))
   }
 
   if (!isPublic) {
     if (!payload) {
+      console.log(`[middleware] no valid session on protected route → redirect /`)
       return NextResponse.redirect(new URL('/', request.url))
     }
     // Check revocation cache
-    const isRevoked = await redis.get(`revoked:${payload.sid}`)
-    if (isRevoked) {
-      return NextResponse.redirect(new URL('/', request.url))
+    console.log(`[middleware] calling redis.get(revoked:${payload.sid})`)
+    try {
+      const isRevoked = await redis.get(`revoked:${payload.sid}`)
+      console.log(`[middleware] isRevoked=${JSON.stringify(isRevoked)}`)
+      if (isRevoked) {
+        console.log(`[middleware] session revoked → redirect /`)
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+    } catch (err) {
+      console.error(`[middleware] redis.get threw:`, err)
+      // fail-open: continue so we can observe behavior from logs
     }
     // Forward household context via headers
+    console.log(`[middleware] forwarding x-household-id=${payload.hid} → next()`)
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-household-id', payload.hid)
     requestHeaders.set('x-session-id', payload.sid)
     return NextResponse.next({ request: { headers: requestHeaders } })
   }
 
+  console.log(`[middleware] public route → next()`)
   return NextResponse.next()
 }
 

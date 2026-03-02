@@ -22,15 +22,20 @@ export async function signSession(payload: SessionPayload): Promise<string> {
 
 export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
+    const secret = process.env.SESSION_SIGNING_SECRET
+    console.log(`[session] verifySession: secret present=${!!secret} secretLength=${secret?.length ?? 0}`)
     const { payload } = await jwtVerify(token, getSecret(), { algorithms: ['HS256'] })
     const hid = payload['hid']
     const sid = payload['sid']
     const iat = payload['iat']
+    console.log(`[session] jwt decoded: hid=${hid} sid=${sid} iat=${iat}`)
     if (typeof hid !== 'string' || typeof sid !== 'string' || typeof iat !== 'number') {
+      console.log(`[session] payload type mismatch: hid=${typeof hid} sid=${typeof sid} iat=${typeof iat}`)
       return null
     }
     return { hid, sid, iat }
-  } catch {
+  } catch (err) {
+    console.error(`[session] jwtVerify threw:`, err)
     return null
   }
 }

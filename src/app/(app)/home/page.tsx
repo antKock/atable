@@ -42,8 +42,13 @@ export default async function HomePage({ searchParams }: Props) {
   const { code, householdName } = await searchParams
   const hdrs = await headers()
   const householdId = hdrs.get('x-household-id')
+  const sessionId = hdrs.get('x-session-id')
+  console.log(`[home/page] x-household-id=${householdId} x-session-id=${sessionId}`)
 
-  if (!householdId) redirect('/')
+  if (!householdId) {
+    console.log(`[home/page] no x-household-id → redirect /`)
+    redirect('/')
+  }
 
   const supabase = createServerClient();
   const { data, error } = await supabase
