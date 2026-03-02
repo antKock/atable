@@ -136,6 +136,7 @@ export const t = {
     nameLabel: "Nom du foyer",
     createTitle: "Créer un foyer",
     createSuccess: (name: string) => `Foyer « ${name} » créé`,
+    inviteLinkCopied: "Lien d'invitation copié !",
     createError: "Impossible de créer le foyer. Veuillez réessayer.",
     menu: "Mon foyer",
     menuButton: "Menu du foyer",

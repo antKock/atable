@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
+import { toast } from 'sonner'
 import { t } from '@/lib/i18n/fr'
 
 type Props = {
@@ -14,8 +15,9 @@ export default function PostCreationBanner({ householdName, code }: Props) {
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(code)
+      await navigator.clipboard.writeText(`${window.location.origin}/join/${code}`)
       setCopied(true)
+      toast.success(t.household.inviteLinkCopied)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       // Clipboard API unavailable — silently ignore

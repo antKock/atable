@@ -15,12 +15,14 @@ interface CreateProps {
   mode: "create";
   initialData?: never;
   recipeId?: never;
+  stickySubmit?: boolean;
 }
 
 interface EditProps {
   mode: "edit";
   initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags" | "photoUrl">;
   recipeId: string;
+  stickySubmit?: boolean;
 }
 
 type RecipeFormProps = CreateProps | EditProps;
@@ -36,7 +38,7 @@ function stringToTags(value: string): string[] {
     .filter(Boolean);
 }
 
-export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormProps) {
+export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }: RecipeFormProps) {
   const router = useRouter();
   const isEdit = mode === "edit";
   const { uploadPhoto } = usePhotoUpload();
@@ -238,14 +240,21 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
       </div>
 
       {/* Submit */}
-      <Button
-        type="submit"
-        size="lg"
-        disabled={!canSave || isSaving}
-        className="w-full min-h-[44px]"
+      <div
+        className={stickySubmit
+          ? "sticky bottom-0 bg-background pt-3 border-t border-border/50 shadow-[0_-8px_16px_-4px_rgba(0,0,0,0.06)]"
+          : undefined}
+        style={stickySubmit ? { paddingBottom: "max(1rem, env(safe-area-inset-bottom))" } : undefined}
       >
-        {t.actions.save}
-      </Button>
+        <Button
+          type="submit"
+          size="lg"
+          disabled={!canSave || isSaving}
+          className="w-full min-h-[44px]"
+        >
+          {t.actions.save}
+        </Button>
+      </div>
     </form>
   );
 }

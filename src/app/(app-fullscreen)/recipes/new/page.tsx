@@ -18,7 +18,7 @@ export default function NewRecipePage() {
           {t.actions.addRecipe}
         </h1>
       </div>
-      <RecipeForm mode="create" />
+      <RecipeForm mode="create" stickySubmit />
     </div>
   );
 }
