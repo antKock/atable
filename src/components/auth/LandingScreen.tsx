@@ -1,29 +1,29 @@
 'use client'
 
 import { useState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { t } from '@/lib/i18n/fr'
+import { startDemoSession } from '@/app/actions/auth'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
 
 type View = 'menu' | 'create' | 'join'
 
+function DemoButton() {
+  const { pending } = useFormStatus()
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="flex min-h-[44px] items-center justify-center rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+    >
+      {pending ? '…' : t.landing.tryApp}
+    </button>
+  )
+}
+
 export default function LandingScreen() {
   const [view, setView] = useState<View>('menu')
-  const [demoLoading, setDemoLoading] = useState(false)
-
-  async function handleTryApp() {
-    setDemoLoading(true)
-    try {
-      const response = await fetch('/api/demo/session', { method: 'POST' })
-      if (response.ok) {
-        window.location.href = '/home'
-      } else {
-        setDemoLoading(false)
-      }
-    } catch {
-      setDemoLoading(false)
-    }
-  }
 
   if (view === 'create') {
     return <CreateHouseholdForm onCancel={() => setView('menu')} />
@@ -47,14 +47,9 @@ export default function LandingScreen() {
       {/* CTAs */}
       <div className="flex w-full flex-col gap-3">
         {/* Primary: Demo */}
-        <button
-          type="button"
-          onClick={handleTryApp}
-          disabled={demoLoading}
-          className="flex min-h-[44px] items-center justify-center rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-        >
-          {demoLoading ? '…' : t.landing.tryApp}
-        </button>
+        <form action={startDemoSession}>
+          <DemoButton />
+        </form>
 
         {/* Secondary: Create */}
         <button
