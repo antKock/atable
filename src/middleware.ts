@@ -34,10 +34,14 @@ export async function middleware(request: NextRequest) {
     if (!payload) {
       return NextResponse.redirect(new URL('/', request.url))
     }
-    // Check revocation cache
-    const isRevoked = await redis.get(`revoked:${payload.sid}`)
-    if (isRevoked) {
-      return NextResponse.redirect(new URL('/', request.url))
+    // Check revocation cache (fail-open: allow access if Redis is unavailable)
+    try {
+      const isRevoked = await redis.get(`revoked:${payload.sid}`)
+      if (isRevoked) {
+        return NextResponse.redirect(new URL('/', request.url))
+      }
+    } catch (err) {
+      console.error('[middleware] Redis revocation check failed:', err)
     }
     // Forward household context via headers
     const requestHeaders = new Headers(request.headers)
