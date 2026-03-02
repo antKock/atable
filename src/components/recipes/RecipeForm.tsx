@@ -115,7 +115,7 @@ export default function RecipeForm({ mode, initialData, recipeId }: RecipeFormPr
 
         const created = await response.json();
         toast.success(t.feedback.recipeSaved, { duration: 2500 });
-        router.push("/");
+        router.push("/home");
 
         // Fire-and-forget background upload after redirect
         if (photoFile) {

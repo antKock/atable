@@ -6,7 +6,7 @@ import Navigation from "./Navigation";
 afterEach(() => cleanup());
 
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/",
+  usePathname: () => "/home",
 }));
 
 describe("Navigation", () => {
@@ -23,7 +23,7 @@ describe("Navigation", () => {
     const hrefs = Array.from(container.querySelectorAll("a")).map((a) =>
       a.getAttribute("href")
     );
-    expect(hrefs).toContain("/");
+    expect(hrefs).toContain("/home");
     expect(hrefs).toContain("/library");
     expect(hrefs).toContain("/recipes/new");
   });
@@ -34,7 +34,7 @@ describe("Navigation", () => {
       .getAllByRole("link")
       .filter((l) => l.getAttribute("aria-current") === "page");
     expect(activeLinks.length).toBeGreaterThan(0);
-    expect(activeLinks[0].getAttribute("href")).toBe("/");
+    expect(activeLinks[0].getAttribute("href")).toBe("/home");
   });
 
   it("renders two nav elements (mobile bottom + desktop side rail)", () => {

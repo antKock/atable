@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "@/components/ui/sonner";
-import Navigation from "@/components/layout/Navigation";
-import DeviceTokenProvider from "@/components/layout/DeviceTokenProvider";
 import { t } from "@/lib/i18n/fr";
 import "./globals.css";
 
@@ -24,12 +21,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.variable} font-sans antialiased`}>
-        <DeviceTokenProvider />
-        <div className="lg:pl-56">
-          <main className="min-h-screen pb-20 lg:pb-0">{children}</main>
-        </div>
-        <Navigation />
-        <Toaster />
+        {children}
       </body>
     </html>
   );

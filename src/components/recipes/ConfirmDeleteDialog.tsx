@@ -40,7 +40,7 @@ export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: Conf
 
       setOpen(false);
       toast.success(t.feedback.recipeDeleted, { duration: 2500 });
-      router.push("/");
+      router.push("/home");
     } catch (err) {
       setOpen(false);
       toast.error(

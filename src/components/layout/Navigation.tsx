@@ -6,7 +6,7 @@ import { Home, Plus, BookOpen } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 
 const navItems = [
-  { href: "/", label: t.nav.home, icon: Home },
+  { href: "/home", label: t.nav.home, icon: Home },
   { href: "/recipes/new", label: t.nav.add, icon: Plus, isAdd: true },
   { href: "/library", label: t.nav.library, icon: BookOpen },
 ];

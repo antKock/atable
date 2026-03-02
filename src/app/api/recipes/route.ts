@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { RecipeCreateSchema } from "@/lib/schemas/recipe";
@@ -7,10 +8,17 @@ import type { RecipeListItem } from "@/types/recipe";
 
 export async function GET() {
   try {
+    const hdrs = await headers();
+    const householdId = hdrs.get("x-household-id");
+    if (!householdId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("recipes")
       .select("id, title, ingredients, tags, photo_url, created_at")
+      .eq("household_id", householdId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
@@ -35,6 +43,12 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    const hdrs = await headers();
+    const householdId = hdrs.get("x-household-id");
+    if (!householdId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const result = RecipeCreateSchema.safeParse(body);
 
@@ -54,13 +68,14 @@ export async function POST(request: NextRequest) {
         steps: result.data.steps ?? null,
         tags: result.data.tags ?? [],
         photo_url: result.data.photoUrl ?? null,
+        household_id: householdId,
       })
       .select()
       .single();
 
     if (error) throw error;
 
-    revalidatePath("/");
+    revalidatePath("/home");
     revalidatePath("/recipes/[id]");
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });

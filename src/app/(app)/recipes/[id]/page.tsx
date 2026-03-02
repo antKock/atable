@@ -57,7 +57,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
         {/* Back button — frosted glass, overlaid top-left */}
         <Link
-          href="/"
+          href="/home"
           aria-label={t.a11y.backButton}
           className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >

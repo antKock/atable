@@ -97,6 +97,72 @@ export const t = {
     gallery: "Galerie de photos",
   },
 
+  // Landing screen
+  landing: {
+    title: "atable",
+    subtitle: "Votre bibliothèque de recettes personnelle",
+    tryApp: "Essayer l'app",
+    createHousehold: "Créer un foyer",
+    joinHousehold: "Rejoindre un foyer",
+  },
+
+  // Join via invite link
+  joinLink: {
+    hero: (name: string) => `Rejoindre « ${name} » ?`,
+    confirm: 'Rejoindre',
+    notFound: 'Ce lien ne correspond à aucun foyer',
+    backToLanding: "Retour à l'accueil",
+  },
+
+  // Join household
+  join: {
+    enterCode: "Entrer un code",
+    placeholder: "OLIVE-4821",
+    preview: (name: string) => `Foyer « ${name} » trouvé — Rejoindre ?`,
+    confirm: "Rejoindre",
+    notFound: "Ce code ne correspond à aucun foyer",
+    rateLimited: "Trop de tentatives, réessayez plus tard",
+    invalidFormat: "Format invalide — ex : OLIVE-4821",
+    searching: "Recherche en cours…",
+  },
+
+  // Household
+  household: {
+    created: "Foyer créé",
+    code: "Code",
+    copy: "Copier",
+    copied: "Copié !",
+    namePlaceholder: "Ex : Chez nous, Famille Dupont…",
+    nameLabel: "Nom du foyer",
+    createTitle: "Créer un foyer",
+    createSuccess: (name: string) => `Foyer « ${name} » créé`,
+    createError: "Impossible de créer le foyer. Veuillez réessayer.",
+    menu: "Mon foyer",
+    menuButton: "Menu du foyer",
+    shareCode: "Code du foyer",
+    inviteLink: "Lien d'invitation",
+    devices: "Appareils connectés",
+    leaveHousehold: "Quitter le foyer",
+    rename: "Renommer",
+    renameTitle: "Renommer le foyer",
+    renameSuccess: "Foyer renommé",
+    renameError: "Impossible de renommer le foyer",
+    revokeDevice: "Révoquer",
+    revokeDeviceConfirm: "Révoquer cet appareil ?",
+    deviceRevoked: "Appareil révoqué",
+    leaveConfirm: "Quitter le foyer ?",
+    leaveBody: "Vous devrez rejoindre avec un code ou un lien pour accéder à nouveau aux recettes.",
+    leaveAction: "Quitter",
+    demoLabel: "Démo",
+    currentDevice: "cet appareil",
+    revokeBody: "Cette action est irréversible.",
+    revokeError: "Impossible de révoquer l'appareil",
+    leaveLastMemberTitle: "Supprimer le foyer ?",
+    leaveLastMemberBody: "Toutes les recettes seront définitivement supprimées.",
+    leaveLastMemberAction: "Supprimer définitivement",
+    leaveError: "Une erreur s'est produite. Veuillez réessayer.",
+  },
+
   // Accessibility
   a11y: {
     backButton: "Retour",
