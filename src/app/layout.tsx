@@ -9,8 +9,19 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://atable.anthonykocken.fr"),
   title: t.appName,
   description: "Votre bibliothèque de recettes personnelle",
+  openGraph: {
+    title: t.appName,
+    description: "Votre bibliothèque de recettes personnelle",
+    siteName: t.appName,
+    locale: "fr_FR",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 export default function RootLayout({

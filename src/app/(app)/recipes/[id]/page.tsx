@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,18 +14,43 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-export default async function RecipeDetailPage({ params }: Props) {
-  const { id } = await params;
+async function getRecipe(id: string) {
   const supabase = createServerClient();
   const { data } = await supabase
     .from("recipes")
     .select("*")
     .eq("id", id)
     .single();
+  return data ? mapDbRowToRecipe(data) : null;
+}
 
-  if (!data) notFound();
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const recipe = await getRecipe(id);
+  if (!recipe) return {};
 
-  const recipe = mapDbRowToRecipe(data);
+  const description = recipe.tags.length > 0
+    ? recipe.tags.join(", ")
+    : "Une recette sur atable";
+
+  return {
+    title: recipe.title,
+    description,
+    openGraph: {
+      title: recipe.title,
+      description,
+      ...(recipe.photoUrl && {
+        images: [{ url: recipe.photoUrl }],
+      }),
+    },
+  };
+}
+
+export default async function RecipeDetailPage({ params }: Props) {
+  const { id } = await params;
+  const recipe = await getRecipe(id);
+
+  if (!recipe) notFound();
 
   const ingredientLines = recipe.ingredients
     ? recipe.ingredients.split("\n").filter((l) => l.trim())
