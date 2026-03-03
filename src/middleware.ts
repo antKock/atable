@@ -16,8 +16,17 @@ const PUBLIC_PREFIXES = [
   '/api/debug',
 ]
 
+// Bot user-agents used by social platforms to generate link previews
+const BOT_UA_PATTERN = /facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot/i
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
+
+  // Let social media crawlers through so they can read OG metadata
+  const userAgent = request.headers.get('user-agent') || ''
+  if (BOT_UA_PATTERN.test(userAgent)) {
+    return NextResponse.next()
+  }
 
   const isPublic =
     PUBLIC_ROUTES.includes(pathname) ||
