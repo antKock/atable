@@ -21,7 +21,7 @@ export default function OpenGraphImage() {
         <span
           style={{
             fontFamily: 'Georgia, serif',
-            fontSize: 160,
+            fontSize: 220,
             fontWeight: 700,
             lineHeight: 1,
             letterSpacing: '-0.02em',
@@ -32,13 +32,25 @@ export default function OpenGraphImage() {
         </span>
         <span
           style={{
-            marginTop: 32,
+            marginTop: 40,
             fontFamily: 'sans-serif',
-            fontSize: 44,
+            fontSize: 48,
             color: '#6B6B6B',
+            textAlign: 'center',
+            lineHeight: 1.4,
           }}
         >
-          Votre bibliothèque de recettes personnelle
+          Votre bibliothèque
+        </span>
+        <span
+          style={{
+            fontFamily: 'sans-serif',
+            fontSize: 48,
+            color: '#6B6B6B',
+            textAlign: 'center',
+          }}
+        >
+          de recettes personnelle
         </span>
       </div>
     ),
