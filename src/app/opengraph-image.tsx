@@ -21,7 +21,7 @@ export default function OpenGraphImage() {
         <span
           style={{
             fontFamily: 'Georgia, serif',
-            fontSize: 96,
+            fontSize: 160,
             fontWeight: 700,
             lineHeight: 1,
             letterSpacing: '-0.02em',
@@ -32,9 +32,9 @@ export default function OpenGraphImage() {
         </span>
         <span
           style={{
-            marginTop: 24,
+            marginTop: 32,
             fontFamily: 'sans-serif',
-            fontSize: 28,
+            fontSize: 44,
             color: '#6B6B6B',
           }}
         >
