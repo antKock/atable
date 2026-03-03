@@ -12,8 +12,8 @@ export default async function AppShell({ children }: { children: React.ReactNode
   return (
     <>
       <DeviceTokenProvider />
-      {isDemo && <DemoBanner />}
       <div className="lg:pl-56">
+        {isDemo && <DemoBanner />}
         <main className="min-h-screen pb-20 lg:pb-0">{children}</main>
       </div>
       <Navigation />

@@ -60,7 +60,7 @@ export default function Navigation() {
       {/* Desktop/tablet side rail */}
       <nav
         aria-label={t.a11y.mainNav}
-        className="fixed left-0 top-0 hidden h-full w-56 flex-col border-r border-border bg-surface lg:flex"
+        className="fixed left-0 top-0 z-50 hidden h-full w-56 flex-col border-r border-border bg-surface lg:flex"
       >
         <div className="px-6 py-8">
           <span className="text-xl font-extrabold tracking-tight text-foreground">
