@@ -34,7 +34,7 @@ export default function OpenGraphImage() {
           style={{
             marginTop: 40,
             fontFamily: 'sans-serif',
-            fontSize: 48,
+            fontSize: 96,
             color: '#6B6B6B',
             textAlign: 'center',
             lineHeight: 1.4,
@@ -45,7 +45,7 @@ export default function OpenGraphImage() {
         <span
           style={{
             fontFamily: 'sans-serif',
-            fontSize: 48,
+            fontSize: 96,
             color: '#6B6B6B',
             textAlign: 'center',
           }}
