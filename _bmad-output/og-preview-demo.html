@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>atable — OG Preview Demo</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f0f0f0; padding: 40px; color: #1a1a1a; }
+    h1 { font-size: 22px; margin-bottom: 32px; text-align: center; color: #333; }
+    h2 { font-size: 16px; margin-bottom: 12px; color: #666; font-weight: 600; }
+    .section { margin-bottom: 48px; }
+    .cards { display: flex; gap: 32px; flex-wrap: wrap; justify-content: center; }
+
+    /* ── Messenger-style card ── */
+    .messenger-card {
+      width: 340px;
+      background: #fff;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    }
+    .messenger-card .og-image {
+      width: 100%;
+      aspect-ratio: 1200/630;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .messenger-card .og-text {
+      padding: 10px 14px 12px;
+    }
+    .messenger-card .og-domain {
+      font-size: 11px;
+      color: #8e8e8e;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .messenger-card .og-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .messenger-card .og-desc {
+      font-size: 12px;
+      color: #8e8e8e;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+
+    /* ── WhatsApp-style card ── */
+    .whatsapp-bubble {
+      max-width: 360px;
+      background: #d9fdd3;
+      border-radius: 8px;
+      padding: 4px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .whatsapp-card {
+      background: #d1f4cc;
+      border-radius: 6px;
+      overflow: hidden;
+      border-left: 4px solid #25d366;
+    }
+    .whatsapp-card .og-image {
+      width: 100%;
+      aspect-ratio: 1200/630;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .whatsapp-card .og-text {
+      padding: 6px 10px 8px;
+    }
+    .whatsapp-card .og-domain {
+      font-size: 11px;
+      color: #6b9b68;
+      margin-bottom: 1px;
+    }
+    .whatsapp-card .og-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #1a1a1a;
+      line-height: 1.3;
+    }
+    .whatsapp-card .og-desc {
+      font-size: 12px;
+      color: #555;
+      margin-top: 2px;
+      line-height: 1.3;
+    }
+    .whatsapp-url {
+      padding: 4px 6px 6px;
+      font-size: 12px;
+      color: #53bdeb;
+    }
+
+    /* ── OG Image simulation ── */
+    .og-image-landing {
+      background: #F8FAF7;
+    }
+    .og-image-landing .logo {
+      font-family: Georgia, serif;
+      font-size: 52px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .og-image-landing .logo .a { color: #1A1F1A; }
+    .og-image-landing .logo .t { color: #6E7A38; }
+    .og-image-landing .subtitle {
+      margin-top: 12px;
+      font-size: 15px;
+      color: #6B6B6B;
+      font-family: sans-serif;
+    }
+
+    .og-image-recipe {
+      position: relative;
+    }
+    .og-image-recipe img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ── Labels ── */
+    .label {
+      display: inline-block;
+      background: #e8e8e8;
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 11px;
+      color: #666;
+      margin-bottom: 16px;
+      font-weight: 500;
+    }
+    .platform-label {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>atable — Social Preview Demo</h1>
+
+<!-- ── Landing / Default page ── -->
+<div class="section">
+  <h2>Landing page — atable.anthonykocken.fr</h2>
+  <div class="cards">
+
+    <!-- Messenger -->
+    <div>
+      <div class="platform-label"><span class="label">Facebook Messenger</span></div>
+      <div class="messenger-card">
+        <div class="og-image og-image-landing">
+          <span class="logo"><span class="a">a</span><span class="t">table</span></span>
+          <span class="subtitle">Votre bibliothèque de recettes personnelle</span>
+        </div>
+        <div class="og-text">
+          <div class="og-domain">atable.anthonykocken.fr</div>
+          <div class="og-title">atable</div>
+          <div class="og-desc">Votre bibliothèque de recettes personnelle</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div>
+      <div class="platform-label"><span class="label">WhatsApp</span></div>
+      <div class="whatsapp-bubble">
+        <div class="whatsapp-card">
+          <div class="og-image og-image-landing">
+            <span class="logo"><span class="a">a</span><span class="t">table</span></span>
+            <span class="subtitle">Votre bibliothèque de recettes personnelle</span>
+          </div>
+          <div class="og-text">
+            <div class="og-domain">atable.anthonykocken.fr</div>
+            <div class="og-title">atable</div>
+            <div class="og-desc">Votre bibliothèque de recettes personnelle</div>
+          </div>
+        </div>
+        <div class="whatsapp-url">https://atable.anthonykocken.fr</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Recipe page (with photo) ── -->
+<div class="section">
+  <h2>Recipe page (with photo) — atable.anthonykocken.fr/recipes/abc123</h2>
+  <div class="cards">
+
+    <!-- Messenger -->
+    <div>
+      <div class="platform-label"><span class="label">Facebook Messenger</span></div>
+      <div class="messenger-card">
+        <div class="og-image og-image-recipe" style="background: #e8e0d4;">
+          <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <rect width="1200" height="630" fill="#e8e0d4"/>
+            <text x="600" y="290" text-anchor="middle" font-family="Georgia, serif" font-size="64" fill="#8a7e6f" opacity="0.6">photo de la recette</text>
+            <text x="600" y="370" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#8a7e6f" opacity="0.4">(image Supabase)</text>
+          </svg>
+        </div>
+        <div class="og-text">
+          <div class="og-domain">atable.anthonykocken.fr</div>
+          <div class="og-title">Gratin dauphinois</div>
+          <div class="og-desc">plat, hiver, fromage</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div>
+      <div class="platform-label"><span class="label">WhatsApp</span></div>
+      <div class="whatsapp-bubble">
+        <div class="whatsapp-card">
+          <div class="og-image og-image-recipe" style="background: #e8e0d4;">
+            <svg viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+              <rect width="1200" height="630" fill="#e8e0d4"/>
+              <text x="600" y="290" text-anchor="middle" font-family="Georgia, serif" font-size="64" fill="#8a7e6f" opacity="0.6">photo de la recette</text>
+              <text x="600" y="370" text-anchor="middle" font-family="sans-serif" font-size="28" fill="#8a7e6f" opacity="0.4">(image Supabase)</text>
+            </svg>
+          </div>
+          <div class="og-text">
+            <div class="og-domain">atable.anthonykocken.fr</div>
+            <div class="og-title">Gratin dauphinois</div>
+            <div class="og-desc">plat, hiver, fromage</div>
+          </div>
+        </div>
+        <div class="whatsapp-url">https://atable.anthonykocken.fr/recipes/abc123</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Recipe page (no photo — falls back to default OG image) ── -->
+<div class="section">
+  <h2>Recipe page (no photo — falls back to default OG image)</h2>
+  <div class="cards">
+
+    <!-- Messenger -->
+    <div>
+      <div class="platform-label"><span class="label">Facebook Messenger</span></div>
+      <div class="messenger-card">
+        <div class="og-image og-image-landing">
+          <span class="logo"><span class="a">a</span><span class="t">table</span></span>
+          <span class="subtitle">Votre bibliothèque de recettes personnelle</span>
+        </div>
+        <div class="og-text">
+          <div class="og-domain">atable.anthonykocken.fr</div>
+          <div class="og-title">Crêpes bretonnes</div>
+          <div class="og-desc">dessert, bretagne</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- WhatsApp -->
+    <div>
+      <div class="platform-label"><span class="label">WhatsApp</span></div>
+      <div class="whatsapp-bubble">
+        <div class="whatsapp-card">
+          <div class="og-image og-image-landing">
+            <span class="logo"><span class="a">a</span><span class="t">table</span></span>
+            <span class="subtitle">Votre bibliothèque de recettes personnelle</span>
+          </div>
+          <div class="og-text">
+            <div class="og-domain">atable.anthonykocken.fr</div>
+            <div class="og-title">Crêpes bretonnes</div>
+            <div class="og-desc">dessert, bretagne</div>
+          </div>
+        </div>
+        <div class="whatsapp-url">https://atable.anthonykocken.fr/recipes/xyz789</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

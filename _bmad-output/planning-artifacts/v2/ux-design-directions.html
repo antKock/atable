@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>atable v2.0 — UX Design Directions</title>
+<style>
+  :root {
+    --bg: #F8FAF7;
+    --surface: #FFFFFF;
+    --border: #E5DED6;
+    --text-primary: #1A1F1A;
+    --text-secondary: #6B6E68;
+    --accent: #6E7A38;
+    --accent-light: #EEF2E4;
+    --overlay: rgba(26,31,26,0.4);
+    --destructive: #B91C1C;
+    --destructive-light: #FEF2F2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #E5DED6;
+    color: var(--text-primary);
+    line-height: 1.5;
+  }
+
+  /* Header nav */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--text-primary);
+    color: white;
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 16px;
+    overflow-x: auto;
+  }
+  .nav h1 { font-size: 16px; font-weight: 600; white-space: nowrap; margin-right: 16px; }
+  .nav a {
+    color: rgba(255,255,255,0.7); text-decoration: none; font-size: 13px;
+    white-space: nowrap; padding: 6px 12px; border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .nav a:hover, .nav a.active { color: white; background: rgba(255,255,255,0.15); }
+
+  /* Section wrapper */
+  .section {
+    max-width: 1200px; margin: 40px auto; padding: 0 24px;
+  }
+  .section-title {
+    font-size: 24px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);
+  }
+  .section-desc {
+    font-size: 15px; color: var(--text-secondary); margin-bottom: 32px; max-width: 700px;
+  }
+
+  /* Phone frame */
+  .phone-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 32px;
+    margin-bottom: 48px;
+  }
+  .phone-wrapper {
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .phone-label {
+    font-size: 14px; font-weight: 600; margin-bottom: 12px; color: var(--text-primary);
+    text-align: center;
+  }
+  .phone-sublabel {
+    font-size: 12px; color: var(--text-secondary); margin-bottom: 16px;
+    text-align: center; max-width: 280px;
+  }
+  .phone {
+    width: 320px; height: 620px;
+    background: var(--bg);
+    border-radius: 32px;
+    border: 3px solid #333;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .phone-status {
+    height: 44px; background: transparent;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
+  }
+  .phone-content {
+    height: calc(100% - 44px);
+    overflow-y: auto;
+    position: relative;
+  }
+
+  /* Buttons */
+  .btn {
+    display: block; width: 100%; padding: 14px 24px;
+    border: none; border-radius: 12px;
+    font-size: 16px; font-weight: 600;
+    cursor: pointer; text-align: center;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: white; }
+  .btn-primary:hover { background: #5C682E; }
+  .btn-secondary { background: var(--surface); color: var(--text-primary); border: 1.5px solid var(--border); }
+  .btn-secondary:hover { background: var(--accent-light); }
+  .btn-ghost { background: transparent; color: var(--text-secondary); }
+  .btn-ghost:hover { color: var(--accent); }
+  .btn-destructive { background: var(--destructive-light); color: var(--destructive); }
+  .btn-destructive:hover { background: #FEE2E2; }
+
+  /* Input */
+  .input-group { margin-bottom: 16px; }
+  .input-label { font-size: 14px; font-weight: 500; color: var(--text-secondary); margin-bottom: 6px; }
+  .input {
+    width: 100%; padding: 12px 16px;
+    border: 1.5px solid var(--border); border-radius: 10px;
+    font-size: 16px; background: var(--surface);
+    color: var(--text-primary);
+    outline: none;
+  }
+  .input:focus { border-color: var(--accent); }
+  .input-error { border-color: var(--destructive); }
+  .error-text { font-size: 12px; color: var(--destructive); margin-top: 4px; }
+
+  /* Code display */
+  .code-display {
+    background: var(--accent-light);
+    border-radius: 10px;
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .code-text {
+    font-size: 17px; font-weight: 600; color: var(--text-primary);
+    letter-spacing: 0.5px;
+  }
+  .code-copy {
+    font-size: 12px; color: var(--accent); font-weight: 600;
+    cursor: pointer; padding: 4px 8px;
+    border-radius: 6px; background: rgba(110,122,56,0.1);
+  }
+
+  /* Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+
+  /* Household name display */
+  .household-name {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    font-size: 28px; font-weight: 600;
+    font-style: italic;
+    color: var(--text-primary);
+  }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* ===== LANDING SCREEN DIRECTIONS ===== */
+
+  /* Direction 1: Hero Photo */
+  .landing-hero {
+    height: 100%; display: flex; flex-direction: column;
+    background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.5) 100%),
+      url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="320" height="620"><rect fill="%23A08060" width="320" height="620"/><circle cx="160" cy="200" r="80" fill="%23C4A882" opacity="0.4"/><circle cx="120" cy="260" r="40" fill="%23D4B892" opacity="0.3"/><circle cx="200" cy="180" r="50" fill="%23B49872" opacity="0.3"/><rect x="80" y="350" width="160" height="8" rx="4" fill="%23D4B892" opacity="0.2"/><rect x="100" y="370" width="120" height="6" rx="3" fill="%23D4B892" opacity="0.15"/></svg>');
+    background-size: cover;
+  }
+  .landing-hero .content {
+    margin-top: auto; padding: 32px 24px 48px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .landing-hero .app-name {
+    font-family: 'Georgia', serif; font-size: 36px; font-weight: 700;
+    color: white; margin-bottom: 4px;
+  }
+  .landing-hero .tagline {
+    font-size: 15px; color: rgba(255,255,255,0.85); margin-bottom: 16px;
+  }
+  .landing-hero .btn-primary { background: white; color: var(--text-primary); }
+  .landing-hero .btn-secondary { background: rgba(255,255,255,0.15); color: white; border-color: rgba(255,255,255,0.3); }
+  .landing-hero .btn-ghost { color: rgba(255,255,255,0.7); }
+
+  /* Direction 2: Blurred Grid */
+  .landing-blur {
+    height: 100%; display: flex; flex-direction: column;
+    position: relative; overflow: hidden;
+  }
+  .blur-bg {
+    position: absolute; inset: 0;
+    background:
+      repeating-linear-gradient(0deg, transparent, transparent 120px, var(--border) 120px, var(--border) 121px),
+      repeating-linear-gradient(90deg, transparent, transparent 150px, var(--border) 150px, var(--border) 151px),
+      var(--bg);
+    filter: blur(8px);
+    opacity: 0.6;
+    transform: scale(1.1);
+  }
+  .blur-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(248,250,247,0.3) 0%, rgba(248,250,247,0.95) 60%);
+  }
+  .landing-blur .content {
+    position: relative; z-index: 1;
+    margin-top: auto; padding: 0 24px 48px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .landing-blur .app-name {
+    font-family: 'Georgia', serif; font-size: 32px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 4px; text-align: center;
+  }
+  .landing-blur .tagline {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; text-align: center;
+  }
+
+  /* Direction 3: Illustration + Gradient (CHOSEN) */
+  .landing-illust {
+    height: 100%; display: flex; flex-direction: column;
+    background: linear-gradient(160deg, var(--bg) 0%, var(--accent-light) 50%, var(--bg) 100%);
+  }
+  .illust-area {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 32px;
+  }
+  .illust-graphic {
+    width: 200px; height: 200px; position: relative;
+  }
+  .illust-board {
+    width: 160px; height: 120px; background: #D4C4A8; border-radius: 20px;
+    position: absolute; bottom: 0; left: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  .illust-leaf1 {
+    width: 40px; height: 60px; background: var(--accent);
+    border-radius: 50% 0 50% 50%; position: absolute; top: 20px; right: 10px;
+    transform: rotate(-30deg); opacity: 0.7;
+  }
+  .illust-leaf2 {
+    width: 30px; height: 45px; background: #8B9A4A;
+    border-radius: 0 50% 50% 50%; position: absolute; top: 10px; right: 50px;
+    transform: rotate(20deg); opacity: 0.5;
+  }
+  .illust-tomato {
+    width: 36px; height: 36px; background: #C4533A; border-radius: 50%;
+    position: absolute; bottom: 30px; right: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  .illust-tomato::after {
+    content: ''; position: absolute; top: -4px; left: 14px;
+    width: 8px; height: 8px; background: #5A8030; border-radius: 2px;
+  }
+  .illust-spoon {
+    width: 8px; height: 80px; background: #B8A88C; border-radius: 4px;
+    position: absolute; top: 40px; left: 0; transform: rotate(-15deg);
+  }
+  .illust-spoon::after {
+    content: ''; position: absolute; top: -20px; left: -6px;
+    width: 20px; height: 28px; background: #B8A88C;
+    border-radius: 50%;
+  }
+  .landing-illust .content {
+    padding: 0 24px 48px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .landing-illust .app-name {
+    font-family: 'Georgia', serif; font-size: 32px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 4px; text-align: center;
+  }
+  .landing-illust .tagline {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; text-align: center;
+  }
+
+  /* Direction 4: Rotating Cards */
+  .landing-cards {
+    height: 100%; display: flex; flex-direction: column;
+    background: var(--bg);
+  }
+  .cards-area {
+    flex: 1; display: flex; align-items: center; justify-content: center;
+    padding: 24px; position: relative;
+  }
+  .floating-card {
+    width: 180px; height: 130px; border-radius: 14px;
+    position: absolute; box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  .floating-card-1 {
+    background: #C4A882; transform: rotate(-8deg) translate(-30px, -20px);
+  }
+  .floating-card-2 {
+    background: #A08060; transform: rotate(4deg) translate(20px, 10px); z-index: 1;
+  }
+  .floating-card-3 {
+    background: #D4B892; transform: rotate(-2deg) translate(-10px, 40px);
+  }
+  .fc-title {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 8px 12px; background: linear-gradient(transparent, rgba(0,0,0,0.5));
+    color: white; font-size: 12px; font-weight: 600;
+  }
+  .landing-cards .content {
+    padding: 0 24px 48px;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+  }
+  .landing-cards .app-name {
+    font-family: 'Georgia', serif; font-size: 32px; font-weight: 700;
+    color: var(--text-primary); margin-bottom: 4px; text-align: center;
+  }
+  .landing-cards .tagline {
+    font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; text-align: center;
+  }
+
+  /* Direction 5: Logo + Gradient */
+  .landing-minimal {
+    height: 100%; display: flex; flex-direction: column;
+    background: linear-gradient(160deg, var(--bg) 0%, var(--accent-light) 50%, var(--bg) 100%);
+  }
+  .minimal-logo-area {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .minimal-logo {
+    font-family: 'Georgia', serif; font-size: 48px; font-weight: 700;
+    color: var(--accent);
+  }
+  .minimal-subtitle {
+    font-size: 14px; color: var(--text-secondary); text-align: center;
+  }
+  .landing-minimal .content {
+    padding: 0 24px 48px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+
+  /* ===== AUTH FLOW SCREENS ===== */
+
+  .flow-screen {
+    height: 100%; display: flex; flex-direction: column;
+    background: var(--bg); padding: 0 24px;
+  }
+  .flow-header {
+    padding: 16px 0;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .flow-back {
+    font-size: 20px; color: var(--text-secondary); cursor: pointer;
+    width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: var(--surface);
+  }
+  .flow-title {
+    font-size: 18px; font-weight: 600;
+  }
+  .flow-body {
+    flex: 1; display: flex; flex-direction: column;
+    padding-top: 24px;
+  }
+  .flow-center {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+  }
+
+  /* ===== HOUSEHOLD MENU ===== */
+
+  .menu-screen {
+    height: 100%; display: flex; flex-direction: column;
+    background: var(--bg);
+  }
+  .menu-header {
+    padding: 16px 24px; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+  }
+  .menu-body { padding: 16px 24px; flex: 1; overflow-y: auto; }
+  .menu-section-title {
+    font-size: 12px; font-weight: 600; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 8px; margin-top: 16px;
+  }
+  .menu-section-title:first-child { margin-top: 0; }
+
+  .device-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .device-info { display: flex; flex-direction: column; gap: 2px; }
+  .device-name { font-size: 15px; font-weight: 600; }
+  .device-meta { font-size: 12px; color: var(--text-secondary); }
+  .device-current {
+    font-size: 11px; color: var(--accent); font-weight: 600;
+    background: var(--accent-light); padding: 2px 8px; border-radius: 4px;
+  }
+  .device-revoke {
+    font-size: 13px; color: var(--destructive); font-weight: 500;
+    cursor: pointer; padding: 6px 12px; border-radius: 8px;
+    background: var(--destructive-light);
+  }
+
+  /* Bottom nav */
+  .bottom-nav {
+    height: 64px; background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 0 16px;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    font-size: 10px; color: var(--text-secondary);
+  }
+  .nav-icon { font-size: 20px; }
+  .nav-item.active { color: var(--accent); }
+
+  /* Demo banner */
+  .demo-banner {
+    background: var(--accent-light);
+    padding: 10px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid rgba(110,122,56,0.15);
+  }
+  .demo-banner-text {
+    font-size: 13px; color: var(--accent); font-weight: 500;
+  }
+  .demo-banner-cta {
+    font-size: 12px; color: var(--accent); font-weight: 700;
+    padding: 4px 10px; border-radius: 6px;
+    background: rgba(110,122,56,0.15); cursor: pointer;
+  }
+
+  /* Confirmation banner */
+  .confirm-banner {
+    background: var(--accent-light);
+    padding: 14px 16px;
+    border-radius: 12px;
+    margin: 16px 0;
+  }
+  .confirm-banner-title {
+    font-size: 15px; font-weight: 600; color: var(--text-primary);
+    margin-bottom: 8px;
+  }
+
+  /* Dialog overlay */
+  .dialog-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; z-index: 10;
+  }
+  .dialog {
+    background: var(--surface); border-radius: 16px;
+    padding: 24px; width: 100%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  }
+  .dialog-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .dialog-desc { font-size: 14px; color: var(--text-secondary); margin-bottom: 20px; }
+  .dialog-actions { display: flex; gap: 8px; }
+  .dialog-actions .btn { flex: 1; padding: 12px; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <h1>atable v2.0 — Design Directions</h1>
+  <a href="#landing" class="active">Landing Screen</a>
+  <a href="#create">Create Household</a>
+  <a href="#join">Join Flows</a>
+  <a href="#demo">Demo Mode</a>
+  <a href="#menu">Household Menu</a>
+  <a href="#errors">Error States</a>
+</nav>
+
+<!-- ========== LANDING SCREEN — CHOSEN DIRECTION ========== -->
+<div class="section" id="landing">
+  <h2 class="section-title">Landing Screen — Chosen Direction</h2>
+  <p class="section-desc">Kitchen illustration + warm gradient background (Direction 3 + 5 combined). "atable" logo matches the home view style (olive accent, Georgia serif). Primary CTA is "Essayer l'app" (demo as discovery), secondary is "Créer un foyer", tertiary is "Rejoindre un foyer".</p>
+
+  <div class="phone-grid">
+    <!-- Chosen: Illustration + Gradient -->
+    <div class="phone-wrapper">
+      <div class="phone-label" style="color: var(--accent);">Chosen Direction — Illustration + Gradient</div>
+      <div class="phone-sublabel">Kitchen illustration on a warm gradient. Demo is the primary CTA — the app sells itself. Logo matches home view.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="landing-illust">
+            <div class="illust-area">
+              <div class="illust-graphic">
+                <div class="illust-spoon"></div>
+                <div class="illust-board"></div>
+                <div class="illust-leaf1"></div>
+                <div class="illust-leaf2"></div>
+                <div class="illust-tomato"></div>
+              </div>
+            </div>
+            <div class="content">
+              <div style="font-size: 40px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 4px; text-align: center;"><span style="color: var(--text-primary);">a</span><span style="color: var(--accent);">table</span></div>
+              <div class="tagline">Votre bibliothèque de recettes</div>
+              <button class="btn btn-primary" style="width:100%">Essayer l'app</button>
+              <button class="btn btn-secondary" style="width:100%">Créer un foyer</button>
+              <button class="btn btn-ghost" style="width:100%">Rejoindre un foyer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comparison: Original explorations (small) -->
+    <div class="phone-wrapper">
+      <div class="phone-label" style="opacity:0.5">Previously explored — Direction 1 (Hero Photo)</div>
+      <div class="phone-sublabel" style="opacity:0.5">Not chosen. Kept for reference.</div>
+      <div class="phone" style="transform: scale(0.85); transform-origin: top center; opacity: 0.6;">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="landing-hero">
+            <div class="content">
+              <div class="app-name"><span style="color: inherit;">a</span><span style="opacity: 0.9;">table</span></div>
+              <div class="tagline">Votre bibliothèque de recettes</div>
+              <button class="btn btn-primary">Essayer l'app</button>
+              <button class="btn btn-secondary">Créer un foyer</button>
+              <button class="btn btn-ghost">Rejoindre un foyer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="phone-wrapper">
+      <div class="phone-label" style="opacity:0.5">Previously explored — Direction 5 (Logo + Gradient)</div>
+      <div class="phone-sublabel" style="opacity:0.5">Gradient adopted into chosen direction.</div>
+      <div class="phone" style="transform: scale(0.85); transform-origin: top center; opacity: 0.6;">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="landing-minimal">
+            <div class="minimal-logo-area">
+              <div class="minimal-logo"><span style="color: var(--text-primary);">a</span><span style="color: var(--accent);">table</span></div>
+              <div class="minimal-subtitle">Votre bibliothèque de recettes</div>
+            </div>
+            <div class="content">
+              <button class="btn btn-primary">Essayer l'app</button>
+              <button class="btn btn-secondary">Créer un foyer</button>
+              <button class="btn btn-ghost">Rejoindre un foyer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CREATE HOUSEHOLD ========== -->
+<div class="section" id="create">
+  <h2 class="section-title">Create Household Flow</h2>
+  <p class="section-desc">One field, one tap. The household name is the hero. The code appears after creation as a warm confirmation.</p>
+
+  <div class="phone-grid">
+    <!-- Create: Name Input -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Step 1 — Name Your Household</div>
+      <div class="phone-sublabel">Single input field. Focused immediately. The question frames it as naming, not registering.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-header">
+              <div class="flow-back">←</div>
+            </div>
+            <div class="flow-body">
+              <div style="margin-bottom: 8px; font-size: 22px; font-weight: 700;">Créer un foyer</div>
+              <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 32px;">
+                Donnez un nom à votre cuisine — c'est chez vous.
+              </div>
+              <div class="input-group">
+                <div class="input-label">Nom du foyer</div>
+                <input class="input" type="text" value="Chez nous" style="pointer-events:none">
+              </div>
+              <div style="margin-top: 24px;">
+                <button class="btn btn-primary">Créer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Create: Confirmation -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Step 2 — Household Created</div>
+      <div class="phone-sublabel">Warm confirmation with household name as hero. Code displayed with copy affordance. Invite link below.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-body">
+              <div class="flow-center">
+                <div style="margin-bottom: 16px;"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 8px;">Bienvenue dans</div>
+                <div class="household-name" style="margin-bottom: 32px;">Chez nous</div>
+
+                <div style="width: 100%; text-align: left;">
+                  <div class="input-label">Code du foyer</div>
+                  <div class="code-display">
+                    <span class="code-text">OLIVE-4821</span>
+                    <span class="code-copy">Copier</span>
+                  </div>
+                </div>
+
+                <div style="width: 100%; margin-top: 12px; text-align: left;">
+                  <div class="input-label">Lien d'invitation</div>
+                  <div class="code-display">
+                    <span class="code-text" style="font-size: 13px;">atable.app/join/OLIVE-4821</span>
+                    <span class="code-copy">Copier</span>
+                  </div>
+                </div>
+
+                <div style="width: 100%; margin-top: 32px;">
+                  <button class="btn btn-primary">Accéder à mes recettes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== JOIN FLOWS ========== -->
+<div class="section" id="join">
+  <h2 class="section-title">Join Household Flows</h2>
+  <p class="section-desc">Two parallel paths — invite link (one tap) and manual code (type + confirm). Both end at the same place.</p>
+
+  <div class="phone-grid">
+    <!-- Join: Via Link -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Join via Invite Link</div>
+      <div class="phone-sublabel">Alice taps a link from iMessage. One confirmation tap. No typing. The household name is the hero.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-body">
+              <div class="flow-center">
+                <div style="margin-bottom: 16px;"><svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--accent);"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+                <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 8px;">Vous êtes invité·e à rejoindre</div>
+                <div class="household-name" style="margin-bottom: 40px;">Chez nous</div>
+                <div style="width: 100%;">
+                  <button class="btn btn-primary">Rejoindre</button>
+                </div>
+                <div style="margin-top: 12px;">
+                  <button class="btn btn-ghost" style="font-size: 14px;">Annuler</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join: Manual Code - Empty -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Join via Code — Entry</div>
+      <div class="phone-sublabel">Fallback path. Single code field with format hint. Validates as user types.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-header">
+              <div class="flow-back">←</div>
+            </div>
+            <div class="flow-body">
+              <div style="margin-bottom: 8px; font-size: 22px; font-weight: 700;">Rejoindre un foyer</div>
+              <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 32px;">
+                Entrez le code partagé par un membre du foyer.
+              </div>
+              <div class="input-group">
+                <div class="input-label">Code du foyer</div>
+                <input class="input" type="text" placeholder="OLIVE-4821" style="pointer-events:none; text-transform: uppercase;">
+                <div style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;">Format : MOT-CHIFFRES</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Join: Manual Code - Found -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Join via Code — Preview</div>
+      <div class="phone-sublabel">Code validated. Household name displayed for confirmation before joining.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-header">
+              <div class="flow-back">←</div>
+            </div>
+            <div class="flow-body">
+              <div style="margin-bottom: 8px; font-size: 22px; font-weight: 700;">Rejoindre un foyer</div>
+              <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 32px;">
+                Entrez le code partagé par un membre du foyer.
+              </div>
+              <div class="input-group">
+                <div class="input-label">Code du foyer</div>
+                <input class="input" type="text" value="OLIVE-4821" style="pointer-events:none; border-color: var(--accent); text-transform: uppercase;">
+              </div>
+
+              <div class="confirm-banner">
+                <div class="confirm-banner-title">Foyer trouvé</div>
+                <div class="household-name" style="font-size: 22px; margin-bottom: 12px;">Chez nous</div>
+                <button class="btn btn-primary">Rejoindre</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DEMO MODE ========== -->
+<div class="section" id="demo">
+  <h2 class="section-title">Demo Mode</h2>
+  <p class="section-desc">Full V1 experience with seed data. The exit banner is persistent but non-intrusive. "Quitter la démo" returns to the landing screen, where the user decides between creating or joining a household.</p>
+
+  <div class="phone-grid">
+    <!-- Demo: Home with banner -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Demo — Home Screen with Banner</div>
+      <div class="phone-sublabel">Subtle accent-light banner at top with "Quitter la démo" CTA. Full recipe library below. No household icon in header (demo has no household).</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="menu-screen">
+            <div class="demo-banner">
+              <span class="demo-banner-text">Mode découverte</span>
+              <span class="demo-banner-cta">Quitter la démo →</span>
+            </div>
+            <!-- Simulated home screen -->
+            <div style="padding: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.025em;"><span style="color: var(--text-primary);">a</span><span style="color: var(--accent);">table</span></span>
+              </div>
+              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                🔍 Rechercher une recette...
+              </div>
+              <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Recettes rapides</div>
+              <div style="display: flex; gap: 10px; overflow: hidden; margin-bottom: 20px;">
+                <div style="min-width: 160px; height: 120px; background: #C4A882; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Pâtes carbonara</div>
+                </div>
+                <div style="min-width: 160px; height: 120px; background: #A08060; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Salade niçoise</div>
+                </div>
+              </div>
+              <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Comfort food</div>
+              <div style="display: flex; gap: 10px; overflow: hidden;">
+                <div style="min-width: 160px; height: 120px; background: #B49872; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Gratin dauphinois</div>
+                </div>
+                <div style="min-width: 160px; height: 120px; background: #D4B892; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Blanquette de veau</div>
+                </div>
+              </div>
+            </div>
+            <div class="bottom-nav">
+              <div class="nav-item active"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Accueil</div>
+              <div class="nav-item"><span class="nav-icon" style="background: var(--accent); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></div>
+              <div class="nav-item"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Bibliothèque</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo: Exit to landing -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Demo → Back to Landing</div>
+      <div class="phone-sublabel">User taps "Quitter la démo" from the banner. Returns to landing screen where they choose between creating or joining a household.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="landing-illust">
+            <div class="illust-area">
+              <div class="illust-graphic">
+                <div class="illust-spoon"></div>
+                <div class="illust-board"></div>
+                <div class="illust-leaf1"></div>
+                <div class="illust-leaf2"></div>
+                <div class="illust-tomato"></div>
+              </div>
+            </div>
+            <div class="content">
+              <div style="font-size: 40px; font-weight: 800; letter-spacing: -0.025em; margin-bottom: 4px; text-align: center;"><span style="color: var(--text-primary);">a</span><span style="color: var(--accent);">table</span></div>
+              <div class="tagline">Votre bibliothèque de recettes</div>
+              <button class="btn btn-primary" style="width:100%">Essayer l'app</button>
+              <button class="btn btn-secondary" style="width:100%">Créer un foyer</button>
+              <button class="btn btn-ghost" style="width:100%">Rejoindre un foyer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== HOUSEHOLD MENU ========== -->
+<div class="section" id="menu">
+  <h2 class="section-title">Household Menu & Device Management</h2>
+  <p class="section-desc">Accessible from an icon-only button in the top-right of the home screen header (not in the nav bar). Shows household info, code, invite link, connected devices, and leave option. Household name is editable.</p>
+
+  <div class="phone-grid">
+    <!-- Home screen showing the household icon -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Home Screen — Household Button</div>
+      <div class="phone-sublabel">Icon-only button (no label) in the top-right of the home header. Tapping opens the household menu.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="menu-screen">
+            <div style="padding: 16px 16px 0;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <span style="font-size: 22px; font-weight: 800; letter-spacing: -0.025em;"><span style="color: var(--text-primary);">a</span><span style="color: var(--accent);">table</span></span>
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--surface); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer;" title="Mon foyer"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+              </div>
+              <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 10px 14px; margin-bottom: 20px; color: var(--text-secondary); font-size: 14px;">
+                🔍 Rechercher une recette...
+              </div>
+              <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Recettes rapides</div>
+              <div style="display: flex; gap: 10px; overflow: hidden; margin-bottom: 20px;">
+                <div style="min-width: 160px; height: 120px; background: #C4A882; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Pâtes carbonara</div>
+                </div>
+                <div style="min-width: 160px; height: 120px; background: #A08060; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Salade niçoise</div>
+                </div>
+              </div>
+              <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">Comfort food</div>
+              <div style="display: flex; gap: 10px; overflow: hidden;">
+                <div style="min-width: 160px; height: 120px; background: #B49872; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Gratin dauphinois</div>
+                </div>
+                <div style="min-width: 160px; height: 120px; background: #D4B892; border-radius: 12px; position: relative;">
+                  <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px; background: linear-gradient(transparent, rgba(0,0,0,0.5)); border-radius: 0 0 12px 12px; color: white; font-size: 13px; font-weight: 600;">Blanquette de veau</div>
+                </div>
+              </div>
+            </div>
+            <div class="bottom-nav">
+              <div class="nav-item active"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>Accueil</div>
+              <div class="nav-item"><span class="nav-icon" style="background: var(--accent); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></span></div>
+              <div class="nav-item"><span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></span>Bibliothèque</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu: Main -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Household Menu</div>
+      <div class="phone-sublabel">Household name is editable (tap the pencil). Code + invite link with copy. Device list. Leave at the bottom.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="menu-screen">
+            <div class="menu-header">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="flow-back">←</div>
+                <div style="font-size: 18px; font-weight: 600;">Mon foyer</div>
+              </div>
+            </div>
+            <div class="menu-body">
+              <div style="text-align: center; padding: 16px 0 8px;">
+                <div style="display: inline-flex; align-items: center; gap: 8px;">
+                  <div class="household-name">Chez nous</div>
+                  <span style="cursor: pointer; padding: 4px;" title="Modifier le nom"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-secondary);"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg></span>
+                </div>
+              </div>
+
+              <div class="menu-section-title">Inviter un membre</div>
+              <div style="margin-bottom: 8px;">
+                <div class="input-label">Code du foyer</div>
+                <div class="code-display">
+                  <span class="code-text">OLIVE-4821</span>
+                  <span class="code-copy">Copier</span>
+                </div>
+              </div>
+              <div style="margin-bottom: 4px;">
+                <div class="input-label">Lien d'invitation</div>
+                <div class="code-display">
+                  <span class="code-text" style="font-size: 13px;">atable.app/join/OLIVE-4821</span>
+                  <span class="code-copy">Copier</span>
+                </div>
+              </div>
+
+              <div class="menu-section-title">Appareils connectés</div>
+              <div class="device-card">
+                <div class="device-info">
+                  <div class="device-name">iPhone 15 Pro — Safari</div>
+                  <div class="device-meta">Actif maintenant</div>
+                </div>
+                <span class="device-current">Cet appareil</span>
+              </div>
+              <div class="device-card">
+                <div class="device-info">
+                  <div class="device-name">iPad Air — Safari</div>
+                  <div class="device-meta">Il y a 2 jours</div>
+                </div>
+                <span class="device-revoke">Révoquer</span>
+              </div>
+              <div class="device-card">
+                <div class="device-info">
+                  <div class="device-name">iPhone 13 — Safari</div>
+                  <div class="device-meta">Il y a 3 semaines</div>
+                </div>
+                <span class="device-revoke">Révoquer</span>
+              </div>
+
+              <div style="margin-top: 32px;">
+                <button class="btn btn-destructive">Quitter le foyer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu: Revoke Confirmation -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Device Revocation — Confirmation</div>
+      <div class="phone-sublabel">Clear, calm confirmation dialog. Names the device. Explains the consequence. Two options.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="menu-screen" style="position: relative;">
+            <div class="menu-header" style="opacity: 0.3;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="flow-back">←</div>
+                <div style="font-size: 18px; font-weight: 600;">Mon foyer</div>
+              </div>
+            </div>
+            <div class="menu-body" style="opacity: 0.3;"></div>
+            <div class="dialog-overlay">
+              <div class="dialog">
+                <div class="dialog-title">Révoquer l'accès ?</div>
+                <div class="dialog-desc">
+                  <strong>iPhone 13 — Safari</strong> ne pourra plus accéder au foyer. Aucune recette ne sera supprimée.
+                </div>
+                <div class="dialog-actions">
+                  <button class="btn btn-secondary">Annuler</button>
+                  <button class="btn btn-destructive">Révoquer</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu: Leave Confirmation -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Leave Household — Confirmation</div>
+      <div class="phone-sublabel">Clear warning about consequences. If last member, warns about permanent deletion.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="menu-screen" style="position: relative;">
+            <div class="menu-header" style="opacity: 0.3;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="flow-back">←</div>
+                <div style="font-size: 18px; font-weight: 600;">Mon foyer</div>
+              </div>
+            </div>
+            <div class="menu-body" style="opacity: 0.3;"></div>
+            <div class="dialog-overlay">
+              <div class="dialog">
+                <div class="dialog-title">Quitter le foyer ?</div>
+                <div class="dialog-desc">
+                  Vous perdrez l'accès à toutes les recettes de <strong>Chez nous</strong>. Cet appareil sera déconnecté.
+                </div>
+                <div style="background: var(--destructive-light); padding: 10px 12px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: var(--destructive);">
+                  ⚠️ Vous êtes le dernier membre — le foyer et toutes ses recettes seront définitivement supprimés.
+                </div>
+                <div class="dialog-actions">
+                  <button class="btn btn-secondary">Annuler</button>
+                  <button class="btn btn-destructive">Quitter</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== ERROR STATES ========== -->
+<div class="section" id="errors">
+  <h2 class="section-title">Error States</h2>
+  <p class="section-desc">Calm, recoverable. Household language, not technical language. Redirect to landing on auth failure.</p>
+
+  <div class="phone-grid">
+    <!-- Error: Invalid Code -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Invalid Join Code</div>
+      <div class="phone-sublabel">Warm error below the input. No banner, no modal. Household language.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-header">
+              <div class="flow-back">←</div>
+            </div>
+            <div class="flow-body">
+              <div style="margin-bottom: 8px; font-size: 22px; font-weight: 700;">Rejoindre un foyer</div>
+              <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 32px;">
+                Entrez le code partagé par un membre du foyer.
+              </div>
+              <div class="input-group">
+                <div class="input-label">Code du foyer</div>
+                <input class="input input-error" type="text" value="PIZZA-0000" style="pointer-events:none; text-transform: uppercase;">
+                <div class="error-text">Ce code ne correspond à aucun foyer. Vérifiez le code et réessayez.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error: Rate Limit -->
+    <div class="phone-wrapper">
+      <div class="phone-label">Rate Limit Reached</div>
+      <div class="phone-sublabel">Calm messaging. No alarm. Explains what happened and when to retry.</div>
+      <div class="phone">
+        <div class="phone-status">9:41</div>
+        <div class="phone-content">
+          <div class="flow-screen">
+            <div class="flow-header">
+              <div class="flow-back">←</div>
+            </div>
+            <div class="flow-body">
+              <div style="margin-bottom: 8px; font-size: 22px; font-weight: 700;">Rejoindre un foyer</div>
+              <div style="font-size: 15px; color: var(--text-secondary); margin-bottom: 32px;">
+                Entrez le code partagé par un membre du foyer.
+              </div>
+              <div class="input-group">
+                <div class="input-label">Code du foyer</div>
+                <input class="input" type="text" value="OLIVE-4821" style="pointer-events:none; text-transform: uppercase; opacity: 0.5;" disabled>
+                <div style="font-size: 13px; color: var(--text-secondary); margin-top: 8px; padding: 10px 14px; background: var(--accent-light); border-radius: 8px;">
+                  Trop de tentatives. Réessayez dans quelques minutes, ou demandez un lien d'invitation au membre du foyer.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
