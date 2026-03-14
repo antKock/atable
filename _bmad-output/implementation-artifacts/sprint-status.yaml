@@ -23,15 +23,16 @@ development_status:
   2-3-photo-manager: done
 
   # Epic 3: Home Discovery Carousels
-  epic-3: backlog
-  3-1-carousel-data-queries-home-integration: backlog
-  3-2-recipe-card-carousel-component: backlog
+  epic-3: in-progress
+  3-1-carousel-data-queries-home-integration: review
+  3-2-recipe-card-carousel-component: review
 
   # Epic 4: Library Filtering
-  epic-4: backlog
-  4-1-filter-bar-tag-season-time-cost: backlog
+  epic-4: in-progress
+  4-1-filter-bar-tag-season-time-cost: review
+  4-2-library-grid-filtered-results: review
 
   # Epic 5: PWA & Demo Polish
-  epic-5: backlog
-  5-1-pwa-manifest: backlog
-  5-2-demo-seed-v3-metadata: backlog
+  epic-5: in-progress
+  5-1-pwa-manifest: review
+  5-2-demo-seed-v3-metadata: done  # skipped — batch enrichment already seeded all recipes

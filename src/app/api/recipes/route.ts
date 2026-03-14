@@ -8,7 +8,7 @@ import { enrichRecipe } from "@/lib/enrichment";
 
 export const maxDuration = 60;
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const hdrs = await headers();
     const householdId = hdrs.get("x-household-id");
@@ -16,12 +16,41 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { searchParams } = new URL(request.url);
+    const tagsParam = searchParams.get("tags");
+    const seasonParam = searchParams.get("season");
+    const costParam = searchParams.get("cost");
+
     const supabase = createServerClient();
-    const { data, error } = await supabase
+
+    // Use !inner join when filtering by tags to get INNER JOIN behavior
+    const selectClause = tagsParam
+      ? "id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags!inner(tag_id, tags!inner(id, name, category))"
+      : "id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))";
+
+    let query = supabase
       .from("recipes")
-      .select("id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))")
-      .eq("household_id", householdId)
-      .order("created_at", { ascending: false });
+      .select(selectClause)
+      .eq("household_id", householdId);
+
+    if (tagsParam) {
+      const tagIds = tagsParam.split(",").filter(Boolean);
+      if (tagIds.length > 0) {
+        query = query.in("recipe_tags.tag_id", tagIds);
+      }
+    }
+
+    if (seasonParam) {
+      query = query.contains("seasons", [seasonParam]);
+    }
+
+    if (costParam) {
+      query = query.eq("cost", costParam);
+    }
+
+    const { data, error } = await query.order("created_at", {
+      ascending: false,
+    });
 
     if (error) throw error;
 
@@ -30,7 +59,7 @@ export async function GET() {
     return NextResponse.json(recipes);
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }
@@ -88,7 +117,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

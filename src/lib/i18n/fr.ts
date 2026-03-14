@@ -119,10 +119,33 @@ export const t = {
 
   // Carousels
   carousels: {
-    recent: "Récentes",
-    quick: "Prêt en 30 min",
-    seasonal: "De saison",
-    popular: "Populaires",
+    nouvelles: "Nouvelles",
+    recentes: "Récentes",
+    redecouvrir: "Redécouvrir",
+    rapide: "Rapide",
+    vegetarien: "Végétarien",
+    comfortFood: "Comfort food",
+    pasCher: "Pas cher",
+    apero: "Apéro",
+    desserts: "Desserts",
+    cuisineItalienne: "Cuisine italienne",
+    cuisineDuMonde: "Cuisine du monde",
+    petitDejeuner: "Petit-déjeuner",
+    boissons: "Boissons",
+  },
+
+  // Filters
+  filters: {
+    deSaison: "De saison",
+    typeDePlat: "Type de plat",
+    cuisine: "Cuisine",
+    regime: "Régime",
+    duree: "Durée",
+    cout: "Coût",
+    lt30min: "< 30 min",
+    "30to60": "30 min - 1h",
+    gt60: "> 1h",
+    noResults: "Aucune recette ne correspond aux filtres",
   },
 
   // Empty states

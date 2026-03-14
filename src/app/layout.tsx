@@ -12,6 +12,16 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://atable.anthonykocken.fr"),
   title: t.appName,
   description: "Votre bibliothèque de recettes personnelle",
+  manifest: "/manifest.json",
+  themeColor: "#F8FAF7",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "À Table",
+  },
+  icons: {
+    apple: "/icons/icon-192.png",
+  },
   openGraph: {
     title: t.appName,
     description: "Votre bibliothèque de recettes personnelle",

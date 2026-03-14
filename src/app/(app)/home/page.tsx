@@ -6,64 +6,23 @@ import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
 import HomeContent from "@/components/recipes/HomeContent";
 import PostCreationBanner from "@/components/auth/PostCreationBanner";
-import { mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
-import type { RecipeListItem } from "@/types/recipe";
-
-function buildCarousels(recipes: RecipeListItem[]) {
-  const carousels: { key: string; title: string; recipes: RecipeListItem[] }[] =
-    [];
-
-  if (recipes.length === 0) return carousels;
-
-  carousels.push({
-    key: "__recent",
-    title: t.carousels.recent,
-    recipes: recipes.slice(0, 12),
-  });
-
-  const tagMap = new Map<string, { name: string; recipes: RecipeListItem[] }>();
-  for (const recipe of recipes) {
-    for (const tag of recipe.tags) {
-      const key = tag.id || tag.name;
-      if (!tagMap.has(key)) tagMap.set(key, { name: tag.name, recipes: [] });
-      tagMap.get(key)!.recipes.push(recipe);
-    }
-  }
-  for (const [key, { name, recipes: tagRecipes }] of tagMap) {
-    carousels.push({ key, title: name, recipes: tagRecipes });
-  }
-
-  return carousels;
-}
+import { fetchCarouselSections } from "@/lib/queries/carousels";
 
 type Props = {
-  searchParams: Promise<{ code?: string; householdName?: string }>
-}
+  searchParams: Promise<{ code?: string; householdName?: string }>;
+};
 
 export default async function HomePage({ searchParams }: Props) {
-  const { code, householdName } = await searchParams
-  const hdrs = await headers()
-  const householdId = hdrs.get('x-household-id')
-  const sessionId = hdrs.get('x-session-id')
-  console.log(`[home/page] x-household-id=${householdId} x-session-id=${sessionId}`)
+  const { code, householdName } = await searchParams;
+  const hdrs = await headers();
+  const householdId = hdrs.get("x-household-id");
 
   if (!householdId) {
-    console.log(`[home/page] no x-household-id → redirect /`)
-    redirect('/')
+    redirect("/");
   }
 
   const supabase = createServerClient();
-  const { data, error } = await supabase
-    .from("recipes")
-    .select("id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))")
-    .eq("household_id", householdId)
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-
-  const recipes: RecipeListItem[] = (data ?? []).map(mapDbRowToRecipeListItem);
-
-  const carousels = buildCarousels(recipes);
+  const carouselSections = await fetchCarouselSections(supabase, householdId);
 
   return (
     <div className="pb-6 pt-6">
@@ -86,7 +45,10 @@ export default async function HomePage({ searchParams }: Props) {
           code={decodeURIComponent(code)}
         />
       )}
-      <HomeContent recipes={recipes} carousels={carousels} />
+      <HomeContent
+        carouselSections={carouselSections}
+        hasRecipes={carouselSections.length > 0}
+      />
     </div>
   );
 }

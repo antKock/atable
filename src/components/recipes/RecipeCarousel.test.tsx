@@ -2,11 +2,11 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import RecipeCarousel from "./RecipeCarousel";
-import type { RecipeListItem } from "@/types/recipe";
+import type { CarouselRecipeItem } from "@/lib/queries/carousels";
 
 afterEach(() => cleanup());
 
-const recipe: RecipeListItem = {
+const recipe: CarouselRecipeItem = {
   id: "1",
   title: "Tarte aux pommes",
   ingredients: null,
@@ -16,6 +16,9 @@ const recipe: RecipeListItem = {
   generatedImageUrl: null,
   enrichmentStatus: "none",
   imageStatus: "none",
+  prepTime: "10-20 min",
+  cookTime: "30-60 min",
+  cost: "€",
 };
 
 describe("RecipeCarousel", () => {
@@ -32,7 +35,7 @@ describe("RecipeCarousel", () => {
   });
 
   it("renders a card link for each recipe", () => {
-    const recipes = [
+    const recipes: CarouselRecipeItem[] = [
       recipe,
       { ...recipe, id: "2", title: "Mousse au chocolat" },
     ];
@@ -43,11 +46,12 @@ describe("RecipeCarousel", () => {
     expect(links.length).toBe(2);
   });
 
-  it("renders a section with aria-label for accessibility", () => {
+  it("renders a section with role=region and aria-label for accessibility", () => {
     const { container } = render(
       <RecipeCarousel title="rapide" recipes={[recipe]} />
     );
     const section = container.querySelector("section");
+    expect(section?.getAttribute("role")).toBe("region");
     expect(section?.getAttribute("aria-label")).toContain("rapide");
   });
 });

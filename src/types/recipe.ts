@@ -33,6 +33,13 @@ export type RecipeListItem = Pick<
   "id" | "title" | "ingredients" | "tags" | "photoUrl" | "createdAt" | "generatedImageUrl" | "enrichmentStatus" | "imageStatus"
 >;
 
+export type LibraryRecipeItem = RecipeListItem & {
+  prepTime: string | null;
+  cookTime: string | null;
+  cost: string | null;
+  seasons: string[];
+};
+
 export type RecipeFormData = {
   title: string;
   ingredients: string;
