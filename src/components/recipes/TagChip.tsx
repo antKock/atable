@@ -19,9 +19,9 @@ export default function TagChip({ name, editable = false, onRemove }: TagChipPro
           type="button"
           onClick={onRemove}
           aria-label={`Retirer le tag ${name}`}
-          className="-mr-1 inline-flex h-[44px] w-[44px] items-center justify-center text-current opacity-60 transition-opacity hover:opacity-100"
+          className="relative -mr-1 inline-flex h-4 w-4 items-center justify-center text-current opacity-60 transition-opacity hover:opacity-100 before:absolute before:-inset-3 before:content-['']"
         >
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-full" aria-hidden="true">×</span>
+          <span aria-hidden="true">×</span>
         </button>
       )}
     </span>
