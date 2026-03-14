@@ -13,6 +13,7 @@ const PUBLIC_PREFIXES = [
   '/api/demo/',
   '/api/auth/session',
   '/api/cron/',
+  '/api/admin/',
   '/api/debug',
 ]
 
