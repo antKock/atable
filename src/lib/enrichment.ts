@@ -54,7 +54,7 @@ async function generateAndUploadImage(
 ): Promise<string> {
   // Generate with gpt-image-1
   const imageResponse = await openai.images.generate({
-    model: "gpt-image-1",
+    model: "gpt-image-1.5",
     prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting.`,
     n: 1,
     size: "1024x1024",
