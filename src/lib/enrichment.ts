@@ -100,7 +100,7 @@ export async function enrichRecipe(
     // 1. Read recipe data
     const { data: recipe, error: fetchError } = await supabase
       .from("recipes")
-      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt")
+      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt, photo_url, generated_image_url")
       .eq("id", recipeId)
       .single();
 
@@ -211,8 +211,9 @@ export async function enrichRecipe(
       }
     }
 
-    // 6. Image generation (only on create)
-    if (isCreate && result.imagePrompt) {
+    // 6. Image generation (on create, or on edit if recipe has no photo at all)
+    const hasNoImage = !recipe.photo_url && !recipe.generated_image_url;
+    if ((isCreate || hasNoImage) && result.imagePrompt) {
       try {
         const imageUrl = await withRetry(() =>
           generateAndUploadImage(recipeId, result.imagePrompt),
