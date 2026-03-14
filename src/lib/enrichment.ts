@@ -133,8 +133,11 @@ export async function enrichRecipe(
     const needsMetadata = !hasAllMetadata || tagCount === 0;
     const needsImage = !hasImage;
 
+    console.log(`[enrichment] ${recipeId} — needsMetadata=${needsMetadata} needsImage=${needsImage} (tags=${tagCount})`);
+
     if (!needsMetadata && !needsImage) {
-      // Everything is already filled — skip OpenAI calls
+      console.log(`[enrichment] ${recipeId} — skipping, everything filled`);
+
       if (recipe.enrichment_status !== "enriched") {
         await supabase
           .from("recipes")
@@ -155,6 +158,7 @@ export async function enrichRecipe(
     // 4. Call GPT-4o-mini (only if metadata or tags are missing)
     let result: EnrichmentResponse | null = null;
     if (needsMetadata) {
+      console.log(`[enrichment] ${recipeId} — calling GPT-4o-mini`);
       try {
         result = await withRetry(async () => {
           const response = await openai.chat.completions.create({
@@ -241,6 +245,7 @@ export async function enrichRecipe(
     // 7. Image generation (only if recipe has no photo at all)
     const imagePrompt = result?.imagePrompt || recipe.image_prompt;
     if (needsImage && imagePrompt) {
+      console.log(`[enrichment] ${recipeId} — calling DALL-E`);
       try {
         const imageUrl = await withRetry(() =>
           generateAndUploadImage(recipeId, imagePrompt),
