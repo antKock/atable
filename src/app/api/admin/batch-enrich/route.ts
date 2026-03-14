@@ -2,106 +2,97 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { enrichRecipe } from "@/lib/enrichment";
 
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
-  // Protect with CRON_SECRET
   const authHeader = request.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const { searchParams } = new URL(request.url);
+  const reset = searchParams.get("reset") === "true";
+  const limit = parseInt(searchParams.get("limit") || "1", 10);
+
   const supabase = createServerClient();
 
-  // 1. Clear all photos and reset statuses
-  console.log("[batch-enrich] Resetting all recipes...");
+  // --- RESET MODE: clear everything first ---
+  if (reset) {
+    console.log("[batch-enrich] RESET: clearing all photos, metadata, tags...");
 
-  // Delete manual uploads from storage
-  const { data: recipesWithPhotos } = await supabase
-    .from("recipes")
-    .select("id, photo_url")
-    .not("photo_url", "is", null);
+    // Delete files from storage
+    const { data: allRecipes } = await supabase
+      .from("recipes")
+      .select("id, photo_url, generated_image_url");
 
-  if (recipesWithPhotos && recipesWithPhotos.length > 0) {
-    const storagePaths = recipesWithPhotos
-      .map((r) => {
-        const url = r.photo_url as string;
-        const match = url.match(/recipe-photos\/(.+)$/);
-        return match ? match[1] : null;
-      })
-      .filter(Boolean) as string[];
-
-    if (storagePaths.length > 0) {
-      const { error: deleteError } = await supabase.storage
-        .from("recipe-photos")
-        .remove(storagePaths);
-      if (deleteError) {
-        console.error("[batch-enrich] Storage delete error:", deleteError);
-      } else {
-        console.log(`[batch-enrich] Deleted ${storagePaths.length} manual photos from storage`);
+    if (allRecipes) {
+      const paths: string[] = [];
+      for (const r of allRecipes) {
+        for (const url of [r.photo_url, r.generated_image_url]) {
+          if (url) {
+            const match = (url as string).match(/recipe-photos\/(.+)$/);
+            if (match) paths.push(match[1]);
+          }
+        }
+      }
+      if (paths.length > 0) {
+        await supabase.storage.from("recipe-photos").remove(paths);
+        console.log(`[batch-enrich] Deleted ${paths.length} files from storage`);
       }
     }
-  }
 
-  // Delete generated images from storage
-  const { data: recipesWithGenerated } = await supabase
-    .from("recipes")
-    .select("id, generated_image_url")
-    .not("generated_image_url", "is", null);
-
-  if (recipesWithGenerated && recipesWithGenerated.length > 0) {
-    const genPaths = recipesWithGenerated
-      .map((r) => {
-        const url = r.generated_image_url as string;
-        const match = url.match(/recipe-photos\/(.+)$/);
-        return match ? match[1] : null;
+    // Reset all recipe fields
+    await supabase
+      .from("recipes")
+      .update({
+        photo_url: null,
+        generated_image_url: null,
+        enrichment_status: "none",
+        image_status: "none",
+        image_prompt: null,
+        prep_time: null,
+        cook_time: null,
+        cost: null,
+        complexity: null,
+        seasons: [],
       })
-      .filter(Boolean) as string[];
+      .neq("id", "00000000-0000-0000-0000-000000000000");
 
-    if (genPaths.length > 0) {
-      await supabase.storage.from("recipe-photos").remove(genPaths);
-      console.log(`[batch-enrich] Deleted ${genPaths.length} generated images from storage`);
-    }
+    // Clear all recipe_tags
+    await supabase
+      .from("recipe_tags")
+      .delete()
+      .neq("recipe_id", "00000000-0000-0000-0000-000000000000");
+
+    // Count remaining
+    const { count } = await supabase
+      .from("recipes")
+      .select("*", { count: "exact", head: true })
+      .eq("enrichment_status", "none");
+
+    console.log(`[batch-enrich] Reset complete. ${count} recipes to enrich.`);
+    return NextResponse.json({ action: "reset", recipesToEnrich: count });
   }
 
-  // 2. Reset all recipes
-  const { error: resetError } = await supabase
-    .from("recipes")
-    .update({
-      photo_url: null,
-      generated_image_url: null,
-      enrichment_status: "none",
-      image_status: "none",
-      image_prompt: null,
-      prep_time: null,
-      cook_time: null,
-      cost: null,
-      complexity: null,
-      seasons: [],
-    })
-    .neq("id", "00000000-0000-0000-0000-000000000000"); // all recipes
-
-  if (resetError) {
-    console.error("[batch-enrich] Reset error:", resetError);
-    return NextResponse.json({ error: "Reset failed" }, { status: 500 });
-  }
-
-  // 3. Clear all recipe_tags
-  await supabase.from("recipe_tags").delete().neq("recipe_id", "00000000-0000-0000-0000-000000000000");
-
-  // 4. Get all recipe IDs
+  // --- ENRICH MODE: process N recipes that still need enrichment ---
   const { data: recipes } = await supabase
     .from("recipes")
     .select("id, title")
-    .order("created_at", { ascending: true });
+    .eq("enrichment_status", "none")
+    .order("created_at", { ascending: true })
+    .limit(limit);
 
   if (!recipes || recipes.length === 0) {
-    return NextResponse.json({ message: "No recipes found" });
+    return NextResponse.json({ action: "enrich", message: "All recipes enriched!", remaining: 0 });
   }
 
-  console.log(`[batch-enrich] Starting enrichment for ${recipes.length} recipes...`);
+  const { count: totalRemaining } = await supabase
+    .from("recipes")
+    .select("*", { count: "exact", head: true })
+    .eq("enrichment_status", "none");
 
-  // 5. Process sequentially to avoid rate limits
+  console.log(`[batch-enrich] Enriching ${recipes.length} of ${totalRemaining} remaining recipes...`);
+
   const results: { id: string; title: string; status: string }[] = [];
 
   for (const recipe of recipes) {
@@ -115,15 +106,13 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  const succeeded = results.filter((r) => r.status === "ok").length;
-  const failed = results.filter((r) => r.status === "error").length;
-
-  console.log(`[batch-enrich] Done: ${succeeded} ok, ${failed} failed`);
+  const remaining = (totalRemaining ?? 0) - recipes.length;
+  console.log(`[batch-enrich] Batch done. ${remaining} recipes remaining.`);
 
   return NextResponse.json({
-    total: recipes.length,
-    succeeded,
-    failed,
+    action: "enrich",
+    processed: recipes.length,
+    remaining,
     results,
   });
 }
