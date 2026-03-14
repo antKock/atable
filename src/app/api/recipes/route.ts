@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
     }
 
     revalidatePath("/home");
-    revalidatePath("/recipes/[id]");
+    revalidatePath("/recipes/[id]", "page");
 
     after(async () => {
       await enrichRecipe(data.id, true);

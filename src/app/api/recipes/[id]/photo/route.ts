@@ -46,7 +46,7 @@ export async function PATCH(request: NextRequest, { params }: RouteContext) {
     if (error) throw error;
 
     revalidatePath("/");
-    revalidatePath("/recipes/[id]");
+    revalidatePath("/recipes/[id]", "page");
 
     return new NextResponse(null, { status: 204 });
   } catch (err) {

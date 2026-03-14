@@ -78,7 +78,6 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       ingredients: result.data.ingredients ?? null,
       steps: result.data.steps ?? null,
       updated_at: new Date().toISOString(),
-      enrichment_status: "pending",
     };
     if (result.data.photoUrl !== undefined) {
       updatePayload.photo_url = result.data.photoUrl;
@@ -120,7 +119,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     revalidatePath("/home");
     revalidatePath("/library");
-    revalidatePath("/recipes/[id]");
+    revalidatePath("/recipes/[id]", "page");
 
     after(async () => {
       if (result.data.regenerateImage) {
