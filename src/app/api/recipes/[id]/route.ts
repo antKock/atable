@@ -6,6 +6,8 @@ import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { RecipeUpdateSchema } from "@/lib/schemas/recipe";
 import { enrichRecipe, regenerateImage } from "@/lib/enrichment";
 
+export const maxDuration = 60;
+
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: RouteContext) {

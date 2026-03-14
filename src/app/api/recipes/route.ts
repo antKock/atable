@@ -6,6 +6,8 @@ import { RecipeCreateSchema } from "@/lib/schemas/recipe";
 import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import { enrichRecipe } from "@/lib/enrichment";
 
+export const maxDuration = 60;
+
 export async function GET() {
   try {
     const hdrs = await headers();
