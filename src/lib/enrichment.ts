@@ -100,7 +100,7 @@ export async function enrichRecipe(
     // 1. Read recipe data
     const { data: recipe, error: fetchError } = await supabase
       .from("recipes")
-      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt, photo_url, generated_image_url")
+      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt, photo_url, generated_image_url, enrichment_status")
       .eq("id", recipeId)
       .single();
 
@@ -113,7 +113,38 @@ export async function enrichRecipe(
       return;
     }
 
-    // 2. Load predefined tag names from DB (single source of truth)
+    // 2. Check if enrichment is needed at all
+    const hasAllMetadata =
+      recipe.prep_time &&
+      recipe.cook_time &&
+      recipe.cost &&
+      recipe.complexity &&
+      recipe.seasons &&
+      recipe.seasons.length > 0 &&
+      recipe.image_prompt;
+    const hasImage = !!(recipe.photo_url || recipe.generated_image_url);
+
+    // Check if tags already exist
+    const { count: tagCount } = await supabase
+      .from("recipe_tags")
+      .select("*", { count: "exact", head: true })
+      .eq("recipe_id", recipeId);
+
+    const needsMetadata = !hasAllMetadata || tagCount === 0;
+    const needsImage = !hasImage;
+
+    if (!needsMetadata && !needsImage) {
+      // Everything is already filled — skip OpenAI calls
+      if (recipe.enrichment_status !== "enriched") {
+        await supabase
+          .from("recipes")
+          .update({ enrichment_status: "enriched" })
+          .eq("id", recipeId);
+      }
+      return;
+    }
+
+    // 3. Load predefined tag names from DB (single source of truth)
     const { data: predefinedTags } = await supabase
       .from("tags")
       .select("name")
@@ -121,102 +152,98 @@ export async function enrichRecipe(
 
     const predefinedTagNames = (predefinedTags ?? []).map((t) => t.name);
 
-    // 3. Call GPT-4o-mini with structured output
-    let result: EnrichmentResponse;
-    try {
-      result = await withRetry(async () => {
-        const response = await openai.chat.completions.create({
-          model: "gpt-4o-mini",
-          response_format: {
-            type: "json_schema",
-            json_schema: {
-              name: "enrichment",
-              strict: true,
-              schema: {
-                type: "object",
-                properties: {
-                  tags: { type: "array", items: { type: "string" }, maxItems: 10 },
-                  seasons: {
-                    type: "array",
-                    items: { type: "string", enum: [...VALID_SEASONS] },
+    // 4. Call GPT-4o-mini (only if metadata or tags are missing)
+    let result: EnrichmentResponse | null = null;
+    if (needsMetadata) {
+      try {
+        result = await withRetry(async () => {
+          const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            response_format: {
+              type: "json_schema",
+              json_schema: {
+                name: "enrichment",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: {
+                    tags: { type: "array", items: { type: "string" }, maxItems: 10 },
+                    seasons: {
+                      type: "array",
+                      items: { type: "string", enum: [...VALID_SEASONS] },
+                    },
+                    prepTime: { type: "string", enum: [...VALID_PREP_TIMES] },
+                    cookTime: { type: "string", enum: [...VALID_COOK_TIMES] },
+                    cost: { type: "string", enum: [...VALID_COST_LEVELS] },
+                    complexity: { type: "string", enum: [...VALID_COMPLEXITY_LEVELS] },
+                    imagePrompt: { type: "string" },
                   },
-                  prepTime: { type: "string", enum: [...VALID_PREP_TIMES] },
-                  cookTime: { type: "string", enum: [...VALID_COOK_TIMES] },
-                  cost: { type: "string", enum: [...VALID_COST_LEVELS] },
-                  complexity: { type: "string", enum: [...VALID_COMPLEXITY_LEVELS] },
-                  imagePrompt: { type: "string" },
+                  required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "imagePrompt"],
+                  additionalProperties: false,
                 },
-                required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "imagePrompt"],
-                additionalProperties: false,
               },
             },
-          },
-          messages: [
-            { role: "system", content: buildSystemPrompt(predefinedTagNames) },
-            {
-              role: "user",
-              content: `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients ?? ""}\nPréparation:\n${recipe.steps ?? ""}`,
-            },
-          ],
+            messages: [
+              { role: "system", content: buildSystemPrompt(predefinedTagNames) },
+              {
+                role: "user",
+                content: `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients ?? ""}\nPréparation:\n${recipe.steps ?? ""}`,
+              },
+            ],
+          });
+
+          const content = response.choices[0].message.content;
+          if (!content) throw new Error("Empty response from GPT-4o-mini");
+          return EnrichmentResponseSchema.parse(JSON.parse(content));
         });
+      } catch (error) {
+        console.error("[enrichment] GPT-4o-mini failed after retries:", error);
+        await supabase
+          .from("recipes")
+          .update({ enrichment_status: "failed" })
+          .eq("id", recipeId);
+        return;
+      }
 
-        const content = response.choices[0].message.content;
-        if (!content) throw new Error("Empty response from GPT-4o-mini");
-        return EnrichmentResponseSchema.parse(JSON.parse(content));
-      });
-    } catch (error) {
-      console.error("[enrichment] GPT-4o-mini failed after retries:", error);
-      await supabase
-        .from("recipes")
-        .update({ enrichment_status: "failed" })
-        .eq("id", recipeId);
-      return;
-    }
+      // 5. "Fill empty only" — only update null fields
+      const updates: Record<string, unknown> = {};
+      if (!recipe.prep_time && result.prepTime) updates.prep_time = result.prepTime;
+      if (!recipe.cook_time && result.cookTime) updates.cook_time = result.cookTime;
+      if (!recipe.cost && result.cost) updates.cost = result.cost;
+      if (!recipe.complexity && result.complexity) updates.complexity = result.complexity;
+      if ((!recipe.seasons || recipe.seasons.length === 0) && result.seasons.length > 0)
+        updates.seasons = result.seasons;
+      if (!recipe.image_prompt && result.imagePrompt)
+        updates.image_prompt = result.imagePrompt;
 
-    // 4. "Fill empty only" — only update null fields
-    const updates: Record<string, unknown> = {};
-    if (!recipe.prep_time && result.prepTime) updates.prep_time = result.prepTime;
-    if (!recipe.cook_time && result.cookTime) updates.cook_time = result.cookTime;
-    if (!recipe.cost && result.cost) updates.cost = result.cost;
-    if (!recipe.complexity && result.complexity) updates.complexity = result.complexity;
-    if ((!recipe.seasons || recipe.seasons.length === 0) && result.seasons.length > 0)
-      updates.seasons = result.seasons;
-    if (!recipe.image_prompt && result.imagePrompt)
-      updates.image_prompt = result.imagePrompt;
+      updates.enrichment_status = "enriched";
 
-    updates.enrichment_status = "enriched";
+      await supabase.from("recipes").update(updates).eq("id", recipeId);
 
-    await supabase.from("recipes").update(updates).eq("id", recipeId);
+      // 6. Tags — only fill if no existing relational tags
+      if (tagCount === 0 && result.tags.length > 0) {
+        const { data: matchingTags } = await supabase
+          .from("tags")
+          .select("id, name")
+          .eq("is_predefined", true)
+          .in("name", result.tags);
 
-    // 5. Tags — only fill if no existing relational tags
-    const { count } = await supabase
-      .from("recipe_tags")
-      .select("*", { count: "exact", head: true })
-      .eq("recipe_id", recipeId);
-
-    if (count === 0 && result.tags.length > 0) {
-      // Look up tag IDs from predefined tags
-      const { data: matchingTags } = await supabase
-        .from("tags")
-        .select("id, name")
-        .eq("is_predefined", true)
-        .in("name", result.tags);
-
-      if (matchingTags && matchingTags.length > 0) {
-        const junctionRows = matchingTags.map((tag) => ({
-          recipe_id: recipeId,
-          tag_id: tag.id,
-        }));
-        await supabase.from("recipe_tags").insert(junctionRows);
+        if (matchingTags && matchingTags.length > 0) {
+          const junctionRows = matchingTags.map((tag) => ({
+            recipe_id: recipeId,
+            tag_id: tag.id,
+          }));
+          await supabase.from("recipe_tags").insert(junctionRows);
+        }
       }
     }
 
-    // 6. Image generation (on create, or on edit if recipe has no photo at all)
-    const hasNoImage = !recipe.photo_url && !recipe.generated_image_url;
-    if ((isCreate || hasNoImage) && result.imagePrompt) {
+    // 7. Image generation (only if recipe has no photo at all)
+    const imagePrompt = result?.imagePrompt || recipe.image_prompt;
+    if (needsImage && imagePrompt) {
       try {
         const imageUrl = await withRetry(() =>
-          generateAndUploadImage(recipeId, result.imagePrompt),
+          generateAndUploadImage(recipeId, imagePrompt),
         );
         await supabase
           .from("recipes")
