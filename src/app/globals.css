@@ -70,6 +70,21 @@
   --border: #E5DED6;
   --input: #E5DED6;
   --ring: #6E7A38;
+
+  /* v3 — Shimmer */
+  --shimmer-base: #E5DED6;
+  --shimmer-highlight: #F0EDE8;
+  --reveal-duration: 300ms;
+
+  /* v3 — Tag chips */
+  --tag-chip-bg: rgba(110, 122, 56, 0.12);
+  --tag-chip-text: #4A5225;
+
+  /* v3 — Season accents */
+  --season-spring: #7CB342;
+  --season-summer: #F4A836;
+  --season-autumn: #D4763D;
+  --season-winter: #5C9DC0;
 }
 
 /* Dark mode not supported in V1 */
@@ -81,4 +96,20 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--shimmer-base) 25%,
+    var(--shimmer-highlight) 50%,
+    var(--shimmer-base) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }

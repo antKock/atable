@@ -1,0 +1,37 @@
+# Sprint Status — atable v3 (AI Enrichment)
+# Generated: 2026-03-13
+#
+# STATUS DEFINITIONS:
+#   backlog        — not yet started
+#   ready-for-dev  — story file created, ready for implementation
+#   in-progress    — currently being implemented
+#   review         — implementation complete, under review
+#   done           — reviewed and merged
+
+development_status:
+  # Epic 1: AI Enrichment & Recipe Detail v3
+  epic-1: in-progress
+  1-1-v3-data-model-tag-taxonomy: review
+  1-2-openai-client-enrichment-pipeline: review
+  1-3-async-enrichment-trigger-status-polling: review
+  1-4-recipe-detail-page-v3: review
+
+  # Epic 2: Edit Form v3 — Override AI & Photo Management
+  epic-2: done
+  2-1-tag-api-tag-input-component: done
+  2-2-v3-metadata-fields-edit-form: done
+  2-3-photo-manager: done
+
+  # Epic 3: Home Discovery Carousels
+  epic-3: backlog
+  3-1-carousel-data-queries-home-integration: backlog
+  3-2-recipe-card-carousel-component: backlog
+
+  # Epic 4: Library Filtering
+  epic-4: backlog
+  4-1-filter-bar-tag-season-time-cost: backlog
+
+  # Epic 5: PWA & Demo Polish
+  epic-5: backlog
+  5-1-pwa-manifest: backlog
+  5-2-demo-seed-v3-metadata: backlog

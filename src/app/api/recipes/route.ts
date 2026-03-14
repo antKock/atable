@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { RecipeCreateSchema } from "@/lib/schemas/recipe";
-import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
-import type { RecipeListItem } from "@/types/recipe";
+import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
+import { enrichRecipe } from "@/lib/enrichment";
 
 export async function GET() {
   try {
@@ -17,20 +17,13 @@ export async function GET() {
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("recipes")
-      .select("id, title, ingredients, tags, photo_url, created_at")
+      .select("id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))")
       .eq("household_id", householdId)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
 
-    const recipes: RecipeListItem[] = (data ?? []).map((row) => ({
-      id: row.id,
-      title: row.title,
-      ingredients: row.ingredients,
-      tags: row.tags ?? [],
-      photoUrl: row.photo_url,
-      createdAt: row.created_at,
-    }));
+    const recipes = (data ?? []).map(mapDbRowToRecipeListItem);
 
     return NextResponse.json(recipes);
   } catch (err) {
@@ -66,17 +59,29 @@ export async function POST(request: NextRequest) {
         title: result.data.title,
         ingredients: result.data.ingredients ?? null,
         steps: result.data.steps ?? null,
-        tags: result.data.tags ?? [],
         photo_url: result.data.photoUrl ?? null,
         household_id: householdId,
+        enrichment_status: "pending",
+        image_status: "pending",
       })
       .select()
       .single();
 
     if (error) throw error;
 
+    // Insert tags into recipe_tags junction table
+    if (result.data.tagIds && result.data.tagIds.length > 0) {
+      await supabase.from("recipe_tags").insert(
+        result.data.tagIds.map((tagId) => ({ recipe_id: data.id, tag_id: tagId })),
+      );
+    }
+
     revalidatePath("/home");
     revalidatePath("/recipes/[id]");
+
+    after(async () => {
+      await enrichRecipe(data.id, true);
+    });
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
   } catch (err) {

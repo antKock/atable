@@ -1,0 +1,1373 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>atable v3 — Screen Mockups</title>
+<style>
+  /* ===== PAGE SHELL ===== */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #E8E8E8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    min-height: 100vh;
+  }
+
+  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 4px; color: #1A1F1A; }
+  .page-subtitle { font-size: 14px; color: #6B6E68; margin-bottom: 16px; }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .tab {
+    padding: 8px 16px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid #E5DED6;
+    background: white;
+    color: #1A1F1A;
+    cursor: pointer;
+    transition: all 150ms;
+  }
+  .tab.active { background: #6E7A38; color: white; border-color: #6E7A38; }
+
+  /* ===== PHONE FRAME ===== */
+  .phone {
+    width: 393px;
+    height: 852px;
+    background: #F8FAF7;
+    border-radius: 40px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    position: relative;
+    display: none;
+    flex-direction: column;
+    --background: #F8FAF7;
+    --foreground: #1A1F1A;
+    --surface: #FFFFFF;
+    --accent: #6E7A38;
+    --accent-foreground: #FFFFFF;
+    --border: #E5DED6;
+    --secondary: #EEF2E4;
+    --muted-foreground: #6B6E68;
+    --radius: 14px;
+    --tag-chip-bg: rgba(110, 122, 56, 0.10);
+    --tag-chip-text: #6E7A38;
+    --shimmer-base: #E5DED6;
+    --shimmer-highlight: #F0EDE8;
+  }
+  .phone.active { display: flex; }
+
+  .phone-content {
+    flex: 1;
+    overflow-y: auto;
+    padding-bottom: 80px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .icon svg { stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ===== BOTTOM NAV (matches real Navigation.tsx) ===== */
+  .bottom-nav {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    z-index: 50;
+  }
+  .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    min-width: 64px;
+    min-height: 44px;
+    justify-content: center;
+  }
+  .nav-item.active { color: var(--accent); }
+  .nav-item .icon svg { width: 22px; height: 22px; }
+
+  .nav-fab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    text-decoration: none;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+  .nav-fab-circle {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: -20px;
+    box-shadow: 0 4px 12px rgba(110,122,56,0.3);
+  }
+  .nav-fab-circle .icon svg { width: 24px; height: 24px; stroke: white; }
+
+  /* ===== HOME HEADER (matches real home/page.tsx) ===== */
+  .home-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 16px 16px;
+  }
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--foreground);
+  }
+  .logo span { color: var(--accent); }
+  .header-btn {
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    color: var(--muted-foreground);
+  }
+  .header-btn .icon svg { width: 20px; height: 20px; }
+
+  /* ===== SEARCH BAR (matches real HomeContent.tsx) ===== */
+  .search-bar { padding: 0 16px 16px; }
+  .search-input-wrap { position: relative; height: 44px; }
+  .search-input {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 0 40px;
+    font-size: 14px;
+    color: var(--foreground);
+    outline: none;
+  }
+  .search-input::placeholder { color: var(--muted-foreground); }
+  .search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-foreground);
+  }
+  .search-icon svg { width: 18px; height: 18px; }
+
+  /* ===== CAROUSEL (matches real RecipeCarousel.tsx) ===== */
+  .carousel-section { margin-bottom: 32px; }
+  .carousel-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--foreground);
+    padding: 0 16px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: capitalize;
+  }
+  .carousel-title .icon svg { width: 18px; height: 18px; stroke: var(--accent); }
+
+  .carousel-scroll {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 0 16px 8px;
+    scrollbar-width: none;
+  }
+  .carousel-scroll::-webkit-scrollbar { display: none; }
+
+  /* ===== RECIPE CARD (matches real RecipeCard.tsx) ===== */
+  .recipe-card {
+    flex-shrink: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+    background: var(--secondary);
+  }
+  /* Carousel: w-56 = 224px, aspect 3:2 */
+  .recipe-card-carousel { width: 224px; }
+  .recipe-card-carousel .recipe-card-image { aspect-ratio: 3/2; }
+  /* Grid: full width, aspect 3:4 */
+  .recipe-card-grid { width: 100%; }
+  .recipe-card-grid .recipe-card-image { aspect-ratio: 3/4; }
+
+  .recipe-card-image {
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    background: var(--secondary);
+  }
+
+  /* Gradient placeholders for illustrations */
+  .card-illustration { position: absolute; inset: 0; }
+  .card-illustration.shakshuka { background: linear-gradient(135deg, #E85D3A 0%, #C44A2A 50%, #F4A83D 80%, #8FBC5A 100%); }
+  .card-illustration.salad { background: linear-gradient(135deg, #8FBC5A 0%, #6E7A38 40%, #E8D5A0 80%, #F8FAF7 100%); }
+  .card-illustration.risotto { background: linear-gradient(135deg, #E8D5A0 0%, #D4C590 40%, #8FBC5A 70%, #6E7A38 100%); }
+  .card-illustration.croque { background: linear-gradient(135deg, #E8C870 0%, #D4A030 40%, #F8F0D0 80%, #E8D5A0 100%); }
+  .card-illustration.pasta { background: linear-gradient(135deg, #8FBC5A 0%, #A8C860 40%, #F0E8C0 80%, #E8D5A0 100%); }
+  .card-illustration.tart { background: linear-gradient(135deg, #E85D5D 0%, #D44040 40%, #F0D090 70%, #E8C870 100%); }
+  .card-illustration.tartine { background: linear-gradient(135deg, #8FBC5A 0%, #E8D5A0 40%, #F0E8C0 70%, #FFFFFF 100%); }
+  .card-illustration.gratin { background: linear-gradient(135deg, #E8C870 0%, #C9A040 40%, #F0E8C0 80%, #FFFFFF 100%); }
+
+  /* Title overlay: gradient from black (matches real card) */
+  .recipe-card-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.68) 0%, transparent 100%);
+  }
+  .recipe-card-name {
+    font-size: 14px;
+    font-weight: 700;
+    color: white;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .recipe-card-subtag {
+    font-size: 10px;
+    color: rgba(255,255,255,0.72);
+    margin-top: 2px;
+    line-height: 1.2;
+  }
+
+  /* V3: add time+cost info line to existing card overlay */
+  .recipe-card-v3-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.55) 60%, transparent 100%);
+  }
+  .recipe-card-v3-info {
+    font-size: 11px;
+    color: rgba(255,255,255,0.65);
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    margin-top: 3px;
+  }
+  .recipe-card-v3-info svg { width: 11px; height: 11px; stroke: rgba(255,255,255,0.55); }
+
+  /* ===== LIBRARY ===== */
+  .library-header { padding: 24px 16px 0; }
+  .library-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 16px;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 0 16px 12px;
+    scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    height: 32px;
+  }
+  .filter-pill.inactive { background: var(--surface); color: var(--foreground); }
+  .filter-pill.active { background: var(--accent); color: var(--accent-foreground); border-color: var(--accent); }
+  .filter-pill svg.chevron { width: 12px; height: 12px; opacity: 0.5; }
+  .filter-pill.active svg.chevron { opacity: 0.8; }
+
+  /* Expanded category dropdown */
+  .filter-expanded {
+    padding: 0 16px 12px;
+  }
+  .filter-expanded-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .filter-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .filter-tag.off { background: transparent; color: var(--muted-foreground); }
+  .filter-tag.on { background: var(--accent); color: var(--accent-foreground); font-weight: 600; }
+
+  .recipe-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding: 0 16px 16px;
+  }
+
+  /* ===== RECIPE DETAIL (matches real recipes/[id]/page.tsx) ===== */
+  .detail-hero {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: var(--secondary);
+  }
+  .detail-hero-bg { position: absolute; inset: 0; }
+
+  /* Frosted glass buttons (matches real overlay buttons) */
+  .detail-glass-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    color: var(--foreground);
+  }
+  .detail-glass-btn svg { width: 18px; height: 18px; }
+  .detail-top-left { position: absolute; left: 12px; top: 12px; }
+  .detail-top-right { position: absolute; right: 12px; top: 12px; display: flex; gap: 6px; }
+
+  .detail-body { padding: 24px 16px 16px; }
+
+  /* Font-serif title (matches real page) */
+  .detail-title {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.4px;
+    color: var(--foreground);
+  }
+
+  /* V3: metadata grid — 2x2 with aligned values */
+  .detail-meta-grid {
+    display: grid;
+    grid-template-columns: auto 1fr auto 1fr;
+    gap: 4px 6px;
+    margin-top: 10px;
+    font-size: 14px;
+    align-items: center;
+  }
+  .detail-meta-label { font-weight: 400; color: var(--muted-foreground); }
+  .detail-meta-value { font-weight: 500; color: var(--foreground); }
+
+  .detail-season-badges { display: flex; gap: 4px; margin-top: 8px; }
+  .season-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: 9999px;
+  }
+  .season-badge.summer { background: rgba(232,168,56,0.15); color: #8A6420; }
+
+  /* Tags: matches existing tag styling on detail page */
+  .detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .detail-tag {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    background: var(--tag-chip-bg);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--accent);
+  }
+
+  /* Collapsible tags */
+  .detail-tags-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 12px;
+    overflow: hidden;
+    max-height: 30px;
+  }
+  .detail-tags-row.expanded { max-height: none; flex-wrap: wrap; }
+  .detail-tags-expand {
+    flex-shrink: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .detail-divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* Section titles: matches real uppercase tracking style */
+  .detail-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--muted-foreground);
+    margin-bottom: 12px;
+  }
+
+  /* Ingredients: divider between items (matches real) */
+  .detail-ingredients { list-style: none; }
+  .detail-ingredients li {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 16px;
+    color: var(--foreground);
+  }
+  .detail-ingredients li:last-child { border-bottom: none; }
+
+  /* Steps with olive number circles (matches real) */
+  .detail-steps { display: flex; flex-direction: column; gap: 16px; list-style: none; }
+  .detail-step { display: flex; gap: 12px; }
+  .step-number {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--accent-foreground);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .step-text {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--foreground);
+    flex: 1;
+  }
+
+  .regen-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground);
+    margin-top: 20px;
+    cursor: pointer;
+    min-height: 44px;
+  }
+  .regen-btn svg { width: 16px; height: 16px; }
+
+  /* ===== SHIMMER ===== */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer {
+    background: linear-gradient(90deg, var(--shimmer-base) 25%, var(--shimmer-highlight) 50%, var(--shimmer-base) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  .shimmer-pill { border-radius: 9999px; }
+  .shimmer-rect { border-radius: 6px; }
+  .shimmer-hero { border-radius: 0; }
+
+  /* ===== EDIT FORM ===== */
+  .edit-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 16px 16px;
+  }
+  .edit-header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .edit-header-left .icon svg { width: 20px; height: 20px; }
+  .edit-header-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--foreground);
+  }
+  .edit-save-btn {
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background: var(--accent);
+    color: var(--accent-foreground);
+    font-size: 14px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    min-height: 36px;
+  }
+
+  .edit-form { padding: 0 16px 16px; }
+  .phone .phone-content.no-nav { padding-bottom: 0; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.9px;
+    color: var(--muted-foreground);
+    margin-bottom: 6px;
+  }
+  .form-input {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 15px;
+    color: var(--foreground);
+    outline: none;
+    font-family: inherit;
+  }
+  .form-textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 15px;
+    color: var(--foreground);
+    outline: none;
+    font-family: inherit;
+    resize: none;
+    line-height: 1.5;
+  }
+
+  .form-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  .form-section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .form-section-label svg { width: 14px; height: 14px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    font-size: 15px;
+    color: var(--foreground);
+    outline: none;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B6E68' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+  }
+
+  .form-chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .form-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .form-chip.off {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+  }
+  .form-chip.on {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: var(--accent-foreground);
+    font-weight: 600;
+  }
+
+  /* Shimmer inside form fields */
+  .form-input-shimmer {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    height: 42px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Photo picker (matches real PhotoPicker.tsx) */
+  .form-photo-picker {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: var(--radius);
+    border: 2px dashed var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .form-photo-picker svg { width: 28px; height: 28px; stroke: var(--muted-foreground); }
+  .form-photo-preview {
+    width: 100%;
+    aspect-ratio: 4/3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    position: relative;
+  }
+  .form-photo-preview-bg {
+    position: absolute;
+    inset: 0;
+  }
+  .form-photo-actions {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    display: flex;
+    gap: 6px;
+  }
+  .form-photo-action-btn {
+    padding: 5px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(6px);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--foreground);
+    border: none;
+    cursor: pointer;
+  }
+
+  /* Tag input with removable chips */
+  .tag-input-wrap {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+    padding: 8px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    min-height: 42px;
+  }
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 9999px;
+    background: var(--tag-chip-bg);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--tag-chip-text);
+  }
+  .tag-chip .tag-remove {
+    width: 14px;
+    height: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .tag-chip .tag-remove svg { width: 10px; height: 10px; stroke: var(--tag-chip-text); stroke-width: 2.5; }
+  .tag-input-field {
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 14px;
+    color: var(--foreground);
+    flex: 1;
+    min-width: 80px;
+    font-family: inherit;
+  }
+  .tag-input-field::placeholder { color: var(--muted-foreground); }
+
+  /* Sticky submit button (no navbar in edit mode) */
+  .edit-submit-sticky {
+    position: sticky;
+    bottom: 0;
+    padding: 12px 16px 24px;
+    background: linear-gradient(to top, var(--background) 60%, transparent);
+  }
+  .edit-submit-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: var(--accent-foreground);
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    min-height: 44px;
+  }
+</style>
+</head>
+<body>
+
+<!-- SVG icon defs -->
+<svg style="display:none">
+  <defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M17 3a2.83 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="i-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12"/><path d="M9 9.5c0-1 1.3-2 3-2s3 1 3 2-1.3 2-3 2-3 1-3 2 1.3 2 3 2 3-1 3-2"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10"/><path d="M12 12l5-5"/><circle cx="12" cy="12" r="1"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+    <symbol id="i-leaf" viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34"/><path d="M3 21c0-6 4-10 10-13"/><path d="M12.7 4.7C15 2 18 2 20 2c0 3-1 6-4 8.5"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78z"/></symbol>
+    <symbol id="i-knife" viewBox="0 0 24 24"><path d="M15.5 2.5L2.5 15.5l1 1L7 13l3.5 3.5 1-1L8 12l9.5-9.5"/><line x1="17.5" y1="2.5" x2="21.5" y2="2.5"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M12 22c-4.97 0-7-3.58-7-7 0-4 3.5-7.5 5-10 .35.68 1.2 2.3 1.5 3.5C13 5 15.5 2 15.5 2c0 3.5 1.5 5.5 2.5 8 .56 1.4.5 2.5.5 3 0 4.42-2.03 9-6.5 9z"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+  </defs>
+</svg>
+
+<h1 class="page-title">atable v3 — Screen Mockups</h1>
+<p class="page-subtitle">Based on existing v2 design patterns</p>
+
+<div class="tabs">
+  <button class="tab active" onclick="showScreen('home')">Accueil</button>
+  <button class="tab" onclick="showScreen('library')">Bibliothèque</button>
+  <button class="tab" onclick="showScreen('detail')">Détail (enrichi)</button>
+  <button class="tab" onclick="showScreen('shimmer')">Détail (shimmer)</button>
+  <button class="tab" onclick="showScreen('edit')">Édition</button>
+</div>
+
+<!-- ==================== SCREEN 1: HOME ==================== -->
+<div class="phone active" id="screen-home">
+  <div class="phone-content">
+    <div class="home-header">
+      <div class="logo">a<span>table</span></div>
+      <div class="header-btn">
+        <span class="icon"><svg viewBox="0 0 24 24" style="width:20px;height:20px"><use href="#i-users"/></svg></span>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <div class="search-input-wrap">
+        <span class="search-icon icon"><svg viewBox="0 0 24 24"><use href="#i-search"/></svg></span>
+        <input class="search-input" placeholder="Rechercher une recette…" readonly>
+      </div>
+    </div>
+
+    <!-- Carousel 1: Nouvelles (toujours en premier) -->
+    <div class="carousel-section">
+      <div class="carousel-title">Nouvelles</div>
+      <div class="carousel-scroll">
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration shakshuka"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Shakshuka</div>
+              <div class="recipe-card-v3-info">25-50 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration risotto"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Risotto aux asperges vertes</div>
+              <div class="recipe-card-v3-info">50 min-1h30 · €€</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration salad"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Salade printanière</div>
+              <div class="recipe-card-v3-info">&lt; 20 min · €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carousel: Rapide (ordre aléatoire) -->
+    <div class="carousel-section">
+      <div class="carousel-title">Rapide</div>
+      <div class="carousel-scroll">
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration croque"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Croque-monsieur</div>
+              <div class="recipe-card-v3-info">&lt; 25 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration tartine"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Tartines avocat et œuf poché</div>
+              <div class="recipe-card-v3-info">&lt; 20 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration pasta"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Pâtes au pesto</div>
+              <div class="recipe-card-v3-info">&lt; 25 min · €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carousel: Redécouvrir (ordre aléatoire) -->
+    <div class="carousel-section">
+      <div class="carousel-title">Redécouvrir</div>
+      <div class="carousel-scroll">
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration gratin"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Gratin dauphinois</div>
+              <div class="recipe-card-v3-info">1h-1h30 · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration risotto"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Blanquette de veau</div>
+              <div class="recipe-card-v3-info">1h30-2h30 · €€</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration salad"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Taboulé libanais</div>
+              <div class="recipe-card-v3-info">&lt; 30 min · €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carousel: Comfort food (ordre aléatoire) -->
+    <div class="carousel-section">
+      <div class="carousel-title">Comfort food</div>
+      <div class="carousel-scroll">
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration gratin"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Gratin dauphinois</div>
+              <div class="recipe-card-v3-info">1h-1h30 · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration shakshuka"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Shakshuka</div>
+              <div class="recipe-card-v3-info">25-50 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration croque"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Croque-monsieur</div>
+              <div class="recipe-card-v3-info">&lt; 25 min · €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carousel: Pas cher (ordre aléatoire) -->
+    <div class="carousel-section">
+      <div class="carousel-title">Pas cher</div>
+      <div class="carousel-scroll">
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration pasta"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Pâtes au pesto</div>
+              <div class="recipe-card-v3-info">&lt; 25 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration tartine"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Tartines avocat</div>
+              <div class="recipe-card-v3-info">&lt; 20 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration salad"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Salade de lentilles</div>
+              <div class="recipe-card-v3-info">&lt; 30 min · €</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carousel: Cuisine du monde (ordre aléatoire) -->
+    <div class="carousel-section">
+      <div class="carousel-title">Cuisine du monde</div>
+      <div class="carousel-scroll">
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration shakshuka"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Dhal de lentilles corail</div>
+              <div class="recipe-card-v3-info">30-50 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration salad"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Taboulé libanais</div>
+              <div class="recipe-card-v3-info">&lt; 30 min · €</div>
+            </div>
+          </div>
+        </div>
+        <div class="recipe-card recipe-card-carousel">
+          <div class="recipe-card-image">
+            <div class="card-illustration pasta"></div>
+            <div class="recipe-card-v3-overlay">
+              <div class="recipe-card-name">Pad thaï</div>
+              <div class="recipe-card-v3-info">&lt; 30 min · €€</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item active" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-home"/></svg></span>Accueil</a>
+    <a class="nav-fab" href="#"><div class="nav-fab-circle"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></span></div>Ajouter</a>
+    <a class="nav-item" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></span>Bibliothèque</a>
+  </nav>
+</div>
+
+<!-- ==================== SCREEN 2: LIBRARY ==================== -->
+<div class="phone" id="screen-library">
+  <div class="phone-content">
+    <div class="library-header">
+      <div class="library-title">Bibliothèque</div>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-pill active">De saison</button>
+      <button class="filter-pill active">Type de plat <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button class="filter-pill inactive">Cuisine <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button class="filter-pill inactive">Régime <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button class="filter-pill inactive">Durée <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+      <button class="filter-pill inactive">Coût <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></button>
+    </div>
+
+    <!-- Expanded: "Type de plat" category showing its tags -->
+    <div class="filter-expanded">
+      <div class="filter-expanded-tags">
+        <span class="filter-tag on">Plat</span>
+        <span class="filter-tag off">Entrée</span>
+        <span class="filter-tag off">Dessert</span>
+        <span class="filter-tag off">Soupe</span>
+        <span class="filter-tag on">Apéro</span>
+        <span class="filter-tag off">Petit-déjeuner</span>
+        <span class="filter-tag off">Accompagnement</span>
+        <span class="filter-tag off">Sauce</span>
+      </div>
+    </div>
+
+    <div class="recipe-grid">
+      <div class="recipe-card recipe-card-grid"><div class="recipe-card-image"><div class="card-illustration salad"></div><div class="recipe-card-v3-overlay"><div class="recipe-card-name">Salade printanière aux radis</div><div class="recipe-card-v3-info">&lt; 20 min · €</div></div></div></div>
+      <div class="recipe-card recipe-card-grid"><div class="recipe-card-image"><div class="card-illustration shakshuka"></div><div class="recipe-card-v3-overlay"><div class="recipe-card-name">Shakshuka</div><div class="recipe-card-v3-info">25-50 min · €</div></div></div></div>
+      <div class="recipe-card recipe-card-grid"><div class="recipe-card-image"><div class="card-illustration croque"></div><div class="recipe-card-v3-overlay"><div class="recipe-card-name">Croque-monsieur</div><div class="recipe-card-v3-info">&lt; 25 min · €</div></div></div></div>
+      <div class="recipe-card recipe-card-grid"><div class="recipe-card-image"><div class="card-illustration tartine"></div><div class="recipe-card-v3-overlay"><div class="recipe-card-name">Tartines avocat et œuf poché</div><div class="recipe-card-v3-info">&lt; 20 min · €</div></div></div></div>
+      <div class="recipe-card recipe-card-grid"><div class="recipe-card-image"><div class="card-illustration pasta"></div><div class="recipe-card-v3-overlay"><div class="recipe-card-name">Pâtes au pesto</div><div class="recipe-card-v3-info">&lt; 25 min · €</div></div></div></div>
+      <div class="recipe-card recipe-card-grid"><div class="recipe-card-image"><div class="card-illustration tart"></div><div class="recipe-card-v3-overlay"><div class="recipe-card-name">Tarte aux fraises</div><div class="recipe-card-v3-info">50 min-1h30 · €€</div></div></div></div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-home"/></svg></span>Accueil</a>
+    <a class="nav-fab" href="#"><div class="nav-fab-circle"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></span></div>Ajouter</a>
+    <a class="nav-item active" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></span>Bibliothèque</a>
+  </nav>
+</div>
+
+<!-- ==================== SCREEN 3: DETAIL (ENRICHED) ==================== -->
+<div class="phone" id="screen-detail">
+  <div class="phone-content">
+    <div class="detail-hero">
+      <div class="detail-hero-bg card-illustration shakshuka"></div>
+      <div class="detail-top-left"><div class="detail-glass-btn"><svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></div></div>
+      <div class="detail-top-right">
+        <div class="detail-glass-btn"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><use href="#i-pencil"/></svg></div>
+        <div class="detail-glass-btn"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><use href="#i-trash"/></svg></div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <h1 class="detail-title">Shakshuka</h1>
+
+      <div class="detail-meta-grid">
+        <span class="detail-meta-label">Prép.</span><span class="detail-meta-value">15 min</span>
+        <span class="detail-meta-label">Cuisson</span><span class="detail-meta-value">20 min</span>
+        <span class="detail-meta-label">Coût</span><span class="detail-meta-value">€</span>
+        <span class="detail-meta-label">Difficulté</span><span class="detail-meta-value">Facile</span>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <section>
+        <h2 class="detail-section-title">Ingrédients</h2>
+        <ul class="detail-ingredients">
+          <li>Tomates pelées (400g)</li>
+          <li>Œufs (4)</li>
+          <li>Poivrons rouges (2)</li>
+          <li>Oignon (1)</li>
+          <li>Ail (2 gousses)</li>
+          <li>Cumin (1 c.c.)</li>
+          <li>Coriandre fraîche</li>
+          <li>Huile d'olive</li>
+          <li>Sel, Poivre</li>
+        </ul>
+      </section>
+
+      <div class="detail-divider"></div>
+
+      <section>
+        <h2 class="detail-section-title">Préparation</h2>
+        <ol class="detail-steps">
+          <li class="detail-step"><span class="step-number">1</span><p class="step-text">Faire revenir l'oignon et les poivrons dans l'huile d'olive</p></li>
+          <li class="detail-step"><span class="step-number">2</span><p class="step-text">Ajouter l'ail et le cumin, cuire 1 minute</p></li>
+          <li class="detail-step"><span class="step-number">3</span><p class="step-text">Verser les tomates, assaisonner, laisser mijoter 10 min</p></li>
+          <li class="detail-step"><span class="step-number">4</span><p class="step-text">Creuser des puits, casser les œufs, couvrir 5 min</p></li>
+          <li class="detail-step"><span class="step-number">5</span><p class="step-text">Parsemer de coriandre fraîche et servir</p></li>
+        </ol>
+      </section>
+
+      <div class="detail-divider"></div>
+
+      <div class="detail-tags" style="margin-top:0">
+        <span class="season-badge summer">Été</span>
+        <span class="detail-tag">Plat</span>
+        <span class="detail-tag">Végétarien</span>
+        <span class="detail-tag">Œufs</span>
+        <span class="detail-tag">Libanaise / Orientale</span>
+        <span class="detail-tag">Rapide</span>
+        <span class="detail-tag">Comfort food</span>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-home"/></svg></span>Accueil</a>
+    <a class="nav-fab" href="#"><div class="nav-fab-circle"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></span></div>Ajouter</a>
+    <a class="nav-item" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></span>Bibliothèque</a>
+  </nav>
+</div>
+
+<!-- ==================== SCREEN 4: DETAIL (SHIMMER) ==================== -->
+<div class="phone" id="screen-shimmer">
+  <div class="phone-content">
+    <div class="detail-hero">
+      <div class="detail-hero-bg shimmer shimmer-hero"></div>
+      <div class="detail-top-left"><div class="detail-glass-btn"><svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></div></div>
+      <div class="detail-top-right">
+        <div class="detail-glass-btn"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><use href="#i-pencil"/></svg></div>
+        <div class="detail-glass-btn"><svg viewBox="0 0 24 24" style="width:16px;height:16px"><use href="#i-trash"/></svg></div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <h1 class="detail-title">Shakshuka</h1>
+
+      <!-- Mix of user-set values and AI-pending shimmers (AI only fills empty) -->
+      <div class="detail-meta-grid" style="margin-top:10px">
+        <span class="detail-meta-label">Prép.</span><span class="detail-meta-value">15 min</span>
+        <span class="detail-meta-label">Cuisson</span><div class="shimmer shimmer-rect" style="width:50px;height:16px"></div>
+        <span class="detail-meta-label">Coût</span><span class="detail-meta-value">€</span>
+        <span class="detail-meta-label">Difficulté</span><div class="shimmer shimmer-rect" style="width:50px;height:16px"></div>
+      </div>
+
+      <div class="detail-divider"></div>
+
+      <section>
+        <h2 class="detail-section-title">Ingrédients</h2>
+        <ul class="detail-ingredients">
+          <li>Tomates pelées (400g)</li>
+          <li>Œufs (4)</li>
+          <li>Poivrons rouges (2)</li>
+          <li>Oignon (1)</li>
+          <li>Ail (2 gousses)</li>
+          <li>Cumin (1 c.c.)</li>
+          <li>Coriandre fraîche</li>
+          <li>Huile d'olive</li>
+          <li>Sel, Poivre</li>
+        </ul>
+      </section>
+
+      <div class="detail-divider"></div>
+
+      <section>
+        <h2 class="detail-section-title">Préparation</h2>
+        <ol class="detail-steps">
+          <li class="detail-step"><span class="step-number">1</span><p class="step-text">Faire revenir l'oignon et les poivrons dans l'huile d'olive</p></li>
+          <li class="detail-step"><span class="step-number">2</span><p class="step-text">Ajouter l'ail et le cumin, cuire 1 minute</p></li>
+          <li class="detail-step"><span class="step-number">3</span><p class="step-text">Verser les tomates, assaisonner, laisser mijoter 10 min</p></li>
+          <li class="detail-step"><span class="step-number">4</span><p class="step-text">Creuser des puits, casser les œufs, couvrir 5 min</p></li>
+          <li class="detail-step"><span class="step-number">5</span><p class="step-text">Parsemer de coriandre fraîche et servir</p></li>
+        </ol>
+      </section>
+
+      <div class="detail-divider"></div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <div class="shimmer shimmer-pill" style="width:40px;height:24px"></div>
+        <div class="shimmer shimmer-pill" style="width:50px;height:28px"></div>
+        <div class="shimmer shimmer-pill" style="width:85px;height:28px"></div>
+        <div class="shimmer shimmer-pill" style="width:45px;height:28px"></div>
+        <div class="shimmer shimmer-pill" style="width:120px;height:28px"></div>
+        <div class="shimmer shimmer-pill" style="width:60px;height:28px"></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <a class="nav-item" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-home"/></svg></span>Accueil</a>
+    <a class="nav-fab" href="#"><div class="nav-fab-circle"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></span></div>Ajouter</a>
+    <a class="nav-item" href="#"><span class="icon"><svg viewBox="0 0 24 24"><use href="#i-book"/></svg></span>Bibliothèque</a>
+  </nav>
+</div>
+
+<!-- ==================== SCREEN 5: EDIT (MANUAL) ==================== -->
+<div class="phone" id="screen-edit">
+  <div class="phone-content no-nav">
+    <div class="edit-header">
+      <div class="edit-header-left">
+        <span class="icon" style="color:var(--muted-foreground)"><svg viewBox="0 0 24 24"><use href="#i-arrow-left"/></svg></span>
+        <span class="edit-header-title">Modifier</span>
+      </div>
+    </div>
+
+    <div class="edit-form">
+      <!-- Title -->
+      <div class="form-group">
+        <label class="form-label">Titre</label>
+        <input class="form-input" value="Shakshuka" readonly>
+      </div>
+
+      <!-- Photo (3 CTAs: Régénérer, Remplacer, Supprimer) -->
+      <div class="form-group">
+        <label class="form-label">Photo</label>
+        <div class="form-photo-preview">
+          <div class="form-photo-preview-bg card-illustration shakshuka"></div>
+          <div class="form-photo-actions">
+            <button class="form-photo-action-btn"><svg viewBox="0 0 24 24" style="width:12px;height:12px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-1px;margin-right:3px"><use href="#i-refresh"/></svg>Régénérer</button>
+            <button class="form-photo-action-btn">Remplacer</button>
+            <button class="form-photo-action-btn">Supprimer</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ingredients (auto-height) -->
+      <div class="form-group">
+        <label class="form-label">Ingrédients</label>
+        <div class="form-input" style="white-space:pre-line;min-height:42px;height:auto;padding:10px 12px;line-height:1.5">Tomates pelées (400g)
+Œufs (4)
+Poivrons rouges (2)
+Oignon (1)
+Ail (2 gousses)
+Cumin (1 c.c.)
+Coriandre fraîche
+Huile d'olive
+Sel, Poivre</div>
+      </div>
+
+      <!-- Steps (auto-height) -->
+      <div class="form-group">
+        <label class="form-label">Préparation</label>
+        <div class="form-input" style="white-space:pre-line;min-height:42px;height:auto;padding:10px 12px;line-height:1.5">Faire revenir l'oignon et les poivrons dans l'huile d'olive
+Ajouter l'ail et le cumin, cuire 1 minute
+Verser les tomates, assaisonner, laisser mijoter 10 min
+Creuser des puits, casser les œufs, couvrir 5 min
+Parsemer de coriandre fraîche et servir</div>
+      </div>
+
+      <!-- Tags (autocomplete input with removable chips) -->
+      <div class="form-group">
+        <label class="form-label">Tags</label>
+        <div class="tag-input-wrap">
+          <span class="tag-chip">Plat <span class="tag-remove"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></span></span>
+          <span class="tag-chip">Végétarien <span class="tag-remove"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></span></span>
+          <span class="tag-chip">Œufs <span class="tag-remove"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></span></span>
+          <span class="tag-chip">Rapide <span class="tag-remove"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></span></span>
+          <span class="tag-chip">Comfort food <span class="tag-remove"><svg viewBox="0 0 24 24"><use href="#i-x"/></svg></span></span>
+          <input class="tag-input-field" placeholder="Ajouter un tag…" readonly>
+        </div>
+      </div>
+
+      <!-- V3 new fields (no divider, flows directly) -->
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Prép.</label>
+          <select class="form-select"><option>15 min</option></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cuisson</label>
+          <select class="form-select"><option>20 min</option></select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Coût</label>
+          <div class="form-chip-group">
+            <span class="form-chip on">€</span>
+            <span class="form-chip off">€€</span>
+            <span class="form-chip off">€€€</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulté</label>
+          <select class="form-select"><option>Facile</option></select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Saisons</label>
+        <div class="form-chip-group">
+          <span class="form-chip off">Printemps</span>
+          <span class="form-chip on">Été</span>
+          <span class="form-chip off">Automne</span>
+          <span class="form-chip off">Hiver</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky submit at true bottom (no navbar) -->
+    <div class="edit-submit-sticky">
+      <button class="edit-submit-btn">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function showScreen(id) {
+    document.querySelectorAll('.phone').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('screen-' + id).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

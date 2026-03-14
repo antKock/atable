@@ -36,7 +36,6 @@ export const t = {
     stepsOptional: "(optionnel)",
     tagsLabel: "Tags",
     tagsOptional: "(optionnel)",
-    tagsHelper: "Séparez les tags par des virgules",
     photoOptional: "(optionnel)",
   },
 
@@ -60,9 +59,70 @@ export const t = {
     loadError: "Impossible de charger les recettes. Vérifiez votre connexion.",
   },
 
+  // Metadata labels
+  metadata: {
+    prepTime: "Prép.",
+    cookTime: "Cuisson",
+    cost: "Coût",
+    complexity: "Difficulté",
+    seasons: "Saisons",
+  },
+
+  // Seasons (display labels by stored value)
+  seasons: {
+    spring: "Printemps",
+    summer: "Été",
+    autumn: "Automne",
+    winter: "Hiver",
+    // Stored-value keys
+    printemps: "Printemps",
+    ete: "Été",
+    automne: "Automne",
+    hiver: "Hiver",
+  },
+
+  // Cost levels
+  cost: {
+    low: "€",
+    medium: "€€",
+    high: "€€€",
+  },
+
+  // Complexity levels (display labels by stored value)
+  complexity: {
+    easy: "Facile",
+    medium: "Moyen",
+    hard: "Difficile",
+    // Stored-value keys
+    facile: "Facile",
+    moyen: "Moyen",
+    difficile: "Difficile",
+  },
+
+  // Enrichment states
+  enrichment: {
+    none: "Non enrichi",
+    pending: "En cours…",
+    done: "Enrichi",
+    error: "Erreur",
+  },
+
+  // Tag categories
+  tagCategories: {
+    dishType: "Type de plat",
+    diet: "Régime alimentaire",
+    protein: "Protéine principale",
+    cuisine: "Cuisine",
+    occasion: "Occasion",
+    features: "Caractéristiques",
+  },
+
   // Carousels
   carousels: {
     recent: "Récentes",
+    quick: "Prêt en 30 min",
+    seasonal: "De saison",
+    popular: "Populaires",
   },
 
   // Empty states
@@ -89,6 +149,17 @@ export const t = {
     placeholder: "Rechercher une recette…",
     clearAriaLabel: "Effacer la recherche",
     ariaLabel: "Rechercher une recette",
+  },
+
+  // Photo manager
+  photoManager: {
+    regenerate: "Régénérer",
+    regenerateScheduled: "Régénération prévue",
+    replace: "Remplacer",
+    remove: "Supprimer",
+    regenerateAriaLabel: "Régénérer l'image",
+    replaceAriaLabel: "Remplacer la photo",
+    removeAriaLabel: "Supprimer la photo",
   },
 
   // Photo picker

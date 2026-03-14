@@ -17,6 +17,12 @@ vi.mock("@/hooks/usePhotoUpload", () => ({
   usePhotoUpload: () => ({ uploadPhoto: vi.fn() }),
 }));
 
+// Mock fetch for TagInput's tag loading
+globalThis.fetch = vi.fn().mockResolvedValue({
+  ok: true,
+  json: () => Promise.resolve({ tags: [] }),
+});
+
 describe("RecipeForm (create mode)", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -49,9 +55,9 @@ describe("RecipeForm (create mode)", () => {
     expect((saveButton as HTMLButtonElement).disabled).toBe(true);
   });
 
-  it("uses fr.ts string for the tags helper text (H5 regression)", () => {
+  it("renders TagInput with combobox role", () => {
     render(<RecipeForm mode="create" />);
-    expect(screen.getByText("Séparez les tags par des virgules")).toBeDefined();
+    expect(screen.getByRole("combobox", { name: "Tags" })).toBeDefined();
   });
 });
 
@@ -60,8 +66,17 @@ describe("RecipeForm (edit mode)", () => {
     title: "Poulet rôti",
     ingredients: "1 poulet\nThym",
     steps: "Enfourner à 200°C",
-    tags: ["viande", "four"],
+    tags: [
+      { id: "t1", name: "viande", category: null },
+      { id: "t2", name: "four", category: null },
+    ],
     photoUrl: null,
+    prepTime: "20-30 min",
+    cookTime: "1h - 2h",
+    cost: "€€",
+    complexity: "moyen",
+    seasons: ["automne", "hiver"],
+    generatedImageUrl: null,
   };
 
   it("does NOT auto-focus the title field in edit mode", () => {
@@ -83,15 +98,55 @@ describe("RecipeForm (edit mode)", () => {
     render(
       <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
     );
-    // getByLabelText is more reliable for multiline textarea values
     const ingredientsField = screen.getByLabelText(/Ingrédients/i) as HTMLTextAreaElement;
     expect(ingredientsField.value).toBe("1 poulet\nThym");
   });
 
-  it("pre-fills the tags as a comma-separated string", () => {
+  it("renders existing tags as chips in edit mode", () => {
     render(
       <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
     );
-    expect(screen.getByDisplayValue("viande, four")).toBeDefined();
+    expect(screen.getByText("viande")).toBeDefined();
+    expect(screen.getByText("four")).toBeDefined();
+  });
+
+  it("shows remove buttons for existing tags in edit mode", () => {
+    render(
+      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
+    );
+    expect(screen.getByLabelText("Retirer le tag viande")).toBeDefined();
+    expect(screen.getByLabelText("Retirer le tag four")).toBeDefined();
+  });
+
+  it("pre-fills v3 metadata fields in edit mode", () => {
+    render(
+      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
+    );
+    const prepSelect = screen.getByLabelText("Prép.") as HTMLSelectElement;
+    expect(prepSelect.value).toBe("20-30 min");
+    const cookSelect = screen.getByLabelText("Cuisson") as HTMLSelectElement;
+    expect(cookSelect.value).toBe("1h - 2h");
+    const complexitySelect = screen.getByLabelText("Difficulté") as HTMLSelectElement;
+    expect(complexitySelect.value).toBe("moyen");
+  });
+
+  it("pre-selects cost chip in edit mode", () => {
+    render(
+      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
+    );
+    const costChip = screen.getByRole("button", { name: "€€" });
+    expect(costChip.getAttribute("aria-pressed")).toBe("true");
+  });
+
+  it("pre-selects season chips in edit mode", () => {
+    render(
+      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
+    );
+    const automne = screen.getByRole("button", { name: "Automne" });
+    const hiver = screen.getByRole("button", { name: "Hiver" });
+    expect(automne.getAttribute("aria-pressed")).toBe("true");
+    expect(hiver.getAttribute("aria-pressed")).toBe("true");
+    const printemps = screen.getByRole("button", { name: "Printemps" });
+    expect(printemps.getAttribute("aria-pressed")).toBe("false");
   });
 });

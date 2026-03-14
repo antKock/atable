@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { t } from "@/lib/i18n/fr";
@@ -15,11 +16,16 @@ type Props = {
 
 export default async function EditRecipePage({ params }: Props) {
   const { id } = await params;
+  const hdrs = await headers();
+  const householdId = hdrs.get("x-household-id");
+  if (!householdId) notFound();
+
   const supabase = createServerClient();
   const { data } = await supabase
     .from("recipes")
-    .select("*")
+    .select("*, recipe_tags(tag_id, tags(id, name, category))")
     .eq("id", id)
+    .eq("household_id", householdId)
     .single();
 
   if (!data) notFound();
@@ -53,6 +59,12 @@ export default async function EditRecipePage({ params }: Props) {
           steps: recipe.steps,
           tags: recipe.tags,
           photoUrl: recipe.photoUrl,
+          prepTime: recipe.prepTime,
+          cookTime: recipe.cookTime,
+          cost: recipe.cost,
+          complexity: recipe.complexity,
+          seasons: recipe.seasons,
+          generatedImageUrl: recipe.generatedImageUrl,
         }}
       />
     </div>

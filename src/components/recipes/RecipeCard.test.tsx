@@ -10,9 +10,12 @@ const baseRecipe: RecipeListItem = {
   id: "abc-123",
   title: "Poulet rôti",
   ingredients: "1 poulet\nThym",
-  tags: ["viande"],
+  tags: [{ id: "t1", name: "viande", category: null }],
   photoUrl: null,
   createdAt: "2024-01-01T00:00:00Z",
+  generatedImageUrl: null,
+  enrichmentStatus: "none",
+  imageStatus: "none",
 };
 
 describe("RecipeCard", () => {
@@ -29,10 +32,12 @@ describe("RecipeCard", () => {
     expect(matches.length).toBeGreaterThan(0);
   });
 
-  it("shows a warm placeholder when no photo is provided", () => {
+  it("shows a warm placeholder when no photo or generated image is provided", () => {
     const { container } = render(<RecipeCard recipe={baseRecipe} />);
     expect(container.querySelector("img")).toBeNull();
-    expect(container.querySelector(".bg-gradient-to-br")).toBeDefined();
+    // Placeholder uses inline style background gradient, not an img element
+    const placeholderDiv = container.querySelector("[style]");
+    expect(placeholderDiv).not.toBeNull();
   });
 
   it("renders an img element when photoUrl is provided", () => {
@@ -42,7 +47,17 @@ describe("RecipeCard", () => {
         "https://example.supabase.co/storage/v1/object/public/recipe-photos/device/recipe/photo.webp",
     };
     const { container } = render(<RecipeCard recipe={recipe} />);
-    expect(container.querySelector("img")).toBeDefined();
+    expect(container.querySelector("img")).not.toBeNull();
+  });
+
+  it("renders an img element when generatedImageUrl is provided and photoUrl is null", () => {
+    const recipe = {
+      ...baseRecipe,
+      generatedImageUrl:
+        "https://example.supabase.co/storage/v1/object/public/recipe-photos/generated/abc-123/ai-image.webp",
+    };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).not.toBeNull();
   });
 
   it("uses aria-label on the link for accessibility", () => {

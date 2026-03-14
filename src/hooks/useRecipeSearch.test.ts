@@ -2,30 +2,43 @@ import { describe, it, expect } from "vitest";
 import { filterRecipes } from "./useRecipeSearch";
 import type { RecipeListItem } from "@/types/recipe";
 
+function tag(name: string) {
+  return { id: name, name, category: null };
+}
+
+const v3Defaults = {
+  generatedImageUrl: null,
+  enrichmentStatus: "none",
+  imageStatus: "none",
+};
+
 const recipes: RecipeListItem[] = [
   {
     id: "1",
     title: "Poulet rôti",
     ingredients: "1 poulet\nThym\nAil",
-    tags: ["viande", "four"],
+    tags: [tag("viande"), tag("four")],
     photoUrl: null,
     createdAt: "2024-01-01",
+    ...v3Defaults,
   },
   {
     id: "2",
     title: "Soupe de lentilles",
     ingredients: "Lentilles corail\nCarottes\nCumin",
-    tags: ["végétarien", "soupe"],
+    tags: [tag("végétarien"), tag("soupe")],
     photoUrl: null,
     createdAt: "2024-01-02",
+    ...v3Defaults,
   },
   {
     id: "3",
     title: "Mousse au chocolat",
     ingredients: "Chocolat noir\nOeufs\nSucre",
-    tags: ["dessert"],
+    tags: [tag("dessert")],
     photoUrl: null,
     createdAt: "2024-01-03",
+    ...v3Defaults,
   },
 ];
 

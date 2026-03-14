@@ -3,34 +3,61 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Pencil } from "lucide-react";
+import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { t } from "@/lib/i18n/fr";
 import WakeLockActivator from "@/components/recipes/WakeLockActivator";
 import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
+import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
+import MetadataGrid from "@/components/recipes/MetadataGrid";
+import ShimmerBlock from "@/components/recipes/ShimmerBlock";
+import TagChip from "@/components/recipes/TagChip";
+import SeasonBadge from "@/components/recipes/SeasonBadge";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
 
-async function getRecipe(id: string) {
+async function getHouseholdId() {
+  const hdrs = await headers();
+  return hdrs.get("x-household-id");
+}
+
+async function getRecipe(id: string, householdId: string | null) {
+  if (!householdId) return null;
   const supabase = createServerClient();
   const { data } = await supabase
     .from("recipes")
-    .select("*")
+    .select("*, recipe_tags(tag_id, tags(id, name, category))")
     .eq("id", id)
+    .eq("household_id", householdId)
     .single();
-  return data ? mapDbRowToRecipe(data) : null;
+  if (!data) return null;
+  return mapDbRowToRecipe(data);
+}
+
+function trackView(id: string, currentViewCount: number) {
+  const supabase = createServerClient();
+  supabase
+    .from("recipes")
+    .update({
+      last_viewed_at: new Date().toISOString(),
+      view_count: currentViewCount + 1,
+    })
+    .eq("id", id)
+    .then();
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const householdId = await getHouseholdId();
+  const recipe = await getRecipe(id, householdId);
   if (!recipe) return {};
 
   const description = recipe.tags.length > 0
-    ? recipe.tags.join(", ")
+    ? recipe.tags.map((tag) => tag.name).join(", ")
     : "Une recette sur atable";
 
   return {
@@ -48,9 +75,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function RecipeDetailPage({ params }: Props) {
   const { id } = await params;
-  const recipe = await getRecipe(id);
+  const householdId = await getHouseholdId();
+  const recipe = await getRecipe(id, householdId);
 
   if (!recipe) notFound();
+
+  trackView(id, recipe.viewCount);
 
   const ingredientLines = recipe.ingredients
     ? recipe.ingredients.split("\n").filter((l) => l.trim())
@@ -59,18 +89,32 @@ export default async function RecipeDetailPage({ params }: Props) {
     ? recipe.steps.split("\n").filter((l) => l.trim())
     : [];
 
+  const isEnriching = recipe.enrichmentStatus === "pending";
+  const isImageLoading = recipe.imageStatus === "pending";
+
+  // Image priority: user photo > generated image > placeholder
+  const heroImageUrl = recipe.photoUrl ?? recipe.generatedImageUrl;
+
   return (
     <div className="mx-auto max-w-2xl pb-8">
       <WakeLockActivator />
+      <EnrichmentPollingWrapper
+        recipeId={id}
+        enrichmentStatus={recipe.enrichmentStatus}
+        imageStatus={recipe.imageStatus}
+      />
 
       {/* Photo hero with overlaid controls */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
-        {recipe.photoUrl ? (
+        {isImageLoading && !heroImageUrl ? (
+          <ShimmerBlock variant="image" className="absolute inset-0" />
+        ) : heroImageUrl ? (
           <Image
-            src={recipe.photoUrl}
-            alt={t.a11y.recipePhoto(recipe.title)}
+            src={heroImageUrl}
+            alt={recipe.imagePrompt ?? t.a11y.recipePhoto(recipe.title)}
             fill
-            className="object-cover"
+            className="object-cover transition-opacity"
+            style={{ transitionDuration: "var(--reveal-duration)" }}
             sizes="(max-width: 768px) 100vw, 672px"
             priority
           />
@@ -112,19 +156,16 @@ export default async function RecipeDetailPage({ params }: Props) {
           {recipe.title}
         </h1>
 
-        {/* Tags */}
-        {recipe.tags.length > 0 && (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {recipe.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full bg-accent/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-accent"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        {/* MetadataGrid */}
+        <div className="mt-4">
+          <MetadataGrid
+            prepTime={recipe.prepTime}
+            cookTime={recipe.cookTime}
+            cost={recipe.cost}
+            complexity={recipe.complexity}
+            isLoading={isEnriching}
+          />
+        </div>
 
         {/* Ingredients */}
         {ingredientLines.length > 0 && (
@@ -172,6 +213,31 @@ export default async function RecipeDetailPage({ params }: Props) {
                 ))}
               </ol>
             </section>
+          </>
+        )}
+
+        {/* Tags + Seasons */}
+        {(recipe.tags.length > 0 || (recipe.seasons && recipe.seasons.length > 0) || isEnriching) && (
+          <>
+            <div className="my-5 h-px bg-border" />
+            <div className="flex flex-wrap gap-2" aria-live="polite">
+              {isEnriching ? (
+                <>
+                  <ShimmerBlock variant="pill" className="w-16" />
+                  <ShimmerBlock variant="pill" className="w-20" />
+                  <ShimmerBlock variant="pill" className="w-14" />
+                </>
+              ) : (
+                <>
+                  {recipe.tags.map((tag) => (
+                    <TagChip key={tag.id || tag.name} name={tag.name} />
+                  ))}
+                  {recipe.seasons?.map((season) => (
+                    <SeasonBadge key={season} season={season} />
+                  ))}
+                </>
+              )}
+            </div>
           </>
         )}
       </div>

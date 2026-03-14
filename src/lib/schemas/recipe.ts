@@ -6,6 +6,13 @@ export const RecipeCreateSchema = z.object({
   steps: z.string().nullable().optional(),
   tags: z.array(z.string()).optional().default([]),
   photoUrl: z.string().url().nullable().optional(),
+  // v3 optional metadata
+  prepTime: z.string().nullable().optional(),
+  cookTime: z.string().nullable().optional(),
+  cost: z.string().nullable().optional(),
+  complexity: z.string().nullable().optional(),
+  seasons: z.array(z.string()).optional().default([]),
+  tagIds: z.array(z.string()).optional().default([]),
 });
 
 export const RecipeUpdateSchema = z.object({
@@ -14,6 +21,14 @@ export const RecipeUpdateSchema = z.object({
   steps: z.string().nullable().optional(),
   tags: z.array(z.string()).optional(),
   photoUrl: z.string().url().nullable().optional(),
+  // v3 optional metadata
+  prepTime: z.string().nullable().optional(),
+  cookTime: z.string().nullable().optional(),
+  cost: z.string().nullable().optional(),
+  complexity: z.string().nullable().optional(),
+  seasons: z.array(z.string()).optional(),
+  tagIds: z.array(z.string()).optional(),
+  regenerateImage: z.boolean().optional(),
 });
 
 export type RecipeCreateInput = z.infer<typeof RecipeCreateSchema>;

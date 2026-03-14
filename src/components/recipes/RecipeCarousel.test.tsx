@@ -10,9 +10,12 @@ const recipe: RecipeListItem = {
   id: "1",
   title: "Tarte aux pommes",
   ingredients: null,
-  tags: ["dessert"],
+  tags: [{ id: "t1", name: "dessert", category: null }],
   photoUrl: null,
   createdAt: "2024-01-01T00:00:00Z",
+  generatedImageUrl: null,
+  enrichmentStatus: "none",
+  imageStatus: "none",
 };
 
 describe("RecipeCarousel", () => {

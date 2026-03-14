@@ -11,7 +11,7 @@ export function filterRecipes(
     (r) =>
       r.title.toLowerCase().includes(q) ||
       (r.ingredients?.toLowerCase().includes(q) ?? false) ||
-      r.tags.some((tag) => tag.toLowerCase().includes(q))
+      r.tags.some((tag) => tag.name.toLowerCase().includes(q))
   );
 }
 

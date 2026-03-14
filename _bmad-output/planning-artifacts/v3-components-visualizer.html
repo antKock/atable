@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>atable v3 — Component Visualizer</title>
+<style>
+  /* ===== DESIGN TOKENS ===== */
+  :root {
+    --background: #F8FAF7;
+    --foreground: #1A1A1A;
+    --accent: #6E7A38;
+    --accent-foreground: #FFFFFF;
+    --border: #E5DED6;
+    --muted: #F0EDE8;
+    --muted-foreground: #6B6B6B;
+    --tag-chip-bg: rgba(110, 122, 56, 0.12);
+    --tag-chip-text: #4A5225;
+    --filter-pill-active-bg: #6E7A38;
+    --filter-pill-inactive-bg: #F0EDE8;
+    --shimmer-base: #E5DED6;
+    --shimmer-highlight: #F0EDE8;
+    --season-spring: #8FBC5A;
+    --season-summer: #E8A838;
+    --season-autumn: #C67A3C;
+    --season-winter: #6A9BC2;
+    --shimmer-duration: 1.5s;
+    --reveal-duration: 300ms;
+    --radius: 8px;
+    --radius-sm: 6px;
+    --radius-full: 9999px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--background);
+    color: var(--foreground);
+    line-height: 1.5;
+    padding: 16px;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  h2 { font-size: 18px; font-weight: 600; margin: 32px 0 16px; color: var(--foreground); }
+  h3 { font-size: 14px; font-weight: 500; color: var(--muted-foreground); margin-bottom: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .subtitle { font-size: 14px; color: var(--muted-foreground); margin-bottom: 24px; }
+
+  .section {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  /* ===== INLINE ICONS (lightweight, no emoji) ===== */
+  .icon-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
+  .icon-sm svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ===== TAG CHIPS ===== */
+  .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 12px;
+    background: var(--tag-chip-bg);
+    color: var(--tag-chip-text);
+    border-radius: var(--radius-full);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: default;
+    transition: background 150ms;
+  }
+  .tag-chip:hover { background: rgba(110, 122, 56, 0.18); }
+
+  .tag-chip .remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(110, 122, 56, 0.15);
+    color: var(--tag-chip-text);
+    font-size: 10px;
+    cursor: pointer;
+    border: none;
+    line-height: 1;
+    transition: background 150ms;
+  }
+  .tag-chip .remove:hover { background: rgba(110, 122, 56, 0.3); }
+
+  /* ===== FILTER BAR ===== */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 12px 0;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .filter-bar::-webkit-scrollbar { display: none; }
+
+  .filter-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: var(--radius-full);
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 150ms;
+    min-height: 44px;
+  }
+  .filter-pill.inactive { background: var(--filter-pill-inactive-bg); color: var(--foreground); }
+  .filter-pill.active { background: var(--filter-pill-active-bg); color: var(--accent-foreground); border-color: var(--accent); }
+  .filter-pill .pill-icon { font-size: 14px; opacity: 0.8; }
+
+  /* ===== SEASON TOGGLE (library only) ===== */
+  .season-toggle {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+
+  .toggle-track {
+    width: 48px;
+    height: 28px;
+    border-radius: 14px;
+    background: var(--border);
+    position: relative;
+    transition: background 200ms;
+    flex-shrink: 0;
+  }
+  .toggle-track.on { background: var(--accent); }
+
+  .toggle-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    transition: transform 200ms;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+  .toggle-track.on .toggle-thumb { transform: translateX(20px); }
+
+  .toggle-label { font-size: 15px; font-weight: 500; }
+
+  /* ===== METADATA ROW ===== */
+  .metadata-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+
+  .metadata-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 14px;
+    color: var(--muted-foreground);
+  }
+  .metadata-item .value { font-weight: 500; color: var(--foreground); }
+  .metadata-item .icon-sm { color: var(--muted-foreground); }
+
+  .season-badges { display: flex; gap: 4px; }
+  .season-badge {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 3px 8px;
+    border-radius: var(--radius-full);
+  }
+  .season-badge.spring { background: rgba(143, 188, 90, 0.15); color: #5A7A2A; }
+  .season-badge.summer { background: rgba(232, 168, 56, 0.15); color: #8A6420; }
+  .season-badge.autumn { background: rgba(198, 122, 60, 0.15); color: #7A4A20; }
+  .season-badge.winter { background: rgba(106, 155, 194, 0.15); color: #3A6A8A; }
+
+  /* ===== SHIMMER ===== */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .shimmer {
+    background: linear-gradient(90deg, var(--shimmer-base) 25%, var(--shimmer-highlight) 50%, var(--shimmer-base) 75%);
+    background-size: 200% 100%;
+    animation: shimmer var(--shimmer-duration) ease-in-out infinite;
+    border-radius: var(--radius-sm);
+  }
+  .shimmer-tag { display: inline-block; width: 72px; height: 30px; border-radius: var(--radius-full); }
+  .shimmer-image { width: 100%; aspect-ratio: 1; border-radius: var(--radius); }
+  .shimmer-text { height: 14px; border-radius: 4px; }
+  .shimmer-metadata { display: flex; gap: 16px; }
+  .shimmer-metadata-item { width: 80px; height: 20px; border-radius: 4px; }
+
+  /* ===== REVEAL ===== */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .reveal { animation: fadeIn var(--reveal-duration) ease-out forwards; }
+
+  /* ===== RECIPE CARD (carousel) ===== */
+  .carousel {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 4px 0 8px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .carousel::-webkit-scrollbar { display: none; }
+  .carousel-title { font-size: 18px; font-weight: 600; margin-bottom: 8px; }
+
+  .recipe-card {
+    flex-shrink: 0;
+    width: 160px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .recipe-card-image {
+    width: 100%;
+    aspect-ratio: 1;
+    background: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-foreground);
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+    padding: 8px;
+  }
+  .recipe-card-body { padding: 8px 10px 10px; }
+  .recipe-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .recipe-card-meta {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .recipe-card-meta .icon-sm { width: 12px; height: 12px; }
+  .recipe-card-meta .icon-sm svg { width: 11px; height: 11px; }
+  .recipe-card-tags {
+    display: flex;
+    gap: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+    max-height: 20px;
+  }
+  .recipe-card-tag {
+    font-size: 10px;
+    padding: 2px 6px;
+    background: var(--tag-chip-bg);
+    color: var(--tag-chip-text);
+    border-radius: var(--radius-full);
+    font-weight: 500;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .recipe-card-tag.overflow {
+    background: transparent;
+    color: var(--muted-foreground);
+    padding: 2px 2px;
+  }
+
+  /* ===== TAG INPUT ===== */
+  .tag-input-container { position: relative; }
+  .tag-input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    background: white;
+    color: var(--foreground);
+    outline: none;
+    transition: border-color 150ms;
+  }
+  .tag-input:focus { border-color: var(--accent); }
+  .tag-input::placeholder { color: var(--muted-foreground); }
+
+  .autocomplete-dropdown {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    margin-top: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .autocomplete-category {
+    padding: 8px 12px 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .autocomplete-item {
+    padding: 10px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 100ms;
+  }
+  .autocomplete-item:hover, .autocomplete-item.highlighted { background: var(--tag-chip-bg); }
+
+  /* ===== REGEN BUTTON ===== */
+  .regen-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--foreground);
+    cursor: pointer;
+    transition: all 150ms;
+    min-height: 44px;
+  }
+  .regen-button:hover { background: var(--muted); border-color: var(--accent); }
+  .regen-button.loading { opacity: 0.7; cursor: wait; }
+  .regen-button .spinner {
+    width: 16px; height: 16px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ===== DEMO ===== */
+  .demo-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+  .demo-btn {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: var(--radius);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    min-height: 44px;
+    transition: opacity 150ms;
+  }
+  .demo-btn:hover { opacity: 0.9; }
+  .demo-btn.secondary { background: var(--muted); color: var(--foreground); border: 1px solid var(--border); }
+
+  .recipe-detail-image {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: var(--radius);
+    background: var(--muted);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: var(--muted-foreground);
+    margin-bottom: 12px;
+    overflow: hidden;
+    position: relative;
+  }
+  .recipe-detail-title { font-size: 24px; font-weight: 600; margin-bottom: 4px; }
+  .recipe-detail-subtitle { font-size: 14px; color: var(--muted-foreground); margin-bottom: 16px; }
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* ===== SWATCHES ===== */
+  .swatches { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .swatch { text-align: center; }
+  .swatch-color { width: 100%; aspect-ratio: 1; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 4px; }
+  .swatch-label { font-size: 10px; color: var(--muted-foreground); font-weight: 500; }
+  .swatch-value { font-size: 10px; color: var(--muted-foreground); font-family: monospace; }
+</style>
+</head>
+<body>
+
+<!-- SVG icon defs (lightweight line icons) -->
+<svg style="display:none">
+  <defs>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+    <symbol id="icon-coin" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v12M9 9.5c0-1 1.3-2 3-2s3 1 3 2-1.3 2-3 2-3 1-3 2 1.3 2 3 2 3-1 3-2"/></symbol>
+    <symbol id="icon-gauge" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M12 6v6l4 2" style="fill:none"/></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></symbol>
+    <symbol id="icon-leaf" viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21.34l1.89.66L7 18c4-2 7-3 10-3 3 0 5-2 5-5 0-4-3-6-5-6z"/><path d="M3 21c0-6 4-10 10-13"/></symbol>
+    <symbol id="icon-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
+  </defs>
+</svg>
+
+<h1>atable v3</h1>
+<p class="subtitle">Component Visualizer — AI Enrichment Layer</p>
+
+<!-- ===== COLOR PALETTE ===== -->
+<h2>Palette</h2>
+<div class="section">
+  <h3>Existing tokens</h3>
+  <div class="swatches">
+    <div class="swatch"><div class="swatch-color" style="background:#F8FAF7"></div><div class="swatch-label">Background</div><div class="swatch-value">#F8FAF7</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#6E7A38"></div><div class="swatch-label">Accent</div><div class="swatch-value">#6E7A38</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#E5DED6"></div><div class="swatch-label">Border</div><div class="swatch-value">#E5DED6</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#F0EDE8"></div><div class="swatch-label">Muted</div><div class="swatch-value">#F0EDE8</div></div>
+  </div>
+  <h3 style="margin-top:16px">V3 — Season accents</h3>
+  <div class="swatches">
+    <div class="swatch"><div class="swatch-color" style="background:#8FBC5A"></div><div class="swatch-label">Printemps</div><div class="swatch-value">#8FBC5A</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#E8A838"></div><div class="swatch-label">Été</div><div class="swatch-value">#E8A838</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#C67A3C"></div><div class="swatch-label">Automne</div><div class="swatch-value">#C67A3C</div></div>
+    <div class="swatch"><div class="swatch-color" style="background:#6A9BC2"></div><div class="swatch-label">Hiver</div><div class="swatch-value">#6A9BC2</div></div>
+  </div>
+</div>
+
+<!-- ===== TAG CHIPS ===== -->
+<h2>Tag Chips</h2>
+<div class="section">
+  <h3>Read-only (recipe detail)</h3>
+  <div class="tag-chips">
+    <span class="tag-chip">Plat</span>
+    <span class="tag-chip">Végétarien</span>
+    <span class="tag-chip">Œufs</span>
+    <span class="tag-chip">Libanaise / Orientale</span>
+    <span class="tag-chip">Rapide</span>
+    <span class="tag-chip">Comfort food</span>
+  </div>
+
+  <h3 style="margin-top:16px">Editable (edit view)</h3>
+  <div class="tag-chips">
+    <span class="tag-chip">Plat <button class="remove" aria-label="Retirer">×</button></span>
+    <span class="tag-chip">Végétarien <button class="remove" aria-label="Retirer">×</button></span>
+    <span class="tag-chip">Œufs <button class="remove" aria-label="Retirer">×</button></span>
+    <span class="tag-chip">Libanaise / Orientale <button class="remove" aria-label="Retirer">×</button></span>
+    <span class="tag-chip">Rapide <button class="remove" aria-label="Retirer">×</button></span>
+    <span class="tag-chip">Comfort food <button class="remove" aria-label="Retirer">×</button></span>
+  </div>
+</div>
+
+<!-- ===== TAG INPUT ===== -->
+<h2>Tag Input</h2>
+<div class="section">
+  <h3>Autocomplete grouped by category</h3>
+  <div class="tag-chips" style="margin-bottom:8px">
+    <span class="tag-chip">Plat <button class="remove" aria-label="Retirer">×</button></span>
+    <span class="tag-chip">Végétarien <button class="remove" aria-label="Retirer">×</button></span>
+  </div>
+  <div class="tag-input-container">
+    <input class="tag-input" placeholder="Ajouter un tag…" value="Lib" readonly>
+  </div>
+  <div class="autocomplete-dropdown">
+    <div class="autocomplete-category">Cuisine</div>
+    <div class="autocomplete-item highlighted">Libanaise / Orientale</div>
+    <div class="autocomplete-category">Caractéristiques</div>
+    <div class="autocomplete-item">Libre (tag personnalisé)</div>
+  </div>
+</div>
+
+<!-- ===== FILTER BAR (Library only) ===== -->
+<h2>Filter Bar <span style="font-size:13px;font-weight:400;color:var(--muted-foreground)">(Library)</span></h2>
+<div class="section" style="padding:0 16px">
+  <div class="filter-bar">
+    <button class="filter-pill active">
+      <span class="icon-sm"><svg><use href="#icon-leaf"/></svg></span>
+      De saison
+    </button>
+    <button class="filter-pill inactive">Type de plat</button>
+    <button class="filter-pill active">Rapide</button>
+    <button class="filter-pill inactive">Cuisine</button>
+    <button class="filter-pill inactive">Régime</button>
+    <button class="filter-pill inactive">Coût</button>
+  </div>
+</div>
+
+<!-- ===== METADATA ROW ===== -->
+<h2>Metadata Row</h2>
+<div class="section">
+  <h3>Recipe detail — compact metadata</h3>
+  <div class="metadata-row">
+    <span class="metadata-item">
+      <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+      <span class="value">25-50 min</span>
+    </span>
+    <span class="metadata-item">
+      <span class="icon-sm"><svg><use href="#icon-coin"/></svg></span>
+      <span class="value">€</span>
+    </span>
+    <span class="metadata-item">
+      <span class="icon-sm"><svg><use href="#icon-gauge"/></svg></span>
+      <span class="value">Facile</span>
+    </span>
+  </div>
+
+  <h3 style="margin-top:16px">With breakdown on tap (optional)</h3>
+  <div class="metadata-row">
+    <span class="metadata-item">
+      <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+      <span class="value">25-50 min</span>
+      <span style="font-size:12px;color:var(--muted-foreground)">(prep 10-20 · cuisson 15-30)</span>
+    </span>
+  </div>
+
+  <h3 style="margin-top:16px">Season badges</h3>
+  <div class="season-badges">
+    <span class="season-badge summer">Été</span>
+    <span class="season-badge autumn">Automne</span>
+  </div>
+</div>
+
+<!-- ===== SHIMMER STATES ===== -->
+<h2>Shimmer States</h2>
+<div class="section">
+  <h3>Enrichment in progress</h3>
+  <div style="margin-bottom:12px">
+    <div style="font-size:11px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Tags</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <span class="shimmer shimmer-tag"></span>
+      <span class="shimmer shimmer-tag" style="width:90px"></span>
+      <span class="shimmer shimmer-tag" style="width:56px"></span>
+      <span class="shimmer shimmer-tag" style="width:80px"></span>
+    </div>
+  </div>
+  <div style="margin-bottom:12px">
+    <div style="font-size:11px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Métadonnées</div>
+    <div class="shimmer-metadata">
+      <div class="shimmer shimmer-metadata-item"></div>
+      <div class="shimmer shimmer-metadata-item" style="width:60px"></div>
+      <div class="shimmer shimmer-metadata-item" style="width:40px"></div>
+    </div>
+  </div>
+  <div>
+    <div style="font-size:11px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Image</div>
+    <div class="shimmer shimmer-image"></div>
+  </div>
+</div>
+
+<!-- ===== ENRICHMENT REVEAL DEMO ===== -->
+<h2>Enrichment Reveal</h2>
+<div class="section">
+  <h3>Interactive demo — tap to simulate</h3>
+  <div class="demo-controls">
+    <button class="demo-btn" onclick="startEnrichmentDemo()">▶ Simuler l'enrichissement</button>
+    <button class="demo-btn secondary" onclick="resetEnrichmentDemo()">↺ Reset</button>
+  </div>
+
+  <div id="enrichment-demo">
+    <div class="recipe-detail-title">Shakshuka</div>
+    <div class="recipe-detail-subtitle">Par Anthony · aujourd'hui</div>
+
+    <div id="demo-image" class="recipe-detail-image">
+      <div class="shimmer" style="position:absolute;inset:0;display:none" id="demo-image-shimmer"></div>
+      <span id="demo-image-placeholder" style="font-size:13px">Aucune image</span>
+      <div id="demo-image-result" style="display:none;position:absolute;inset:0;background:linear-gradient(135deg, #E85D3A 0%, #C44A2A 40%, #F4A83D 60%, #8FBC5A 100%);align-items:center;justify-content:center;color:white;font-size:14px;font-weight:500">Illustration générée</div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:11px;font-weight:600;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">Tags</div>
+      <div id="demo-tags-shimmer" style="display:none;gap:6px;flex-wrap:wrap">
+        <span class="shimmer shimmer-tag"></span>
+        <span class="shimmer shimmer-tag" style="width:90px"></span>
+        <span class="shimmer shimmer-tag" style="width:56px"></span>
+        <span class="shimmer shimmer-tag" style="width:100px"></span>
+        <span class="shimmer shimmer-tag" style="width:64px"></span>
+      </div>
+      <div id="demo-tags-result" class="tag-chips" style="display:none">
+        <span class="tag-chip reveal" style="animation-delay:0ms">Plat</span>
+        <span class="tag-chip reveal" style="animation-delay:50ms">Végétarien</span>
+        <span class="tag-chip reveal" style="animation-delay:100ms">Œufs</span>
+        <span class="tag-chip reveal" style="animation-delay:150ms">Libanaise / Orientale</span>
+        <span class="tag-chip reveal" style="animation-delay:200ms">Rapide</span>
+        <span class="tag-chip reveal" style="animation-delay:250ms">Comfort food</span>
+      </div>
+      <div id="demo-tags-empty" style="font-size:13px;color:var(--muted-foreground);font-style:italic">Aucun tag</div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div id="demo-meta-shimmer" class="shimmer-metadata" style="display:none">
+        <div class="shimmer shimmer-metadata-item"></div>
+        <div class="shimmer shimmer-metadata-item" style="width:60px"></div>
+        <div class="shimmer shimmer-metadata-item" style="width:40px"></div>
+      </div>
+      <div id="demo-meta-result" style="display:none">
+        <div class="metadata-row reveal">
+          <span class="metadata-item"><span class="icon-sm"><svg><use href="#icon-clock"/></svg></span> <span class="value">25-50 min</span></span>
+          <span class="metadata-item"><span class="icon-sm"><svg><use href="#icon-coin"/></svg></span> <span class="value">€</span></span>
+          <span class="metadata-item"><span class="icon-sm"><svg><use href="#icon-gauge"/></svg></span> <span class="value">Facile</span></span>
+        </div>
+        <div class="season-badges reveal" style="margin-top:8px">
+          <span class="season-badge summer">Été</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="demo-regen" style="display:none">
+      <button class="regen-button reveal">
+        <span class="icon-sm"><svg><use href="#icon-refresh"/></svg></span>
+        Régénérer l'image
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== HOME CAROUSELS ===== -->
+<h2>Home Carousels</h2>
+<div class="section" style="padding:16px 0 16px 16px">
+  <div class="carousel-title" style="padding-right:16px;display:flex;align-items:center;gap:6px">
+    <span class="icon-sm" style="color:var(--accent)"><svg><use href="#icon-leaf"/></svg></span>
+    De saison
+  </div>
+  <div class="carousel">
+    <div class="recipe-card">
+      <div class="recipe-card-image">Illustration</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-title">Salade printanière aux radis et feta</div>
+        <div class="recipe-card-meta">
+          <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+          < 20 min · €
+        </div>
+        <div class="recipe-card-tags">
+          <span class="recipe-card-tag">Rapide</span>
+          <span class="recipe-card-tag">Végétarien</span>
+          <span class="recipe-card-tag overflow">+2</span>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="recipe-card-image">Illustration</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-title">Shakshuka</div>
+        <div class="recipe-card-meta">
+          <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+          25-50 min · €
+        </div>
+        <div class="recipe-card-tags">
+          <span class="recipe-card-tag">Plat</span>
+          <span class="recipe-card-tag">Rapide</span>
+          <span class="recipe-card-tag overflow">+4</span>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="recipe-card-image">Illustration</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-title">Risotto aux asperges vertes</div>
+        <div class="recipe-card-meta">
+          <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+          50 min-1h30 · €€
+        </div>
+        <div class="recipe-card-tags">
+          <span class="recipe-card-tag">Plat</span>
+          <span class="recipe-card-tag">Végétarien</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="carousel-title" style="margin-top:20px;padding-right:16px;display:flex;align-items:center;gap:6px">
+    <span class="icon-sm" style="color:var(--accent)"><svg><use href="#icon-zap"/></svg></span>
+    Rapide
+  </div>
+  <div class="carousel">
+    <div class="recipe-card">
+      <div class="recipe-card-image">Illustration</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-title">Croque-monsieur</div>
+        <div class="recipe-card-meta">
+          <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+          < 25 min · €
+        </div>
+        <div class="recipe-card-tags">
+          <span class="recipe-card-tag">Rapide</span>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="recipe-card-image">Illustration</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-title">Pâtes au pesto</div>
+        <div class="recipe-card-meta">
+          <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+          < 25 min · €
+        </div>
+        <div class="recipe-card-tags">
+          <span class="recipe-card-tag">Rapide</span>
+          <span class="recipe-card-tag">Végétarien</span>
+        </div>
+      </div>
+    </div>
+    <div class="recipe-card">
+      <div class="recipe-card-image">Illustration</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-title">Tartines avocat et œuf poché</div>
+        <div class="recipe-card-meta">
+          <span class="icon-sm"><svg><use href="#icon-clock"/></svg></span>
+          < 20 min · €
+        </div>
+        <div class="recipe-card-tags">
+          <span class="recipe-card-tag">Brunch</span>
+          <span class="recipe-card-tag">Rapide</span>
+          <span class="recipe-card-tag overflow">+1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== IMAGE REGEN BUTTON ===== -->
+<h2>Image Regen Button</h2>
+<div class="section">
+  <h3>Default state</h3>
+  <button class="regen-button" style="margin-bottom:12px">
+    <span class="icon-sm"><svg><use href="#icon-refresh"/></svg></span>
+    Régénérer l'image
+  </button>
+
+  <h3>Loading state</h3>
+  <button class="regen-button loading">
+    <div class="spinner"></div>
+    Génération en cours…
+  </button>
+</div>
+
+<!-- ===== SEASON TOGGLE (Library only) ===== -->
+<h2>Season Toggle <span style="font-size:13px;font-weight:400;color:var(--muted-foreground)">(Library only)</span></h2>
+<div class="section" style="padding:0">
+  <div class="season-toggle" onclick="this.querySelector('.toggle-track').classList.toggle('on')">
+    <div class="toggle-track on">
+      <div class="toggle-thumb"></div>
+    </div>
+    <div class="toggle-label">De saison</div>
+  </div>
+</div>
+
+<script>
+  let demoTimeout1, demoTimeout2;
+
+  function startEnrichmentDemo() {
+    resetEnrichmentDemo();
+    document.getElementById('demo-tags-empty').style.display = 'none';
+    document.getElementById('demo-tags-shimmer').style.display = 'flex';
+    document.getElementById('demo-meta-shimmer').style.display = 'flex';
+    document.getElementById('demo-image-shimmer').style.display = 'block';
+    document.getElementById('demo-image-placeholder').style.display = 'none';
+
+    demoTimeout1 = setTimeout(() => {
+      document.getElementById('demo-tags-shimmer').style.display = 'none';
+      document.getElementById('demo-meta-shimmer').style.display = 'none';
+      document.getElementById('demo-tags-result').style.display = 'flex';
+      document.getElementById('demo-meta-result').style.display = 'block';
+    }, 3000);
+
+    demoTimeout2 = setTimeout(() => {
+      document.getElementById('demo-image-shimmer').style.display = 'none';
+      document.getElementById('demo-image-result').style.display = 'flex';
+      document.getElementById('demo-regen').style.display = 'block';
+    }, 6000);
+  }
+
+  function resetEnrichmentDemo() {
+    clearTimeout(demoTimeout1);
+    clearTimeout(demoTimeout2);
+    document.getElementById('demo-tags-empty').style.display = 'block';
+    document.getElementById('demo-tags-shimmer').style.display = 'none';
+    document.getElementById('demo-tags-result').style.display = 'none';
+    document.getElementById('demo-meta-shimmer').style.display = 'none';
+    document.getElementById('demo-meta-result').style.display = 'none';
+    document.getElementById('demo-image-shimmer').style.display = 'none';
+    document.getElementById('demo-image-placeholder').style.display = 'block';
+    document.getElementById('demo-image-result').style.display = 'none';
+    document.getElementById('demo-regen').style.display = 'none';
+  }
+</script>
+
+</body>
+</html>

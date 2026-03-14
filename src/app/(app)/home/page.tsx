@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
 import HomeContent from "@/components/recipes/HomeContent";
 import PostCreationBanner from "@/components/auth/PostCreationBanner";
+import { mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import type { RecipeListItem } from "@/types/recipe";
 
 function buildCarousels(recipes: RecipeListItem[]) {
@@ -20,15 +21,16 @@ function buildCarousels(recipes: RecipeListItem[]) {
     recipes: recipes.slice(0, 12),
   });
 
-  const tagMap = new Map<string, RecipeListItem[]>();
+  const tagMap = new Map<string, { name: string; recipes: RecipeListItem[] }>();
   for (const recipe of recipes) {
     for (const tag of recipe.tags) {
-      if (!tagMap.has(tag)) tagMap.set(tag, []);
-      tagMap.get(tag)!.push(recipe);
+      const key = tag.id || tag.name;
+      if (!tagMap.has(key)) tagMap.set(key, { name: tag.name, recipes: [] });
+      tagMap.get(key)!.recipes.push(recipe);
     }
   }
-  for (const [tag, tagRecipes] of tagMap) {
-    carousels.push({ key: tag, title: tag, recipes: tagRecipes });
+  for (const [key, { name, recipes: tagRecipes }] of tagMap) {
+    carousels.push({ key, title: name, recipes: tagRecipes });
   }
 
   return carousels;
@@ -53,20 +55,13 @@ export default async function HomePage({ searchParams }: Props) {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("recipes")
-    .select("id, title, ingredients, tags, photo_url, created_at")
+    .select("id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))")
     .eq("household_id", householdId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
 
-  const recipes: RecipeListItem[] = (data ?? []).map((row) => ({
-    id: row.id,
-    title: row.title,
-    ingredients: row.ingredients,
-    tags: row.tags ?? [],
-    photoUrl: row.photo_url,
-    createdAt: row.created_at,
-  }));
+  const recipes: RecipeListItem[] = (data ?? []).map(mapDbRowToRecipeListItem);
 
   const carousels = buildCarousels(recipes);
 

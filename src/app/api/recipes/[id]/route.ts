@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { RecipeUpdateSchema } from "@/lib/schemas/recipe";
+import { enrichRecipe, regenerateImage } from "@/lib/enrichment";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -19,7 +20,7 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("recipes")
-      .select("*")
+      .select("*, recipe_tags(tag_id, tags(id, name, category))")
       .eq("id", id)
       .eq("household_id", householdId)
       .single();
@@ -74,12 +75,26 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       title: result.data.title,
       ingredients: result.data.ingredients ?? null,
       steps: result.data.steps ?? null,
-      tags: result.data.tags ?? [],
       updated_at: new Date().toISOString(),
+      enrichment_status: "pending",
     };
     if (result.data.photoUrl !== undefined) {
       updatePayload.photo_url = result.data.photoUrl;
+      // When removing photo, also clear generated image
+      if (result.data.photoUrl === null) {
+        updatePayload.generated_image_url = null;
+        updatePayload.image_status = "none";
+      }
     }
+    if (result.data.regenerateImage) {
+      updatePayload.image_status = "pending";
+    }
+    // v3 metadata fields
+    if (result.data.prepTime !== undefined) updatePayload.prep_time = result.data.prepTime;
+    if (result.data.cookTime !== undefined) updatePayload.cook_time = result.data.cookTime;
+    if (result.data.cost !== undefined) updatePayload.cost = result.data.cost;
+    if (result.data.complexity !== undefined) updatePayload.complexity = result.data.complexity;
+    if (result.data.seasons !== undefined) updatePayload.seasons = result.data.seasons;
 
     const { data, error } = await supabase
       .from("recipes")
@@ -91,8 +106,26 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     if (error) throw error;
 
+    // Tag mutation: delete-then-insert pattern
+    if (result.data.tagIds) {
+      await supabase.from("recipe_tags").delete().eq("recipe_id", id);
+      if (result.data.tagIds.length > 0) {
+        await supabase.from("recipe_tags").insert(
+          result.data.tagIds.map((tagId) => ({ recipe_id: id, tag_id: tagId })),
+        );
+      }
+    }
+
     revalidatePath("/home");
+    revalidatePath("/library");
     revalidatePath("/recipes/[id]");
+
+    after(async () => {
+      if (result.data.regenerateImage) {
+        await regenerateImage(id);
+      }
+      await enrichRecipe(id, false);
+    });
 
     return NextResponse.json(mapDbRowToRecipe(data));
   } catch (err) {

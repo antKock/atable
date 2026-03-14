@@ -14,6 +14,7 @@ export default function RecipeCard({
   variant = "carousel",
 }: RecipeCardProps) {
   const isCarousel = variant === "carousel";
+  const imageUrl = recipe.photoUrl ?? recipe.generatedImageUrl;
 
   return (
     <Link
@@ -24,9 +25,9 @@ export default function RecipeCard({
       }`}
     >
       <div className={`relative w-full ${isCarousel ? "aspect-[3/2]" : "aspect-[3/4]"}`}>
-        {recipe.photoUrl ? (
+        {imageUrl ? (
           <Image
-            src={recipe.photoUrl}
+            src={imageUrl}
             alt={t.a11y.recipePhoto(recipe.title)}
             fill
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
@@ -49,7 +50,7 @@ export default function RecipeCard({
           </p>
           {isCarousel && recipe.tags[0] && (
             <p className="mt-0.5 text-[10px] text-white/72 leading-tight">
-              {recipe.tags[0]}
+              {recipe.tags[0].name}
             </p>
           )}
         </div>

@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { createServerClient } from "@/lib/supabase/server";
 import { t } from "@/lib/i18n/fr";
 import RecipeCard from "@/components/recipes/RecipeCard";
+import { mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import type { RecipeListItem } from "@/types/recipe";
 
 export default async function LibraryPage() {
@@ -14,20 +15,13 @@ export default async function LibraryPage() {
   const supabase = createServerClient();
   const { data, error } = await supabase
     .from("recipes")
-    .select("id, title, ingredients, tags, photo_url, created_at")
+    .select("id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))")
     .eq("household_id", householdId)
     .order("created_at", { ascending: false });
 
   if (error) throw error;
 
-  const recipes: RecipeListItem[] = (data ?? []).map((row) => ({
-    id: row.id,
-    title: row.title,
-    ingredients: row.ingredients,
-    tags: row.tags ?? [],
-    photoUrl: row.photo_url,
-    createdAt: row.created_at,
-  }));
+  const recipes: RecipeListItem[] = (data ?? []).map(mapDbRowToRecipeListItem);
 
   return (
     <div className="px-4 pb-8 pt-6">
