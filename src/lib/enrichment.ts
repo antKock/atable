@@ -52,30 +52,42 @@ async function generateAndUploadImage(
   recipeId: string,
   imagePrompt: string,
 ): Promise<string> {
-  // Generate with DALL-E 3
+  // Generate with gpt-image-1
   const imageResponse = await openai.images.generate({
-    model: "dall-e-3",
+    model: "gpt-image-1",
     prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting.`,
     n: 1,
     size: "1024x1024",
+    quality: "medium",
   });
 
-  const tempUrl = imageResponse.data?.[0]?.url;
-  if (!tempUrl) throw new Error("No image URL returned from DALL-E");
+  const imageData = imageResponse.data?.[0];
+  if (!imageData) throw new Error("No image data returned from gpt-image-1");
 
-  // Download the image server-side
-  const imageRes = await fetch(tempUrl);
-  if (!imageRes.ok) throw new Error(`Failed to download image: ${imageRes.status}`);
-  const imageBuffer = Buffer.from(await imageRes.arrayBuffer());
+  // gpt-image-1 returns base64 by default
+  const tempUrl = imageData.url;
+  const b64 = imageData.b64_json;
+
+  // Get image buffer (base64 or URL download)
+  let imageBuffer: Buffer;
+  if (b64) {
+    imageBuffer = Buffer.from(b64, "base64");
+  } else if (tempUrl) {
+    const imageRes = await fetch(tempUrl);
+    if (!imageRes.ok) throw new Error(`Failed to download image: ${imageRes.status}`);
+    imageBuffer = Buffer.from(await imageRes.arrayBuffer());
+  } else {
+    throw new Error("No image data (url or b64) returned");
+  }
 
   // Upload to Supabase Storage
   const supabase = createServerClient();
-  const storagePath = `generated/${recipeId}/ai-image.webp`;
+  const storagePath = `generated/${recipeId}/ai-image.png`;
 
   const { error: uploadError } = await supabase.storage
     .from("recipe-photos")
     .upload(storagePath, imageBuffer, {
-      contentType: "image/webp",
+      contentType: "image/png",
       upsert: true,
     });
 
