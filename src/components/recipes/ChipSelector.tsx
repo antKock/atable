@@ -40,7 +40,7 @@ export default function ChipSelector({
             type="button"
             aria-pressed={isSelected}
             onClick={() => handleToggle(opt.value)}
-            className={`rounded-full px-4 py-2 text-sm font-medium min-h-[44px] transition-colors ${
+            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
               isSelected
                 ? "bg-accent text-white"
                 : "bg-transparent border border-border text-muted-foreground"

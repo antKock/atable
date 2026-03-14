@@ -134,7 +134,7 @@ export default function FilterBar({
                   className={`rounded-full px-3 py-1.5 text-xs transition-colors ${
                     filters.duration === opt.id
                       ? "bg-accent font-semibold text-accent-foreground"
-                      : "text-muted-foreground"
+                      : "border border-border text-muted-foreground"
                   }`}
                 >
                   {opt.label}
@@ -149,7 +149,7 @@ export default function FilterBar({
                   className={`rounded-full px-3 py-1.5 text-xs transition-colors ${
                     filters.cost === opt.id
                       ? "bg-accent font-semibold text-accent-foreground"
-                      : "text-muted-foreground"
+                      : "border border-border text-muted-foreground"
                   }`}
                 >
                   {opt.label}
@@ -171,7 +171,7 @@ export default function FilterBar({
                     className={`rounded-full px-3 py-1.5 text-xs transition-colors ${
                       filters.tagIds.includes(tag.id)
                         ? "bg-accent font-semibold text-accent-foreground"
-                        : "text-muted-foreground"
+                        : "border border-border text-muted-foreground"
                     }`}
                   >
                     {tag.name}

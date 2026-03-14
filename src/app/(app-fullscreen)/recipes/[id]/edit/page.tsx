@@ -53,6 +53,7 @@ export default async function EditRecipePage({ params }: Props) {
       <RecipeForm
         mode="edit"
         recipeId={id}
+        stickySubmit
         initialData={{
           title: recipe.title,
           ingredients: recipe.ingredients,

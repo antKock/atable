@@ -22,13 +22,32 @@ export function getCurrentSeason(): string {
   return "hiver";
 }
 
+/** Parse a time value like "30 min", "1h", "2h" into minutes */
+function parseTimeToMinutes(str: string): number {
+  const hourMatch = str.match(/(\d+)\s*h/);
+  if (hourMatch) return parseInt(hourMatch[1]) * 60;
+  const minMatch = str.match(/(\d+)/);
+  return minMatch ? parseInt(minMatch[1]) : 0;
+}
+
 export function parseDurationMax(range: string | null): number {
   if (!range || range === "Aucune") return 0;
-  const match = range.match(/(\d+)/);
-  if (range.startsWith(">")) return parseInt(match?.[1] || "60") + 15;
-  if (range.startsWith("<")) return parseInt(match?.[1] || "10");
-  const parts = range.match(/(\d+)-(\d+)/);
-  return parts ? parseInt(parts[2]) : parseInt(match?.[1] || "0");
+
+  // Handle "> X" format (e.g., "> 45 min", "> 2h")
+  if (range.startsWith(">")) return parseTimeToMinutes(range) + 15;
+
+  // Handle "< X" format (e.g., "< 10 min", "< 15 min")
+  if (range.startsWith("<")) return parseTimeToMinutes(range);
+
+  // Handle "X - Y" range format (e.g., "15-30 min", "30 min - 1h", "1h - 2h")
+  const dashIdx = range.indexOf("-");
+  if (dashIdx !== -1) {
+    const rightPart = range.slice(dashIdx + 1);
+    return parseTimeToMinutes(rightPart);
+  }
+
+  // Fallback: single value
+  return parseTimeToMinutes(range);
 }
 
 function getTotalDuration(prepTime: string | null, cookTime: string | null): number {

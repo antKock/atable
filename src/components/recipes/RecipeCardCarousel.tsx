@@ -35,7 +35,7 @@ export default function RecipeCardCarousel({
     <Link
       href={`/recipes/${recipe.id}`}
       aria-label={recipe.title}
-      className="block w-[140px] flex-none overflow-hidden rounded-lg active:scale-[0.97] transition-transform duration-100 lg:w-[180px]"
+      className="block w-[70vw] flex-none overflow-hidden rounded-xl active:scale-[0.97] transition-transform duration-100 lg:w-[280px]"
     >
       <div className="relative aspect-[3/2]">
         {imageUrl ? (
@@ -44,7 +44,7 @@ export default function RecipeCardCarousel({
             alt={recipe.title}
             fill
             className="object-cover"
-            sizes="(min-width: 1024px) 180px, 140px"
+            sizes="(min-width: 1024px) 280px, 70vw"
           />
         ) : (
           <div
@@ -52,16 +52,16 @@ export default function RecipeCardCarousel({
             style={{ background: getRecipePlaceholderGradient(recipe.id) }}
           />
         )}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-2 pt-6">
-          <p className="line-clamp-2 text-sm font-medium leading-snug text-white">
-            {recipe.title}
+      </div>
+      <div className="px-1.5 py-2">
+        <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+          {recipe.title}
+        </p>
+        {subtitle && (
+          <p className="mt-0.5 text-xs leading-tight text-muted-foreground">
+            {subtitle}
           </p>
-          {subtitle && (
-            <p className="mt-0.5 text-[11px] leading-tight text-white/70">
-              {subtitle}
-            </p>
-          )}
-        </div>
+        )}
       </div>
     </Link>
   );
