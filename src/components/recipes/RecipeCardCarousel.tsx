@@ -35,7 +35,7 @@ export default function RecipeCardCarousel({
     <Link
       href={`/recipes/${recipe.id}`}
       aria-label={recipe.title}
-      className="block w-[70vw] flex-none overflow-hidden rounded-xl active:scale-[0.97] transition-transform duration-100 lg:w-[280px]"
+      className="block w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 bg-background shadow-[0_2px_12px_rgba(0,0,0,0.08)] active:scale-[0.97] transition-transform duration-100 lg:w-[280px]"
     >
       <div className="relative aspect-[3/2]">
         {imageUrl ? (

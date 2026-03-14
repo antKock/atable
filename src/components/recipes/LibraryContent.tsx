@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
+import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
 import { useRecipeSearch } from "@/hooks/useRecipeSearch";
 import FilterBar from "./FilterBar";
@@ -11,6 +12,8 @@ import RecipeCard from "./RecipeCard";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
 import { matchesFilters } from "@/lib/filters";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface LibraryContentProps {
   recipes: LibraryRecipeItem[];
@@ -50,12 +53,21 @@ export default function LibraryContent({
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: libraryData } = useSWR<{ recipes: LibraryRecipeItem[]; tags: Tag[] }>(
+    "/api/library",
+    fetcher,
+    { fallbackData: { recipes, tags }, revalidateOnMount: true },
+  );
+
+  const liveRecipes = libraryData?.recipes ?? recipes;
+  const liveTags = libraryData?.tags ?? tags;
+
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>(() =>
     parseFiltersFromParams(searchParams),
   );
 
-  const searchResults = useRecipeSearch(recipes, query);
+  const searchResults = useRecipeSearch(liveRecipes, query);
   const isSearching = query.trim().length > 0;
 
   // Auto-focus search input when redirected from home
@@ -83,10 +95,10 @@ export default function LibraryContent({
 
   // Apply filters to recipes (search results or all recipes)
   const displayedRecipes = useMemo(() => {
-    const base = isSearching ? searchResults : recipes;
+    const base = isSearching ? searchResults : liveRecipes;
     if (!hasActiveFilters) return base;
-    return base.filter((recipe) => matchesFilters(recipe, filters, tags));
-  }, [isSearching, searchResults, recipes, hasActiveFilters, filters, tags]);
+    return base.filter((recipe) => matchesFilters(recipe, filters, liveTags));
+  }, [isSearching, searchResults, liveRecipes, hasActiveFilters, filters, liveTags]);
 
   return (
     <>
@@ -121,14 +133,14 @@ export default function LibraryContent({
 
       {/* Filter bar */}
       <FilterBar
-        tags={tags}
+        tags={liveTags}
         filters={filters}
         onFiltersChange={handleFiltersChange}
       />
 
       {/* Recipe grid */}
       {displayedRecipes.length === 0 ? (
-        recipes.length === 0 ? (
+        liveRecipes.length === 0 ? (
           <div className="mx-auto mt-16 max-w-xs text-center">
             <p className="text-lg font-medium text-foreground">
               {t.empty.libraryTitle}

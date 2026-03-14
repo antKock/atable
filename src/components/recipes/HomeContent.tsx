@@ -3,9 +3,12 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
+import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
 import RecipeCarousel from "./RecipeCarousel";
 import type { CarouselSection } from "@/lib/queries/carousels";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface HomeContentProps {
   carouselSections: CarouselSection[];
@@ -25,12 +28,21 @@ export default function HomeContent({
   carouselSections,
   hasRecipes,
 }: HomeContentProps) {
+  const { data: sections } = useSWR<CarouselSection[]>(
+    "/api/carousels",
+    fetcher,
+    { fallbackData: carouselSections, revalidateOnMount: true },
+  );
+
+  const liveSections = sections ?? carouselSections;
+  const liveHasRecipes = hasRecipes || liveSections.length > 0;
+
   const orderedSections = useMemo(() => {
-    const nouvelles = carouselSections.find((s) => s.key === "nouvelles");
-    const rest = carouselSections.filter((s) => s.key !== "nouvelles");
+    const nouvelles = liveSections.find((s) => s.key === "nouvelles");
+    const rest = liveSections.filter((s) => s.key !== "nouvelles");
     const shuffled = shuffleArray(rest);
     return nouvelles ? [nouvelles, ...shuffled] : shuffled;
-  }, [carouselSections]);
+  }, [liveSections]);
 
   return (
     <>
@@ -50,7 +62,7 @@ export default function HomeContent({
       </div>
 
       {/* Carousels or empty state */}
-      {!hasRecipes ? (
+      {!liveHasRecipes ? (
         <div className="mx-auto mt-16 max-w-xs px-4 text-center">
           <p className="text-lg font-medium text-foreground">
             {t.empty.libraryTitle}

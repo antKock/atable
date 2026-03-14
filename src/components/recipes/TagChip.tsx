@@ -7,7 +7,7 @@ interface TagChipProps {
 export default function TagChip({ name, editable = false, onRemove }: TagChipProps) {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+      className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium"
       style={{
         backgroundColor: "var(--tag-chip-bg)",
         color: "var(--tag-chip-text)",
