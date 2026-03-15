@@ -81,7 +81,7 @@ export default function HomeContent() {
 
       {/* Loading state (first visit only, no cached data yet) */}
       {isLoading && !sections ? (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
           <CarouselSkeleton />
           <CarouselSkeleton />
         </div>
@@ -100,7 +100,7 @@ export default function HomeContent() {
           </Link>
         </div>
       ) : (
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-6">
           {orderedSections.map(({ key, title, recipes }) => (
             <RecipeCarousel key={key} title={title} recipes={recipes} />
           ))}
