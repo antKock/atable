@@ -10,7 +10,6 @@ const inter = Inter({
 });
 
 export const viewport: Viewport = {
-  viewportFit: "cover",
   themeColor: "#F8FAF7",
 };
 
@@ -21,7 +20,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "À Table",
   },
   icons: {
