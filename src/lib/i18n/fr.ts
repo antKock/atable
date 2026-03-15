@@ -167,6 +167,34 @@ export const t = {
   // Generic actions
   retry: "Réessayer",
 
+  // Import
+  import: {
+    title: "Nouvelle recette",
+    subtitle: "Comment souhaitez-vous ajouter votre recette ?",
+    screenshot: {
+      title: "Depuis une photo",
+      description: "Importez une capture d'écran ou photo de recette",
+      upload: "Choisir des images",
+      uploadHint: "Plusieurs images possibles — JPG, PNG — max 10 Mo",
+      analyze: "Analyser",
+      count: (n: number) =>
+        `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
+    },
+    url: {
+      title: "Depuis un lien",
+      description: "Collez l'URL d'une recette en ligne",
+      placeholder: "https://marmiton.org/recette/...",
+    },
+    manual: {
+      title: "Saisie manuelle",
+      description: "Remplir le formulaire directement",
+    },
+    divider: "ou",
+    loading: "Extraction de la recette en cours…",
+    error:
+      "Impossible d'extraire la recette. Réessayez ou saisissez-la manuellement.",
+  },
+
   // Search
   search: {
     placeholder: "Rechercher une recette…",

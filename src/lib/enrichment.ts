@@ -1,4 +1,5 @@
 import openai from "@/lib/openai";
+import { withRetry } from "@/lib/retry";
 import { createServerClient } from "@/lib/supabase/server";
 import { EnrichmentResponseSchema } from "@/lib/schemas/enrichment";
 import type { EnrichmentResponse } from "@/lib/schemas/enrichment";
@@ -27,23 +28,6 @@ COMPLEXITY — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 IMAGE PROMPT — décris visuellement le plat terminé en anglais (pour DALL-E). Sois précis sur la présentation, les couleurs, l'angle de vue.
 
 Réponds UNIQUEMENT avec le JSON structuré, sans texte supplémentaire.`;
-}
-
-// ---------- Retry helper ----------
-
-async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    try {
-      return await fn();
-    } catch (error: unknown) {
-      if (attempt === maxRetries - 1) throw error;
-      const status = (error as { status?: number }).status;
-      const isRetryable = status === 429 || status === 500 || status === 503;
-      if (!isRetryable) throw error;
-      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
-    }
-  }
-  throw new Error("Unreachable");
 }
 
 // ---------- Image pipeline ----------

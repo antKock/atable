@@ -31,7 +31,7 @@ const SEASON_OPTIONS = [
 
 interface CreateProps {
   mode: "create";
-  initialData?: never;
+  initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons">> | null;
   recipeId?: never;
   stickySubmit?: boolean;
 }
@@ -54,7 +54,7 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
   const [title, setTitle] = useState(initialData?.title ?? "");
   const [ingredients, setIngredients] = useState(initialData?.ingredients ?? "");
   const [steps, setSteps] = useState(initialData?.steps ?? "");
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(initialData?.tags ?? []);
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(isEdit && initialData?.tags ? initialData.tags : []);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoRemoved, setPhotoRemoved] = useState(false);
   const [regenerateRequested, setRegenerateRequested] = useState(false);
