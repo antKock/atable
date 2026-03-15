@@ -260,9 +260,8 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                     {t.import.screenshot.count(fileEntries.length)}
                   </span>
                   {loading ? (
-                    <div className="flex h-[42px] items-center gap-2 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-foreground">
-                      <Loader2 size={18} className="animate-spin" />
-                      {t.import.loading}
+                    <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                      <Loader2 size={20} className="animate-spin" />
                     </div>
                   ) : (
                     <button

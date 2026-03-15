@@ -22,7 +22,7 @@ export default function DemoBanner() {
   }
 
   return (
-    <div className="flex items-center justify-between gap-2 border-b border-accent/30 bg-accent/10 px-4 py-2">
+    <div className="sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-accent/30 bg-accent/10 px-4 py-2">
       <p className="text-xs font-medium text-accent">
         Mode démo — vos recettes ne seront pas conservées
       </p>

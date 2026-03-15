@@ -136,6 +136,7 @@ export default function LibraryContent({
             onChange={(e) => setQuery(e.target.value)}
             placeholder={t.search.placeholder}
             aria-label={t.search.ariaLabel}
+            autoFocus={autoFocusSearch}
             className="h-11 w-full rounded-xl border border-input bg-surface pl-10 pr-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
             style={{ boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06)" }}
           />
