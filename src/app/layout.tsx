@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from "next";
+import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
@@ -8,10 +8,6 @@ const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
 });
-
-export const viewport: Viewport = {
-  themeColor: "#F8FAF7",
-};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://atable.anthonykocken.fr"),
