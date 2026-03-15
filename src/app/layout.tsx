@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   title: t.appName,
   description: "Votre bibliothèque de recettes personnelle",
   manifest: "/manifest.json",
-  themeColor: "#F8FAF7",
+  themeColor: "#F0F3EC",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
