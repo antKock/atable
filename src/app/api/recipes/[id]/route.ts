@@ -62,9 +62,10 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     const supabase = createServerClient();
 
     // Verify the recipe exists and belongs to this household
+    // Fetch content fields to detect if enrichment-relevant data changed
     const { data: existing } = await supabase
       .from("recipes")
-      .select("id")
+      .select("id, title, ingredients, steps")
       .eq("id", id)
       .eq("household_id", householdId)
       .single();
@@ -72,6 +73,11 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     if (!existing) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
+
+    const contentChanged =
+      existing.title !== result.data.title ||
+      (existing.ingredients ?? null) !== (result.data.ingredients ?? null) ||
+      (existing.steps ?? null) !== (result.data.steps ?? null);
 
     const updatePayload: Record<string, unknown> = {
       title: result.data.title,
@@ -107,13 +113,37 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
 
     if (error) throw error;
 
-    // Tag mutation: delete-then-insert pattern
+    // Tag mutation: delete-then-insert with rollback on failure
     if (result.data.tagIds) {
-      await supabase.from("recipe_tags").delete().eq("recipe_id", id);
+      // Snapshot existing tags before deleting
+      const { data: existingTags } = await supabase
+        .from("recipe_tags")
+        .select("tag_id")
+        .eq("recipe_id", id);
+
+      const { error: deleteError } = await supabase
+        .from("recipe_tags")
+        .delete()
+        .eq("recipe_id", id);
+
+      if (deleteError) throw deleteError;
+
       if (result.data.tagIds.length > 0) {
-        await supabase.from("recipe_tags").insert(
-          result.data.tagIds.map((tagId) => ({ recipe_id: id, tag_id: tagId })),
-        );
+        const { error: insertError } = await supabase
+          .from("recipe_tags")
+          .insert(
+            result.data.tagIds.map((tagId) => ({ recipe_id: id, tag_id: tagId })),
+          );
+
+        // Rollback: restore previous tags if insert failed
+        if (insertError) {
+          if (existingTags && existingTags.length > 0) {
+            await supabase.from("recipe_tags").insert(
+              existingTags.map((t) => ({ recipe_id: id, tag_id: t.tag_id })),
+            );
+          }
+          throw insertError;
+        }
       }
     }
 
@@ -125,7 +155,9 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
       if (result.data.regenerateImage) {
         await regenerateImage(id);
       }
-      await enrichRecipe(id, false);
+      if (contentChanged) {
+        await enrichRecipe(id, false);
+      }
     });
 
     return NextResponse.json(mapDbRowToRecipe(data));

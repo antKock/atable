@@ -14,7 +14,6 @@ const PUBLIC_PREFIXES = [
   '/api/auth/session',
   '/api/cron/',
   '/api/admin/',
-  '/api/debug',
 ]
 
 // Bot user-agents used by social platforms to generate link previews

@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
 import { ImportUrlSchema } from "@/lib/schemas/import";
 import { extractRecipeFromUrl } from "@/lib/import";
 
 export async function POST(request: Request) {
   try {
+    const hdrs = await headers();
+    const householdId = hdrs.get("x-household-id");
+    if (!householdId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     const parsed = ImportUrlSchema.safeParse(body);
 
