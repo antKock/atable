@@ -170,7 +170,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         {/* Ingredients */}
         {ingredientLines.length > 0 && (
           <>
-            <div className="my-5 h-px bg-border" />
+            <div className="my-5 h-px" style={{ background: "var(--divider)" }} />
             <section aria-labelledby="ingredients-heading">
               <h2
                 id="ingredients-heading"
@@ -192,7 +192,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         {/* Steps */}
         {stepLines.length > 0 && (
           <>
-            <div className="my-5 h-px bg-border" />
+            <div className="my-5 h-px" style={{ background: "var(--divider)" }} />
             <section aria-labelledby="steps-heading">
               <h2
                 id="steps-heading"
@@ -203,7 +203,10 @@ export default async function RecipeDetailPage({ params }: Props) {
               <ol className="flex flex-col gap-4">
                 {stepLines.map((line, i) => (
                   <li key={i} className="flex gap-3">
-                    <span className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground">
+                    <span
+                      className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                      style={{ background: "var(--btn-gradient)" }}
+                    >
                       {i + 1}
                     </span>
                     <p className="flex-1 text-base leading-relaxed text-foreground">
@@ -219,7 +222,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         {/* Tags + Seasons */}
         {(recipe.tags.length > 0 || (recipe.seasons && recipe.seasons.length > 0) || isEnriching) && (
           <>
-            <div className="my-5 h-px bg-border" />
+            <div className="my-5 h-px" style={{ background: "var(--divider)" }} />
             <div className="flex flex-wrap gap-2" aria-live="polite">
               {isEnriching ? (
                 <>

@@ -32,7 +32,11 @@ export default function MetadataGrid({
 }: MetadataGridProps) {
   return (
     <div
-      className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-4 gap-y-3 rounded-lg bg-secondary/50 px-4 py-3"
+      className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-4 gap-y-3 rounded-lg px-4 py-3"
+      style={{
+        background: "linear-gradient(168deg, #EEF2E4, #F5F3EE)",
+        boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06)",
+      }}
       aria-live="polite"
     >
       <span className="text-xs font-medium text-muted-foreground">{t.metadata.prepTime}</span>

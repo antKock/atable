@@ -26,8 +26,10 @@ export default function SeasonBadge({ season }: SeasonBadgeProps) {
     <span
       className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
       style={{
-        backgroundColor: `color-mix(in srgb, ${color} 15%, transparent)`,
+        background: `linear-gradient(155deg, color-mix(in srgb, ${color} 18%, transparent), color-mix(in srgb, ${color} 10%, transparent))`,
         color,
+        border: `1px solid color-mix(in srgb, ${color} 22%, transparent)`,
+        boxShadow: `0 1px 3px color-mix(in srgb, ${color} 15%, transparent)`,
       }}
     >
       {label}

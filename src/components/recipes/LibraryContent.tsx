@@ -137,6 +137,7 @@ export default function LibraryContent({
             placeholder={t.search.placeholder}
             aria-label={t.search.ariaLabel}
             className="h-11 w-full rounded-xl border border-input bg-surface pl-10 pr-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            style={{ boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06)" }}
           />
           {isSearching && (
             <button
@@ -167,7 +168,8 @@ export default function LibraryContent({
             <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
             <Link
               href="/recipes/new"
-              className="mt-6 inline-flex min-h-[44px] items-center rounded-lg bg-accent px-6 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+              className="mt-6 inline-flex min-h-[44px] items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
             >
               {t.actions.addRecipe}
             </Link>

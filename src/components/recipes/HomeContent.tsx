@@ -22,7 +22,7 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 function CarouselCardSkeleton() {
   return (
-    <div className="w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 bg-background shadow-[0_2px_12px_rgba(0,0,0,0.08)] lg:w-[280px]">
+    <div className="w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-[280px]" style={{ background: "var(--card-gradient)", boxShadow: "var(--card-shadow)" }}>
       <Skeleton className="aspect-[3/2] w-full rounded-none" />
       <div className="px-1.5 py-2">
         <Skeleton className="h-4 w-3/4" />
@@ -68,6 +68,7 @@ export default function HomeContent() {
         <Link
           href="/library?search=true"
           className="relative flex h-11 w-full items-center rounded-xl border border-input bg-surface pl-10 pr-4 text-base text-muted-foreground"
+          style={{ boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06)" }}
         >
           <Search
             size={18}
@@ -92,7 +93,8 @@ export default function HomeContent() {
           <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
           <Link
             href="/recipes/new"
-            className="mt-6 inline-flex min-h-[44px] items-center rounded-lg bg-accent px-6 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+            className="mt-6 inline-flex min-h-[44px] items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
           >
             {t.actions.addRecipe}
           </Link>

@@ -20,9 +20,14 @@ export default function RecipeCard({
     <Link
       href={`/recipes/${recipe.id}`}
       aria-label={t.a11y.recipeCard(recipe.title)}
-      className={`group relative block overflow-hidden rounded-xl bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+      className={`group relative block overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         isCarousel ? "w-56 flex-none lg:w-64" : "w-full"
       }`}
+      style={{
+        background: "var(--card-gradient)",
+        boxShadow: "var(--card-shadow-sm)",
+        borderBottom: "2.5px solid var(--card-border-accent)",
+      }}
     >
       <div className={`relative w-full ${isCarousel ? "aspect-[3/2]" : "aspect-[3/4]"}`}>
         {imageUrl ? (

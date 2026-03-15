@@ -9,8 +9,10 @@ export default function TagChip({ name, editable = false, onRemove }: TagChipPro
     <span
       className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium"
       style={{
-        backgroundColor: "var(--tag-chip-bg)",
+        background: "linear-gradient(155deg, rgba(110, 122, 56, 0.14), rgba(110, 122, 56, 0.08))",
         color: "var(--tag-chip-text)",
+        border: "1px solid rgba(110, 122, 56, 0.18)",
+        boxShadow: "0 1px 3px rgba(110, 122, 56, 0.1)",
       }}
     >
       {name}

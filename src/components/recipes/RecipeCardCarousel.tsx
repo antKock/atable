@@ -35,8 +35,14 @@ export default function RecipeCardCarousel({
     <Link
       href={`/recipes/${recipe.id}`}
       aria-label={recipe.title}
-      className="block w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 bg-background shadow-[0_2px_12px_rgba(0,0,0,0.08)] active:scale-[0.97] transition-transform duration-100 lg:w-[280px]"
+      className="relative block w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 active:scale-[0.97] transition-transform duration-100 lg:w-[280px]"
+      style={{
+        background: "var(--card-gradient)",
+        boxShadow: "var(--card-shadow)",
+        borderBottom: "2.5px solid var(--card-border-accent)",
+      }}
     >
+      <div className="pointer-events-none absolute inset-0 rounded-xl" style={{ boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)" }} />
       <div className="relative aspect-[3/2]">
         {imageUrl ? (
           <Image

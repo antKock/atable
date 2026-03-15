@@ -16,39 +16,48 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Mobile bottom nav bar */}
+      {/* Mobile bottom nav bar — frosted glass */}
       <nav
         aria-label={t.a11y.mainNav}
-        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-surface lg:hidden"
-        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 lg:hidden"
+        style={{
+          paddingBottom: "env(safe-area-inset-bottom)",
+          backgroundColor: "rgba(255, 255, 255, 0.72)",
+          backdropFilter: "blur(16px) saturate(1.8)",
+          WebkitBackdropFilter: "blur(16px) saturate(1.8)",
+        }}
       >
-        <ul className="flex h-16 items-center justify-around">
+        <ul className="flex h-14 items-center justify-around">
           {navItems.map(({ href, label, icon: Icon, isAdd }) => {
             const isActive = pathname === href;
             return (
-              <li key={href} className="flex-1">
+              <li key={href} className="flex-1 flex justify-center">
                 <Link
                   href={href}
                   aria-label={label}
                   aria-current={isActive ? "page" : undefined}
-                  className={`flex min-h-[44px] min-w-[44px] flex-col items-center text-xs transition-colors ${
-                    isAdd
-                      ? "-mt-5 justify-start gap-1"
-                      : `justify-center gap-0.5 ${isActive ? "text-accent" : "text-muted-foreground hover:text-foreground"}`
-                  }`}
+                  className="flex h-11 w-11 items-center justify-center transition-colors"
                 >
                   {isAdd ? (
-                    <>
-                      <span className="flex h-13 w-13 items-center justify-center rounded-full bg-accent text-accent-foreground shadow-md">
-                        <Icon size={24} />
-                      </span>
-                      <span className="text-muted-foreground">{label}</span>
-                    </>
+                    <span
+                      className="flex h-11 w-11 items-center justify-center rounded-full text-white"
+                      style={{
+                        background: "var(--btn-gradient)",
+                        boxShadow: "var(--btn-shadow)",
+                      }}
+                    >
+                      <Icon size={22} strokeWidth={2.5} />
+                    </span>
                   ) : (
-                    <>
-                      <Icon size={22} />
-                      <span>{label}</span>
-                    </>
+                    <Icon
+                      size={26}
+                      strokeWidth={isActive ? 2.4 : 1.8}
+                      style={{
+                        color: isActive ? "var(--accent)" : "var(--nav-inactive)",
+                        filter: isActive ? "drop-shadow(0 0 4px rgba(110, 122, 56, 0.35))" : "none",
+                        transition: "color 0.2s, filter 0.2s",
+                      }}
+                    />
                   )}
                 </Link>
               </li>
@@ -57,10 +66,15 @@ export default function Navigation() {
         </ul>
       </nav>
 
-      {/* Desktop/tablet side rail */}
+      {/* Desktop/tablet side rail — frosted glass */}
       <nav
         aria-label={t.a11y.mainNav}
-        className="fixed left-0 top-0 z-50 hidden h-full w-56 flex-col border-r border-border bg-surface lg:flex"
+        className="fixed left-0 top-0 z-50 hidden h-full w-56 flex-col border-r border-border/50 lg:flex"
+        style={{
+          backgroundColor: "rgba(255, 255, 255, 0.72)",
+          backdropFilter: "blur(16px) saturate(1.8)",
+          WebkitBackdropFilter: "blur(16px) saturate(1.8)",
+        }}
       >
         <div className="px-6 py-8">
           <span className="text-xl font-extrabold tracking-tight text-foreground">
@@ -75,7 +89,11 @@ export default function Navigation() {
                 {isAdd ? (
                   <Link
                     href={href}
-                    className="flex min-h-[44px] items-center gap-3 rounded-lg bg-accent px-4 py-3 text-sm font-medium text-accent-foreground transition-opacity hover:opacity-90"
+                    className="flex min-h-[44px] items-center gap-3 rounded-lg px-4 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                    style={{
+                      background: "var(--btn-gradient)",
+                      boxShadow: "var(--btn-shadow)",
+                    }}
                   >
                     <Icon size={18} />
                     {t.actions.addRecipe}
