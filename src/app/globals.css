@@ -121,7 +121,7 @@
   body {
     @apply text-foreground;
     overflow-x: hidden;
-    background-color: #F0F3EC;
+    background: transparent;
   }
 }
 
