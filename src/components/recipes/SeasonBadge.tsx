@@ -1,12 +1,5 @@
 import { t } from "@/lib/i18n/fr";
 
-const SEASON_COLORS: Record<string, string> = {
-  printemps: "var(--season-spring)",
-  ete: "var(--season-summer)",
-  automne: "var(--season-autumn)",
-  hiver: "var(--season-winter)",
-};
-
 const SEASON_LABELS: Record<string, string> = {
   printemps: t.seasons.spring,
   ete: t.seasons.summer,
@@ -19,17 +12,16 @@ interface SeasonBadgeProps {
 }
 
 export default function SeasonBadge({ season }: SeasonBadgeProps) {
-  const color = SEASON_COLORS[season] ?? "var(--muted-foreground)";
   const label = SEASON_LABELS[season] ?? season;
 
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
+      className="inline-flex items-center gap-1 rounded-full px-4 py-1.5 text-sm font-medium"
       style={{
-        background: `linear-gradient(155deg, color-mix(in srgb, ${color} 18%, transparent), color-mix(in srgb, ${color} 10%, transparent))`,
-        color,
-        border: `1px solid color-mix(in srgb, ${color} 22%, transparent)`,
-        boxShadow: `0 1px 3px color-mix(in srgb, ${color} 15%, transparent)`,
+        background: "linear-gradient(155deg, rgba(110, 122, 56, 0.14), rgba(110, 122, 56, 0.08))",
+        color: "var(--tag-chip-text)",
+        border: "1px solid rgba(110, 122, 56, 0.18)",
+        boxShadow: "0 1px 3px rgba(110, 122, 56, 0.1)",
       }}
     >
       {label}

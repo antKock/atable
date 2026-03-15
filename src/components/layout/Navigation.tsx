@@ -22,9 +22,7 @@ export default function Navigation() {
         className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/50 lg:hidden"
         style={{
           paddingBottom: "env(safe-area-inset-bottom)",
-          backgroundColor: "rgba(255, 255, 255, 0.72)",
-          backdropFilter: "blur(16px) saturate(1.8)",
-          WebkitBackdropFilter: "blur(16px) saturate(1.8)",
+          backgroundColor: "var(--background)",
         }}
       >
         <ul className="flex h-14 items-center justify-around">
@@ -71,9 +69,7 @@ export default function Navigation() {
         aria-label={t.a11y.mainNav}
         className="fixed left-0 top-0 z-50 hidden h-full w-56 flex-col border-r border-border/50 lg:flex"
         style={{
-          backgroundColor: "rgba(255, 255, 255, 0.72)",
-          backdropFilter: "blur(16px) saturate(1.8)",
-          WebkitBackdropFilter: "blur(16px) saturate(1.8)",
+          backgroundColor: "var(--background)",
         }}
       >
         <div className="px-6 py-8">

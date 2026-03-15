@@ -15,7 +15,7 @@ export default function RecipeCarousel({ title, recipes }: RecipeCarouselProps) 
       <h2 className="mb-3 px-4 text-lg font-semibold text-foreground">
         {title}
       </h2>
-      <div className="flex gap-3 overflow-x-auto px-4 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex gap-3 overflow-x-auto px-4 py-4 -my-4 mb-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {recipes.map((recipe) => (
           <RecipeCardCarousel key={recipe.id} recipe={recipe} />
         ))}

@@ -364,9 +364,12 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
       {/* Submit */}
       <div
         className={stickySubmit
-          ? "sticky bottom-0 bg-background pt-3 border-t border-border/50 shadow-[0_-8px_16px_-4px_rgba(0,0,0,0.06)]"
+          ? "sticky bottom-0 pt-3"
           : undefined}
-        style={stickySubmit ? { paddingBottom: "max(1rem, env(safe-area-inset-bottom))" } : undefined}
+        style={stickySubmit ? {
+          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+          background: "linear-gradient(to bottom, transparent, var(--background) 12px)",
+        } : undefined}
       >
         <Button
           type="submit"
