@@ -25,7 +25,7 @@ export default function Navigation() {
           backgroundColor: "var(--background)",
         }}
       >
-        <ul className="flex h-14 items-center justify-around">
+        <ul className="flex h-16 items-start justify-around pt-2">
           {navItems.map(({ href, label, icon: Icon, isAdd }) => {
             const isActive = pathname === href;
             return (

@@ -14,7 +14,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
       <DeviceTokenProvider />
       <div className="lg:pl-56">
         {isDemo && <DemoBanner />}
-        <main className="min-h-screen pb-20 lg:pb-0">{children}</main>
+        <main className="min-h-screen pb-24 lg:pb-0">{children}</main>
       </div>
       <Navigation />
       <Toaster />
