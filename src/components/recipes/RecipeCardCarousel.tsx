@@ -38,7 +38,6 @@ export default function RecipeCardCarousel({
       className="relative block w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 active:scale-[0.97] transition-transform duration-100 lg:w-[280px]"
       style={{
         background: "var(--card-gradient)",
-        boxShadow: "var(--card-shadow)",
         borderBottom: "2.5px solid var(--card-border-accent)",
       }}
     >
