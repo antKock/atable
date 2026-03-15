@@ -5,15 +5,11 @@ import Link from "next/link";
 import { Search } from "lucide-react";
 import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
+import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
 import type { CarouselSection } from "@/lib/queries/carousels";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
-
-interface HomeContentProps {
-  carouselSections: CarouselSection[];
-  hasRecipes: boolean;
-}
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -24,25 +20,46 @@ function shuffleArray<T>(arr: T[]): T[] {
   return shuffled;
 }
 
-export default function HomeContent({
-  carouselSections,
-  hasRecipes,
-}: HomeContentProps) {
-  const { data: sections } = useSWR<CarouselSection[]>(
+function CarouselCardSkeleton() {
+  return (
+    <div className="w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 bg-background shadow-[0_2px_12px_rgba(0,0,0,0.08)] lg:w-[280px]">
+      <Skeleton className="aspect-[3/2] w-full rounded-none" />
+      <div className="px-1.5 py-2">
+        <Skeleton className="h-4 w-3/4" />
+        <Skeleton className="mt-1 h-3 w-1/2" />
+      </div>
+    </div>
+  );
+}
+
+function CarouselSkeleton() {
+  return (
+    <div>
+      <Skeleton className="mb-3 ml-4 h-5 w-28" />
+      <div className="flex gap-3 overflow-hidden px-4">
+        <CarouselCardSkeleton />
+        <CarouselCardSkeleton />
+      </div>
+    </div>
+  );
+}
+
+export default function HomeContent() {
+  const { data: sections, isLoading } = useSWR<CarouselSection[]>(
     "/api/carousels",
     fetcher,
-    { fallbackData: carouselSections, revalidateOnMount: true },
+    { revalidateOnMount: true },
   );
 
-  const liveSections = sections ?? carouselSections;
-  const liveHasRecipes = hasRecipes || liveSections.length > 0;
+  const hasRecipes = sections && sections.length > 0;
 
   const orderedSections = useMemo(() => {
-    const nouvelles = liveSections.find((s) => s.key === "nouvelles");
-    const rest = liveSections.filter((s) => s.key !== "nouvelles");
+    if (!sections) return [];
+    const nouvelles = sections.find((s) => s.key === "nouvelles");
+    const rest = sections.filter((s) => s.key !== "nouvelles");
     const shuffled = shuffleArray(rest);
     return nouvelles ? [nouvelles, ...shuffled] : shuffled;
-  }, [liveSections]);
+  }, [sections]);
 
   return (
     <>
@@ -61,8 +78,13 @@ export default function HomeContent({
         </Link>
       </div>
 
-      {/* Carousels or empty state */}
-      {!liveHasRecipes ? (
+      {/* Loading state (first visit only, no cached data yet) */}
+      {isLoading && !sections ? (
+        <div className="flex flex-col gap-8">
+          <CarouselSkeleton />
+          <CarouselSkeleton />
+        </div>
+      ) : !hasRecipes ? (
         <div className="mx-auto mt-16 max-w-xs px-4 text-center">
           <p className="text-lg font-medium text-foreground">
             {t.empty.libraryTitle}

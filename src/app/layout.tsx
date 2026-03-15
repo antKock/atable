@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
+import SWRProvider from "@/components/providers/SWRProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -42,7 +43,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.variable} font-sans antialiased`}>
-        {children}
+        <SWRProvider>{children}</SWRProvider>
       </body>
     </html>
   );

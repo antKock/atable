@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +24,7 @@ interface ConfirmDeleteDialogProps {
 
 export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: ConfirmDeleteDialogProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -40,6 +42,8 @@ export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: Conf
 
       setOpen(false);
       toast.success(t.feedback.recipeDeleted, { duration: 2500 });
+      mutate("/api/carousels");
+      mutate("/api/library");
       router.push("/home");
     } catch (err) {
       setOpen(false);

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -46,6 +47,7 @@ type RecipeFormProps = CreateProps | EditProps;
 
 export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }: RecipeFormProps) {
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const isEdit = mode === "edit";
   const { uploadPhoto } = usePhotoUpload();
 
@@ -116,6 +118,8 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
         }
 
         toast.success(t.feedback.recipeUpdated, { duration: 2500 });
+        mutate("/api/carousels");
+        mutate("/api/library");
         router.push(`/recipes/${recipeId}`);
 
         // Fire-and-forget background upload after redirect (same pattern as create mode)
@@ -151,6 +155,8 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
 
         const created = await response.json();
         toast.success(t.feedback.recipeSaved, { duration: 2500 });
+        mutate("/api/carousels");
+        mutate("/api/library");
         router.push("/home");
 
         // Fire-and-forget background upload after redirect

@@ -7,6 +7,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
 import { useRecipeSearch } from "@/hooks/useRecipeSearch";
+import { Skeleton } from "@/components/ui/skeleton";
 import FilterBar from "./FilterBar";
 import RecipeCard from "./RecipeCard";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
@@ -16,8 +17,6 @@ import { matchesFilters } from "@/lib/filters";
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface LibraryContentProps {
-  recipes: LibraryRecipeItem[];
-  tags: Tag[];
   autoFocusSearch?: boolean;
 }
 
@@ -45,22 +44,20 @@ function filtersToParams(filters: FilterState): URLSearchParams {
 }
 
 export default function LibraryContent({
-  recipes,
-  tags,
   autoFocusSearch = false,
 }: LibraryContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: libraryData } = useSWR<{ recipes: LibraryRecipeItem[]; tags: Tag[] }>(
+  const { data: libraryData, isLoading } = useSWR<{ recipes: LibraryRecipeItem[]; tags: Tag[] }>(
     "/api/library",
     fetcher,
-    { fallbackData: { recipes, tags }, revalidateOnMount: true },
+    { revalidateOnMount: true },
   );
 
-  const liveRecipes = libraryData?.recipes ?? recipes;
-  const liveTags = libraryData?.tags ?? tags;
+  const liveRecipes = libraryData?.recipes ?? [];
+  const liveTags = libraryData?.tags ?? [];
 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>(() =>
@@ -99,6 +96,28 @@ export default function LibraryContent({
     if (!hasActiveFilters) return base;
     return base.filter((recipe) => matchesFilters(recipe, filters, liveTags));
   }, [isSearching, searchResults, liveRecipes, hasActiveFilters, filters, liveTags]);
+
+  // Loading state (first visit only, no cached data yet)
+  if (isLoading && !libraryData) {
+    return (
+      <>
+        <div className="px-4 pb-3">
+          <Skeleton className="h-11 w-full rounded-xl" />
+        </div>
+        <div className="flex gap-2 px-3 pb-3">
+          <Skeleton className="h-8 w-20 rounded-full" />
+          <Skeleton className="h-8 w-24 rounded-full" />
+          <Skeleton className="h-8 w-16 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-full" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
+          ))}
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
