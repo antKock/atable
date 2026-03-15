@@ -122,6 +122,7 @@
     @apply text-foreground;
     overflow-x: hidden;
     background: transparent;
+    padding-top: env(safe-area-inset-top);
   }
 }
 

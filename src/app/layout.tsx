@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
@@ -9,15 +9,19 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+export const viewport: Viewport = {
+  viewportFit: "cover",
+  themeColor: "#F8FAF7",
+};
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://atable.anthonykocken.fr"),
   title: t.appName,
   description: "Votre bibliothèque de recettes personnelle",
   manifest: "/manifest.json",
-  themeColor: "#F8FAF7",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "default",
+    statusBarStyle: "black-translucent",
     title: "À Table",
   },
   icons: {
