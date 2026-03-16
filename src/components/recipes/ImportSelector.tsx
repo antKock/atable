@@ -143,13 +143,20 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
         signal: controller.signal,
       });
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        const code = body?.code as string | undefined;
+        if (code === "SITE_BLOCKED") throw new Error(t.import.errorSiteBlocked);
+        if (code === "RATE_LIMIT") throw new Error(t.import.errorRateLimit);
+        if (code === "SITE_UNREACHABLE") throw new Error(t.import.errorSiteUnreachable);
+        throw new Error(t.import.error);
+      }
 
       const data: ImportedRecipeData = await res.json();
       onImportComplete(data);
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
-        setError(t.import.error);
+        setError((err as Error).message || t.import.error);
       }
     } finally {
       setLoading(false);

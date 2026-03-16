@@ -193,6 +193,12 @@ export const t = {
     loading: "Extraction de la recette en cours…",
     error:
       "Impossible d'extraire la recette. Réessayez ou saisissez-la manuellement.",
+    errorSiteBlocked:
+      "Ce site bloque l'accès automatique. Essayez avec une capture d'écran ou la saisie manuelle.",
+    errorRateLimit:
+      "Trop de requêtes, réessayez dans quelques instants.",
+    errorSiteUnreachable:
+      "Impossible d'accéder au site. Vérifiez l'URL et réessayez.",
   },
 
   // Search

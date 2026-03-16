@@ -13,6 +13,16 @@ import type { RecipeFormData } from "@/types/recipe";
 
 export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
 
+export class ImportError extends Error {
+  constructor(
+    message: string,
+    public readonly code: "SITE_BLOCKED" | "SITE_UNREACHABLE" | "EXTRACTION_FAILED",
+  ) {
+    super(message);
+    this.name = "ImportError";
+  }
+}
+
 // ---------- System prompt ----------
 
 const EXTRACTION_SYSTEM_PROMPT = `Tu es un assistant culinaire expert. Extrais les données de la recette et retourne un JSON structuré en français.
@@ -128,16 +138,25 @@ export async function extractRecipeFromUrl(
   url: string,
 ): Promise<ImportedRecipeData> {
   // Fetch HTML server-side
-  const res = await fetch(url, {
-    headers: {
-      "User-Agent":
-        "Mozilla/5.0 (compatible; atable/1.0; recipe-import)",
-    },
-    signal: AbortSignal.timeout(10000),
-  });
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+      },
+      signal: AbortSignal.timeout(10000),
+    });
+  } catch {
+    throw new ImportError("Site unreachable", "SITE_UNREACHABLE");
+  }
+
+  if (res.status === 403 || res.status === 429) {
+    throw new ImportError("Site blocked bot access", "SITE_BLOCKED");
+  }
 
   if (!res.ok) {
-    throw new Error(`Failed to fetch URL: ${res.status}`);
+    throw new ImportError(`Failed to fetch URL: ${res.status}`, "SITE_UNREACHABLE");
   }
 
   const html = await res.text();
