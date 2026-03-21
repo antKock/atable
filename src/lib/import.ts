@@ -16,7 +16,7 @@ export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
 export class ImportError extends Error {
   constructor(
     message: string,
-    public readonly code: "SITE_BLOCKED" | "SITE_UNREACHABLE" | "EXTRACTION_FAILED",
+    public readonly code: "SITE_BLOCKED" | "SITE_UNREACHABLE" | "EXTRACTION_FAILED" | "TRANSCRIPTION_FAILED",
   ) {
     super(message);
     this.name = "ImportError";
@@ -121,6 +121,50 @@ export async function extractRecipeFromImages(
             },
             ...imageContent,
           ],
+        },
+      ],
+    });
+
+    const content = response.choices[0].message.content;
+    if (!content) throw new Error("Empty response from OpenAI");
+    const parsed = ImportResultSchema.parse(JSON.parse(content));
+    return toFormData(parsed);
+  });
+}
+
+// ---------- Voice transcription ----------
+
+export async function extractRecipeFromVoice(
+  audioFile: File,
+): Promise<ImportedRecipeData> {
+  // Step 1: Transcribe audio with Whisper
+  const transcription = await withRetry(async () => {
+    const result = await openai.audio.transcriptions.create({
+      model: "whisper-1",
+      file: audioFile,
+      language: "fr",
+      response_format: "text",
+    });
+    return result as unknown as string;
+  });
+
+  if (!transcription || transcription.trim().length === 0) {
+    throw new ImportError("Empty transcription", "TRANSCRIPTION_FAILED");
+  }
+
+  // Step 2: Structure transcription into recipe JSON
+  return withRetry(async () => {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      response_format: {
+        type: "json_schema",
+        json_schema: IMPORT_JSON_SCHEMA,
+      },
+      messages: [
+        { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `Extrais la recette depuis cette transcription orale. Attention : peut contenir des hésitations, répétitions, ou corrections ('ah non, 200g pas 300') — utilise toujours la dernière valeur donnée :\n\n${transcription}`,
         },
       ],
     });

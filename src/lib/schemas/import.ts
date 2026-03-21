@@ -35,4 +35,13 @@ export const ImportResultSchema = z.object({
   seasons: z.array(z.enum(VALID_SEASONS)),
 });
 
+export const MAX_VOICE_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
+
+export const VALID_VOICE_MIME_TYPES = [
+  "audio/webm",
+  "audio/ogg",
+  "audio/mp4",
+  "audio/mpeg",
+] as const;
+
 export type ImportResult = z.infer<typeof ImportResultSchema>;

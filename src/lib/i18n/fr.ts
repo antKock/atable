@@ -180,6 +180,18 @@ export const t = {
       count: (n: number) =>
         `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
     },
+    voice: {
+      title: "Dictée vocale",
+      description: "Dictez votre recette à voix haute",
+      record: "Appuyez pour dicter",
+      recording: "Enregistrement en cours…",
+      processing: "Analyse de la recette…",
+      stop: "Arrêter",
+      maxDuration: "3 minutes max",
+      error: "Impossible d'extraire la recette depuis l'audio",
+      errorNoMic: "Accès au microphone refusé",
+      errorUnsupported: "Votre navigateur ne supporte pas l'enregistrement audio",
+    },
     url: {
       title: "Depuis un lien",
       description: "Collez l'URL d'une recette en ligne",

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Image, Link2, AlignLeft, ChevronRight, Upload, Plus, X, Loader2 } from "lucide-react";
+import { Image, Link2, AlignLeft, ChevronRight, Upload, Plus, X, Loader2, Mic, Square } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import { resizeImageToBase64 } from "@/lib/image-resize";
+import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import type { ImportedRecipeData } from "@/lib/import";
 
-type ExpandedCard = "screenshot" | "url" | null;
+type ExpandedCard = "screenshot" | "voice" | "url" | null;
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -21,16 +22,64 @@ interface ImportSelectorProps {
   onManual: () => void;
 }
 
+function formatDuration(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 export default function ImportSelector({ onImportComplete, onManual }: ImportSelectorProps) {
   const [expanded, setExpanded] = useState<ExpandedCard>(null);
   const [fileEntries, setFileEntries] = useState<FileWithKey[]>([]);
   const [urlValue, setUrlValue] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [voiceProcessing, setVoiceProcessing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMoreInputRef = useRef<HTMLInputElement>(null);
   const urlInputRef = useRef<HTMLInputElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const voice = useVoiceRecorder();
+
+  // Submit voice recording when audioBlob is ready
+  useEffect(() => {
+    if (!voice.audioBlob) return;
+    async function submitVoice(blob: Blob) {
+      setVoiceProcessing(true);
+      setLoading(true);
+      setError(null);
+
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
+
+      try {
+        const formData = new FormData();
+        const ext = blob.type.includes("mp4") ? "mp4" : blob.type.includes("ogg") ? "ogg" : "webm";
+        formData.append("audio", blob, `recording.${ext}`);
+
+        const res = await fetch("/api/recipes/import/voice", {
+          method: "POST",
+          body: formData,
+          signal: controller.signal,
+        });
+
+        if (!res.ok) throw new Error(t.import.voice.error);
+
+        const data: ImportedRecipeData = await res.json();
+        onImportComplete(data);
+      } catch (err) {
+        if ((err as Error).name !== "AbortError") {
+          setError((err as Error).message || t.import.voice.error);
+        }
+      } finally {
+        setVoiceProcessing(false);
+        setLoading(false);
+      }
+    }
+    submitVoice(voice.audioBlob);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voice.audioBlob]);
 
   // F9: Focus URL input when card expands
   useEffect(() => {
@@ -167,21 +216,23 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
     <div className="flex flex-col gap-3.5">
       {/* Screenshot card */}
       <div
-        className={`flex flex-wrap items-center gap-4 rounded-[18px] border-[1.5px] bg-surface p-5 transition-all ${
+        className={`flex flex-wrap items-center gap-4 rounded-[18px] border-[1.5px] bg-surface p-3.5 transition-all ${
           expanded === "screenshot"
             ? "border-accent shadow-[0_2px_16px_rgba(110,122,56,0.12)]"
             : "border-border cursor-pointer hover:border-accent hover:shadow-[0_2px_12px_rgba(110,122,56,0.10)] active:scale-[0.985]"
         }`}
         onClick={() => expanded !== "screenshot" && toggleCard("screenshot")}
       >
-        <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[rgba(110,122,56,0.12)]">
-          <Image size={24} className="text-accent" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(110,122,56,0.12)]">
+          <Image size={20} className="text-accent" />
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold">{t.import.screenshot.title}</h3>
-          <p className="text-[13px] leading-tight text-muted-foreground">
-            {t.import.screenshot.description}
-          </p>
+          {expanded === "screenshot" && (
+            <p className="text-[13px] leading-tight text-muted-foreground">
+              {t.import.screenshot.description}
+            </p>
+          )}
         </div>
         <ChevronRight
           size={18}
@@ -291,23 +342,123 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
         )}
       </div>
 
+      {/* Voice card */}
+      {voice.isSupported && (
+        <div
+          className={`flex flex-wrap items-center gap-4 rounded-[18px] border-[1.5px] bg-surface p-3.5 transition-all ${
+            expanded === "voice"
+              ? "border-accent shadow-[0_2px_16px_rgba(110,122,56,0.12)]"
+              : "border-border cursor-pointer hover:border-accent hover:shadow-[0_2px_12px_rgba(110,122,56,0.10)] active:scale-[0.985]"
+          }`}
+          onClick={() => expanded !== "voice" && toggleCard("voice")}
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(110,122,56,0.12)]">
+            <Mic size={20} className="text-accent" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-base font-semibold">{t.import.voice.title}</h3>
+            {expanded === "voice" && (
+              <p className="text-[13px] leading-tight text-muted-foreground">
+                {t.import.voice.description}
+              </p>
+            )}
+          </div>
+          <ChevronRight
+            size={18}
+            className={`shrink-0 text-muted-foreground opacity-50 transition-transform ${
+              expanded === "voice" ? "rotate-90" : ""
+            }`}
+          />
+
+          {/* Expanded content */}
+          {expanded === "voice" && (
+            <div className="mt-0.5 basis-full" onClick={(e) => e.stopPropagation()}>
+              {voiceProcessing ? (
+                /* Processing state */
+                <div className="flex flex-col items-center gap-3 py-6">
+                  <Loader2 size={32} className="animate-spin text-accent" />
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {t.import.voice.processing}
+                  </p>
+                </div>
+              ) : voice.isRecording ? (
+                /* Recording state */
+                <div className="flex flex-col items-center gap-4 py-4">
+                  {/* Waveform visualizer */}
+                  <div className="flex h-12 items-end gap-[3px]">
+                    {voice.waveformData.map((v, i) => (
+                      <div
+                        key={i}
+                        className="w-[6px] rounded-full bg-accent transition-all duration-75"
+                        style={{ height: `${Math.max(4, v * 48)}px` }}
+                      />
+                    ))}
+                  </div>
+                  {/* Timer */}
+                  <span className="font-mono text-lg font-semibold text-foreground">
+                    {formatDuration(voice.duration)}
+                  </span>
+                  {/* Stop button */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setVoiceProcessing(true);
+                      voice.stop();
+                    }}
+                    className="flex h-14 w-14 items-center justify-center rounded-full bg-red-500 text-white transition-opacity hover:opacity-85"
+                  >
+                    <Square size={20} fill="currentColor" />
+                  </button>
+                </div>
+              ) : (
+                /* Idle state */
+                <div className="flex flex-col items-center gap-3 py-4">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        await voice.start();
+                      } catch {
+                        setError(t.import.voice.errorNoMic);
+                      }
+                    }}
+                    className="flex h-16 w-16 items-center justify-center rounded-full bg-accent text-accent-foreground transition-opacity hover:opacity-85"
+                  >
+                    <Mic size={28} />
+                  </button>
+                  <p className="text-xs text-muted-foreground">
+                    {t.import.voice.maxDuration}
+                  </p>
+                </div>
+              )}
+
+              {error && expanded === "voice" && (
+                <p className="mt-3 text-center text-sm text-red-600">{error}</p>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* URL card */}
       <div
-        className={`flex flex-wrap items-center gap-4 rounded-[18px] border-[1.5px] bg-surface p-5 transition-all ${
+        className={`flex flex-wrap items-center gap-4 rounded-[18px] border-[1.5px] bg-surface p-3.5 transition-all ${
           expanded === "url"
             ? "border-accent shadow-[0_2px_16px_rgba(110,122,56,0.12)]"
             : "border-border cursor-pointer hover:border-accent hover:shadow-[0_2px_12px_rgba(110,122,56,0.10)] active:scale-[0.985]"
         }`}
         onClick={() => expanded !== "url" && toggleCard("url")}
       >
-        <div className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-[rgba(110,122,56,0.12)]">
-          <Link2 size={24} className="text-accent" />
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(110,122,56,0.12)]">
+          <Link2 size={20} className="text-accent" />
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold">{t.import.url.title}</h3>
-          <p className="text-[13px] leading-tight text-muted-foreground">
-            {t.import.url.description}
-          </p>
+          {expanded === "url" && (
+            <p className="text-[13px] leading-tight text-muted-foreground">
+              {t.import.url.description}
+            </p>
+          )}
         </div>
         <ChevronRight
           size={18}
@@ -362,9 +513,9 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
       {/* Manual card */}
       <div
         onClick={onManual}
-        className="flex cursor-pointer items-center gap-4 rounded-[18px] border-[1.5px] border-dashed border-border bg-transparent p-4 transition-all hover:border-muted-foreground active:scale-[0.985]"
+        className="flex cursor-pointer items-center gap-4 rounded-[18px] border-[1.5px] border-dashed border-border bg-transparent p-3.5 transition-all hover:border-muted-foreground active:scale-[0.985]"
       >
-        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary">
           <AlignLeft size={20} className="text-muted-foreground" />
         </div>
         <div className="min-w-0 flex-1">
