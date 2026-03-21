@@ -8,10 +8,10 @@ Covers Epics 1 (AI Enrichment & Recipe Detail v3) and 2 (Edit Form v3 — Overri
 
 ### 1.1 OpenAI
 
-- [ ] Create an API key on [platform.openai.com](https://platform.openai.com/api-keys)
-- [ ] Ensure the key has access to **GPT-4o-mini** and **DALL-E 3**
-- [ ] Set a spending limit (enrichment costs ~$0.001/recipe, image ~$0.04/image)
-- [ ] Note the key — it goes in `OPENAI_SERVICE_KEY`
+- [X] Create an API key on [platform.openai.com](https://platform.openai.com/api-keys)
+- [X] Ensure the key has access to **GPT-4o-mini** and **DALL-E 3**
+- [X] Set a spending limit (enrichment costs ~$0.001/recipe, image ~$0.04/image)
+- [X] Note the key — it goes in `OPENAI_SERVICE_KEY`
 
 ### 1.2 Supabase — Run Migration
 
@@ -48,9 +48,9 @@ WHERE table_name = 'recipes' AND column_name IN ('enrichment_status', 'image_sta
 
 The enrichment pipeline uploads AI-generated images to Supabase Storage at `recipe-photos/generated/{recipeId}/ai-image.webp`.
 
-- [ ] Ensure the `recipe-photos` bucket exists (should already exist from v2 photo upload)
-- [ ] Ensure the bucket allows public reads (for `getPublicUrl()` to work)
-- [ ] Verify the service role key has write access (it should by default)
+- [X] Ensure the `recipe-photos` bucket exists (should already exist from v2 photo upload)
+- [X] Ensure the bucket allows public reads (for `getPublicUrl()` to work)
+- [X] Verify the service role key has write access (it should by default)
 
 If the bucket doesn't exist:
 
@@ -85,8 +85,8 @@ The enrichment pipeline runs in `after()` callbacks. Verify your Vercel plan sup
 - Image generation (DALL-E 3 + download + upload): ~15-30s
 - Combined worst case: ~40s
 
-- [ ] Verify Vercel plan allows ≥60s function duration (Pro plan default)
-- [ ] Check that `after()` is supported on your deployment target (requires Node.js runtime, not Edge)
+- [X] Verify Vercel plan allows ≥60s function duration (Pro plan default)
+- [X] Check that `after()` is supported on your deployment target (requires Node.js runtime, not Edge)
 
 ### 1.6 Local Development — .env.local
 
@@ -145,17 +145,17 @@ fetch('/api/recipes/SOME_RECIPE_ID/status').then(r => r.json()).then(console.log
 5. Tap "Enregistrer"
 
 **Expected:**
-- [ ] Redirect to `/home` immediately (save < 500ms)
-- [ ] Toast "Ajoutée à votre bibliothèque" appears
-- [ ] Go to the recipe detail page (find it in library or home)
-- [ ] MetadataGrid shows shimmer blocks (Prép., Cuisson, Coût, Difficulté)
-- [ ] Tags/Seasons area shows shimmer pills
-- [ ] Image area shows shimmer or placeholder gradient
-- [ ] Within ~10s: metadata shimmers resolve to actual values (e.g. Prép. "30-45 min", Cuisson "1h - 2h", Coût "€€", Difficulté "moyen")
-- [ ] Tags appear as olive-tinted chips (e.g. "Plat principal", "Poulet", "Française")
-- [ ] Seasons appear as color-coded badges (e.g. "Automne", "Hiver")
-- [ ] Within ~30s: AI-generated image fades in (1024×1024 overhead illustration)
-- [ ] No page refresh required — polling triggers in-place reveal
+- [X] Redirect to `/home` immediately (save < 500ms)
+- [X] Toast "Ajoutée à votre bibliothèque" appears
+- [X] Go to the recipe detail page (find it in library or home)
+- [X] MetadataGrid shows shimmer blocks (Prép., Cuisson, Coût, Difficulté)
+- [X] Tags/Seasons area shows shimmer pills
+- [X] Image area shows shimmer or placeholder gradient
+- [X] Within ~10s: metadata shimmers resolve to actual values (e.g. Prép. "30-45 min", Cuisson "1h - 2h", Coût "€€", Difficulté "moyen")
+- [X] Tags appear as olive-tinted chips (e.g. "Plat principal", "Poulet", "Française")
+- [X] Seasons appear as color-coded badges (e.g. "Automne", "Hiver")
+- [X] Within ~30s: AI-generated image fades in (1024×1024 overhead illustration)
+- [X] No page refresh required — polling triggers in-place reveal
 
 ### Test 1.2 — Enrichment Status Polling
 
@@ -165,12 +165,12 @@ fetch('/api/recipes/SOME_RECIPE_ID/status').then(r => r.json()).then(console.log
 3. Go to recipe detail page while enrichment is running
 
 **Expected:**
-- [ ] See `GET /api/recipes/{id}/status` requests every ~3s
-- [ ] Response shows `{ enrichmentStatus: "pending", imageStatus: "pending" }`
-- [ ] When metadata resolves: `enrichmentStatus` changes to `"enriched"`
-- [ ] When image resolves: `imageStatus` changes to `"generated"`
-- [ ] Polling stops after both reach terminal state
-- [ ] No more requests after 60s regardless
+- [X] See `GET /api/recipes/{id}/status` requests every ~3s
+- [X] Response shows `{ enrichmentStatus: "pending", imageStatus: "pending" }`
+- [X] When metadata resolves: `enrichmentStatus` changes to `"enriched"`
+- [X] When image resolves: `imageStatus` changes to `"generated"`
+- [X] Polling stops after both reach terminal state
+- [X] No more requests after 60s regardless
 
 ### Test 1.3 — Fill Empty Only (Edit Preserves User Values)
 
@@ -183,10 +183,10 @@ fetch('/api/recipes/SOME_RECIPE_ID/status').then(r => r.json()).then(console.log
 6. Reload the detail page
 
 **Expected:**
-- [ ] Prép. is still "< 10 min" (user value preserved)
-- [ ] Coût is still "€" (user value preserved)
-- [ ] Other AI-assigned fields unchanged (enrichment didn't overwrite them)
-- [ ] Tags remain unchanged (user had tags, so AI skipped tag assignment)
+- [X] Prép. is still "< 10 min" (user value preserved)
+- [X] Coût is still "€" (user value preserved)
+- [X] Other AI-assigned fields unchanged (enrichment didn't overwrite them)
+- [X] Tags remain unchanged (user had tags, so AI skipped tag assignment)
 
 ### Test 1.4 — Enrichment Failure Graceful Degradation
 
@@ -227,9 +227,9 @@ fetch('/api/recipes/SOME_RECIPE_ID/status').then(r => r.json()).then(console.log
 4. Check again
 
 **Expected:**
-- [ ] `last_viewed_at` updated to current timestamp
-- [ ] `view_count` incremented by 1 each visit
-- [ ] No visible latency from view tracking (fire-and-forget)
+- [X] `last_viewed_at` updated to current timestamp
+- [X] `view_count` incremented by 1 each visit
+- [X] No visible latency from view tracking (fire-and-forget)
 
 ### Test 1.7 — Image Priority on Detail Page
 
@@ -258,14 +258,13 @@ fetch('/api/recipes/SOME_RECIPE_ID/status').then(r => r.json()).then(console.log
 3. Start typing "pou"
 
 **Expected:**
-- [ ] Dropdown opens with category-grouped suggestions
-- [ ] Tags filtered to matches (e.g. "Poulet" under "Protéine principale")
-- [ ] Category headers visible (uppercase, small, muted)
-- [ ] Already-selected tags hidden from suggestions
-- [ ] Accent-insensitive: typing "vege" matches "Végétarien"
+- [X] Dropdown opens with category-grouped suggestions
+- [X] Tags filtered to matches (e.g. "Poulet" under "Protéine principale")
+- [X] Category headers visible (uppercase, small, muted)
+- [x] Already-selected tags hidden from suggestions
+- [x] Accent-insensitive: typing "vege" matches "Végétarien"
 
 ### Test 2.2 — Tag Keyboard Navigation
-
 **Steps:**
 1. Focus the tag input
 2. Press ArrowDown to open dropdown

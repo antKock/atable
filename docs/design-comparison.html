@@ -1,0 +1,968 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>atable — Design Comparison: Before / After</title>
+<script>
+// Lucide SVG icons (matching the actual app)
+const ICONS = {
+  home: (size=22,color='currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>`,
+  plus: (size=24,color='currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>`,
+  bookOpen: (size=22,color='currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>`,
+  users: (size=20,color='currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  search: (size=16,color='currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`,
+  arrowLeft: (size=18,color='currentColor') => `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>`,
+};
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:wght@700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 56px; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f0efe8; color: #1A1F1A; }
+
+  /* ── Nav ── */
+  .sticky-nav {
+    position: sticky; top: 0; z-index: 100; background: #f0efe8;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    display: flex; justify-content: center; gap: 4px; padding: 10px 12px;
+    flex-wrap: wrap;
+  }
+  .sticky-nav a {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    color: #8a8870; text-decoration: none; padding: 6px 12px; border-radius: 8px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .sticky-nav a:hover { background: rgba(0,0,0,0.06); color: #32321e; }
+
+  h1 { text-align: center; font-size: 18px; font-weight: 900; color: #1A1F1A; padding: 28px 0 6px; letter-spacing: -0.3px; }
+  h1 span { color: #6E7A38; }
+  .subtitle { text-align: center; font-size: 12px; color: #8a8870; margin-bottom: 20px; }
+
+  .section-title {
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px;
+    color: #8a8870; text-align: center; padding: 36px 0 12px;
+    border-top: 1px solid rgba(0,0,0,0.08); margin: 0 40px;
+  }
+  .section-title:first-of-type { border-top: none; }
+
+  /* ── Comparison layout ── */
+  .compare-row {
+    display: flex; justify-content: center; gap: 40px; padding: 16px 24px 48px;
+    flex-wrap: wrap; align-items: flex-start;
+  }
+  .compare-col {
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .compare-label {
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.2px;
+    padding: 4px 14px; border-radius: 20px;
+  }
+  .label-before { background: #e8e5de; color: #8a8870; }
+  .label-after { background: #6E7A38; color: #fff; }
+
+  .arrow {
+    font-size: 28px; color: #6E7A38; opacity: 0.5; align-self: center;
+    margin-top: 30px;
+  }
+
+  /* ── Palette vars ── */
+  :root {
+    --bg: #F8FAF7;
+    --fg: #1A1F1A;
+    --surface: #FFFFFF;
+    --accent: #6E7A38;
+    --secondary: #EEF2E4;
+    --muted: #6B6E68;
+    --border: #E5DED6;
+    --tag-bg: rgba(110, 122, 56, 0.12);
+    --tag-text: #4A5225;
+  }
+
+  /* ── Phone frame ── */
+  .phone-frame {
+    border-radius: 36px; padding: 44px 0 20px; width: 320px;
+    overflow: hidden; position: relative;
+    aspect-ratio: 9 / 19.5;
+  }
+  .phone-inner { padding: 0 14px; }
+  .phone-notch {
+    position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+    width: 84px; height: 24px; border-radius: 16px; background: rgba(0,0,0,0.08); z-index: 10;
+  }
+
+  /* ── Fake image ── */
+  .fake-img {
+    width: 100%; aspect-ratio: 3/2; border-radius: 10px 10px 0 0; position: relative; overflow: hidden;
+  }
+  .fake-img-gradient {
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, #a8b490, #6a8054, #4a5a32);
+  }
+  .fake-img-overlay {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 50%;
+  }
+  .fake-img-text {
+    position: absolute; bottom: 10px; left: 12px; right: 12px;
+    color: #fff; font-size: 13px; font-weight: 700; line-height: 1.3;
+  }
+
+  /* ── Card styles ── */
+  .card-before {
+    width: 260px; border-radius: 12px; overflow: hidden;
+    border: 1px solid rgba(229,222,214,0.4);
+    background: var(--bg);
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .card-before .card-body { padding: 6px 10px 10px; }
+  .card-before .card-title { font-size: 13px; font-weight: 600; color: var(--fg); line-height: 1.3; }
+  .card-before .card-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  .card-after {
+    width: 260px; border-radius: 16px; overflow: hidden;
+    background: linear-gradient(168deg, #FFFFFF, #F5F7F0);
+    border: 1px solid rgba(110,122,56,0.08);
+    border-bottom: 2.5px solid rgba(110,122,56,0.22);
+    box-shadow:
+      0 1px 3px rgba(110,122,56,0.06),
+      0 6px 16px rgba(110,122,56,0.08),
+      0 14px 36px rgba(0,0,0,0.04);
+    /* inset highlight */
+    position: relative;
+  }
+  .card-after::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.7), transparent);
+    z-index: 1;
+  }
+  .card-after .card-body { padding: 8px 12px 12px; }
+  .card-after .card-title { font-size: 13px; font-weight: 700; color: var(--fg); line-height: 1.3; }
+  .card-after .card-sub { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+  /* ── Grid card ── */
+  .grid-card-before {
+    width: 170px; border-radius: 12px; overflow: hidden;
+    background: var(--secondary);
+  }
+  .grid-card-before .fake-img { aspect-ratio: 3/4; border-radius: 12px; }
+  .grid-card-before .fake-img-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.68), transparent);
+    height: 40%;
+  }
+
+  .grid-card-after {
+    width: 170px; border-radius: 14px; overflow: hidden;
+    background: linear-gradient(168deg, #FFFFFF, #F5F7F0);
+    border: 1px solid rgba(110,122,56,0.06);
+    border-bottom: 2px solid rgba(110,122,56,0.18);
+    box-shadow:
+      0 1px 2px rgba(110,122,56,0.05),
+      0 4px 12px rgba(110,122,56,0.07),
+      0 12px 28px rgba(0,0,0,0.03);
+    position: relative;
+  }
+  .grid-card-after::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+    z-index: 1;
+  }
+  .grid-card-after .fake-img { aspect-ratio: 3/4; border-radius: 14px; }
+  .grid-card-after .fake-img-overlay {
+    background: linear-gradient(to top, rgba(0,0,0,0.60), rgba(0,0,0,0.08) 55%, transparent);
+    height: 50%;
+  }
+
+  /* ── Navigation ── */
+  .nav-mock {
+    width: 340px; border-radius: 18px; overflow: hidden; position: relative;
+  }
+  .nav-before {
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 10px 0 14px;
+  }
+  .nav-after {
+    background: rgba(255,255,255,0.72);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(229,222,214,0.5);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.04);
+    display: flex; align-items: center; justify-content: space-around;
+    padding: 10px 0 14px;
+  }
+  .nav-item {
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    font-size: 10px; font-weight: 600;
+  }
+  .nav-item.active-before { color: var(--accent); }
+  .nav-item.inactive { color: var(--muted); }
+  .nav-item.active-after { color: var(--accent); }
+  .nav-icon {
+    width: 22px; height: 22px; border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; line-height: 0;
+  }
+  .nav-after .nav-icon {
+    width: 44px; height: 44px;
+  }
+  .nav-after .nav-item.active-after .nav-icon svg {
+    stroke: var(--accent);
+    stroke-width: 2.4;
+    filter: drop-shadow(0 0 3px rgba(110,122,56,0.25));
+  }
+  .nav-after .nav-item.inactive .nav-icon svg {
+    stroke: #B5B3AD;
+  }
+  .nav-add-before {
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--accent); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700;
+    margin-top: -18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+  .nav-add-after {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: linear-gradient(145deg, #7d8c40, #5d6a2e);
+    color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 700;
+    box-shadow:
+      0 2px 6px rgba(93,106,46,0.25),
+      0 8px 20px rgba(93,106,46,0.15),
+      inset 0 1px 0 rgba(255,255,255,0.2);
+  }
+
+  /* ── Metadata grid ── */
+  .meta-mock { width: 300px; border-radius: 12px; padding: 14px 16px; }
+  .meta-before { background: rgba(238,242,228,0.5); }
+  .meta-after {
+    background: linear-gradient(170deg, rgba(238,242,228,0.6), rgba(238,242,228,0.25));
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.04), 0 1px 0 rgba(255,255,255,0.5);
+    border: 1px solid rgba(229,222,214,0.4);
+  }
+  .meta-row { display: grid; grid-template-columns: auto 1fr auto 1fr; gap: 6px 16px; }
+  .meta-label { font-size: 11px; font-weight: 500; color: var(--muted); }
+  .meta-value { font-size: 13px; font-weight: 600; color: var(--fg); }
+
+  /* ── Tags ── */
+  .tags-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+
+  .tag-before {
+    display: inline-flex; align-items: center;
+    border-radius: 999px; padding: 6px 16px;
+    font-size: 13px; font-weight: 500;
+    background: var(--tag-bg); color: var(--tag-text);
+  }
+  .tag-after {
+    display: inline-flex; align-items: center;
+    border-radius: 999px; padding: 6px 16px;
+    font-size: 13px; font-weight: 600;
+    background: linear-gradient(160deg, rgba(110,122,56,0.14), rgba(110,122,56,0.08));
+    color: var(--tag-text);
+    border: 1px solid rgba(110,122,56,0.1);
+    box-shadow: 0 1px 3px rgba(110,122,56,0.06), inset 0 1px 0 rgba(255,255,255,0.4);
+  }
+
+  .season-before {
+    display: inline-flex; align-items: center;
+    border-radius: 999px; padding: 4px 10px;
+    font-size: 11px; font-weight: 500;
+  }
+  .season-after {
+    display: inline-flex; align-items: center;
+    border-radius: 999px; padding: 4px 10px;
+    font-size: 11px; font-weight: 600;
+    border-width: 1px; border-style: solid;
+  }
+
+  /* ── Search bar ── */
+  .search-mock { width: 300px; border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; }
+  .search-before {
+    background: var(--surface);
+    border: 1px solid var(--border);
+  }
+  .search-after {
+    background: linear-gradient(170deg, #FFFFFF, #F9FAF6);
+    border: 1px solid rgba(229,222,214,0.5);
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.03), 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .search-icon { color: var(--muted); font-size: 15px; }
+  .search-text { color: var(--muted); font-size: 13px; font-weight: 500; }
+
+  /* ── Button CTA ── */
+  .btn-mock { border-radius: 10px; padding: 12px 32px; font-size: 14px; font-weight: 700; border: none; cursor: pointer; font-family: inherit; }
+  .btn-before { background: var(--accent); color: #fff; }
+  .btn-after {
+    background: linear-gradient(155deg, #7d8c40, #5d6a2e);
+    color: #fff;
+    box-shadow:
+      0 2px 6px rgba(93,106,46,0.22),
+      0 8px 18px rgba(93,106,46,0.12),
+      inset 0 1px 0 rgba(255,255,255,0.18);
+  }
+
+  /* ── Page BG comparison ── */
+  .page-bg-mock {
+    width: 300px; height: 200px; border-radius: 18px; position: relative;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .page-bg-before { background: #F8FAF7; border: 1px solid var(--border); }
+  .page-bg-after {
+    background: #F8FAF7;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(168,180,144,0.10) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(229,222,214,0.18) 0%, transparent 50%);
+    border: 1px solid rgba(229,222,214,0.3);
+  }
+  .page-bg-mock .inner-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+
+  /* ── Detail hero ── */
+  .hero-mock { width: 300px; border-radius: 14px; overflow: hidden; }
+  .hero-img { width: 100%; aspect-ratio: 4/3; position: relative; overflow: hidden; }
+  .hero-img .fake-img-gradient {
+    background: linear-gradient(135deg, #b8c4a0, #6a8054, #3a4a22);
+  }
+  .hero-overlay-before {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 0;
+  }
+  .hero-overlay-after {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 40%;
+    background: linear-gradient(to top, rgba(0,0,0,0.20), transparent);
+  }
+  .hero-btn {
+    position: absolute; top: 10px; left: 10px;
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; border: none; cursor: pointer;
+  }
+  .hero-btn-before { background: rgba(255,255,255,0.8); backdrop-filter: blur(4px); color: var(--fg); }
+  .hero-btn-after {
+    background: rgba(255,255,255,0.65);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    color: var(--fg);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.5);
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .hero-content { padding: 14px 14px 16px; }
+  .hero-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--fg); line-height: 1.2; }
+
+  /* ── Detail section (ingredients) ── */
+  .detail-section { width: 300px; }
+  .detail-heading {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: 0.9px; color: var(--muted); margin-bottom: 10px;
+  }
+  .detail-list-before { border-top: 1px solid var(--border); }
+  .detail-list-before li {
+    padding: 9px 0; border-bottom: 1px solid var(--border);
+    font-size: 14px; color: var(--fg); list-style: none;
+  }
+  .detail-list-after { border-top: none; }
+  .detail-list-after li {
+    padding: 9px 12px; font-size: 14px; color: var(--fg); list-style: none;
+    border-radius: 8px; margin-bottom: 2px;
+  }
+  .detail-list-after li:nth-child(odd) {
+    background: rgba(238,242,228,0.35);
+  }
+
+  /* ── Step numbers ── */
+  .step-row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .step-num {
+    width: 24px; height: 24px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 2px;
+  }
+  .step-num-before { background: var(--accent); color: #fff; }
+  .step-num-after {
+    background: linear-gradient(145deg, #7d8c40, #5d6a2e);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(93,106,46,0.2), inset 0 1px 0 rgba(255,255,255,0.15);
+  }
+  .step-text { font-size: 14px; line-height: 1.5; color: var(--fg); flex: 1; }
+
+  /* ── Divider ── */
+  .divider-before { height: 1px; background: var(--border); margin: 16px 0; }
+  .divider-after {
+    height: 1px; margin: 16px 0;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* ── Full phone mockups ── */
+  .phone-compare { display: flex; justify-content: center; gap: 32px; padding: 16px 24px 48px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<h1>a<span>table</span> — Design Refresh</h1>
+<p class="subtitle">Before / After comparison &mdash; adding depth, gradients & emotion</p>
+
+<nav class="sticky-nav">
+  <a href="#s-bg">Background</a>
+  <a href="#s-carousel">Carousel Card</a>
+  <a href="#s-grid">Grid Card</a>
+  <a href="#s-nav">Navigation</a>
+  <a href="#s-search">Search</a>
+  <a href="#s-hero">Detail Hero</a>
+  <a href="#s-meta">Metadata</a>
+  <a href="#s-ingredients">Ingredients</a>
+  <a href="#s-steps">Steps</a>
+  <a href="#s-tags">Tags</a>
+  <a href="#s-btn">Buttons</a>
+  <a href="#s-dividers">Dividers</a>
+  <a href="#s-full">Full Page</a>
+</nav>
+
+<!-- ═══════════════ PAGE BACKGROUND ═══════════════ -->
+<h2 class="section-title" id="s-bg">Page Background</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="page-bg-mock page-bg-before">
+      <span class="inner-label">Flat #F8FAF7</span>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="page-bg-mock page-bg-after">
+      <span class="inner-label">Subtle radial gradients</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CAROUSEL CARD ═══════════════ -->
+<h2 class="section-title" id="s-carousel">Carousel Card (Home)</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="card-before">
+      <div class="fake-img">
+        <div class="fake-img-gradient"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Poulet rôti aux herbes</div>
+        <div class="card-sub">45 min · Abordable</div>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="card-after">
+      <div class="fake-img" style="border-radius: 16px 16px 0 0">
+        <div class="fake-img-gradient"></div>
+      </div>
+      <div class="card-body">
+        <div class="card-title">Poulet rôti aux herbes</div>
+        <div class="card-sub">45 min · Abordable</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ GRID CARD ═══════════════ -->
+<h2 class="section-title" id="s-grid">Grid Card (Library)</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="grid-card-before">
+      <div class="fake-img">
+        <div class="fake-img-gradient"></div>
+        <div class="fake-img-overlay" style="background:linear-gradient(to top, rgba(0,0,0,0.68), transparent)"></div>
+        <div class="fake-img-text">Tarte aux pommes</div>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="grid-card-after">
+      <div class="fake-img">
+        <div class="fake-img-gradient"></div>
+        <div class="fake-img-overlay" style="background:linear-gradient(to top, rgba(0,0,0,0.55), rgba(0,0,0,0.06) 55%, transparent); height:50%"></div>
+        <div class="fake-img-text">Tarte aux pommes</div>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After (no photo)</span>
+    <div class="grid-card-after" style="width:170px">
+      <div class="fake-img" style="aspect-ratio:3/4;border-radius:14px">
+        <div style="position:absolute;inset:0;background:linear-gradient(155deg, rgba(168,180,144,0.6), rgba(110,122,56,0.3));"></div>
+        <div class="fake-img-overlay" style="background:linear-gradient(to top, rgba(0,0,0,0.45), transparent); height:40%"></div>
+        <div class="fake-img-text">Soupe de potiron</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<h2 class="section-title" id="s-nav">Bottom Navigation</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="nav-mock">
+      <div class="nav-before">
+        <div class="nav-item active-before">
+          <div class="nav-icon icon-home"></div>
+          <span>Accueil</span>
+        </div>
+        <div class="nav-item" style="margin-top:-18px">
+          <div class="nav-add-before icon-plus"></div>
+          <span style="font-size:10px;color:var(--muted);margin-top:4px">Ajouter</span>
+        </div>
+        <div class="nav-item inactive">
+          <div class="nav-icon icon-book"></div>
+          <span>Recettes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="nav-mock" style="background:linear-gradient(to top, rgba(248,250,247,0.3), transparent); padding-top:8px;">
+      <div class="nav-after">
+        <div class="nav-item active-after">
+          <div class="nav-icon icon-home"></div>
+        </div>
+        <div class="nav-item">
+          <div class="nav-add-after icon-plus"></div>
+        </div>
+        <div class="nav-item inactive">
+          <div class="nav-icon icon-book"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ SEARCH BAR ═══════════════ -->
+<h2 class="section-title" id="s-search">Search Bar</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="search-mock search-before">
+      <span class="search-icon icon-search"></span>
+      <span class="search-text">Rechercher une recette...</span>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="search-mock search-after">
+      <span class="search-icon icon-search"></span>
+      <span class="search-text">Rechercher une recette...</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DETAIL HERO ═══════════════ -->
+<h2 class="section-title" id="s-hero">Recipe Detail — Hero</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="hero-mock">
+      <div class="hero-img">
+        <div class="fake-img-gradient"></div>
+        <div class="hero-overlay-before"></div>
+        <button class="hero-btn hero-btn-before icon-arrow"></button>
+      </div>
+      <div class="hero-content" style="background:var(--bg)">
+        <div class="hero-title">Poulet rôti aux herbes de Provence</div>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="hero-mock" style="box-shadow: 0 4px 20px rgba(0,0,0,0.06)">
+      <div class="hero-img">
+        <div class="fake-img-gradient"></div>
+        <div class="hero-overlay-after"></div>
+        <button class="hero-btn hero-btn-after icon-arrow"></button>
+      </div>
+      <div class="hero-content" style="background: linear-gradient(180deg, var(--bg), #F5F7F0)">
+        <div class="hero-title">Poulet rôti aux herbes de Provence</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ METADATA GRID ═══════════════ -->
+<h2 class="section-title" id="s-meta">Metadata Grid</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="meta-mock meta-before">
+      <div class="meta-row">
+        <span class="meta-label">Préparation</span>
+        <span class="meta-value">20 min</span>
+        <span class="meta-label">Cuisson</span>
+        <span class="meta-value">45 min</span>
+        <span class="meta-label">Coût</span>
+        <span class="meta-value">Abordable</span>
+        <span class="meta-label">Difficulté</span>
+        <span class="meta-value">Facile</span>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="meta-mock meta-after">
+      <div class="meta-row">
+        <span class="meta-label">Préparation</span>
+        <span class="meta-value">20 min</span>
+        <span class="meta-label">Cuisson</span>
+        <span class="meta-value">45 min</span>
+        <span class="meta-label">Coût</span>
+        <span class="meta-value">Abordable</span>
+        <span class="meta-label">Difficulté</span>
+        <span class="meta-value">Facile</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ INGREDIENTS ═══════════════ -->
+<h2 class="section-title" id="s-ingredients">Ingredients List</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="detail-section">
+      <div class="detail-heading">Ingrédients</div>
+      <ul class="detail-list-before">
+        <li>1 poulet fermier (~1.5 kg)</li>
+        <li>3 c.à.s. herbes de Provence</li>
+        <li>4 gousses d'ail</li>
+        <li>2 c.à.s. huile d'olive</li>
+        <li>Sel, poivre</li>
+      </ul>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="detail-section">
+      <div class="detail-heading">Ingrédients</div>
+      <ul class="detail-list-after">
+        <li>1 poulet fermier (~1.5 kg)</li>
+        <li>3 c.à.s. herbes de Provence</li>
+        <li>4 gousses d'ail</li>
+        <li>2 c.à.s. huile d'olive</li>
+        <li>Sel, poivre</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ STEPS ═══════════════ -->
+<h2 class="section-title" id="s-steps">Steps</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="detail-section">
+      <div class="detail-heading">Étapes</div>
+      <div class="step-row">
+        <div class="step-num step-num-before">1</div>
+        <div class="step-text">Préchauffer le four à 200°C.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num step-num-before">2</div>
+        <div class="step-text">Frotter le poulet avec les herbes et l'huile d'olive.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num step-num-before">3</div>
+        <div class="step-text">Enfourner pendant 1h15, arroser régulièrement.</div>
+      </div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="detail-section">
+      <div class="detail-heading">Étapes</div>
+      <div class="step-row">
+        <div class="step-num step-num-after">1</div>
+        <div class="step-text">Préchauffer le four à 200°C.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num step-num-after">2</div>
+        <div class="step-text">Frotter le poulet avec les herbes et l'huile d'olive.</div>
+      </div>
+      <div class="step-row">
+        <div class="step-num step-num-after">3</div>
+        <div class="step-text">Enfourner pendant 1h15, arroser régulièrement.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ TAGS & SEASONS ═══════════════ -->
+<h2 class="section-title" id="s-tags">Tags &amp; Season Badges</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="tags-row">
+      <span class="tag-before">Volaille</span>
+      <span class="tag-before">Four</span>
+      <span class="tag-before">Classique</span>
+      <span class="season-before" style="background:rgba(124,179,66,0.15);color:#7CB342">Printemps</span>
+      <span class="season-before" style="background:rgba(244,168,54,0.15);color:#F4A836">Été</span>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="tags-row">
+      <span class="tag-after">Volaille</span>
+      <span class="tag-after">Four</span>
+      <span class="tag-after">Classique</span>
+      <span class="season-after" style="background:linear-gradient(160deg, rgba(124,179,66,0.16), rgba(124,179,66,0.08));color:#6a9e2e;border-color:rgba(124,179,66,0.15);box-shadow:0 1px 3px rgba(124,179,66,0.08), inset 0 1px 0 rgba(255,255,255,0.4)">Printemps</span>
+      <span class="season-after" style="background:linear-gradient(160deg, rgba(244,168,54,0.16), rgba(244,168,54,0.08));color:#d0902a;border-color:rgba(244,168,54,0.15);box-shadow:0 1px 3px rgba(244,168,54,0.08), inset 0 1px 0 rgba(255,255,255,0.4)">Été</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ BUTTONS ═══════════════ -->
+<h2 class="section-title" id="s-btn">Primary Button</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <button class="btn-mock btn-before">Enregistrer</button>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <button class="btn-mock btn-after">Enregistrer</button>
+  </div>
+</div>
+
+<!-- ═══════════════ DIVIDERS ═══════════════ -->
+<h2 class="section-title" id="s-dividers">Section Dividers</h2>
+<div class="compare-row">
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div style="width:260px; padding: 8px 0">
+      <div class="divider-before"></div>
+      <div style="padding: 16px 0; font-size:13px; color:var(--muted); text-align:center">Uniform border line</div>
+      <div class="divider-before"></div>
+    </div>
+  </div>
+  <div class="arrow">→</div>
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div style="width:260px; padding: 8px 0">
+      <div class="divider-after"></div>
+      <div style="padding: 16px 0; font-size:13px; color:var(--muted); text-align:center">Gradient fade edges</div>
+      <div class="divider-after"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ FULL PAGE MOCKUP ═══════════════ -->
+<h2 class="section-title" id="s-full">Full Home Page</h2>
+<div class="phone-compare">
+  <!-- BEFORE phone -->
+  <div class="compare-col">
+    <span class="compare-label label-before">Before</span>
+    <div class="phone-frame" style="background: var(--bg); box-shadow: 0 4px 14px rgba(0,0,0,0.05), 0 14px 44px rgba(80,100,60,0.06)">
+      <div class="phone-notch"></div>
+      <div class="phone-inner">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0 12px">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px"><span style="color:var(--fg)">a</span><span style="color:var(--accent)">table</span></div>
+          <div class="icon-users" style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted)"></div>
+        </div>
+        <!-- Search -->
+        <div class="search-mock search-before" style="width:100%;margin-bottom:16px">
+          <span class="search-icon icon-search"></span>
+          <span class="search-text">Rechercher...</span>
+        </div>
+        <!-- Section title -->
+        <div style="font-size:15px;font-weight:600;color:var(--fg);margin-bottom:8px">Nouvelles</div>
+        <!-- Carousel -->
+        <div style="display:flex;gap:10px;overflow:hidden;margin:0 -14px;padding:0 14px 16px">
+          <div class="card-before" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2"><div class="fake-img-gradient"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Poulet rôti</div><div class="card-sub" style="font-size:10px">45 min</div></div>
+          </div>
+          <div class="card-before" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2"><div class="fake-img-gradient" style="background:linear-gradient(135deg, #c4a882, #8a6a42, #5a4a32)"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Tarte tatin</div><div class="card-sub" style="font-size:10px">1h15</div></div>
+          </div>
+        </div>
+        <!-- Section title -->
+        <div style="font-size:15px;font-weight:600;color:var(--fg);margin-bottom:8px">Rapides</div>
+        <!-- Carousel 2 -->
+        <div style="display:flex;gap:10px;overflow:hidden;margin:0 -14px;padding:0 14px">
+          <div class="card-before" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2"><div class="fake-img-gradient" style="background:linear-gradient(135deg, #8ab4c0, #4a7a8a, #2a5a6a)"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Salade niçoise</div><div class="card-sub" style="font-size:10px">15 min</div></div>
+          </div>
+          <div class="card-before" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2"><div class="fake-img-gradient" style="background:linear-gradient(135deg, #d4a86a, #b08a4a, #8a6a2a)"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Croque-monsieur</div><div class="card-sub" style="font-size:10px">20 min</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Nav -->
+      <div style="position:absolute;bottom:0;left:0;right:0">
+        <div class="nav-before" style="border-radius:0">
+          <div class="nav-item active-before"><div class="nav-icon icon-home"></div><span>Accueil</span></div>
+          <div class="nav-item" style="margin-top:-18px"><div class="nav-add-before icon-plus"></div><span style="font-size:10px;color:var(--muted);margin-top:4px">Ajouter</span></div>
+          <div class="nav-item inactive"><div class="nav-icon icon-book"></div><span>Recettes</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AFTER phone -->
+  <div class="compare-col">
+    <span class="compare-label label-after">After</span>
+    <div class="phone-frame" style="background: var(--bg); background-image: radial-gradient(ellipse at 20% 0%, rgba(168,180,144,0.10) 0%, transparent 60%), radial-gradient(ellipse at 80% 100%, rgba(229,222,214,0.18) 0%, transparent 50%); box-shadow: 0 4px 14px rgba(0,0,0,0.05), 0 14px 44px rgba(80,100,60,0.06)">
+      <div class="phone-notch"></div>
+      <div class="phone-inner">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding: 8px 0 12px">
+          <div style="font-size:20px;font-weight:900;letter-spacing:-0.5px"><span style="color:var(--fg)">a</span><span style="color:var(--accent)">table</span></div>
+          <div style="width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--muted);background:rgba(238,242,228,0.5);box-shadow:inset 0 1px 2px rgba(0,0,0,0.04)" class="icon-users"></div>
+        </div>
+        <!-- Search -->
+        <div class="search-mock search-after" style="width:100%;margin-bottom:16px">
+          <span class="search-icon icon-search"></span>
+          <span class="search-text">Rechercher...</span>
+        </div>
+        <!-- Section title -->
+        <div style="font-size:15px;font-weight:600;color:var(--fg);margin-bottom:8px">Nouvelles</div>
+        <!-- Carousel -->
+        <div style="display:flex;gap:10px;overflow:visible;margin:0 -14px;padding:0 14px 20px;position:relative;z-index:1">
+          <div class="card-after" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2;border-radius:16px 16px 0 0"><div class="fake-img-gradient"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Poulet rôti</div><div class="card-sub" style="font-size:10px">45 min</div></div>
+          </div>
+          <div class="card-after" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2;border-radius:16px 16px 0 0"><div class="fake-img-gradient" style="background:linear-gradient(135deg, #c4a882, #8a6a42, #5a4a32)"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Tarte tatin</div><div class="card-sub" style="font-size:10px">1h15</div></div>
+          </div>
+        </div>
+        <!-- Section title -->
+        <div style="font-size:15px;font-weight:600;color:var(--fg);margin-bottom:8px;position:relative;z-index:2">Rapides</div>
+        <!-- Carousel 2 -->
+        <div style="display:flex;gap:10px;overflow:visible;margin:0 -14px;padding:0 14px;position:relative;z-index:1">
+          <div class="card-after" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2;border-radius:16px 16px 0 0"><div class="fake-img-gradient" style="background:linear-gradient(135deg, #8ab4c0, #4a7a8a, #2a5a6a)"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Salade niçoise</div><div class="card-sub" style="font-size:10px">15 min</div></div>
+          </div>
+          <div class="card-after" style="width:200px;flex-shrink:0">
+            <div class="fake-img" style="aspect-ratio:3/2;border-radius:16px 16px 0 0"><div class="fake-img-gradient" style="background:linear-gradient(135deg, #d4a86a, #b08a4a, #8a6a2a)"></div></div>
+            <div class="card-body"><div class="card-title" style="font-size:12px">Croque-monsieur</div><div class="card-sub" style="font-size:10px">20 min</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Nav -->
+      <div style="position:absolute;bottom:0;left:0;right:0">
+        <div class="nav-after" style="border-radius:0">
+          <div class="nav-item active-after"><div class="nav-icon icon-home"></div></div>
+          <div class="nav-item"><div class="nav-add-after icon-plus"></div></div>
+          <div class="nav-item inactive"><div class="nav-icon icon-book"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ DESIGN TOKENS SUMMARY ═══════════════ -->
+<h2 class="section-title">Design Tokens — Summary of Changes</h2>
+<div style="max-width:720px;margin:0 auto;padding:0 24px 60px;font-size:13px;line-height:1.7;color:#555">
+  <table style="width:100%;border-collapse:collapse;font-size:12px">
+    <thead>
+      <tr style="text-align:left;border-bottom:2px solid var(--border)">
+        <th style="padding:8px 12px;font-weight:800;color:var(--fg)">Element</th>
+        <th style="padding:8px 12px;font-weight:800;color:#8a8870">Before</th>
+        <th style="padding:8px 12px;font-weight:800;color:var(--accent)">After</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Page background</td>
+        <td style="padding:8px 12px;color:#8a8870">Flat <code>#F8FAF7</code></td>
+        <td style="padding:8px 12px">+ Subtle radial gradients (olive top-left, warm bottom-right)</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Card surface</td>
+        <td style="padding:8px 12px;color:#8a8870">Flat <code>#FFF</code> / <code>#F8FAF7</code></td>
+        <td style="padding:8px 12px"><code>linear-gradient(168deg, #FFF, #F5F7F0)</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Card shadow</td>
+        <td style="padding:8px 12px;color:#8a8870"><code>0 2px 12px rgba(0,0,0,0.08)</code></td>
+        <td style="padding:8px 12px">3-layer: 1px/6px/14px with olive tint</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Card border</td>
+        <td style="padding:8px 12px;color:#8a8870">Uniform <code>border-border/40</code></td>
+        <td style="padding:8px 12px">Subtle border + <strong>2.5px bottom accent</strong></td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Card highlight</td>
+        <td style="padding:8px 12px;color:#8a8870">None</td>
+        <td style="padding:8px 12px"><code>::before</code> inset top highlight (white gradient)</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Primary buttons</td>
+        <td style="padding:8px 12px;color:#8a8870">Flat <code>#6E7A38</code></td>
+        <td style="padding:8px 12px"><code>linear-gradient(155deg, #7d8c40, #5d6a2e)</code> + shadow + inset</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Navigation</td>
+        <td style="padding:8px 12px;color:#8a8870">Solid <code>bg-surface</code></td>
+        <td style="padding:8px 12px">Frosted glass: <code>rgba(255,255,255,0.72)</code> + <code>backdrop-blur(16px)</code></td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Tags / badges</td>
+        <td style="padding:8px 12px;color:#8a8870">Flat tint</td>
+        <td style="padding:8px 12px">Gradient tint + micro-shadow + border + inset highlight</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Metadata grid</td>
+        <td style="padding:8px 12px;color:#8a8870">Flat <code>bg-secondary/50</code></td>
+        <td style="padding:8px 12px">Gradient + inset shadow (recessed panel)</td>
+      </tr>
+      <tr style="border-bottom:1px solid rgba(0,0,0,0.06)">
+        <td style="padding:8px 12px;font-weight:600">Search bar</td>
+        <td style="padding:8px 12px;color:#8a8870">Flat white + border</td>
+        <td style="padding:8px 12px">Gradient + inset shadow + outer glow</td>
+      </tr>
+      <tr>
+        <td style="padding:8px 12px;font-weight:600">Dividers</td>
+        <td style="padding:8px 12px;color:#8a8870">Solid <code>bg-border</code></td>
+        <td style="padding:8px 12px">Gradient fade: transparent → border → transparent</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<script>
+// Populate all icon placeholders with Lucide SVGs
+// Bigger icons in "after" nav, regular in "before"
+document.querySelectorAll('.icon-home').forEach(el => {
+  const inAfter = el.closest('.nav-after');
+  el.innerHTML = ICONS.home(inAfter ? 26 : 22);
+});
+document.querySelectorAll('.icon-book').forEach(el => {
+  const inAfter = el.closest('.nav-after');
+  el.innerHTML = ICONS.bookOpen(inAfter ? 26 : 22);
+});
+document.querySelectorAll('.icon-search').forEach(el => el.innerHTML = ICONS.search(16));
+document.querySelectorAll('.icon-users').forEach(el => el.innerHTML = ICONS.users(20));
+document.querySelectorAll('.icon-arrow').forEach(el => el.innerHTML = ICONS.arrowLeft(18));
+document.querySelectorAll('.icon-plus').forEach(el => el.innerHTML = ICONS.plus(24, '#fff'));
+</script>
+</body>
+</html>
