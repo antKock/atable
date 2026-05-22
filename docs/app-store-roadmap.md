@@ -1,7 +1,8 @@
 # À Table — Roadmap publication App Store iOS
 
 > Document de pilotage pour la mise en ligne d'À Table sur l'Apple App Store.
-> Créé le 2026-05-20. Statut : **planification**.
+> Créé le 2026-05-20. Statut : **Phase 1 livrée (2026-05-22)** — Phases 0,
+> 0.5 (staging) et 2+ à venir.
 
 ---
 
@@ -37,7 +38,7 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 |---|---|---|
 | **0** — Compte Apple | Apple Developer Program (99 $/an), App Store Connect | Non (parallèle) |
 | **0.5** — Environnements staging/prod | Dédoubler Vercel + Supabase + Upstash | Non (parallèle) |
-| **1** — Correctifs code | 5 fixes conformité + robustesse (profitent aussi au web) | — |
+| **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
 | **2** — Intégration Capacitor | Projet iOS, plugins, clés Info.plist | Dépend d'un Mac/Xcode |
 | **3** — Préparation soumission | Assets, fiche App Store, conformité | Non |
 | **4** — Test & soumission | Test device réel → TestFlight → review Apple | — |
@@ -215,18 +216,26 @@ Environments* (séparation encore plus propre que le modèle par branche).
 
 ## 6. Phase 1 — Correctifs code
 
+> **✅ TERMINÉE — 2026-05-22.** Les 5 correctifs sont implémentés, vérifiés
+> (`tsc`, 125 tests, build de production) et **déployés en production**
+> (PR #1, commit `5bb5cf7`). Le cron `demo-reset` a été testé de bout en bout
+> sur le Supabase prod : `GET` authentifié → `{reset:true,deleted:1,restored:0}`,
+> les 13 recettes seed préservées, la recette non-seed supprimée. En prod,
+> `GET /api/cron/demo-reset` → `401` (handler atteint) ; il tournera chaque
+> nuit à 3h. Vérifs WKWebView des fixes 1.1 et 1.2 → reportées en Phase 4.
+
 Branche : `chore/appstore-prep`. Aucune dépendance entre les fixes → ordre libre.
 Chacun est déployable seul, sans régression web. Classés du plus simple au plus
 consistant.
 
-### Fix 1.3 — Retirer les en-têtes de debug `x-dbg-*` · XS
+### Fix 1.3 — Retirer les en-têtes de debug `x-dbg-*` · XS · ✅ FAIT
 
 - **Fichier :** `src/middleware.ts` (~lignes 49-56).
 - **Changement :** supprimer les 3 `response.headers.set('x-dbg-*', …)`.
 - **Impact web :** aucun.
 - **Vérif :** DevTools → Network → plus de `x-dbg-*` dans les réponses.
 
-### Fix 1.5 — Cron `GET` + domaine périmé · XS
+### Fix 1.5 — Cron `GET` + domaine périmé · XS · ✅ FAIT
 
 - **Fichiers :** `src/app/api/cron/demo-reset/route.ts`,
   `src/components/household/InviteLinkDisplay.tsx:17`.
@@ -237,7 +246,7 @@ consistant.
 - **Vérif :** route appelée en GET avec le bon `Authorization` → 200 ; lien
   d'invitation pointe vers le bon domaine.
 
-### Fix 1.1 — Safe-areas iOS · S
+### Fix 1.1 — Safe-areas iOS · S · ✅ FAIT
 
 - **Fichiers :** `src/app/layout.tsx` (export `viewport`) + en-têtes des layouts
   `(app)` / `(landing)`.
@@ -248,7 +257,7 @@ consistant.
 - **Vérif :** simulateur iOS → nav basse et en-têtes ne passent plus sous
   l'encoche / la barre d'accueil.
 
-### Fix 1.4 — Séparer « Quitter » / « Supprimer le foyer » · S/M
+### Fix 1.4 — Séparer « Quitter » / « Supprimer le foyer » · S/M · ✅ FAIT
 
 - **Fichiers :** `src/components/household/LeaveHouseholdDialog.tsx`,
   API `src/app/api/households/[id]/route.ts` (le `DELETE` gère déjà les deux cas).
@@ -265,7 +274,7 @@ consistant.
 - **Vérif :** « Quitter » → session partie, données conservées ; « Supprimer »
   → tout disparaît, retour à `/`.
 
-### Fix 1.2 — Refacto auth : cookie sur `200 JSON` au lieu de `303` · M
+### Fix 1.2 — Refacto auth : cookie sur `200 JSON` au lieu de `303` · M · ✅ FAIT
 
 - **Fichiers :** 3 routes (`api/demo/session`, `api/households`,
   `api/households/join`) + leurs composants clients appelants
@@ -346,15 +355,16 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
 ---
 
-## 11. Bugs trouvés pendant l'audit (hors scope, à corriger)
+## 11. Bugs trouvés pendant l'audit
 
-- 🔴 **Cron `demo-reset` ne tourne jamais** : route `POST`-only, Vercel Cron
-  envoie un `GET` → 405. Données démo jamais réinitialisées. (→ Fix 1.5)
-- 🟠 **Domaine périmé** `https://atable.app/join/...` codé en dur dans
-  `InviteLinkDisplay.tsx:17`. (→ Fix 1.5)
-- 🟠 **En-têtes `x-dbg-*`** exposent des internes de session. (→ Fix 1.3)
-- ℹ️ `useDeviceToken` / `DeviceTokenProvider` = code mort (UUID `localStorage`
-  jamais envoyé).
+- ✅ **Cron `demo-reset` ne tournait jamais** : route `POST`-only, Vercel Cron
+  envoie un `GET` → 405. **Résolu — Fix 1.5, déployé le 2026-05-22.** Vérifié
+  end-to-end : une recette démo qui traînait depuis le 2026-03-16 a été nettoyée.
+- ✅ **Domaine périmé** `https://atable.app/join/...` codé en dur dans
+  `InviteLinkDisplay.tsx`. **Résolu — Fix 1.5.**
+- ✅ **En-têtes `x-dbg-*`** exposaient des internes de session. **Résolu — Fix 1.3.**
+- ⬜ `useDeviceToken` / `DeviceTokenProvider` = code mort (UUID `localStorage`
+  jamais envoyé). Toujours présent — hors scope Phase 1, à nettoyer.
 
 ---
 
