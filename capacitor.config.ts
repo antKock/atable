@@ -12,8 +12,12 @@ const config: CapacitorConfig = {
   // bundled fallback assets. TODO (Phase 3): point at an offline fallback page.
   webDir: "public",
   server: {
-    // first-party origin + ?native=1 so the server can detect the native shell
-    url: "https://atable.anthonykocken.fr?native=1",
+    // First-party origin, loaded directly in the WebView. Must be a clean
+    // origin AND listed in allowNavigation, otherwise Capacitor treats it as
+    // external and opens it in Safari instead of the in-app WebView.
+    // Native detection is done server-side via the ATableNative user-agent.
+    url: "https://atable.anthonykocken.fr",
+    allowNavigation: ["atable.anthonykocken.fr"],
     cleartext: false,
   },
   ios: {
