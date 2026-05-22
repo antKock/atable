@@ -39,7 +39,7 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 | **0** ⏳ — Compte Apple | Apple Developer Program (99 $/an) — **payé 2026-05-22, en validation** ; App Store Connect | Non (parallèle) |
 | **0.5** ✅ — Environnements staging/prod | Staging par branche — **livré 2026-05-22** | — |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
-| **2** — Intégration Capacitor | Projet iOS, plugins, clés Info.plist | Dépend d'un Mac/Xcode |
+| **2** 🔄 — Intégration Capacitor | Scaffold + projet iOS livrés sur `staging` ; `server.url` staging & haptics à finir | Dépend d'un Mac/Xcode |
 | **3** — Préparation soumission | Assets, fiche App Store, conformité | Non |
 | **4** — Test & soumission | Test device réel → TestFlight → review Apple | — |
 | **5** — Post-launch | Push notifications (APNs) | — |
@@ -319,21 +319,32 @@ consistant.
 
 ## 7. Phase 2 — Intégration Capacitor
 
+> **Avancement — 2026-05-22.** Scaffold Capacitor livré sur `feat/capacitor-ios`
+> et **mergé dans `staging`** (PR #4 — 3 commits, 100 % additif, 280 tests verts,
+> build Vercel READY). Restent 2 points marqués « À FINIR » avant la Phase 4.
+
 Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
-- [ ] Installer Capacitor : `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`.
-- [ ] Configurer `server.url` :
-  - Build **Debug / TestFlight** → `https://staging.atable.anthonykocken.fr`
-  - Build **Release / App Store** → `https://atable.anthonykocken.fr`
-  - Ajouter `?native=1` à l'URL pour la détection côté serveur.
-- [ ] User-agent custom : `appendUserAgentString` = `ATableNative/1.0`.
-      ⚠️ Ne **pas** y mettre de token de `BOT_UA_PATTERN` (`WhatsApp`, `Facebot`,
-      `Twitterbot`, etc., cf. `middleware.ts:20`) → sinon bypass d'auth.
-- [ ] `npx cap add ios` → génère le projet Xcode.
-- [ ] Clés Info.plist : `NSMicrophoneUsageDescription`,
-      `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription`.
-- [ ] Plugins v1 : `@capacitor/splash-screen`, `@capacitor/status-bar`,
-      `@capacitor/haptics`.
+- [x] Capacitor installé : `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`,
+      `@capacitor/haptics`, `@capacitor/splash-screen`, `@capacitor/status-bar`.
+- [x] `npx cap add ios` → projet Xcode généré (`ios/`).
+- [x] User-agent custom : `appendUserAgent` = `ATableNative/1.0` (sans token de
+      `BOT_UA_PATTERN` — `WhatsApp`, `Facebot`…, cf. `middleware.ts:20` — sinon
+      bypass d'auth).
+- [x] Clés Info.plist : `NSMicrophoneUsageDescription`,
+      `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription` (descriptions FR).
+- [x] Plugins v1 : `splash-screen` (durée + couleur configurées), `status-bar`,
+      `haptics`.
+- [x] Helpers `src/lib/native.ts` (détection web/natif) + `src/lib/haptics.ts`,
+      avec tests. La WebView charge le site first-party (jamais Safari).
+- [ ] **À FINIR — `server.url` par build.** Actuellement codé en dur sur la prod
+      (`https://atable.anthonykocken.fr`). Le staging existe désormais : le build
+      **Debug / TestFlight** doit pointer sur
+      `https://staging.atable.anthonykocken.fr` (via `ios/debug.xcconfig`), le
+      build **Release / App Store** sur la prod. Ajouter aussi le domaine staging
+      dans `server.allowNavigation`.
+- [ ] **À FINIR — câbler les haptics.** Le helper `haptics` existe mais n'est pas
+      encore branché sur les composants (cf. « Points d'appel haptiques » ci-dessous).
 
 ### Points d'appel haptiques (v1)
 
