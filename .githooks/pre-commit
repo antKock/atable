@@ -1,0 +1,6 @@
+#!/bin/sh
+# Pre-commit hook — run the test suite before every commit.
+# Aborts the commit if any test fails.
+# Bypass (use sparingly): git commit --no-verify
+echo "→ Running tests before commit…"
+npm test --silent
