@@ -1,8 +1,8 @@
 # À Table — Roadmap publication App Store iOS
 
 > Document de pilotage pour la mise en ligne d'À Table sur l'Apple App Store.
-> Créé le 2026-05-20. Statut : **Phase 1 livrée (2026-05-22)** — Phases 0,
-> 0.5 (staging) et 2+ à venir.
+> Créé le 2026-05-20. Statut : **Phase 1 livrée** · **Phase 0 en cours**
+> (compte Apple payé, en attente de validation) — Phases 0.5 (staging) et 2+ à venir.
 
 ---
 
@@ -36,7 +36,7 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 
 | Phase | Contenu | Bloque le code ? |
 |---|---|---|
-| **0** — Compte Apple | Apple Developer Program (99 $/an), App Store Connect | Non (parallèle) |
+| **0** ⏳ — Compte Apple | Apple Developer Program (99 $/an) — **payé 2026-05-22, en validation** ; App Store Connect | Non (parallèle) |
 | **0.5** — Environnements staging/prod | Dédoubler Vercel + Supabase + Upstash | Non (parallèle) |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
 | **2** — Intégration Capacitor | Projet iOS, plugins, clés Info.plist | Dépend d'un Mac/Xcode |
@@ -106,10 +106,17 @@ Apple à gérer pour la v1.
 
 ## 4. Phase 0 — Compte Apple
 
-- [ ] S'inscrire à l'**Apple Developer Program** — 99 $/an, vérification
-      d'identité (compter quelques jours de délai).
+> **Avancement — 2026-05-22.** Inscription au **Apple Developer Program**
+> faite et **payée** (99 $, formule *Individual*) → **en attente de
+> validation Apple** (vérification d'identité, délai de quelques heures à
+> quelques jours).
+
+- [x] S'inscrire à l'**Apple Developer Program** — 99 $/an, formule
+      *Individual*. ✅ Payé le 2026-05-22, en attente de validation.
 - [ ] Créer l'app dans **App Store Connect** : nom, bundle ID
-      (ex. `fr.anthonykocken.atable`), langue principale.
+      (`fr.anthonykocken.atable`), langue principale. ⚠️ Bien basculer sur
+      **sa propre équipe** dans le sélecteur (pas « Naiane » / « Riverman
+      studio », qui ne sont pas à nous).
 
 ---
 
