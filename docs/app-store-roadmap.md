@@ -1,8 +1,8 @@
 # À Table — Roadmap publication App Store iOS
 
 > Document de pilotage pour la mise en ligne d'À Table sur l'Apple App Store.
-> Créé le 2026-05-20. Statut : **Phase 1 livrée** · **Phase 0 en cours**
-> (compte Apple payé, en attente de validation) — Phases 0.5 (staging) et 2+ à venir.
+> Créé le 2026-05-20. Statut : **Phases 0.5 et 1 livrées** · **Phase 0 en cours**
+> (compte Apple payé, en attente de validation) — Phase 2 et suivantes à venir.
 
 ---
 
@@ -37,7 +37,7 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 | Phase | Contenu | Bloque le code ? |
 |---|---|---|
 | **0** ⏳ — Compte Apple | Apple Developer Program (99 $/an) — **payé 2026-05-22, en validation** ; App Store Connect | Non (parallèle) |
-| **0.5** — Environnements staging/prod | Dédoubler Vercel + Supabase + Upstash | Non (parallèle) |
+| **0.5** ✅ — Environnements staging/prod | Staging par branche — **livré 2026-05-22** | — |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
 | **2** — Intégration Capacitor | Projet iOS, plugins, clés Info.plist | Dépend d'un Mac/Xcode |
 | **3** — Préparation soumission | Assets, fiche App Store, conformité | Non |
@@ -122,21 +122,39 @@ Apple à gérer pour la v1.
 
 ## 5. Phase 0.5 — Environnements staging/prod
 
-> **Avancement — 2026-05-20.** La moitié « **prod** » de cette phase est
-> **faite** : la production tourne désormais sur un **projet Supabase `atable`
-> dédié** (offre **gratuite**), en remplacement du projet fourre-tout partagé
-> `Vibe-antKoc`. Les 3 variables Supabase ont été repointées sur les 3 scopes
-> Vercel (Production / Preview / Development), la prod a été redéployée puis
-> vérifiée de bout en bout (écriture, lecture, bundle client). **Reste à
-> faire :** créer l'environnement **staging** (le reste de cette phase).
+> **✅ PHASE 0.5 LIVRÉE — 2026-05-22.** L'environnement staging est en place et
+> vérifié de bout en bout. (La moitié « prod » l'avait été le 2026-05-20 :
+> cutover vers le projet Supabase dédié `atable`.)
 >
-> **Capacité Supabase :** l'offre gratuite autorise **2 projets actifs**.
-> Slot 1 = `atable` (prod). Le projet `tree-story` a été **mis en pause** pour
-> libérer le slot 2, qui accueillera `atable-staging` — staging reste donc
-> gratuit lui aussi.
+> **Ce qui a été fait — et ce qui diffère du plan initial décrit plus bas :**
 >
-> **Nettoyage en attente :** supprimer les 5 tables atable + le bucket
-> `recipe-photos` de l'ancien projet `Vibe-antKoc`.
+> - **Branche `staging`** créée depuis `main` → déploiement Vercel **Preview**
+>   → domaine `staging.atable.anthonykocken.fr` (live, HTTP 200, certificat OK).
+> - **Backend Supabase de staging = le projet `Vibe-antKoc` réutilisé** — et
+>   **non** un nouveau projet `atable-staging`. L'offre gratuite Supabase est
+>   limitée à **2 projets par organisation**, et l'organisation concernée était
+>   pleine : un projet dédié était impossible. `Vibe-antKoc` (l'ancien
+>   fourre-tout) contenait encore les 5 tables atable d'avant le cutover →
+>   elles ont été **vidées puis re-seedées** comme base de staging.
+>   ⚠️ `Vibe-antKoc` héberge aussi un projet tiers (`pousse_*`) : ne jamais y
+>   faire de `db reset`, ne toucher que les 5 tables atable.
+> - **Redis : partagé avec la prod** (pas de 2ᵉ base). Redis ne stocke que des
+>   compteurs de rate-limit et des drapeaux de révocation de session — aucune
+>   donnée réelle, pas de collision de clés possible → une base dédiée
+>   n'apportait rien.
+> - **Variables Vercel scope Preview** : les 3 variables Supabase repointées sur
+>   `Vibe-antKoc` ; `SESSION_SIGNING_SECRET`, `CRON_SECRET`, `OPENAI_SERVICE_KEY`,
+>   `DEMO_HOUSEHOLD_ID` et `UPSTASH_*` laissés partagés avec la prod.
+> - **Protection de déploiement** (`ssoProtection`) désactivée → le domaine
+>   staging et les previews sont publiquement joignables (requis pour la WebView
+>   iOS en Phase 2).
+> - Le projet `tree-story`, mis en pause auparavant « pour libérer un slot »,
+>   était dans une **autre organisation** → cette mise en pause ne servait à
+>   rien et peut être annulée.
+>
+> **Suivis non bloquants :** clé OpenAI dédiée à staging avec plafond de
+> dépense ; purge des vieilles photos pré-cutover du bucket `recipe-photos`
+> de `Vibe-antKoc`.
 
 ### Pourquoi c'est indispensable
 
@@ -147,15 +165,17 @@ on teste sur staging → on promeut en prod.
 
 ### Le piège : un environnement ≠ un déploiement Vercel
 
-Si staging et prod partagent la même base Supabase / le même Redis, tester sur
-staging **corrompt les données de prod**. Il faut **dédoubler tout le backend.**
+Si staging et prod partagent la **même base Supabase**, tester sur staging
+**corrompt les données de prod** : la base de données doit impérativement être
+séparée. Le reste du backend se partage ou non selon qu'il contient ou non de
+vraies données (cf. matrice plus bas).
 
 | Composant | Prod | Staging |
 |---|---|---|
 | Déploiement Vercel | `atable.anthonykocken.fr` | `staging.atable.anthonykocken.fr` |
-| Projet Supabase (BDD) | projet `atable` dédié ✅ | **nouveau** projet `atable-staging` |
-| Upstash Redis | base actuelle | **nouvelle** base Redis |
-| OpenAI | clé partagée OK | clé partagée OK |
+| Projet Supabase (BDD) | projet `atable` dédié | projet `Vibe-antKoc` réutilisé |
+| Upstash Redis | base actuelle | **partagée** (données éphémères) |
+| OpenAI | clé partagée | clé partagée |
 
 > Note : Upstash Redis est probablement provisionné via le **Marketplace Vercel**
 > (onglet Storage du projet) — d'où l'impression de ne pas avoir de compte
@@ -185,33 +205,31 @@ Après chaque release, `main` et `staging` sont alignées.
 
 ### Matrice des variables d'environnement
 
-| Variable | Prod | Staging | Identique ? |
+| Variable (scope Preview) | Prod | Staging | Réalisé |
 |---|---|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` / `ANON_KEY` | projet prod | projet staging | ❌ |
-| `SUPABASE_SERVICE_ROLE_KEY` | prod | staging | ❌ |
-| `UPSTASH_REDIS_REST_URL` / `TOKEN` | base prod | base staging | ❌ |
-| `SESSION_SIGNING_SECRET` | secret A | **secret B** | ❌ (étanchéité sessions) |
-| `DEMO_HOUSEHOLD_ID` | UUID démo prod | UUID démo staging | ✅ si seed défaut `00000…000` |
-| `OPENAI_SERVICE_KEY` | — | — | ✅ partageable |
-| `CRON_SECRET` | secret C | secret D | au choix |
+| `NEXT_PUBLIC_SUPABASE_URL` / `ANON_KEY` | projet `atable` | projet `Vibe-antKoc` | ✅ séparé |
+| `SUPABASE_SERVICE_ROLE_KEY` | `atable` | `Vibe-antKoc` | ✅ séparé |
+| `UPSTASH_REDIS_REST_URL` / `TOKEN` | base prod | *idem prod* | partagé — Redis sans données réelles |
+| `SESSION_SIGNING_SECRET` | secret prod | *idem prod* | partagé — cookies liés à l'hôte, sessions en bases distinctes |
+| `DEMO_HOUSEHOLD_ID` | `00000…000` | `00000…000` | partagé — même UUID de seed |
+| `OPENAI_SERVICE_KEY` | clé partagée | *idem prod* | partagé — suivi : clé staging dédiée + plafond |
+| `CRON_SECRET` | secret prod | *idem prod* | partagé — les crons ne tournent pas sur Preview |
 
-### Checklist Phase 0.5
+### Checklist Phase 0.5 — ✅ réalisée le 2026-05-22
 
-- [ ] Créer la branche git `staging` à partir de `main`.
-- [ ] **Supabase staging :** créer le projet `atable-staging` (slot 2 de l'offre
-      gratuite Supabase, libéré en mettant `tree-story` en pause).
-- [ ] `supabase link --project-ref <ref-staging>` puis `supabase db push`
-      (applique les 4 migrations `001`→`004`).
-- [ ] Exécuter `supabase/seed.sql` sur le projet staging (crée le foyer démo).
-- [ ] **Upstash staging :** créer une 2ᵉ base Redis (Vercel → Storage). Saisir
-      `UPSTASH_REDIS_REST_URL` / `_TOKEN` **à la main** sous le scope Preview
-      (éviter que l'auto-injection écrase les valeurs prod).
-- [ ] Renseigner toutes les variables scope « Preview » dans Vercel (cf. matrice).
-      ⚠️ Aujourd'hui les 3 variables Supabase « Preview » pointent encore sur le
-      projet **prod** `atable` (choix temporaire du cutover) → les repointer sur
-      `atable-staging` ici.
-- [ ] Assigner le domaine `staging.atable.anthonykocken.fr` à la branche `staging`.
-- [ ] Vérifier : un déploiement staging fonctionne et tape bien le backend staging.
+- [x] Branche git `staging` créée depuis `main`.
+- [x] Backend Supabase staging = projet `Vibe-antKoc` réutilisé : migrations
+      `001`→`004` déjà présentes ; les 5 tables atable vidées de leurs données
+      pré-cutover, puis re-seedées via `supabase/seed.sql` (1 foyer démo +
+      13 recettes).
+- [x] Redis : partagé avec la prod (décision actée — pas de base dédiée).
+- [x] Variables scope « Preview » dans Vercel : 3 variables Supabase repointées
+      sur `Vibe-antKoc` via l'API REST (le CLI échoue en `git_branch_required`
+      sur ce scope) ; le reste laissé partagé.
+- [x] Domaine `staging.atable.anthonykocken.fr` assigné à la branche `staging`,
+      protection de déploiement levée, CNAME DNS en place — domaine live.
+- [x] Vérifié : le déploiement staging tape bien le backend `Vibe-antKoc`
+      (test par foyer marqueur) et répond sans mur SSO.
 
 ### ⚠️ Plan Vercel
 
@@ -386,6 +404,8 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 - **User-agent natif :** `ATableNative/1.0`.
 - **Backend prod :** projet Supabase `atable` **dédié** (offre gratuite), migré
   depuis le fourre-tout partagé `Vibe-antKoc` le 2026-05-20.
-- **Staging :** modèle par branche (« **Chemin A** »), backend Supabase +
-  Upstash dédoublé. Vercel Pro probablement requis (usage commercial).
+- **Staging :** modèle par branche (« **Chemin A** »), **livré le 2026-05-22**.
+  Backend Supabase séparé (projet `Vibe-antKoc` réutilisé, faute de pouvoir
+  créer un projet dédié) ; Redis et secrets partagés avec la prod (cf. §5).
+  Vercel Pro probablement requis (usage commercial).
 - **Push notifications :** reportées en Phase 5.
