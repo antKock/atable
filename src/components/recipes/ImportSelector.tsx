@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { Image, Link2, AlignLeft, ChevronRight, Upload, Plus, X, Loader2, Mic, Square } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
+import { haptics } from "@/lib/haptics";
 import { resizeImageToBase64 } from "@/lib/image-resize";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import type { ImportedRecipeData } from "@/lib/import";
@@ -67,6 +68,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
         if (!res.ok) throw new Error(t.import.voice.error);
 
         const data: ImportedRecipeData = await res.json();
+        void haptics.success();
         onImportComplete(data);
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
@@ -165,6 +167,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
       if (!res.ok) throw new Error();
 
       const data: ImportedRecipeData = await res.json();
+      void haptics.success();
       onImportComplete(data);
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
@@ -202,6 +205,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
       }
 
       const data: ImportedRecipeData = await res.json();
+      void haptics.success();
       onImportComplete(data);
     } catch (err) {
       if ((err as Error).name !== "AbortError") {

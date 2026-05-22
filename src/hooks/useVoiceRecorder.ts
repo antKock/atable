@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { haptics } from "@/lib/haptics";
 
 const MAX_DURATION_S = 180; // 3 minutes
 const WAVEFORM_BARS = 20;
@@ -80,6 +81,7 @@ export function useVoiceRecorder(): VoiceRecorderState {
   const stop = useCallback(() => {
     if (mediaRecorderRef.current?.state === "recording") {
       mediaRecorderRef.current.stop();
+      void haptics.medium();
     }
     setIsRecording(false);
     setWaveformData(new Array(WAVEFORM_BARS).fill(0));
@@ -128,6 +130,7 @@ export function useVoiceRecorder(): VoiceRecorderState {
 
     recorder.start(1000); // Collect data every second
     setIsRecording(true);
+    void haptics.medium();
     startTimeRef.current = Date.now();
 
     // Duration timer

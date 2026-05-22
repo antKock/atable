@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { t } from '@/lib/i18n/fr'
+import { haptics } from '@/lib/haptics'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -31,6 +32,7 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
 
   async function submit(action: 'leave' | 'delete') {
     setIsSubmitting(true)
+    if (action === 'delete') void haptics.heavy()
     try {
       const res = await fetch(`/api/households/${householdId}?action=${action}`, {
         method: 'DELETE',
