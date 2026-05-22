@@ -5,7 +5,9 @@ export default function FullscreenShell({ children }: { children: React.ReactNod
   return (
     <>
       <DeviceTokenProvider />
-      <main className="min-h-screen">{children}</main>
+      <main className="min-h-screen" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        {children}
+      </main>
       <Toaster />
     </>
   )

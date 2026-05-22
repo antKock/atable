@@ -16,18 +16,12 @@ export default function LandingScreen() {
     setDemoLoading(true)
     setDemoError(null)
     try {
-      const response = await fetch('/api/demo/session', {
-        method: 'POST',
-        redirect: 'follow',
-      })
-      if (response.redirected) {
-        window.location.href = response.url
-        return
-      }
+      const response = await fetch('/api/demo/session', { method: 'POST' })
+      const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        const data = await response.json().catch(() => ({}))
         throw new Error((data as { error?: string }).error ?? 'Erreur serveur')
       }
+      window.location.href = (data as { redirect?: string }).redirect ?? '/home'
     } catch (err) {
       setDemoError(err instanceof Error ? err.message : 'Erreur serveur')
       setDemoLoading(false)

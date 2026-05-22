@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
     const token = await signSession(payload)
     console.log(`[demo/session] token signed, length=${token.length}`)
 
-    const redirectUrl = new URL('/home', request.url)
-    console.log(`[demo/session] redirecting to ${redirectUrl.toString()}`)
-    const response = NextResponse.redirect(redirectUrl, { status: 303 })
+    // Set the session cookie on a 200 JSON response instead of a 303 redirect:
+    // cookies attached to redirects are unreliable in WKWebView. The client
+    // reads `redirect` from the body and navigates itself.
+    const response = NextResponse.json({ ok: true, redirect: '/home' })
     setSessionCookie(response, token)
-    console.log(`[demo/session] Set-Cookie header=${response.headers.get('set-cookie')?.substring(0, 60)}...`)
 
     return response
   } catch (err) {

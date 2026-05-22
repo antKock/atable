@@ -25,18 +25,13 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: trimmed }),
-        redirect: 'follow',
       })
 
-      if (response.redirected) {
-        window.location.href = response.url
-        return
-      }
-
+      const data = await response.json()
       if (!response.ok) {
-        const data = await response.json()
         throw new Error(data.error ?? t.household.createError)
       }
+      window.location.href = data.redirect
     } catch (err) {
       setError(err instanceof Error ? err.message : t.household.createError)
       setLoading(false)

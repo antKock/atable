@@ -14,7 +14,7 @@ export default function InviteLinkDisplay({ joinCode }: Props) {
   const inviteUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/join/${joinCode}`
-      : `https://atable.app/join/${joinCode}`
+      : `https://atable.anthonykocken.fr/join/${joinCode}`
 
   async function handleCopy() {
     try {

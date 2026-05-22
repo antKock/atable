@@ -53,18 +53,17 @@ export async function DELETE(
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
+  // Explicit intent — the UI exposes two distinct actions:
+  //   leave  → this device leaves; the household and its data are kept
+  //   delete → the household and all its recipes/sessions are destroyed
+  const action = request.nextUrl.searchParams.get('action')
+  if (action !== 'leave' && action !== 'delete') {
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+  }
+
   const supabase = createServerClient()
 
-  // Count non-revoked sessions to determine if last member
-  const { count } = await supabase
-    .from('device_sessions')
-    .select('id', { count: 'exact', head: true })
-    .eq('household_id', householdId)
-    .eq('is_revoked', false)
-
-  const isLastMember = count === 1
-
-  if (isLastMember) {
+  if (action === 'delete') {
     // Explicitly delete all recipes first (recipes.household_id is ON DELETE SET NULL)
     const { error: recipesError } = await supabase
       .from('recipes')
@@ -82,7 +81,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
     }
   } else {
-    // Just remove this device session
+    // action === 'leave' — just remove this device's session
     const { error: sessionError } = await supabase
       .from('device_sessions')
       .delete()
@@ -92,7 +91,9 @@ export async function DELETE(
     }
   }
 
-  const response = NextResponse.redirect(new URL('/', request.url), { status: 303 })
+  // Clear the cookie on a 200 JSON response (reliable in WKWebView); the
+  // client reads `redirect` and navigates to the landing page itself.
+  const response = NextResponse.json({ ok: true, redirect: '/' })
   clearSessionCookie(response)
   return response
 }

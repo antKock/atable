@@ -300,9 +300,15 @@ export const t = {
     currentDevice: "cet appareil",
     revokeBody: "Cette action est irréversible.",
     revokeError: "Impossible de révoquer l'appareil",
-    leaveLastMemberTitle: "Supprimer le foyer ?",
-    leaveLastMemberBody: "Toutes les recettes seront définitivement supprimées.",
-    leaveLastMemberAction: "Supprimer définitivement",
+    deleteHousehold: "Supprimer le foyer",
+    deleteConfirmTitle: "Supprimer le foyer ?",
+    deleteConfirmBody:
+      "Toutes les recettes du foyer et l'accès de tous les appareils seront supprimés.",
+    deleteContinue: "Continuer",
+    deleteFinalTitle: "Confirmer la suppression",
+    deleteFinalBody:
+      "Cette action est irréversible. Le foyer et toutes ses recettes seront définitivement perdus.",
+    deleteFinalAction: "Supprimer définitivement",
     leaveError: "Une erreur s'est produite. Veuillez réessayer.",
   },
 
