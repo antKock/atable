@@ -17,90 +17,108 @@ type Props = {
   householdId: string
 }
 
-export default function LeaveHouseholdDialog({ householdId }: Props) {
-  const [open, setOpen] = useState(false)
-  const [isLastMember, setIsLastMember] = useState<boolean | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [isLeaving, setIsLeaving] = useState(false)
+// null = closed. 'leave' = single leave confirmation.
+// 'delete-1' / 'delete-2' = the two steps of the delete double-confirmation.
+type Step = null | 'leave' | 'delete-1' | 'delete-2'
 
-  const handleOpenDialog = async () => {
-    setIsLoading(true)
-    try {
-      const res = await fetch('/api/devices')
-      if (res.ok) {
-        const devices = await res.json()
-        setIsLastMember(devices.length === 1)
-      } else {
-        setIsLastMember(false)
-      }
-    } catch {
-      setIsLastMember(false)
-    } finally {
-      setIsLoading(false)
-      setOpen(true)
-    }
+export default function LeaveHouseholdDialog({ householdId }: Props) {
+  const [step, setStep] = useState<Step>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const close = () => {
+    if (!isSubmitting) setStep(null)
   }
 
-  const handleLeave = async () => {
-    setIsLeaving(true)
+  async function submit(action: 'leave' | 'delete') {
+    setIsSubmitting(true)
     try {
-      const res = await fetch(`/api/households/${householdId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/households/${householdId}?action=${action}`, {
+        method: 'DELETE',
+      })
+      const data = await res.json().catch(() => ({}))
       if (!res.ok) {
-        throw new Error(t.household.leaveError)
+        throw new Error((data as { error?: string }).error ?? t.household.leaveError)
       }
-      // Server redirects to '/' — follow the redirect
-      window.location.href = '/'
+      window.location.href = (data as { redirect?: string }).redirect ?? '/'
     } catch (err) {
-      setOpen(false)
-      setIsLeaving(false)
+      setStep(null)
+      setIsSubmitting(false)
       toast.error(err instanceof Error ? err.message : t.household.leaveError, {
         duration: Infinity,
       })
     }
   }
 
-  const title = isLastMember ? t.household.leaveLastMemberTitle : t.household.leaveConfirm
-  const body = isLastMember ? t.household.leaveLastMemberBody : t.household.leaveBody
-  const action = isLastMember ? t.household.leaveLastMemberAction : t.household.leaveAction
+  // Dialog copy + primary action, keyed by step.
+  const dialogs = {
+    leave: {
+      title: t.household.leaveConfirm,
+      body: t.household.leaveBody,
+      action: t.household.leaveAction,
+      onConfirm: () => submit('leave'),
+    },
+    'delete-1': {
+      title: t.household.deleteConfirmTitle,
+      body: t.household.deleteConfirmBody,
+      action: t.household.deleteContinue,
+      onConfirm: () => setStep('delete-2'),
+    },
+    'delete-2': {
+      title: t.household.deleteFinalTitle,
+      body: t.household.deleteFinalBody,
+      action: t.household.deleteFinalAction,
+      onConfirm: () => submit('delete'),
+    },
+  }
+  const current = step ? dialogs[step] : null
 
   return (
-    <>
+    <div className="flex flex-col gap-1">
       <Button
         variant="ghost"
         type="button"
-        disabled={isLoading}
-        onClick={handleOpenDialog}
+        onClick={() => setStep('leave')}
         className="min-h-[44px] text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
       >
         {t.household.leaveHousehold}
       </Button>
+      <Button
+        variant="ghost"
+        type="button"
+        onClick={() => setStep('delete-1')}
+        className="min-h-[44px] text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+      >
+        {t.household.deleteHousehold}
+      </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>{body}</DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={isLeaving}
-              className="min-h-[44px]"
-            >
-              {t.actions.cancel}
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleLeave}
-              disabled={isLeaving}
-              className="min-h-[44px]"
-            >
-              {action}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
+      <Dialog open={step !== null} onOpenChange={(open) => !open && close()}>
+        {current && (
+          <DialogContent showCloseButton={false}>
+            <DialogHeader>
+              <DialogTitle>{current.title}</DialogTitle>
+              <DialogDescription>{current.body}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={close}
+                disabled={isSubmitting}
+                className="min-h-[44px]"
+              >
+                {t.actions.cancel}
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={current.onConfirm}
+                disabled={isSubmitting}
+                className="min-h-[44px]"
+              >
+                {current.action}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        )}
       </Dialog>
-    </>
+    </div>
   )
 }

@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 
-export async function POST(request: NextRequest) {
-  // Authorization check
+// Vercel Cron sends a GET request (not POST). Exporting GET ensures the
+// scheduled job declared in vercel.json actually runs instead of 405-ing.
+export async function GET(request: NextRequest) {
+  // Authorization check — Vercel injects this header automatically on
+  // scheduled invocations when CRON_SECRET is set in the project env.
   const authHeader = request.headers.get('authorization')
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })

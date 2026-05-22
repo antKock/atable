@@ -11,6 +11,9 @@ const inter = Inter({
 
 export const viewport: Viewport = {
   themeColor: "#F8FAF7",
+  // Required for env(safe-area-inset-*) to resolve to non-zero values on
+  // notched iPhones — without it the WebView ignores all safe-area padding.
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {

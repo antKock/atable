@@ -22,19 +22,15 @@ export default function JoinConfirmation({ householdName, joinCode }: Props) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: joinCode }),
-        redirect: 'follow',
       })
 
-      if (response.redirected) {
-        window.location.href = response.url
-        return
-      }
-
+      const data = await response.json()
       if (!response.ok) {
-        const data = await response.json()
         setError(data.error ?? t.joinLink.notFound)
         setLoading(false)
+        return
       }
+      window.location.href = data.redirect
     } catch {
       setError(t.joinLink.notFound)
       setLoading(false)

@@ -64,11 +64,9 @@ export async function POST(request: NextRequest) {
     const payload = { hid, sid, iat: Math.floor(Date.now() / 1000) }
     const token = await signSession(payload)
 
-    const redirectUrl = new URL(
-      `/home?code=${encodeURIComponent(joinCode)}&householdName=${encodeURIComponent(name)}`,
-      request.url
-    )
-    const response = NextResponse.redirect(redirectUrl, { status: 303 })
+    // Cookie on a 200 JSON response (not a 303) — reliable in WKWebView.
+    const redirect = `/home?code=${encodeURIComponent(joinCode)}&householdName=${encodeURIComponent(name)}`
+    const response = NextResponse.json({ ok: true, redirect })
     setSessionCookie(response, token)
 
     return response

@@ -14,7 +14,14 @@ export default async function AppShell({ children }: { children: React.ReactNode
       <DeviceTokenProvider />
       <div className="lg:pl-56">
         {isDemo && <DemoBanner />}
-        <main className="min-h-screen pb-24 lg:pb-0">{children}</main>
+        {/* When the demo banner is shown it already clears the notch; otherwise
+            the page content needs the top safe-area padding itself. */}
+        <main
+          className="min-h-screen pb-24 lg:pb-0"
+          style={isDemo ? undefined : { paddingTop: 'env(safe-area-inset-top)' }}
+        >
+          {children}
+        </main>
       </div>
       <Navigation />
       <Toaster />
