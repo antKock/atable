@@ -39,7 +39,7 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 | **0** ⏳ — Compte Apple | Apple Developer Program (99 $/an) — **payé 2026-05-22, en validation** ; App Store Connect | Non (parallèle) |
 | **0.5** ✅ — Environnements staging/prod | Staging par branche — **livré 2026-05-22** | — |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
-| **2** 🔄 — Intégration Capacitor | Scaffold + projet iOS livrés sur `staging` ; `server.url` staging & haptics à finir | Dépend d'un Mac/Xcode |
+| **2** ✅ — Intégration Capacitor | Capacitor + projet iOS + `server.url` par env + haptics — **livré 2026-05-22** | — |
 | **3** — Préparation soumission | Assets, fiche App Store, conformité | Non |
 | **4** — Test & soumission | Test device réel → TestFlight → review Apple | — |
 | **5** — Post-launch | Push notifications (APNs) | — |
@@ -319,9 +319,10 @@ consistant.
 
 ## 7. Phase 2 — Intégration Capacitor
 
-> **Avancement — 2026-05-22.** Scaffold Capacitor livré sur `feat/capacitor-ios`
-> et **mergé dans `staging`** (PR #4 — 3 commits, 100 % additif, 280 tests verts,
-> build Vercel READY). Restent 2 points marqués « À FINIR » avant la Phase 4.
+> **✅ PHASE 2 LIVRÉE — 2026-05-22.** Scaffold Capacitor, projet iOS, `server.url`
+> par environnement et retours haptiques sont en place sur `staging` (PR #4 +
+> PR de finition ; 280 tests verts, `tsc` clean, 100 % additif). Le build Xcode
+> réel et le test sur device se feront en Phase 4.
 
 Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
@@ -337,14 +338,12 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
       `haptics`.
 - [x] Helpers `src/lib/native.ts` (détection web/natif) + `src/lib/haptics.ts`,
       avec tests. La WebView charge le site first-party (jamais Safari).
-- [ ] **À FINIR — `server.url` par build.** Actuellement codé en dur sur la prod
-      (`https://atable.anthonykocken.fr`). Le staging existe désormais : le build
-      **Debug / TestFlight** doit pointer sur
-      `https://staging.atable.anthonykocken.fr` (via `ios/debug.xcconfig`), le
-      build **Release / App Store** sur la prod. Ajouter aussi le domaine staging
-      dans `server.allowNavigation`.
-- [ ] **À FINIR — câbler les haptics.** Le helper `haptics` existe mais n'est pas
-      encore branché sur les composants (cf. « Points d'appel haptiques » ci-dessous).
+- [x] **`server.url` par environnement.** Piloté par `CAP_ENV` dans
+      `capacitor.config.ts` : `CAP_ENV=staging npx cap sync ios` → staging,
+      `npx cap sync ios` (défaut) → prod. `allowNavigation` liste les 2 domaines.
+- [x] **Haptics câblés** sur les 5 points d'appel : début/fin d'enregistrement
+      vocal (`medium`), import de recette réussi — voix/photo/URL (`success`),
+      copie du code d'invitation (`light`), suppression de foyer (`heavy`).
 
 ### Points d'appel haptiques (v1)
 

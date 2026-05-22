@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
 import { t } from '@/lib/i18n/fr'
+import { haptics } from '@/lib/haptics'
 
 type Props = {
   joinCode: string
@@ -28,6 +29,7 @@ export default function InviteLinkDisplay({ joinCode }: Props) {
       document.body.removeChild(el)
     }
     setCopied(true)
+    void haptics.light()
     setTimeout(() => setCopied(false), 2000)
   }
 
