@@ -34,7 +34,7 @@ export type SupabaseMock = {
 
 const CHAIN_METHODS = [
   "select", "insert", "update", "delete", "upsert",
-  "eq", "neq", "is", "in", "not", "match",
+  "eq", "neq", "is", "in", "not", "match", "contains",
   "gte", "lte", "gt", "lt", "like", "ilike",
   "order", "limit", "range", "filter", "or",
 ] as const;
