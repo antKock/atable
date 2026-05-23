@@ -43,7 +43,7 @@ Lu d'un trait avec le nom : *« Mijote — Tes recettes, réunies comme par magi
 - **Réunies** : capture le « rassemblement » depuis les 3 sources d'import
   (photo, voix, lien) sans avoir à les énumérer.
 - **Comme par magie** : porte l'IA sans la nommer. Ton chaleureux,
-  enfantin-positif, opposé au registre tech.
+  opposé au registre tech.
 - L'allitération en /m/ (**M**ijote… co**mm**e… **m**agie) donne du
   rythme à l'oral.
 
@@ -51,51 +51,59 @@ Lu d'un trait avec le nom : *« Mijote — Tes recettes, réunies comme par magi
 
 ## 3. Description longue (≤ 4 000 caractères)
 
+> La règle d'écriture : **la valeur d'abord, la techno après.** On parle
+> d'usages et de moments de vie, pas d'« API » ou de « LLM ». L'IA n'est
+> jamais nommée — elle se devine dans le résultat (« on extrait »,
+> « on structure », « tout se complète tout seul »).
+
 ```
-Mijote transforme une photo, une dictée vocale ou un lien web en recette
-structurée, prête à cuisiner. Pas de compte, pas de mot de passe — juste un
-foyer partagé en famille via un code d'invitation.
+Toutes les recettes de ta famille, enfin réunies au même endroit. Celles de
+ta grand-mère sur un cahier jauni, celles que tu sauvegardes sur Instagram,
+celles que ton oncle dicte par téléphone, celles d'un blog que tu adores —
+Mijote les rassemble en quelques secondes, prêtes à cuisiner.
 
 ━━━ Trois façons d'ajouter une recette en 30 secondes ━━━
 
-• PHOTO ou capture d'écran — tu photographies le carnet de ta grand-mère ou
-  un screenshot Instagram, on extrait le titre, les ingrédients et les
-  étapes.
-• DICTÉE VOCALE — tu parles, on transcrit, on structure. Pratique pour
-  noter une recette en sortant du marché.
-• LIEN URL — tu colles l'adresse d'un blog culinaire, on récupère le
-  contenu et on le met en forme.
+• PHOTO — prends en photo le carnet de ta grand-mère ou un screenshot
+  Instagram. On extrait le titre, les ingrédients et les étapes pour toi.
+• VOIX — dicte la recette de ton oncle pendant qu'il te la raconte au
+  téléphone. On transcrit et on met en forme.
+• LIEN — colle l'adresse d'un blog culinaire. On récupère le contenu et
+  on en fait une vraie recette, lisible, sans le bruit autour.
 
-Chaque recette est ensuite enrichie automatiquement : temps de préparation,
-temps de cuisson, coût estimé, saisons, tags (végétarien, rapide, comfort
-food…). Une illustration est générée pour reconnaître la recette d'un coup
-d'œil. Tu peux tout modifier ou remplacer l'image par tes propres photos.
+Chaque recette se complète toute seule : temps de préparation, coût estimé,
+saisons, étiquettes (végétarien, rapide, comfort food…). Une jolie
+illustration est même générée pour reconnaître chaque plat d'un coup d'œil.
+Tu restes maître : modifie, complète, remplace l'image par tes propres
+photos.
 
-━━━ Cuisiner ensemble, sans usine à gaz ━━━
+━━━ Cuisiner ensemble, comme à la maison ━━━
 
-• FOYER PARTAGÉ — tu crées un foyer, tu reçois un code d'invitation, tu le
-  partages à ta famille. Tous les appareils accèdent à la même
-  bibliothèque, synchronisée en temps réel.
-• AUCUN COMPTE À CRÉER — pas d'e-mail, pas de mot de passe, pas de
-  publicité. L'application fonctionne sans inscription traditionnelle.
-• MODE DÉMO — tu veux tester ? Accès direct à une bibliothèque démo,
-  zéro friction.
+• FOYER PARTAGÉ — crée un foyer, partage le code d'invitation à ta
+  famille, et vos recettes sont les mêmes sur tous vos téléphones. Ton
+  conjoint·e ajoute la recette du dimanche midi, tu la retrouves dans ta
+  cuisine du mardi soir.
+• PAS DE COMPTE — pas d'e-mail, pas de mot de passe, pas de publicité.
+  On te respecte assez pour ne rien te demander d'inutile.
+• ESSAI EN UN CLIC — explore une bibliothèque démo avant même de créer
+  ton foyer.
 
-━━━ Retrouve ce que tu cherches ━━━
+━━━ Retrouver, sans chercher ━━━
 
-• Accueil par carrousels thématiques : Nouveautés, De saison, Rapide,
-  Végétarien, Comfort food, Apéro, Desserts…
-• Recherche et filtres : par titre, ingrédient, type de plat, cuisine,
-  régime, durée, coût, saison.
-• Toggle « De saison » : ne montrer que ce qui se cuisine maintenant.
-• Mode lecture optimisé pour cuisiner : grandes polices, étapes scrollables,
-  l'écran reste allumé pendant la préparation.
+• Accueil par envies : Rapide, Végétarien, Comfort food, De saison,
+  Apéro, Desserts…
+• Filtres précis : par ingrédient, durée, coût, régime, type de plat.
+• Mode « De saison » : ne voir que ce qui se cuisine maintenant.
+• Mode lecture pensé pour la cuisine : grandes polices, étapes pas-à-pas,
+  l'écran reste allumé pendant que tu travailles les mains tachées de
+  farine.
 
-━━━ Gérer ton foyer ━━━
+━━━ Ton foyer, tes règles ━━━
 
-• Renommer le foyer, gérer les appareils connectés, quitter ou supprimer
+• Renomme le foyer, gère les appareils connectés, quitte ou supprime
   le foyer en deux tapotements.
-• Suppression définitive et complète des données possible à tout moment.
+• Suppression définitive et complète à tout moment — c'est ton contenu,
+  jamais le nôtre.
 
 ━━━ Confidentialité ━━━
 
@@ -106,16 +114,17 @@ d'œil. Tu peux tout modifier ou remplacer l'image par tes propres photos.
 
 ━━━ Pour qui ? ━━━
 
-Pour les foyers qui veulent rassembler leurs recettes au même endroit sans
-ressaisir à la main, et les partager avec leur conjoint·e, leurs enfants,
-leurs colocs ou leurs parents. Pour celles et ceux qui aiment cuisiner et
-qui en ont assez des apps bourrées de pubs et de paywalls.
+Pour les foyers qui aiment cuisiner ensemble et qui en ont assez de
+chercher « cette recette de la dernière fois » dans douze endroits
+différents. Pour les familles qui veulent garder vivantes les vraies
+recettes — celles qu'on mange, pas celles d'un site sponsorisé. Pour celles
+et ceux qui en ont marre des apps bourrées de pubs et de paywalls.
 
 Mijote est gratuit, sans publicité, sans achat intégré.
 ```
 
-≈ 2 600 caractères. Tutoiement appliqué partout (« tu photographies »,
-« tes propres photos », « tu cherches »…).
+≈ 3 100 caractères. Tutoiement appliqué partout, scénarios de vie plutôt
+que listes de features techniques.
 
 ---
 
@@ -131,7 +140,9 @@ Règles :
 - Ne pas répéter « Mijote » : Apple cherche déjà dans le nom et le sous-titre.
 - Pas de mots vides (« et », « ou »).
 - Singulier privilégié au pluriel (« recette » matche déjà « recettes »).
-- Anglicismes que les utilisateurs francophones tapent quand même (« OCR », « IA »).
+- Anglicismes que les utilisateurs francophones tapent quand même
+  (« OCR », « IA ») — ce champ est purement fonctionnel pour la recherche,
+  c'est la *seule* exception au principe « pas de techno dans la fiche ».
 
 ---
 
@@ -146,9 +157,9 @@ Règles :
 
 | Champ ASC | Valeur | Statut |
 |---|---|---|
-| **Privacy Policy URL** | `https://mijote.anthonykocken.fr/legal/confidentialite` | À déployer (rebrand) |
-| **Support URL** | `https://mijote.anthonykocken.fr/support` | À déployer (rebrand) |
-| **Marketing URL** *(optionnel)* | `https://mijote.anthonykocken.fr` | À déployer (rebrand) |
+| **Privacy Policy URL** | `https://mijote.anthonykocken.fr/legal/confidentialite` | ✅ en ligne |
+| **Support URL** | `https://mijote.anthonykocken.fr/support` | ✅ en ligne |
+| **Marketing URL** *(optionnel)* | `https://mijote.anthonykocken.fr` | ✅ en ligne |
 
 ---
 
@@ -156,21 +167,21 @@ Règles :
 
 > Champ modifiable **sans repasser en review Apple** — utile pour les promos saisonnières.
 
-**🎯 Valeur de départ** (146 car.) :
+**🎯 Valeur de départ** (142 car.) :
 
 ```
-Photographie une recette, dicte-la ou colle un lien — Mijote la structure en quelques secondes. Tes recettes en famille, sans compte, sans pub.
+Toutes les recettes de ta famille, rassemblées au même endroit sans ressaisir. Une photo, une dictée ou un lien, et c'est dans ta cuisine.
 ```
 
 ### Versions saisonnières à garder sous le coude
 
 - **Fêtes** :
   ```
-  Les recettes de famille de tout le monde, enfin au même endroit. Importe-les en photo, voix ou lien. Sans compte, sans pub.
+  Le repas du réveillon de Mamie, la sauce de tonton, les desserts de ta belle-mère : enfin tout au même endroit. Sans compte, sans pub.
   ```
 - **Rentrée** :
   ```
-  Marre de chercher cette recette du dimanche midi ? Mijote la garde, l'enrichit et la partage à ton foyer.
+  Marre de chercher cette recette du dimanche midi ? Mijote la garde, l'enrichit et la partage à toute la famille.
   ```
 
 ---
@@ -178,13 +189,13 @@ Photographie une recette, dicte-la ou colle un lien — Mijote la structure en q
 ## 8. What's New (notes de version v1.0)
 
 ```
-Bienvenue dans Mijote ! Cette première version te permet de :
-• Importer des recettes en photo, par dictée vocale ou via une URL
-• Partager ta bibliothèque en famille via un code d'invitation
-• Filtrer tes recettes par saison, type de plat, régime, durée et coût
-• Cuisiner depuis ton iPhone avec un mode lecture optimisé
+Bienvenue dans Mijote ! Le moyen le plus simple de rassembler toutes les
+recettes de ta famille au même endroit : celles que tu as sur ton
+téléphone, celles d'Instagram, celles qu'on te dicte par téléphone, celles
+d'un blog que tu adores. Une photo, une dictée ou un lien, et c'est prêt à
+cuisiner.
 
-Tes retours sont les bienvenus : kocken.anthony@gmail.com
+Tes retours nous aident à progresser : kocken.anthony@gmail.com
 ```
 
 ---
@@ -193,7 +204,8 @@ Tes retours sont les bienvenus : kocken.anthony@gmail.com
 
 | Champ | Valeur |
 |---|---|
-| **Bundle ID** | `fr.anthonykocken.mijote` *(aligné avec le rebrand le 2026-05-23 — possible parce qu'aucun App ID n'avait encore été créé chez Apple. Pour les rebrands ultérieurs il faudra le garder car immuable)* |
+| **Bundle ID** | `fr.anthonykocken.mijote` *(verrouillé à partir de l'enregistrement Apple — ne pas modifier après création de l'App ID)* |
+| **SKU / UGS** | `mijote-apple` *(identifiant interne ; couvre iPad + macOS Catalyst + visionOS si extensions futures)* |
 | **Langue principale** | Français (France) |
 | **Tranche d'âge** | 4+ (aucun contenu sensible) |
 | **In-App Purchases** | Aucun |
@@ -202,6 +214,7 @@ Tes retours sont les bienvenus : kocken.anthony@gmail.com
 | **Politique de contenu UGC** | Pas de UGC public → pas de modération à déclarer |
 | **Privacy nutrition labels** | Suivre `app-store-privacy-labels.md` pas à pas |
 | **Équipe Apple Developer** | ⚠️ basculer sur **ta propre équipe** dans le sélecteur ASC (pas « Naiane » ou « Riverman studio ») |
+| **Capabilities App ID** | Aucune à activer au v1 (cf. roadmap Phase 0). Push, Associated Domains, App Attest peuvent être ajoutés plus tard sur un App ID existant. |
 
 ---
 
@@ -209,18 +222,20 @@ Tes retours sont les bienvenus : kocken.anthony@gmail.com
 
 | Asset | Statut | Notes |
 |---|---|---|
-| **Icône 1024×1024** | ⚠️ `public/icons/icon-1024.png` est un upscale flou — à refaire depuis une source vectorielle | PNG, sans canal alpha, coins carrés (Apple les arrondit) |
+| **Icône 1024×1024** | ✅ source vectorielle prête | `docs/icons/mijote-icon-1024.svg` (master) + exports PNG dans `docs/icons/` et `public/icons/icon-{1024,512,192}.png`. La version iOS (`ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png`) est en 1024×1024 sans alpha (conforme Apple). |
 | **Screenshots 6.7" iPhone** | ⏳ à capturer en simulateur Xcode | 5 à 10 screenshots, 1290 × 2796 px — **obligatoire** |
 | **Screenshots 6.5" iPhone** | ⏳ recommandé | Fallback automatique sinon |
-| **Screenshots iPad 12.9"** | ⏳ recommandé | Si tu veux apparaître en recherche iPad |
+| **Screenshots iPad 12.9"** | ⏳ recommandé | Si tu veux apparaître en recherche iPad (l'app est déjà Universal — `TARGETED_DEVICE_FAMILY = "1,2"`) |
 
 ---
 
 ## 11. Ordre de soumission
 
-1. Créer l'app dans ASC avec le bundle ID + nom + langue (Phase 0 dernière case).
-2. Coller tous les champs textuels ci-dessus (sections 1 à 9).
-3. Suivre `app-store-privacy-labels.md` pour les privacy labels.
-4. Uploader icône + screenshots (sections 10).
-5. TestFlight pointant sur staging (Phase 4).
-6. Soumettre pour review Apple (Phase 4).
+1. Créer l'App ID dans le portail développeur Apple avec le Bundle ID
+   `fr.anthonykocken.mijote` (Phase 0 dernière case côté portail).
+2. Créer l'app dans ASC avec ce Bundle ID + le SKU + langue principale.
+3. Coller tous les champs textuels ci-dessus (sections 1 à 9).
+4. Suivre `app-store-privacy-labels.md` pour les privacy labels.
+5. Uploader icône + screenshots (section 10).
+6. TestFlight pointant sur staging (Phase 4).
+7. Soumettre pour review Apple (Phase 4).
