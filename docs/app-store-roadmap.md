@@ -1,9 +1,10 @@
 # À Table — Roadmap publication App Store iOS
 
 > Document de pilotage pour la mise en ligne d'À Table sur l'Apple App Store.
-> Créé le 2026-05-20. Statut : **Phases 0.5, 1 et 2 livrées** · **Phase 0** :
-> compte Apple validé, app App Store Connect restant à créer · **Phase 3** en
-> cours.
+> Créé le 2026-05-20. Statut au 2026-05-23 : **Phases 0.5, 1, 2 et 3 (côté
+> code) livrées** · **Phase 0** : compte Apple validé, app App Store Connect
+> restant à créer · prochaines étapes : icône vectorielle, screenshots,
+> saisie ASC (cf. [`app-store-listing.md`](./app-store-listing.md)).
 
 ---
 
@@ -41,7 +42,7 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 | **0.5** ✅ — Environnements staging/prod | Staging par branche — **livré 2026-05-22** | — |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
 | **2** ✅ — Intégration Capacitor | Capacitor + projet iOS + `server.url` par env + haptics — **livré 2026-05-22** | — |
-| **3** ⏳ — Préparation soumission | Assets, fiche App Store, conformité — politique de confidentialité & privacy labels draftés | Non |
+| **3** ⏳ — Préparation soumission | Politique + support + offline en prod ; fiche App Store draftée ([`app-store-listing.md`](./app-store-listing.md)). Reste : icône vectorielle, screenshots, saisie ASC. | Non |
 | **4** — Test & soumission | Test device réel → TestFlight → review Apple | — |
 | **5** — Post-launch | Push notifications (APNs) | — |
 
@@ -364,16 +365,33 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
 ## 8. Phase 3 — Préparation soumission
 
-- [ ] Icône app 1024×1024 px (vérifier `public/icons/`, sinon exporter).
+> **Tous les textes à coller dans App Store Connect** sont consignés dans
+> [`app-store-listing.md`](./app-store-listing.md) (nom, sous-titre,
+> description, mots-clés, catégorie, URLs, promo text, what's new,
+> autres champs ASC). À utiliser comme source de vérité au moment de la
+> saisie dans ASC.
+
+- [ ] **Icône App Store 1024×1024 px** — `public/icons/icon-1024.png` existe
+      (upscale flou via `sips`). À re-générer depuis une source vectorielle.
 - [ ] Screenshots par taille d'écran requise (6.7" iPhone obligatoire ;
-      idéalement 6.5" + iPad).
-- [ ] Description, sous-titre, mots-clés, catégorie, URL de support.
-- [~] **Politique de confidentialité** — texte drafté dans
-      `docs/politique-confidentialite.md` ; reste à **publier sur une URL
-      publique** (page du site ou Gist).
-- [~] **Privacy nutrition labels** — drafté dans `docs/app-store-privacy-labels.md` ;
-      reste à **recopier dans App Store Connect**.
-- [ ] Page de repli hors-ligne (la WebView est vide sans réseau).
+      idéalement 6.5" + iPad) — à capturer en simulateur Xcode.
+- [x] **Texte de la fiche App Store** (nom, sous-titre, description, mots-clés,
+      catégorie, URLs, promo text, what's new) — drafté dans
+      [`app-store-listing.md`](./app-store-listing.md). Reste à **coller dans
+      ASC**.
+- [x] **Politique de confidentialité** — publiée à
+      `https://atable.anthonykocken.fr/legal/confidentialite` (source :
+      `src/app/(landing)/legal/confidentialite/page.tsx`, contenu :
+      [`politique-confidentialite.md`](./politique-confidentialite.md)).
+- [x] **Page de support** — publiée à
+      `https://atable.anthonykocken.fr/support`
+      (source : `src/app/(landing)/support/page.tsx`).
+- [~] **Privacy nutrition labels** — drafté dans
+      [`app-store-privacy-labels.md`](./app-store-privacy-labels.md) ; reste à
+      **recopier dans ASC**.
+- [x] **Page de repli hors-ligne** — `public/offline.html` bundlé via webDir +
+      `ios/App/App/MainViewController.swift` qui la charge sur erreur réseau
+      (à valider en Phase 4 sur Xcode).
 
 ---
 
