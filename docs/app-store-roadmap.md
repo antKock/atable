@@ -1,8 +1,9 @@
 # À Table — Roadmap publication App Store iOS
 
 > Document de pilotage pour la mise en ligne d'À Table sur l'Apple App Store.
-> Créé le 2026-05-20. Statut : **Phases 0.5 et 1 livrées** · **Phase 0 en cours**
-> (compte Apple payé, en attente de validation) — Phase 2 et suivantes à venir.
+> Créé le 2026-05-20. Statut : **Phases 0.5, 1 et 2 livrées** · **Phase 0** :
+> compte Apple validé, app App Store Connect restant à créer · **Phase 3** en
+> cours.
 
 ---
 
@@ -36,16 +37,18 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 
 | Phase | Contenu | Bloque le code ? |
 |---|---|---|
-| **0** ⏳ — Compte Apple | Apple Developer Program (99 $/an) — **payé 2026-05-22, en validation** ; App Store Connect | Non (parallèle) |
+| **0** ⏳ — Compte Apple | Apple Developer Program **validé 2026-05-23** ; reste à créer l'app dans App Store Connect | Non (parallèle) |
 | **0.5** ✅ — Environnements staging/prod | Staging par branche — **livré 2026-05-22** | — |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
-| **2** — Intégration Capacitor | Projet iOS, plugins, clés Info.plist | Dépend d'un Mac/Xcode |
-| **3** — Préparation soumission | Assets, fiche App Store, conformité | Non |
+| **2** ✅ — Intégration Capacitor | Capacitor + projet iOS + `server.url` par env + haptics — **livré 2026-05-22** | — |
+| **3** ⏳ — Préparation soumission | Assets, fiche App Store, conformité — politique de confidentialité & privacy labels draftés | Non |
 | **4** — Test & soumission | Test device réel → TestFlight → review Apple | — |
 | **5** — Post-launch | Push notifications (APNs) | — |
 
 **Ordre conseillé :** Phase 0 et 0.5 en parallèle et en premier → Phase 1 →
-Phase 2 → 3 → 4. La Phase 5 vient après le lancement.
+Phase 2 → 3 → 4. La Phase 5 vient après le lancement. **État au 2026-05-23 :**
+Phases 0.5, 1, 2 livrées ; Phase 0 quasi finie (reste App Store Connect) ;
+Phase 3 en cours.
 
 ### L'approche : incrémental, web-first
 
@@ -106,13 +109,12 @@ Apple à gérer pour la v1.
 
 ## 4. Phase 0 — Compte Apple
 
-> **Avancement — 2026-05-22.** Inscription au **Apple Developer Program**
-> faite et **payée** (99 $, formule *Individual*) → **en attente de
-> validation Apple** (vérification d'identité, délai de quelques heures à
-> quelques jours).
+> **Avancement — 2026-05-23.** Inscription au **Apple Developer Program**
+> **validée par Apple** (payée le 2026-05-22, validation < 24 h). Reste à créer
+> l'app dans App Store Connect.
 
 - [x] S'inscrire à l'**Apple Developer Program** — 99 $/an, formule
-      *Individual*. ✅ Payé le 2026-05-22, en attente de validation.
+      *Individual*. ✅ Payé le 2026-05-22, validé le 2026-05-23.
 - [ ] Créer l'app dans **App Store Connect** : nom, bundle ID
       (`fr.anthonykocken.atable`), langue principale. ⚠️ Bien basculer sur
       **sa propre équipe** dans le sélecteur (pas « Naiane » / « Riverman
@@ -319,21 +321,31 @@ consistant.
 
 ## 7. Phase 2 — Intégration Capacitor
 
+> **✅ PHASE 2 LIVRÉE — 2026-05-22.** Scaffold Capacitor, projet iOS, `server.url`
+> par environnement et retours haptiques sont en place (PR #4 + PR #5 ;
+> 280 tests verts, `tsc` clean, 100 % additif). Le build Xcode réel et le test
+> sur device se feront en Phase 4.
+
 Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
-- [ ] Installer Capacitor : `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`.
-- [ ] Configurer `server.url` :
-  - Build **Debug / TestFlight** → `https://staging.atable.anthonykocken.fr`
-  - Build **Release / App Store** → `https://atable.anthonykocken.fr`
-  - Ajouter `?native=1` à l'URL pour la détection côté serveur.
-- [ ] User-agent custom : `appendUserAgentString` = `ATableNative/1.0`.
-      ⚠️ Ne **pas** y mettre de token de `BOT_UA_PATTERN` (`WhatsApp`, `Facebot`,
-      `Twitterbot`, etc., cf. `middleware.ts:20`) → sinon bypass d'auth.
-- [ ] `npx cap add ios` → génère le projet Xcode.
-- [ ] Clés Info.plist : `NSMicrophoneUsageDescription`,
-      `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription`.
-- [ ] Plugins v1 : `@capacitor/splash-screen`, `@capacitor/status-bar`,
-      `@capacitor/haptics`.
+- [x] Capacitor installé : `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`,
+      `@capacitor/haptics`, `@capacitor/splash-screen`, `@capacitor/status-bar`.
+- [x] `npx cap add ios` → projet Xcode généré (`ios/`).
+- [x] User-agent custom : `appendUserAgent` = `ATableNative/1.0` (sans token de
+      `BOT_UA_PATTERN` — `WhatsApp`, `Facebot`…, cf. `middleware.ts:20` — sinon
+      bypass d'auth).
+- [x] Clés Info.plist : `NSMicrophoneUsageDescription`,
+      `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription` (descriptions FR).
+- [x] Plugins v1 : `splash-screen` (durée + couleur configurées), `status-bar`,
+      `haptics`.
+- [x] Helpers `src/lib/native.ts` (détection web/natif) + `src/lib/haptics.ts`,
+      avec tests. La WebView charge le site first-party (jamais Safari).
+- [x] **`server.url` par environnement.** Piloté par `CAP_ENV` dans
+      `capacitor.config.ts` : `CAP_ENV=staging npx cap sync ios` → staging,
+      `npx cap sync ios` (défaut) → prod. `allowNavigation` liste les 2 domaines.
+- [x] **Haptics câblés** sur les 5 points d'appel : début/fin d'enregistrement
+      vocal (`medium`), import de recette réussi — voix/photo/URL (`success`),
+      copie du code d'invitation (`light`), suppression de foyer (`heavy`).
 
 ### Points d'appel haptiques (v1)
 
@@ -352,13 +364,16 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
 ## 8. Phase 3 — Préparation soumission
 
-- [ ] Icône app 1024×1024 px.
-- [ ] Screenshots par taille d'écran requise.
-- [ ] Description, mots-clés, catégorie.
-- [ ] Politique de confidentialité (URL publique).
-- [ ] Privacy nutrition labels dans App Store Connect.
+- [ ] Icône app 1024×1024 px (vérifier `public/icons/`, sinon exporter).
+- [ ] Screenshots par taille d'écran requise (6.7" iPhone obligatoire ;
+      idéalement 6.5" + iPad).
+- [ ] Description, sous-titre, mots-clés, catégorie, URL de support.
+- [~] **Politique de confidentialité** — texte drafté dans
+      `docs/politique-confidentialite.md` ; reste à **publier sur une URL
+      publique** (page du site ou Gist).
+- [~] **Privacy nutrition labels** — drafté dans `docs/app-store-privacy-labels.md` ;
+      reste à **recopier dans App Store Connect**.
 - [ ] Page de repli hors-ligne (la WebView est vide sans réseau).
-- [ ] Retirer / désactiver les en-têtes de debug restants (cf. Fix 1.3).
 
 ---
 

@@ -1,0 +1,47 @@
+import type { CapacitorConfig } from "@capacitor/cli";
+
+// À Table runs as a Capacitor shell whose WebView loads the live Vercel
+// origin directly (first-party) — see docs/app-store-roadmap.md §1.
+//
+// server.url is environment-driven, resolved at `cap sync` time:
+//   - Debug / TestFlight build : `CAP_ENV=staging npx cap sync ios`
+//       → loads https://staging.atable.anthonykocken.fr
+//   - Release / App Store build: plain `npx cap sync ios`
+//       → loads https://atable.anthonykocken.fr  (default — the safe default)
+const PROD_URL = "https://atable.anthonykocken.fr";
+const STAGING_URL = "https://staging.atable.anthonykocken.fr";
+const serverUrl = process.env.CAP_ENV === "staging" ? STAGING_URL : PROD_URL;
+
+const config: CapacitorConfig = {
+  appId: "fr.anthonykocken.atable",
+  appName: "À Table",
+  // Required by Capacitor even when loading a remote server.url; holds the
+  // bundled fallback assets. TODO (Phase 3): point at an offline fallback page.
+  webDir: "public",
+  server: {
+    // First-party origin, loaded directly in the WebView. Must be a clean
+    // origin AND listed in allowNavigation, otherwise Capacitor treats it as
+    // external and opens it in Safari instead of the in-app WebView.
+    // Native detection is done server-side via the ATableNative user-agent.
+    url: serverUrl,
+    // Both origins whitelisted so navigation stays in-app whichever
+    // environment server.url resolves to.
+    allowNavigation: ["atable.anthonykocken.fr", "staging.atable.anthonykocken.fr"],
+    cleartext: false,
+  },
+  ios: {
+    // Lets middleware.ts recognise the native shell. Must NOT contain any
+    // BOT_UA_PATTERN token (WhatsApp, Facebot, …) or it would bypass auth.
+    appendUserAgent: "ATableNative/1.0",
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 1500,
+      launchAutoHide: true,
+      backgroundColor: "#F8FAF7",
+      showSpinner: false,
+    },
+  },
+};
+
+export default config;
