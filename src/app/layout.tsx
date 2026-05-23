@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Fraunces } from "next/font/google";
+import { Inter, Fraunces, DM_Mono } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
 import "./globals.css";
@@ -13,6 +13,12 @@ const fraunces = Fraunces({
   subsets: ["latin"],
   variable: "--font-fraunces",
   axes: ["opsz"],
+});
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  variable: "--font-dm-mono",
+  weight: ["500"],
 });
 
 export const viewport: Viewport = {
@@ -54,7 +60,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${inter.variable} ${fraunces.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${fraunces.variable} ${dmMono.variable} font-sans antialiased`}>
         <SWRProvider>{children}</SWRProvider>
       </body>
     </html>
