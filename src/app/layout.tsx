@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
+import { HideNativeSplash } from "@/components/native/HideNativeSplash";
 import "./globals.css";
 
 const inter = Inter({
@@ -55,6 +56,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.variable} ${fraunces.variable} font-sans antialiased`}>
+        <HideNativeSplash />
         <SWRProvider>{children}</SWRProvider>
       </body>
     </html>
