@@ -23,12 +23,11 @@ export default async function HomePage({ searchParams }: Props) {
     <div className="pb-6 pt-6">
       <header className="mb-4 flex items-center justify-between px-4">
         <h1
-          className="text-foreground"
+          className="text-4xl text-foreground"
           style={{
             fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
             fontVariationSettings: '"opsz" 144',
             fontWeight: 700,
-            fontSize: "24px",
             lineHeight: 1,
             letterSpacing: "-0.02em",
           }}
