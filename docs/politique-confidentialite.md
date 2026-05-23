@@ -1,10 +1,12 @@
 # Politique de confidentialité — À Table
 
-> **Document à publier à une URL publique stable** (requis par l'App Store et par
-> le RGPD). Voir les `[À COMPLÉTER]` avant publication.
+> **Source de vérité éditoriale.** La version publiée en ligne est
+> `src/app/(landing)/legal/confidentialite/page.tsx` →
+> `https://atable.anthonykocken.fr/legal/confidentialite`. Toute mise à jour
+> ici doit être répercutée dans la page Next.js.
 >
-> ⚠️ Brouillon de qualité production, mais je ne suis pas juriste : une relecture
-> RGPD/CNIL est recommandée avant mise en ligne d'un produit publié.
+> ⚠️ Document de qualité production mais non relu par un juriste : une revue
+> RGPD/CNIL reste recommandée avant communication large.
 
 **Dernière mise à jour : 23 mai 2026**
 
@@ -123,9 +125,9 @@ suivants, qui agissent en qualité de **sous-traitants** pour notre compte :
 
 | Prestataire | Rôle | Données concernées | Localisation |
 |---|---|---|---|
-| **Vercel** | Hébergement de l'application | Données techniques de requête, journaux | `[À COMPLÉTER : région — ex. UE / États-Unis]` |
-| **Supabase** | Base de données et stockage des photos | Foyers, recettes, sessions, photos | `[À COMPLÉTER : région du projet]` |
-| **Upstash** | Limitation de débit (sécurité) | Adresse IP, identifiants de session | `[À COMPLÉTER : région]` |
+| **Vercel** | Hébergement de l'application | Données techniques de requête, journaux | États-Unis (région `iad1`, Washington D.C.) |
+| **Supabase** | Base de données et stockage des photos | Foyers, recettes, sessions, photos | Union européenne (Irlande, `eu-west-1`) |
+| **Upstash** | Limitation de débit (sécurité) | Adresse IP, identifiants de session | Royaume-Uni (Londres, `eu-west-2`) |
 | **OpenAI** | Transcription audio, lecture d'images, structuration de texte | Contenu soumis aux imports (section 5) | États-Unis |
 
 Concernant **OpenAI** : les données transmises via leur interface de
@@ -134,18 +136,22 @@ sont conservées par OpenAI pour une durée limitée (à des fins de prévention
 abus) avant suppression, conformément à leur politique de traitement des données
 API.
 
-> ℹ️ `[À VÉRIFIER]` : privilégiez, lorsque c'est possible, des régions
-> d'hébergement situées dans l'Union européenne (Vercel, Supabase, Upstash) afin
-> de limiter les transferts hors UE.
-
 ---
 
 ## 7. Transferts de données hors Union européenne
 
-Certains sous-traitants, notamment **OpenAI**, peuvent traiter des données aux
-**États-Unis**. Ces transferts sont encadrés par des garanties appropriées au
-sens du RGPD (clauses contractuelles types de la Commission européenne et/ou
-adhésion au cadre de protection des données UE–États-Unis, selon le prestataire).
+Certains sous-traitants traitent des données **en dehors de l'Union
+européenne** :
+
+- **Vercel** (hébergement de l'application) et **OpenAI** (imports IA) opèrent
+  aux **États-Unis** ;
+- **Upstash** (limitation de débit) opère au **Royaume-Uni**.
+
+Ces transferts sont encadrés par des garanties appropriées au sens du RGPD :
+clauses contractuelles types de la Commission européenne, décision
+d'adéquation Royaume-Uni du 28 juin 2021, et/ou adhésion au cadre de
+protection des données UE–États-Unis (*EU–US Data Privacy Framework*), selon
+le prestataire concerné.
 
 ---
 

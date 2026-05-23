@@ -1,9 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 
-// Source de vérité éditoriale : docs/politique-confidentialite.md
-// (les régions d'hébergement Vercel/Supabase/Upstash restent à vérifier
-// dans le markdown source — voir checklist Phase 3).
+// Source de vérité éditoriale : docs/politique-confidentialite.md.
+// Toute mise à jour du markdown doit être répercutée ici.
 
 export const metadata: Metadata = {
   title: "Politique de confidentialité — À Table",
@@ -333,6 +332,7 @@ export default function PrivacyPolicyPage() {
               <Th>Prestataire</Th>
               <Th>Rôle</Th>
               <Th>Données concernées</Th>
+              <Th>Localisation</Th>
             </tr>
           </thead>
           <tbody>
@@ -342,6 +342,9 @@ export default function PrivacyPolicyPage() {
               </Td>
               <Td>Hébergement de l&apos;application</Td>
               <Td>Données techniques de requête, journaux</Td>
+              <Td>
+                États-Unis (région <code>iad1</code>, Washington&nbsp;D.C.)
+              </Td>
             </tr>
             <tr>
               <Td>
@@ -349,6 +352,9 @@ export default function PrivacyPolicyPage() {
               </Td>
               <Td>Base de données et stockage des photos</Td>
               <Td>Foyers, recettes, sessions, photos</Td>
+              <Td>
+                Union européenne (Irlande, <code>eu-west-1</code>)
+              </Td>
             </tr>
             <tr>
               <Td>
@@ -356,6 +362,9 @@ export default function PrivacyPolicyPage() {
               </Td>
               <Td>Limitation de débit (sécurité)</Td>
               <Td>Adresse IP, identifiants de session</Td>
+              <Td>
+                Royaume-Uni (Londres, <code>eu-west-2</code>)
+              </Td>
             </tr>
             <tr>
               <Td>
@@ -372,6 +381,7 @@ export default function PrivacyPolicyPage() {
                 </a>
                 )
               </Td>
+              <Td>États-Unis</Td>
             </tr>
           </tbody>
         </Table>
@@ -390,11 +400,27 @@ export default function PrivacyPolicyPage() {
           7. Transferts de données hors Union européenne
         </H2>
         <P>
-          Certains sous-traitants, notamment <strong>OpenAI</strong>, peuvent
-          traiter des données aux <strong>États-Unis</strong>. Ces transferts
-          sont encadrés par des garanties appropriées au sens du RGPD (clauses
-          contractuelles types de la Commission européenne et/ou adhésion au
-          cadre de protection des données UE–États-Unis, selon le prestataire).
+          Certains sous-traitants traitent des données{" "}
+          <strong>en dehors de l&apos;Union européenne</strong> :
+        </P>
+        <UL>
+          <li>
+            <strong>Vercel</strong> (hébergement de l&apos;application) et{" "}
+            <strong>OpenAI</strong> (imports IA) opèrent aux{" "}
+            <strong>États-Unis</strong> ;
+          </li>
+          <li>
+            <strong>Upstash</strong> (limitation de débit) opère au{" "}
+            <strong>Royaume-Uni</strong>.
+          </li>
+        </UL>
+        <P>
+          Ces transferts sont encadrés par des garanties appropriées au sens
+          du RGPD : clauses contractuelles types de la Commission européenne,
+          décision d&apos;adéquation Royaume-Uni du 28 juin 2021, et/ou
+          adhésion au cadre de protection des données UE–États-Unis (
+          <em>EU–US Data Privacy Framework</em>), selon le prestataire
+          concerné.
         </P>
 
         <H2 id="conservation">8. Durées de conservation</H2>
