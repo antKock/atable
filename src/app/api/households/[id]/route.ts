@@ -64,6 +64,26 @@ export async function DELETE(
   const supabase = createServerClient()
 
   if (action === 'delete') {
+    // Purge Storage files first — the DB row delete cascade won't reach them.
+    // Apple 5.1.1(v) requires effective server-side data deletion.
+    const { data: recipesToDelete } = await supabase
+      .from('recipes')
+      .select('photo_url, generated_image_url')
+      .eq('household_id', householdId)
+    if (recipesToDelete && recipesToDelete.length > 0) {
+      const paths: string[] = []
+      for (const r of recipesToDelete) {
+        for (const url of [r.photo_url, r.generated_image_url]) {
+          if (url) {
+            const match = (url as string).match(/recipe-photos\/(.+)$/)
+            if (match) paths.push(match[1])
+          }
+        }
+      }
+      if (paths.length > 0) {
+        await supabase.storage.from('recipe-photos').remove(paths)
+      }
+    }
     // Explicitly delete all recipes first (recipes.household_id is ON DELETE SET NULL)
     const { error: recipesError } = await supabase
       .from('recipes')

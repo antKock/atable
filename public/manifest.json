@@ -4,8 +4,8 @@
   "description": "Tes recettes, réunies comme par magie",
   "start_url": "/home",
   "display": "standalone",
-  "theme_color": "#F8FAF7",
-  "background_color": "#F8FAF7",
+  "theme_color": "#F5F1E8",
+  "background_color": "#F5F1E8",
   "orientation": "portrait",
   "icons": [
     {

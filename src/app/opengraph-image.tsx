@@ -15,7 +15,7 @@ export default function OpenGraphImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'linear-gradient(180deg, #F8FAF7 0%, #EDE8E0 100%)',
+          background: 'linear-gradient(180deg, #F5F1E8 0%, #EDE8E0 100%)',
         }}
       >
         <span

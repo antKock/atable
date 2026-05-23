@@ -279,7 +279,7 @@ export const t = {
     createSuccess: (name: string) => `Foyer ${name} créé`,
     inviteCodeLabel: "Code invitation",
     inviteLinkCopied: "Lien d'invitation copié !",
-    shareTitle: (name: string) => `Rejoindre mon foyer « ${name} » sur atable`,
+    shareTitle: (name: string) => `Rejoindre mon foyer « ${name} » sur Mijote`,
     createError: "Impossible de créer le foyer. Veuillez réessayer.",
     menu: "Mon foyer",
     menuButton: "Menu du foyer",
