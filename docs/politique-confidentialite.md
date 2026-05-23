@@ -6,7 +6,7 @@
 > ⚠️ Brouillon de qualité production, mais je ne suis pas juriste : une relecture
 > RGPD/CNIL est recommandée avant mise en ligne d'un produit publié.
 
-**Dernière mise à jour : `[À COMPLÉTER : date de publication]`**
+**Dernière mise à jour : 23 mai 2026**
 
 ---
 
@@ -19,7 +19,7 @@ l'App Store iOS.
 Le responsable du traitement des données personnelles est :
 
 - **Anthony Kocken**, éditeur indépendant de l'Application.
-- Contact : `[À COMPLÉTER : adresse e-mail de contact — par défaut kocken.anthony@gmail.com, ou une adresse dédiée type contact@atable…]`
+- Contact : [kocken.anthony@gmail.com](mailto:kocken.anthony@gmail.com)
 - Application accessible à l'adresse : `https://atable.anthonykocken.fr`
 
 ---
@@ -251,4 +251,4 @@ en tête de document.
 ## 15. Contact
 
 Pour toute question relative à la présente politique ou au traitement de vos
-données : `[À COMPLÉTER : adresse e-mail de contact]`.
+données : [kocken.anthony@gmail.com](mailto:kocken.anthony@gmail.com).
