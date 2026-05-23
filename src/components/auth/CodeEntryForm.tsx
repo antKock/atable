@@ -40,13 +40,13 @@ export default function CodeEntryForm({ onCancel }: Props) {
 
   return (
     <div
-      className="fixed inset-0 flex flex-col overflow-y-auto bg-gradient-to-b from-background to-[#EDE8E0]"
+      className="fixed inset-0 flex flex-col overflow-hidden bg-gradient-to-b from-background to-[#EDE8E0]"
     >
       <button
         type="button"
         onClick={onCancel}
         aria-label={t.a11y.backButton}
-        className="absolute left-2 z-10 flex h-10 w-10 items-center justify-center text-foreground"
+        className="fixed left-2 z-10 flex h-10 w-10 items-center justify-center text-foreground"
         style={{ top: 'calc(env(safe-area-inset-top) + 13px)' }}
       >
         <svg
