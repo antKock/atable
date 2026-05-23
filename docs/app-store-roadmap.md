@@ -1,10 +1,12 @@
 # Mijote — Roadmap publication App Store iOS
 
-> Document de pilotage pour la mise en ligne d'Mijote sur l'Apple App Store.
-> Créé le 2026-05-20. Statut au 2026-05-23 : **Phases 0.5, 1, 2 et 3 (côté
-> code) livrées** · **Phase 0** : compte Apple validé, app App Store Connect
-> restant à créer · prochaines étapes : icône vectorielle, screenshots,
-> saisie ASC (cf. [`app-store-listing.md`](./app-store-listing.md)).
+> Document de pilotage pour la mise en ligne de Mijote sur l'Apple App Store.
+> Créé le 2026-05-20. Statut au 2026-05-23 : **Phases 0, 0.5, 1, 2 et 3
+> livrées** — App ID créé chez Apple, app créée dans App Store Connect,
+> fiche complète saisie (textes + privacy labels + review notes), icône
+> vectorielle prête, rebrand « À Table → Mijote » bouclé.
+>
+> **➡️ Prochaine étape : Phase 4 — build iOS sur Xcode.**
 
 ---
 
@@ -38,18 +40,19 @@ cross-origin → le cookie de session `SameSite=Lax` ne serait jamais envoyé.
 
 | Phase | Contenu | Bloque le code ? |
 |---|---|---|
-| **0** ⏳ — Compte Apple | Apple Developer Program **validé 2026-05-23** ; reste à créer l'app dans App Store Connect | Non (parallèle) |
+| **0** ✅ — Compte Apple | Apple Developer Program validé + App ID `fr.anthonykocken.mijote` créé + app créée dans App Store Connect — **livré 2026-05-23** | — |
 | **0.5** ✅ — Environnements staging/prod | Staging par branche — **livré 2026-05-22** | — |
 | **1** ✅ — Correctifs code | 5 fixes conformité + robustesse — **livrés en prod 2026-05-22** | — |
 | **2** ✅ — Intégration Capacitor | Capacitor + projet iOS + `server.url` par env + haptics — **livré 2026-05-22** | — |
-| **3** ⏳ — Préparation soumission | Politique + support + offline en prod ; fiche App Store draftée ([`app-store-listing.md`](./app-store-listing.md)). Reste : icône vectorielle, screenshots, saisie ASC. | Non |
-| **4** — Test & soumission | Test device réel → TestFlight → review Apple | — |
+| **3** ✅ — Préparation soumission | Politique + support + offline en prod ; rebrand Mijote bouclé ; fiche ASC entièrement saisie (textes, privacy labels, review notes) — **livré 2026-05-23** | — |
+| **4** ⏳ — Test & soumission | **PROCHAINE ÉTAPE** — Build Xcode + TestFlight + review Apple | Mac/Xcode requis |
 | **5** — Post-launch | Push notifications (APNs) | — |
 
 **Ordre conseillé :** Phase 0 et 0.5 en parallèle et en premier → Phase 1 →
-Phase 2 → 3 → 4. La Phase 5 vient après le lancement. **État au 2026-05-23 :**
-Phases 0.5, 1, 2 livrées ; Phase 0 quasi finie (reste App Store Connect) ;
-Phase 3 en cours.
+Phase 2 → 3 → 4. La Phase 5 vient après le lancement.
+
+**État au 2026-05-23 :** Phases 0 à 3 livrées. Tout ce qui ne dépendait pas
+d'un Mac/Xcode est fait. Reste exclusivement la Phase 4 (build natif).
 
 ### L'approche : incrémental, web-first
 
@@ -365,20 +368,21 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
 ## 8. Phase 3 — Préparation soumission
 
-> **Tous les textes à coller dans App Store Connect** sont consignés dans
-> [`app-store-listing.md`](./app-store-listing.md) (nom, sous-titre,
-> description, mots-clés, catégorie, URLs, promo text, what's new,
-> autres champs ASC). À utiliser comme source de vérité au moment de la
-> saisie dans ASC.
+> **✅ PHASE 3 LIVRÉE — 2026-05-23.** Tout est en place côté code et côté
+> App Store Connect. Tous les textes saisis dans ASC sont conservés dans
+> [`app-store-listing.md`](./app-store-listing.md) — à utiliser comme
+> source de vérité pour toute modification ultérieure.
 
-- [ ] **Icône App Store 1024×1024 px** — `public/icons/icon-1024.png` existe
-      (upscale flou via `sips`). À re-générer depuis une source vectorielle.
-- [ ] Screenshots par taille d'écran requise (6.7" iPhone obligatoire ;
-      idéalement 6.5" + iPad) — à capturer en simulateur Xcode.
-- [x] **Texte de la fiche App Store** (nom, sous-titre, description, mots-clés,
-      catégorie, URLs, promo text, what's new) — drafté dans
-      [`app-store-listing.md`](./app-store-listing.md). Reste à **coller dans
-      ASC**.
+- [x] **Rebrand « À Table → Mijote »** — nom commercial, domaines
+      (`mijote.anthonykocken.fr` prod + `staging.mijote.anthonykocken.fr`),
+      Bundle ID `fr.anthonykocken.mijote`, icône vectorielle
+      (`docs/icons/mijote-icon-1024.svg` + exports PNG), homepage rebrandée
+      (PRs #20-#25).
+- [x] **Icône App Store 1024×1024 px** — `public/icons/icon-1024.png` depuis
+      la source vectorielle ; `ios/App/App/Assets.xcassets/AppIcon.appiconset/
+      AppIcon-512@2x.png` (1024×1024 sans alpha, conforme Apple). Remontera
+      automatiquement avec le build Xcode — aucun upload manuel nécessaire
+      dans ASC.
 - [x] **Politique de confidentialité** — publiée à
       `https://mijote.anthonykocken.fr/legal/confidentialite` (source :
       `src/app/(landing)/legal/confidentialite/page.tsx`, contenu :
@@ -386,20 +390,66 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 - [x] **Page de support** — publiée à
       `https://mijote.anthonykocken.fr/support`
       (source : `src/app/(landing)/support/page.tsx`).
-- [~] **Privacy nutrition labels** — drafté dans
-      [`app-store-privacy-labels.md`](./app-store-privacy-labels.md) ; reste à
-      **recopier dans ASC**.
 - [x] **Page de repli hors-ligne** — `public/offline.html` bundlé via webDir +
       `ios/App/App/MainViewController.swift` qui la charge sur erreur réseau
       (à valider en Phase 4 sur Xcode).
+- [x] **Texte de la fiche App Store saisi dans ASC** (nom, sous-titre,
+      description nettoyée des caractères refusés, mots-clés, catégorie,
+      URLs, promo text). Source : [`app-store-listing.md`](./app-store-listing.md).
+- [x] **Privacy nutrition labels saisis dans ASC** — 5 types de données
+      (Photos/Audio/Texte/User ID/Product Interaction), tous « Linked to
+      You », non utilisés pour du tracking → pas d'App Tracking
+      Transparency prompt. Source : [`app-store-privacy-labels.md`](./app-store-privacy-labels.md).
+- [x] **App Review Information saisie** — Sign-in not required + notes pour
+      les reviewers (deux modes de test : démo + création de foyer + détail
+      des permissions iOS).
+- [ ] **Screenshots par taille d'écran requise** (6.7" iPhone obligatoire ;
+      idéalement 6.5" + iPad) — à capturer en simulateur Xcode → fait en
+      Phase 4.
 
 ---
 
 ## 9. Phase 4 — Test & soumission
 
-- [ ] Test sur **device iOS réel** : flux create / join / demo (le cookie !),
-      micro, photo/caméra, safe-areas, splash screen, barre d'état.
-- [ ] Build Xcode → Archive → upload vers App Store Connect.
+> **➡️ PROCHAINE ÉTAPE.** Tout ce qui ne nécessitait pas un Mac/Xcode est
+> fait — il reste exclusivement le travail natif iOS.
+
+Pré-requis dans le repo (déjà en place, à vérifier la première fois) :
+- `capacitor.config.ts` : `appId: "fr.anthonykocken.mijote"` ✅
+- `ios/App/App.xcodeproj/project.pbxproj` : `PRODUCT_BUNDLE_IDENTIFIER =
+  fr.anthonykocken.mijote` ✅
+- `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` :
+  icône Mijote 1024×1024 sans alpha ✅
+- `ios/App/App/MainViewController.swift` : fallback offline.html ✅
+- `ios/App/App/Info.plist` : 3 usage descriptions (micro/caméra/photos) ✅
+
+### Étapes
+
+- [ ] **Sync Capacitor** : `npx cap sync ios` à la racine du repo. Vérifier
+      que tout build sans warning.
+- [ ] **Ouvrir Xcode** : `open ios/App/App.xcworkspace`. Sélectionner sa
+      Team Apple Developer dans Signing & Capabilities (⚠️ pas Naiane /
+      Riverman studio).
+- [ ] **Captures simulateur** : iPhone 16 Pro Max (6.7", taille
+      obligatoire), 1290 × 2796 px. 5 à 10 captures :
+      homepage, mode démo, ajout de recette (photo/voix/lien),
+      bibliothèque, foyer, recette enrichie. Idéalement aussi 6.5"
+      (iPhone 11 Pro Max simulator) et iPad 12.9".
+- [ ] **Tester le fallback offline** : couper le réseau du simulateur
+      (Settings → Developer → Network Link Conditioner → 100 % loss). La
+      WebView doit afficher `public/offline.html` (« Pas de connexion »)
+      et non la page d'erreur WebKit par défaut.
+- [ ] **Test sur device iOS réel** : flux démo, créer un foyer, rejoindre
+      via code, imports photo/voix/lien, safe-areas sur iPhone à encoche,
+      splash screen, barre d'état, haptics.
+- [ ] **Build Xcode → Archive** (menu Product → Archive). Upload vers
+      App Store Connect via l'Organizer.
+- [ ] **TestFlight** : ajouter quelques testeurs internes (toi + proches),
+      vérifier que l'icône remonte automatiquement sur la fiche ASC.
+- [ ] **Upload des screenshots dans ASC** (section App Previews and
+      Screenshots de la version 1.0).
+- [ ] **Soumission pour review Apple** (Submit for Review). Délai moyen
+      24-48 h.
 - [ ] **TestFlight** (bêta) pointant sur staging.
 - [ ] Soumission review Apple (délai ~24-48 h).
 
