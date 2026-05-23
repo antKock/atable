@@ -13,11 +13,12 @@ const STAGING_URL = "https://staging.mijote.anthonykocken.fr";
 const serverUrl = process.env.CAP_ENV === "staging" ? STAGING_URL : PROD_URL;
 
 const config: CapacitorConfig = {
-  // Bundle ID kept as fr.anthonykocken.atable: it is the immutable App Store
-  // / signing identifier created before the Mijote rebrand, and changing it
-  // would require re-creating the App ID, certificates and provisioning
-  // profiles. Only the display name changes for the Mijote launch.
-  appId: "fr.anthonykocken.atable",
+  // Bundle ID aligned with the Mijote rebrand. The previous value
+  // (fr.anthonykocken.atable) only existed in this file, the Xcode project
+  // and the Info.plist — it had never been registered with Apple (no App ID,
+  // no certificates, no App Store Connect app), so the rebrand is the right
+  // moment to switch before the first Apple-side registration in Phase 4.
+  appId: "fr.anthonykocken.mijote",
   appName: "Mijote",
   // Required by Capacitor even when loading a remote server.url; holds the
   // bundled fallback assets (incl. public/offline.html, shipped in the iOS
