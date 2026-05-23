@@ -1,4 +1,8 @@
-# À Table — Récap des besoins fonctionnels
+# Mijote — Récap des besoins fonctionnels
+
+> Document historique, écrit avant le rebrand « À Table → Mijote » du
+> 2026-05-23. Conservé pour mémoire (références au précédent nom possibles
+> dans le corps).
 
 ## 1. Enrichissement automatique des recettes par IA
 

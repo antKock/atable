@@ -1,8 +1,10 @@
-# À Table — Fiche App Store Connect
+# Mijote — Fiche App Store Connect
 
 > Source de vérité pour tous les champs à remplir dans **App Store Connect**
-> au moment de la soumission. Les choix ont été composés à partir de l'audit
-> des features du repo (mai 2026) et des best practices ASO 2026.
+> au moment de la soumission. Le ton est le **tutoiement** (cohérent avec
+> les apps grand public récentes : Doctolib, Yuka, Spotify…). La politique
+> de confidentialité et la page support gardent le **vouvoiement** (cadre
+> plus formel).
 >
 > Voir aussi :
 > - [`app-store-roadmap.md`](./app-store-roadmap.md) — pilotage global
@@ -13,68 +15,73 @@
 
 ## 1. Nom de l'app (≤ 30 caractères)
 
-**🎯 Choix retenu** : `À Table — Recettes Foyer` (24 car.)
+**🎯 Choix retenu** : `Mijote — Tes recettes` (21 car.)
 
-Rationnel : le nom doit contenir le mot-clé le plus fort selon les best practices ASO 2026 — « recettes » est central. « Foyer » est le vocabulaire produit récurrent et différenciateur.
+> Note : caractère **`—`** (tiret cadratin, U+2014), pas `-` (tiret simple).
+> Apple recommande le cadratin pour les séparateurs de display name.
 
-| Option | Car. | Note |
-|---|---|---|
-| **À Table — Recettes Foyer** ⭐ | 24 | Mot-clé fort + différenciateur. |
-| À Table : Cuisine en famille | 28 | Plus émotionnel, moins searchable. |
-| À Table | 7 | Court, marquant, mais 0 mot-clé. |
+Pourquoi *Mijote* :
+- Verbe culinaire évocateur (chaleur, savoir-faire, temps).
+- Court, mémorable, brandable, prononçable en plusieurs langues.
+- 6 lettres sans caractère spécial → aucun problème de saisie ou de recherche.
+- L'apparence française est un atout marketing à l'international.
 
-⚠️ **À vérifier dans ASC** : disponibilité du nom (terme générique, parfois déjà pris). Si conflit : `À Table — Recettes en foyer` ou `À Table Recettes`.
+Pourquoi *Tes recettes* :
+- Tutoiement → ton intime et chill, cohérent avec les apps grand public 2026.
+- « Recettes » = mot-clé SEO fort obligatoire dans le nom.
+- « Tes » porte la propriété (différenciateur produit : ce sont **tes**
+  recettes, pas celles d'une base mondiale type Marmiton).
 
 ---
 
 ## 2. Sous-titre (≤ 30 caractères)
 
-**🎯 Choix retenu** : `Photo, voix ou lien : on gère` (30 car.)
+**🎯 Choix retenu** : `Réunies comme par magie` (23 car.)
 
-Rationnel : met en avant les 3 imports — *le* différenciateur produit.
+Lu d'un trait avec le nom : *« Mijote — Tes recettes, réunies comme par magie. »*
 
-| Option | Car. | Note |
-|---|---|---|
-| **Photo, voix ou lien : on gère** ⭐ | 30 | Différenciateur produit. |
-| Recettes en famille, sans compte | 30 | Met en avant l'absence de friction d'auth. |
-| L'IA structure vos recettes | 27 | Saturé en 2026, à éviter. |
+- **Réunies** : capture le « rassemblement » depuis les 3 sources d'import
+  (photo, voix, lien) sans avoir à les énumérer.
+- **Comme par magie** : porte l'IA sans la nommer. Ton chaleureux,
+  enfantin-positif, opposé au registre tech.
+- L'allitération en /m/ (**M**ijote… co**mm**e… **m**agie) donne du
+  rythme à l'oral.
 
 ---
 
 ## 3. Description longue (≤ 4 000 caractères)
 
 ```
-À Table transforme une photo, une dictée vocale ou un lien web en recette
+Mijote transforme une photo, une dictée vocale ou un lien web en recette
 structurée, prête à cuisiner. Pas de compte, pas de mot de passe — juste un
 foyer partagé en famille via un code d'invitation.
 
 ━━━ Trois façons d'ajouter une recette en 30 secondes ━━━
 
-• PHOTO ou capture d'écran — vous photographiez le carnet de votre grand-mère
-  ou un screenshot Instagram, l'IA extrait le titre, les ingrédients et les
+• PHOTO ou capture d'écran — tu photographies le carnet de ta grand-mère ou
+  un screenshot Instagram, on extrait le titre, les ingrédients et les
   étapes.
-• DICTÉE VOCALE — vous parlez, on transcrit, on structure. Pratique pour
+• DICTÉE VOCALE — tu parles, on transcrit, on structure. Pratique pour
   noter une recette en sortant du marché.
-• LIEN URL — collez l'adresse d'un blog culinaire, on récupère le contenu et
-  on le met en forme.
+• LIEN URL — tu colles l'adresse d'un blog culinaire, on récupère le
+  contenu et on le met en forme.
 
 Chaque recette est ensuite enrichie automatiquement : temps de préparation,
 temps de cuisson, coût estimé, saisons, tags (végétarien, rapide, comfort
 food…). Une illustration est générée pour reconnaître la recette d'un coup
-d'œil. Vous pouvez tout modifier ou remplacer l'image par vos propres
-photos.
+d'œil. Tu peux tout modifier ou remplacer l'image par tes propres photos.
 
 ━━━ Cuisiner ensemble, sans usine à gaz ━━━
 
-• FOYER PARTAGÉ — créez un foyer, recevez un code d'invitation, partagez-le
-  à votre famille. Tous les appareils accèdent à la même bibliothèque,
-  synchronisée en temps réel.
+• FOYER PARTAGÉ — tu crées un foyer, tu reçois un code d'invitation, tu le
+  partages à ta famille. Tous les appareils accèdent à la même
+  bibliothèque, synchronisée en temps réel.
 • AUCUN COMPTE À CRÉER — pas d'e-mail, pas de mot de passe, pas de
   publicité. L'application fonctionne sans inscription traditionnelle.
-• MODE DÉMO — vous voulez tester ? Accès direct à une bibliothèque démo,
+• MODE DÉMO — tu veux tester ? Accès direct à une bibliothèque démo,
   zéro friction.
 
-━━━ Retrouvez ce que vous cherchez ━━━
+━━━ Retrouve ce que tu cherches ━━━
 
 • Accueil par carrousels thématiques : Nouveautés, De saison, Rapide,
   Végétarien, Comfort food, Apéro, Desserts…
@@ -84,18 +91,18 @@ photos.
 • Mode lecture optimisé pour cuisiner : grandes polices, étapes scrollables,
   l'écran reste allumé pendant la préparation.
 
-━━━ Gérer son foyer ━━━
+━━━ Gérer ton foyer ━━━
 
-• Renommer le foyer, gérer les appareils connectés, quitter ou supprimer le
-  foyer en deux tapotements.
+• Renommer le foyer, gérer les appareils connectés, quitter ou supprimer
+  le foyer en deux tapotements.
 • Suppression définitive et complète des données possible à tout moment.
 
 ━━━ Confidentialité ━━━
 
 • Pas de profilage publicitaire, pas de pixels de suivi, pas d'identifiant
   publicitaire — jamais.
-• Aucune vente de vos données à des tiers.
-• Politique de confidentialité : atable.anthonykocken.fr/legal/confidentialite
+• Aucune vente de tes données à des tiers.
+• Politique de confidentialité : mijote.anthonykocken.fr/legal/confidentialite
 
 ━━━ Pour qui ? ━━━
 
@@ -104,10 +111,11 @@ ressaisir à la main, et les partager avec leur conjoint·e, leurs enfants,
 leurs colocs ou leurs parents. Pour celles et ceux qui aiment cuisiner et
 qui en ont assez des apps bourrées de pubs et de paywalls.
 
-À Table est gratuit, sans publicité, sans achat intégré.
+Mijote est gratuit, sans publicité, sans achat intégré.
 ```
 
-≈ 2 600 caractères. Beaucoup de mots-clés naturellement intégrés.
+≈ 2 600 caractères. Tutoiement appliqué partout (« tu photographies »,
+« tes propres photos », « tu cherches »…).
 
 ---
 
@@ -120,7 +128,7 @@ recettes,cuisine,foyer,famille,IA,vocal,photo,OCR,importer,partage,menu,saison,v
 ```
 
 Règles :
-- Ne pas répéter « À Table » : Apple cherche déjà dans le nom et le sous-titre.
+- Ne pas répéter « Mijote » : Apple cherche déjà dans le nom et le sous-titre.
 - Pas de mots vides (« et », « ou »).
 - Singulier privilégié au pluriel (« recette » matche déjà « recettes »).
 - Anglicismes que les utilisateurs francophones tapent quand même (« OCR », « IA »).
@@ -138,9 +146,9 @@ Règles :
 
 | Champ ASC | Valeur | Statut |
 |---|---|---|
-| **Privacy Policy URL** | `https://atable.anthonykocken.fr/legal/confidentialite` | ✅ en ligne |
-| **Support URL** | `https://atable.anthonykocken.fr/support` | ✅ en ligne |
-| **Marketing URL** *(optionnel)* | `https://atable.anthonykocken.fr` | ✅ |
+| **Privacy Policy URL** | `https://mijote.anthonykocken.fr/legal/confidentialite` | À déployer (rebrand) |
+| **Support URL** | `https://mijote.anthonykocken.fr/support` | À déployer (rebrand) |
+| **Marketing URL** *(optionnel)* | `https://mijote.anthonykocken.fr` | À déployer (rebrand) |
 
 ---
 
@@ -148,21 +156,21 @@ Règles :
 
 > Champ modifiable **sans repasser en review Apple** — utile pour les promos saisonnières.
 
-**🎯 Valeur de départ** (150 car.) :
+**🎯 Valeur de départ** (146 car.) :
 
 ```
-Photographiez une recette, dictez-la ou collez un lien — l'IA structure tout en quelques secondes. Vos recettes en famille, sans compte, sans pub.
+Photographie une recette, dicte-la ou colle un lien — Mijote la structure en quelques secondes. Tes recettes en famille, sans compte, sans pub.
 ```
 
 ### Versions saisonnières à garder sous le coude
 
 - **Fêtes** :
   ```
-  Les recettes de famille de tout le monde, enfin au même endroit. Importez-les en photo, voix ou lien. Sans compte, sans pub.
+  Les recettes de famille de tout le monde, enfin au même endroit. Importe-les en photo, voix ou lien. Sans compte, sans pub.
   ```
 - **Rentrée** :
   ```
-  Marre de chercher cette recette du dimanche midi ? À Table la garde, l'enrichit et la partage à votre foyer.
+  Marre de chercher cette recette du dimanche midi ? Mijote la garde, l'enrichit et la partage à ton foyer.
   ```
 
 ---
@@ -170,13 +178,13 @@ Photographiez une recette, dictez-la ou collez un lien — l'IA structure tout e
 ## 8. What's New (notes de version v1.0)
 
 ```
-Bienvenue dans À Table ! Cette première version vous permet de :
+Bienvenue dans Mijote ! Cette première version te permet de :
 • Importer des recettes en photo, par dictée vocale ou via une URL
-• Partager votre bibliothèque en famille via un code d'invitation
-• Filtrer vos recettes par saison, type de plat, régime, durée et coût
-• Cuisiner depuis votre iPhone avec un mode lecture optimisé
+• Partager ta bibliothèque en famille via un code d'invitation
+• Filtrer tes recettes par saison, type de plat, régime, durée et coût
+• Cuisiner depuis ton iPhone avec un mode lecture optimisé
 
-Vos retours sont les bienvenus : kocken.anthony@gmail.com
+Tes retours sont les bienvenus : kocken.anthony@gmail.com
 ```
 
 ---
@@ -185,7 +193,7 @@ Vos retours sont les bienvenus : kocken.anthony@gmail.com
 
 | Champ | Valeur |
 |---|---|
-| **Bundle ID** | `fr.anthonykocken.atable` |
+| **Bundle ID** | `fr.anthonykocken.atable` *(inchangé — identifiant technique créé avant le rebrand ; le changer obligerait à recréer App ID, certificats et profils de provisioning)* |
 | **Langue principale** | Français (France) |
 | **Tranche d'âge** | 4+ (aucun contenu sensible) |
 | **In-App Purchases** | Aucun |

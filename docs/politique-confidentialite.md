@@ -1,8 +1,8 @@
-# Politique de confidentialité — À Table
+# Politique de confidentialité — Mijote
 
 > **Source de vérité éditoriale.** La version publiée en ligne est
 > `src/app/(landing)/legal/confidentialite/page.tsx` →
-> `https://atable.anthonykocken.fr/legal/confidentialite`. Toute mise à jour
+> `https://mijote.anthonykocken.fr/legal/confidentialite`. Toute mise à jour
 > ici doit être répercutée dans la page Next.js.
 >
 > ⚠️ Document de qualité production mais non relu par un juriste : une revue
@@ -14,7 +14,7 @@
 
 ## 1. Qui sommes-nous
 
-À Table (« l'Application », « le Service ») est une application de gestion de
+Mijote (« l'Application », « le Service ») est une application de gestion de
 recettes de cuisine et de planification de menus, accessible sur le Web et sur
 l'App Store iOS.
 
@@ -22,13 +22,13 @@ Le responsable du traitement des données personnelles est :
 
 - **Anthony Kocken**, éditeur indépendant de l'Application.
 - Contact : [kocken.anthony@gmail.com](mailto:kocken.anthony@gmail.com)
-- Application accessible à l'adresse : `https://atable.anthonykocken.fr`
+- Application accessible à l'adresse : `https://mijote.anthonykocken.fr`
 
 ---
 
 ## 2. Notre approche : le strict minimum de données
 
-À Table est conçue pour fonctionner **sans compte traditionnel**. Vous n'avez
+Mijote est conçue pour fonctionner **sans compte traditionnel**. Vous n'avez
 besoin de fournir **ni adresse e-mail, ni nom, ni numéro de téléphone, ni mot de
 passe**. L'accès repose sur la notion de **foyer** : un espace de recettes
 partagé, rejoint au moyen d'un **code d'invitation**.
@@ -102,11 +102,11 @@ structurée, l'Application fait appel au service **OpenAI** (voir section 6).
 
 - **Import par dictée vocale** : l'enregistrement audio est transmis à OpenAI
   pour transcription, puis le texte obtenu est structuré. **L'enregistrement
-  audio n'est jamais conservé** par À Table : seul le texte de la recette
+  audio n'est jamais conservé** par Mijote : seul le texte de la recette
   résultante est enregistré.
 - **Import par photo / capture d'écran** : l'image est transmise à OpenAI pour
   en extraire le texte de la recette. **Les images d'import ne sont pas
-  conservées** par À Table : seule la recette structurée résultante est
+  conservées** par Mijote : seule la recette structurée résultante est
   enregistrée. (Les photos que vous **ajoutez délibérément** à une recette, à
   l'inverse, sont conservées — voir section 8.)
 - **Import par lien URL** : le contenu textuel de la page web est récupéré puis
