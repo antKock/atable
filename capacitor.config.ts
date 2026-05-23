@@ -45,7 +45,10 @@ const config: CapacitorConfig = {
     SplashScreen: {
       launchShowDuration: 1500,
       launchAutoHide: true,
-      backgroundColor: "#F8FAF7",
+      // Cream — matches `--background` in globals.css and the splash PNG's
+      // canvas colour. Visible only as a fallback if the bundled image fails
+      // to load; otherwise the launch storyboard's image covers it.
+      backgroundColor: "#F5F1E8",
       showSpinner: false,
     },
   },
