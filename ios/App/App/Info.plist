@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>À Table</string>
+        <string>Mijote</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -48,10 +48,10 @@
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>À Table utilise le microphone pour la dictée vocale de vos recettes.</string>
+	<string>Mijote utilise le microphone pour la dictée vocale de tes recettes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>À Table accède à vos photos pour importer une recette depuis une capture d'écran.</string>
+	<string>Mijote accède à tes photos pour importer une recette depuis une capture d'écran.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>À Table utilise l'appareil photo pour photographier une recette à importer.</string>
+	<string>Mijote utilise l'appareil photo pour photographier une recette à importer.</string>
 </dict>
 </plist>

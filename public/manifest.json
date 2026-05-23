@@ -1,7 +1,7 @@
 {
-  "name": "À Table",
-  "short_name": "À Table",
-  "description": "Votre bibliothèque de recettes personnelle",
+  "name": "Mijote",
+  "short_name": "Mijote",
+  "description": "Tes recettes, réunies comme par magie",
   "start_url": "/home",
   "display": "standalone",
   "theme_color": "#F8FAF7",

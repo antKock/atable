@@ -2,9 +2,9 @@ import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Support — À Table",
+  title: "Support — Mijote",
   description:
-    "Aide et contact pour l'application À Table. Comment importer une recette, partager un foyer, supprimer ses données.",
+    "Aide et contact pour l'application Mijote. Comment importer une recette, partager un foyer, supprimer ses données.",
   alternates: { canonical: "/support" },
   robots: { index: true, follow: true },
 };
@@ -77,7 +77,7 @@ export default function SupportPage() {
           Pour toute demande — assistance, signalement de bug, suggestion,
           exercice de vos droits RGPD :{" "}
           <a
-            href={`mailto:${contactEmail}?subject=${encodeURIComponent("Support À Table")}`}
+            href={`mailto:${contactEmail}?subject=${encodeURIComponent("Support Mijote")}`}
             className="text-foreground underline underline-offset-2 hover:no-underline"
           >
             {contactEmail}
@@ -208,10 +208,10 @@ export default function SupportPage() {
             Oui — l&apos;application est avant tout un site web responsive
             accessible à{" "}
             <a
-              href="https://atable.anthonykocken.fr"
+              href="https://mijote.anthonykocken.fr"
               className="underline underline-offset-2"
             >
-              atable.anthonykocken.fr
+              mijote.anthonykocken.fr
             </a>
             . Vous pouvez l&apos;utiliser depuis n&apos;importe quel
             navigateur, et l&apos;ajouter à l&apos;écran d&apos;accueil de

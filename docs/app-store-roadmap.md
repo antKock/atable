@@ -1,6 +1,6 @@
-# À Table — Roadmap publication App Store iOS
+# Mijote — Roadmap publication App Store iOS
 
-> Document de pilotage pour la mise en ligne d'À Table sur l'Apple App Store.
+> Document de pilotage pour la mise en ligne d'Mijote sur l'Apple App Store.
 > Créé le 2026-05-20. Statut au 2026-05-23 : **Phases 0.5, 1, 2 et 3 (côté
 > code) livrées** · **Phase 0** : compte Apple validé, app App Store Connect
 > restant à créer · prochaines étapes : icône vectorielle, screenshots,
@@ -12,7 +12,7 @@
 
 **On ne repart pas de zéro. On ne fait pas de refonte React Native.**
 
-À Table est un produit Next.js 16 fonctionnel, déployé sur Vercel, avec backend
+Mijote est un produit Next.js 16 fonctionnel, déployé sur Vercel, avec backend
 Supabase. Le passer sur l'App Store est un **problème d'emballage et de
 conformité, pas de réécriture.**
 
@@ -132,7 +132,7 @@ Apple à gérer pour la v1.
 > **Ce qui a été fait — et ce qui diffère du plan initial décrit plus bas :**
 >
 > - **Branche `staging`** créée depuis `main` → déploiement Vercel **Preview**
->   → domaine `staging.atable.anthonykocken.fr` (live, HTTP 200, certificat OK).
+>   → domaine `staging.mijote.anthonykocken.fr` (live, HTTP 200, certificat OK).
 > - **Backend Supabase de staging = le projet `Vibe-antKoc` réutilisé** — et
 >   **non** un nouveau projet `atable-staging`. L'offre gratuite Supabase est
 >   limitée à **2 projets par organisation**, et l'organisation concernée était
@@ -175,7 +175,7 @@ vraies données (cf. matrice plus bas).
 
 | Composant | Prod | Staging |
 |---|---|---|
-| Déploiement Vercel | `atable.anthonykocken.fr` | `staging.atable.anthonykocken.fr` |
+| Déploiement Vercel | `mijote.anthonykocken.fr` | `staging.mijote.anthonykocken.fr` |
 | Projet Supabase (BDD) | projet `atable` dédié | projet `Vibe-antKoc` réutilisé |
 | Upstash Redis | base actuelle | **partagée** (données éphémères) |
 | OpenAI | clé partagée | clé partagée |
@@ -192,7 +192,7 @@ alternative « plus propre » mais **non retenue** (cf. ⚠️ Plan Vercel).
 
 - **`main`** → environnement **Production** → variables scope « Production »
 - **`staging`** (nouvelle branche) → déploiement Vercel **Preview** → variables
-  scope « Preview » → domaine custom `staging.atable.anthonykocken.fr`
+  scope « Preview » → domaine custom `staging.mijote.anthonykocken.fr`
 - Branches de feature → previews éphémères → utilisent aussi les variables
   « Preview » → tapent le backend staging (parfait pour tester)
 
@@ -229,7 +229,7 @@ Après chaque release, `main` et `staging` sont alignées.
 - [x] Variables scope « Preview » dans Vercel : 3 variables Supabase repointées
       sur `Vibe-antKoc` via l'API REST (le CLI échoue en `git_branch_required`
       sur ce scope) ; le reste laissé partagé.
-- [x] Domaine `staging.atable.anthonykocken.fr` assigné à la branche `staging`,
+- [x] Domaine `staging.mijote.anthonykocken.fr` assigné à la branche `staging`,
       protection de déploiement levée, CNAME DNS en place — domaine live.
 - [x] Vérifié : le déploiement staging tape bien le backend `Vibe-antKoc`
       (test par foyer marqueur) et répond sans mur SSO.
@@ -332,7 +332,7 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 - [x] Capacitor installé : `@capacitor/core`, `@capacitor/cli`, `@capacitor/ios`,
       `@capacitor/haptics`, `@capacitor/splash-screen`, `@capacitor/status-bar`.
 - [x] `npx cap add ios` → projet Xcode généré (`ios/`).
-- [x] User-agent custom : `appendUserAgent` = `ATableNative/1.0` (sans token de
+- [x] User-agent custom : `appendUserAgent` = `MijoteNative/1.0` (sans token de
       `BOT_UA_PATTERN` — `WhatsApp`, `Facebot`…, cf. `middleware.ts:20` — sinon
       bypass d'auth).
 - [x] Clés Info.plist : `NSMicrophoneUsageDescription`,
@@ -358,7 +358,7 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 ### Détection web vs natif (un seul codebase)
 
 - Cookie posé au 1er chargement à partir du paramètre `?native=1` de `server.url`,
-  **et/ou** user-agent custom `ATableNative/1.0` (lisible par le middleware).
+  **et/ou** user-agent custom `MijoteNative/1.0` (lisible par le middleware).
 - Le web ignore simplement ce flag → zéro impact.
 
 ---
@@ -380,11 +380,11 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
       [`app-store-listing.md`](./app-store-listing.md). Reste à **coller dans
       ASC**.
 - [x] **Politique de confidentialité** — publiée à
-      `https://atable.anthonykocken.fr/legal/confidentialite` (source :
+      `https://mijote.anthonykocken.fr/legal/confidentialite` (source :
       `src/app/(landing)/legal/confidentialite/page.tsx`, contenu :
       [`politique-confidentialite.md`](./politique-confidentialite.md)).
 - [x] **Page de support** — publiée à
-      `https://atable.anthonykocken.fr/support`
+      `https://mijote.anthonykocken.fr/support`
       (source : `src/app/(landing)/support/page.tsx`).
 - [~] **Privacy nutrition labels** — drafté dans
       [`app-store-privacy-labels.md`](./app-store-privacy-labels.md) ; reste à
@@ -434,7 +434,7 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 - **Suppression de données :** deux CTA « Quitter le foyer » / « Supprimer le
   foyer » ; « Supprimer » = double validation uniquement.
 - **Haptics :** inclus en v1.
-- **User-agent natif :** `ATableNative/1.0`.
+- **User-agent natif :** `MijoteNative/1.0`.
 - **Backend prod :** projet Supabase `atable` **dédié** (offre gratuite), migré
   depuis le fourre-tout partagé `Vibe-antKoc` le 2026-05-20.
 - **Staging :** modèle par branche (« **Chemin A** »), **livré le 2026-05-22**.

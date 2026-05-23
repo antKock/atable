@@ -1,4 +1,4 @@
-# À Table — Guide de remplissage « App Privacy » & Export Compliance
+# Mijote — Guide de remplissage « App Privacy » & Export Compliance
 
 > Guide pour deux questionnaires d'App Store Connect. Ce ne sont pas des
 > documents à héberger : ce sont des réponses à cocher dans l'interface.
@@ -66,7 +66,7 @@ L'app n'utilisant pas de tracking, **aucune fenêtre App Tracking Transparency
 
 ### Champs liés (onglet App Privacy / App Information)
 
-- **Privacy Policy URL** : `https://atable.anthonykocken.fr/[…]` → mettre l'URL
+- **Privacy Policy URL** : `https://mijote.anthonykocken.fr/legal/confidentialite`
   où sera publiée `docs/politique-confidentialite.md`.
 - **Privacy Choices URL** : facultatif → laisser vide.
 
