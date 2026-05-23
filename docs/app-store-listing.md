@@ -55,6 +55,19 @@ Lu d'un trait avec le nom : *« Mijote — Tes recettes, réunies comme par magi
 > d'usages et de moments de vie, pas d'« API » ou de « LLM ». L'IA n'est
 > jamais nommée — elle se devine dans le résultat (« on extrait »,
 > « on structure », « tout se complète tout seul »).
+>
+> ⚠️ **Caractères proscrits par le validateur ASC** (constaté en mai 2026,
+> Apple ne précise pas lesquels — message vague « caractères non valides ») :
+> - **`━`** (Box Drawings Heavy Horizontal, U+2501) — pas de séparateurs
+>   décoratifs. Utiliser une ligne vide + un titre en MAJUSCULES à la place.
+> - **`·`** (Middle Dot, U+00B7) utilisé pour l'écriture inclusive
+>   (`conjoint·e`, `prêt·e`) — reformuler avec « ton ou ta partenaire »,
+>   « quand tu es prêt à partager », etc.
+> - **`…`** (Horizontal Ellipsis, U+2026) — préférer trois points classiques
+>   `...` pour rester safe.
+>
+> Caractères vérifiés sûrs : `« »`, `—` (em dash), apostrophes typographiques
+> `’`, lettres accentuées, `•` (bullet).
 
 ```
 Toutes tes recettes, enfin réunies au même endroit. Celles que tu sauvegardes
@@ -62,7 +75,7 @@ sur Instagram, le carnet jauni de ta grand-mère, le lien d'un blog que tu
 adores, ou ta recette à toi que tu peaufines au fil des essais — Mijote les
 rassemble en quelques secondes, prêtes à cuisiner.
 
-━━━ Quatre façons d'ajouter une recette ━━━
+QUATRE FAÇONS D'AJOUTER UNE RECETTE
 
 • PHOTO — prends en photo le carnet de ta grand-mère ou un screenshot
   Instagram. On extrait le titre, les ingrédients et les étapes pour toi.
@@ -74,47 +87,47 @@ rassemble en quelques secondes, prêtes à cuisiner.
   si tu veux la composer pas à pas. Tu restes en contrôle de A à Z.
 
 Chaque recette se complète toute seule : temps de préparation, coût estimé,
-saisons, étiquettes (végétarien, rapide, comfort food…). Une jolie
+saisons, étiquettes (végétarien, rapide, comfort food...). Une jolie
 illustration est même générée pour reconnaître chaque plat d'un coup d'œil.
 Tu restes maître : modifie, complète, remplace l'image par tes propres
 photos.
 
-━━━ Simple à adopter, à aimer, à partager ━━━
+SIMPLE À ADOPTER, À AIMER, À PARTAGER
 
 • ESSAI EN UN CLIC — explore une bibliothèque démo avant même de créer
   ton foyer. Tu vois ce que ça donne, sans rien fournir.
 • PAS DE COMPTE — quand tu te lances, pas d'e-mail, pas de mot de passe,
   pas de publicité. On te respecte assez pour ne rien te demander
   d'inutile.
-• FOYER PARTAGÉ — quand tu es prêt·e à partager, crée un foyer et passe
-  le code d'invitation à qui tu veux. Vos recettes sont les mêmes sur
-  tous vos téléphones. Ton conjoint·e ajoute la recette du dimanche midi,
+• FOYER PARTAGÉ — quand tu veux partager, crée un foyer et passe le code
+  d'invitation à qui tu veux. Vos recettes sont les mêmes sur tous vos
+  téléphones. Ton ou ta partenaire ajoute la recette du dimanche midi,
   tu la retrouves dans ta cuisine du mardi soir.
 
-━━━ Retrouver, sans chercher ━━━
+RETROUVER, SANS CHERCHER
 
 • Accueil par envies : Rapide, Végétarien, Comfort food, De saison,
-  Apéro, Desserts…
+  Apéro, Desserts...
 • Filtres précis : par ingrédient, durée, coût, régime, type de plat.
 • Mode « De saison » : ne voir que ce qui se cuisine maintenant.
 • Pendant que tu cuisines, l'écran reste allumé tout seul — pas besoin
   de réveiller ton téléphone les mains tachées de farine.
 
-━━━ Ton foyer, tes règles ━━━
+TON FOYER, TES RÈGLES
 
 • Renomme le foyer, gère les appareils connectés, quitte ou supprime
   le foyer en deux tapotements.
 • Suppression définitive et complète à tout moment — c'est ton contenu,
   jamais le nôtre.
 
-━━━ Confidentialité ━━━
+CONFIDENTIALITÉ
 
 • Pas de profilage publicitaire, pas de pixels de suivi, pas d'identifiant
   publicitaire — jamais.
 • Aucune vente de tes données à des tiers.
 • Politique de confidentialité : mijote.anthonykocken.fr/legal/confidentialite
 
-━━━ Pour qui ? ━━━
+POUR QUI ?
 
 Pour celles et ceux qui aiment cuisiner et qui en ont assez de chercher
 « cette recette de la dernière fois » dans douze endroits différents. Pour
