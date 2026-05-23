@@ -57,19 +57,21 @@ Lu d'un trait avec le nom : *« Mijote — Tes recettes, réunies comme par magi
 > « on structure », « tout se complète tout seul »).
 
 ```
-Toutes les recettes de ta famille, enfin réunies au même endroit. Celles de
-ta grand-mère sur un cahier jauni, celles que tu sauvegardes sur Instagram,
-celles que ton oncle dicte par téléphone, celles d'un blog que tu adores —
-Mijote les rassemble en quelques secondes, prêtes à cuisiner.
+Toutes tes recettes, enfin réunies au même endroit. Celles que tu sauvegardes
+sur Instagram, le carnet jauni de ta grand-mère, le lien d'un blog que tu
+adores, ou ta recette à toi que tu peaufines au fil des essais — Mijote les
+rassemble en quelques secondes, prêtes à cuisiner.
 
-━━━ Trois façons d'ajouter une recette en 30 secondes ━━━
+━━━ Quatre façons d'ajouter une recette ━━━
 
 • PHOTO — prends en photo le carnet de ta grand-mère ou un screenshot
   Instagram. On extrait le titre, les ingrédients et les étapes pour toi.
-• VOIX — dicte la recette de ton oncle pendant qu'il te la raconte au
-  téléphone. On transcrit et on met en forme.
+• VOIX — dicte la recette pendant qu'on te la raconte au téléphone. On
+  transcrit et on met en forme.
 • LIEN — colle l'adresse d'un blog culinaire. On récupère le contenu et
   on en fait une vraie recette, lisible, sans le bruit autour.
+• À LA MAIN — tape directement ta recette si tu la connais par cœur ou
+  si tu veux la composer pas à pas. Tu restes en contrôle de A à Z.
 
 Chaque recette se complète toute seule : temps de préparation, coût estimé,
 saisons, étiquettes (végétarien, rapide, comfort food…). Une jolie
@@ -77,16 +79,17 @@ illustration est même générée pour reconnaître chaque plat d'un coup d'œil
 Tu restes maître : modifie, complète, remplace l'image par tes propres
 photos.
 
-━━━ Cuisiner ensemble, comme à la maison ━━━
+━━━ Simple à adopter, à aimer, à partager ━━━
 
-• FOYER PARTAGÉ — crée un foyer, partage le code d'invitation à ta
-  famille, et vos recettes sont les mêmes sur tous vos téléphones. Ton
-  conjoint·e ajoute la recette du dimanche midi, tu la retrouves dans ta
-  cuisine du mardi soir.
-• PAS DE COMPTE — pas d'e-mail, pas de mot de passe, pas de publicité.
-  On te respecte assez pour ne rien te demander d'inutile.
 • ESSAI EN UN CLIC — explore une bibliothèque démo avant même de créer
-  ton foyer.
+  ton foyer. Tu vois ce que ça donne, sans rien fournir.
+• PAS DE COMPTE — quand tu te lances, pas d'e-mail, pas de mot de passe,
+  pas de publicité. On te respecte assez pour ne rien te demander
+  d'inutile.
+• FOYER PARTAGÉ — quand tu es prêt·e à partager, crée un foyer et passe
+  le code d'invitation à qui tu veux. Vos recettes sont les mêmes sur
+  tous vos téléphones. Ton conjoint·e ajoute la recette du dimanche midi,
+  tu la retrouves dans ta cuisine du mardi soir.
 
 ━━━ Retrouver, sans chercher ━━━
 
@@ -94,9 +97,8 @@ photos.
   Apéro, Desserts…
 • Filtres précis : par ingrédient, durée, coût, régime, type de plat.
 • Mode « De saison » : ne voir que ce qui se cuisine maintenant.
-• Mode lecture pensé pour la cuisine : grandes polices, étapes pas-à-pas,
-  l'écran reste allumé pendant que tu travailles les mains tachées de
-  farine.
+• Pendant que tu cuisines, l'écran reste allumé tout seul — pas besoin
+  de réveiller ton téléphone les mains tachées de farine.
 
 ━━━ Ton foyer, tes règles ━━━
 
@@ -114,17 +116,19 @@ photos.
 
 ━━━ Pour qui ? ━━━
 
-Pour les foyers qui aiment cuisiner ensemble et qui en ont assez de
-chercher « cette recette de la dernière fois » dans douze endroits
-différents. Pour les familles qui veulent garder vivantes les vraies
-recettes — celles qu'on mange, pas celles d'un site sponsorisé. Pour celles
-et ceux qui en ont marre des apps bourrées de pubs et de paywalls.
+Pour celles et ceux qui aiment cuisiner et qui en ont assez de chercher
+« cette recette de la dernière fois » dans douze endroits différents. Pour
+les foyers qui veulent garder vivantes les vraies recettes — celles qu'on
+mange, pas celles d'un site sponsorisé. Pour les gens marre des apps
+bourrées de pubs et de paywalls.
 
 Mijote est gratuit, sans publicité, sans achat intégré.
 ```
 
-≈ 3 100 caractères. Tutoiement appliqué partout, scénarios de vie plutôt
-que listes de features techniques.
+≈ 3 200 caractères. Tutoiement appliqué partout, scénarios de vie plutôt
+que listes de features techniques. La progression d'adoption suit
+**essai → pas de compte → foyer** — l'utilisateur arrive seul, le partage
+vient quand il est prêt.
 
 ---
 
@@ -167,10 +171,10 @@ Règles :
 
 > Champ modifiable **sans repasser en review Apple** — utile pour les promos saisonnières.
 
-**🎯 Valeur de départ** (142 car.) :
+**🎯 Valeur de départ** (113 car.) :
 
 ```
-Toutes les recettes de ta famille, rassemblées au même endroit sans ressaisir. Une photo, une dictée ou un lien, et c'est dans ta cuisine.
+Toutes tes recettes, rassemblées en quelques secondes : photo, voix, lien ou saisie. Sans compte, sans pub, sans casse-tête.
 ```
 
 ### Versions saisonnières à garder sous le coude
@@ -181,7 +185,7 @@ Toutes les recettes de ta famille, rassemblées au même endroit sans ressaisir.
   ```
 - **Rentrée** :
   ```
-  Marre de chercher cette recette du dimanche midi ? Mijote la garde, l'enrichit et la partage à toute la famille.
+  Marre de chercher cette recette du dimanche midi ? Mijote la garde, l'enrichit, la retrouve quand tu en as besoin.
   ```
 
 ---
@@ -189,11 +193,11 @@ Toutes les recettes de ta famille, rassemblées au même endroit sans ressaisir.
 ## 8. What's New (notes de version v1.0)
 
 ```
-Bienvenue dans Mijote ! Le moyen le plus simple de rassembler toutes les
-recettes de ta famille au même endroit : celles que tu as sur ton
-téléphone, celles d'Instagram, celles qu'on te dicte par téléphone, celles
-d'un blog que tu adores. Une photo, une dictée ou un lien, et c'est prêt à
-cuisiner.
+Bienvenue dans Mijote ! Toutes tes recettes enfin au même endroit — celles
+que tu sauvegardes sur Instagram, le carnet jauni de tes parents, un blog
+que tu adores, ou celle que tu inventes au fil des essais. Une photo, une
+dictée, un lien ou ta saisie : c'est prêt à cuisiner. Et quand tu veux,
+tu invites ta famille à y goûter aussi.
 
 Tes retours nous aident à progresser : kocken.anthony@gmail.com
 ```
