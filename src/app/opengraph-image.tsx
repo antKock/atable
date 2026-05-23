@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-export const alt = 'atable — Votre bibliothèque de recettes personnelle'
+export const alt = 'Mijote — Tes recettes, réunies comme par magie'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -15,7 +15,7 @@ export default function OpenGraphImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#F8FAF7',
+          background: 'linear-gradient(180deg, #F8FAF7 0%, #EDE8E0 100%)',
         }}
       >
         <span
@@ -25,32 +25,23 @@ export default function OpenGraphImage() {
             fontWeight: 700,
             lineHeight: 1,
             letterSpacing: '-0.02em',
+            color: '#1A1F1A',
           }}
         >
-          <span style={{ color: '#1A1F1A' }}>a</span>
-          <span style={{ color: '#6E7A38' }}>table</span>
+          Mijote
         </span>
         <span
           style={{
             marginTop: 40,
-            fontFamily: 'sans-serif',
-            fontSize: 96,
-            color: '#6B6B6B',
+            fontFamily: 'Georgia, serif',
+            fontSize: 56,
+            color: '#6E7A38',
             textAlign: 'center',
-            lineHeight: 1.4,
+            lineHeight: 1.3,
+            fontStyle: 'italic',
           }}
         >
-          Votre bibliothèque
-        </span>
-        <span
-          style={{
-            fontFamily: 'sans-serif',
-            fontSize: 96,
-            color: '#6B6B6B',
-            textAlign: 'center',
-          }}
-        >
-          de recettes personnelle
+          Tes recettes, réunies comme par magie
         </span>
       </div>
     ),

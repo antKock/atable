@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { t } from '@/lib/i18n/fr'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
@@ -38,36 +39,35 @@ export default function LandingScreen() {
 
   return (
     <div className="flex min-h-screen w-full flex-col">
-      {/* Illustration area */}
-      <div className="flex flex-1 items-center justify-center px-8 py-12">
-        <div style={{ width: 200, height: 200, position: 'relative' }}>
-          {/* Spoon */}
-          <div style={{ position: 'absolute', top: 40, left: 0, width: 8, height: 80, background: '#B8A88C', borderRadius: 4, transform: 'rotate(-15deg)' }}>
-            <div style={{ position: 'absolute', top: -20, left: -6, width: 20, height: 28, background: '#B8A88C', borderRadius: '50%' }} />
-          </div>
-          {/* Cutting board */}
-          <div style={{ position: 'absolute', bottom: 0, left: 20, width: 160, height: 120, background: '#D4C4A8', borderRadius: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }} />
-          {/* Leaf 1 */}
-          <div style={{ position: 'absolute', top: 20, right: 10, width: 40, height: 60, background: '#6E7A38', borderRadius: '50% 0 50% 50%', transform: 'rotate(-30deg)', opacity: 0.7 }} />
-          {/* Leaf 2 */}
-          <div style={{ position: 'absolute', top: 10, right: 50, width: 30, height: 45, background: '#8B9A4A', borderRadius: '0 50% 50% 50%', transform: 'rotate(20deg)', opacity: 0.5 }} />
-          {/* Tomato */}
-          <div style={{ position: 'absolute', bottom: 30, right: 0, width: 36, height: 36, background: '#C4533A', borderRadius: '50%', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-            <div style={{ position: 'absolute', top: -4, left: 14, width: 8, height: 8, background: '#5A8030', borderRadius: 2 }} />
-          </div>
-        </div>
+      {/* Brand mark */}
+      <div className="flex flex-1 flex-col items-center justify-center px-8 py-10">
+        <Image
+          src="/icons/icon-512.png"
+          alt="Mijote"
+          width={160}
+          height={160}
+          priority
+          className="h-40 w-40 sm:h-44 sm:w-44"
+        />
+        <h1
+          className="mt-6 text-5xl font-bold tracking-tight text-foreground"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          {t.landing.title}
+        </h1>
+        <p className="mt-3 text-center text-lg text-foreground">
+          {t.landing.tagline}
+        </p>
+        <p
+          className="mt-1 text-center text-base italic text-accent"
+          style={{ fontFamily: 'Georgia, serif' }}
+        >
+          {t.landing.subtitle}
+        </p>
       </div>
 
-      {/* Brand + CTAs */}
+      {/* CTAs */}
       <div className="flex w-full flex-col items-center gap-6 px-6 pb-12">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold tracking-tight">
-            <span className="text-foreground">a</span>
-            <span className="text-accent">table</span>
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">{t.landing.subtitle}</p>
-        </div>
-
         <div className="flex w-full max-w-sm flex-col gap-3">
           {demoError && (
             <p className="text-center text-sm text-destructive">{demoError}</p>

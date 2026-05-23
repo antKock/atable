@@ -239,8 +239,9 @@ export const t = {
 
   // Landing screen
   landing: {
-    title: "atable",
-    subtitle: "Votre bibliothèque de recettes personnelle",
+    title: "Mijote",
+    tagline: "Tes recettes",
+    subtitle: "Réunies comme par magie",
     tryApp: "Essayer l'app",
     createHousehold: "Créer un foyer",
     joinHousehold: "Rejoindre un foyer",
