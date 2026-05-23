@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Fraunces } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
 import "./globals.css";
@@ -9,8 +9,14 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-fraunces",
+  axes: ["opsz"],
+});
+
 export const viewport: Viewport = {
-  themeColor: "#F8FAF7",
+  themeColor: "#F5F1E8", /* DS_UPDATE 2026-05-23: was #F8FAF7 — keep in sync with --background */
   // Required for env(safe-area-inset-*) to resolve to non-zero values on
   // notched iPhones — without it the WebView ignores all safe-area padding.
   viewportFit: "cover",
@@ -48,7 +54,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${fraunces.variable} font-sans antialiased`}>
         <SWRProvider>{children}</SWRProvider>
       </body>
     </html>

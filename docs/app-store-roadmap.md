@@ -409,6 +409,68 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
 
 ---
 
+## 8 bis. Phase 3 bis — Onboarding 06-A & DS_UPDATE (2026-05-23)
+
+> Refonte de l'écran de bienvenue (premier lancement) suivant le bundle
+> de design livré dans `temp/` (variant 06-A) : sage radial gradient
+> full-bleed, cocotte 320 pt, wordmark Fraunces 92 pt, 3 CTAs (cream
+> pill, ghost outline 55 %, lien texte). En parallèle, le design system
+> bouge vers la palette brand (cream warm `#F5F1E8` + famille sage).
+> Toutes les anciennes valeurs sont laissées en commentaire
+> `/* DS_UPDATE: was … */` dans `globals.css` pour rollback
+> ligne-à-ligne si besoin.
+
+### Livré
+
+- [x] **DS_UPDATE appliqué à `globals.css`** — `--background`
+      `#F8FAF7 → #F5F1E8` (cream warm, brand-aligned avec la cocotte),
+      `--foreground` + ses miroirs (`--card/popover/secondary-foreground`)
+      `#1A1F1A → #1A1A18` (Δ ~4, imperceptible), nouveaux tokens
+      `--sage-100/500/800`, utility `.bg-sage-radial`.
+- [x] **Écran d'onboarding 06-A** —
+      `src/components/auth/LandingScreen.tsx` réécrit en `fixed inset-0`
+      (déborde derrière la status bar + home indicator iOS), cocotte
+      SVG copié dans `public/cocotte-illustration.svg`, Fraunces
+      (variable font + axe `opsz`) chargé via `next/font/google` dans
+      `src/app/layout.tsx`. Tagline et sous-titre retirés (volontaire —
+      écran intentionnellement minimal, cf. brief). Pas de header de
+      retour (true first screen).
+- [x] **`viewport.themeColor`** du root layout réaligné sur le nouveau
+      cream `#F5F1E8`.
+
+### À faire (suivis)
+
+- [ ] **Vérification visuelle cross-écran après DS shift.** Tous les
+      écrans utilisant `var(--background)` ont chauffé (cool-white →
+      cream). Inspecter `/home`, détail recette, écran d'ajout, `/join`,
+      `/legal/*`, `/support`. Particulièrement : chips/dividers
+      `--muted` / `--secondary` (`#EEF2E4`) sur le nouveau cream — la
+      différence de saturation est faible, vérifier qu'ils restent
+      visibles.
+- [ ] **Propagation du cream aux autres surfaces brand.** Pour
+      cohérence visuelle de bout en bout (splash iOS → onboarding →
+      home), aligner sur `#F5F1E8` :
+      - `public/manifest.json` (`theme_color` + `background_color`) —
+        splash PWA standalone, barre titre.
+      - `capacitor.config.ts` (`SplashScreen.backgroundColor`) — splash
+        iOS Capacitor. Sans ça : démarrage cool-white → coupure
+        visuelle nette à l'arrivée sur l'onboarding sage.
+      - `src/app/opengraph-image.tsx` (gradient + couleur texte) —
+        image OG partagée sur les réseaux.
+      - `public/offline.html` (gradient) — page de repli WebView (déjà
+        listée Phase 4 « Tester le fallback offline »).
+- [ ] **Status bar light sur iOS pour l'onboarding.** Le brief spécifie
+      *icônes cream sur sage*. Aujourd'hui `appleWebApp.statusBarStyle:
+      "default"` = icônes sombres, peu lisibles sur sage. À régler via
+      `@capacitor/status-bar` (`StatusBar.setStyle({ style: Style.Light })`)
+      à l'arrivée sur `/`, à inverser sur les autres écrans. À valider
+      en même temps que la Phase 4 (test device).
+- [ ] **Cleanup `temp/`** — Bundle de design consommé. À supprimer ou
+      archiver dans `docs/design-bundles/onboarding-06a/` selon
+      l'habitude du repo.
+
+---
+
 ## 9. Phase 4 — Test & soumission
 
 > **➡️ PROCHAINE ÉTAPE.** Tout ce qui ne nécessitait pas un Mac/Xcode est
