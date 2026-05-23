@@ -64,6 +64,12 @@ describe("middleware — public routes", () => {
     expect(res.headers.get("location")).toBeNull();
   });
 
+  it("allows /support with no session (App Store Connect support URL)", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const res = await middleware(makeRequest("/support"));
+    expect(res.headers.get("location")).toBeNull();
+  });
+
   it("redirects an authenticated user away from the landing page", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     const res = await middleware(makeRequest("/", { cookie: "valid-token" }));
