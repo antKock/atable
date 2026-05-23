@@ -343,7 +343,7 @@ export default function PrivacyPolicyPage() {
               <Td>Hébergement de l&apos;application</Td>
               <Td>Données techniques de requête, journaux</Td>
               <Td>
-                États-Unis (région <code>iad1</code>, Washington&nbsp;D.C.)
+                Union européenne (Paris, <code>cdg1</code>)
               </Td>
             </tr>
             <tr>
@@ -400,13 +400,15 @@ export default function PrivacyPolicyPage() {
           7. Transferts de données hors Union européenne
         </H2>
         <P>
-          Certains sous-traitants traitent des données{" "}
-          <strong>en dehors de l&apos;Union européenne</strong> :
+          <strong>Vercel</strong> et <strong>Supabase</strong>, qui hébergent
+          l&apos;essentiel de vos données, opèrent{" "}
+          <strong>au sein de l&apos;Union européenne</strong>. Deux
+          sous-traitants traitent néanmoins des données en dehors de
+          l&apos;UE :
         </P>
         <UL>
           <li>
-            <strong>Vercel</strong> (hébergement de l&apos;application) et{" "}
-            <strong>OpenAI</strong> (imports IA) opèrent aux{" "}
+            <strong>OpenAI</strong> (imports IA) opère aux{" "}
             <strong>États-Unis</strong> ;
           </li>
           <li>
@@ -417,10 +419,9 @@ export default function PrivacyPolicyPage() {
         <P>
           Ces transferts sont encadrés par des garanties appropriées au sens
           du RGPD : clauses contractuelles types de la Commission européenne,
-          décision d&apos;adéquation Royaume-Uni du 28 juin 2021, et/ou
-          adhésion au cadre de protection des données UE–États-Unis (
-          <em>EU–US Data Privacy Framework</em>), selon le prestataire
-          concerné.
+          décision d&apos;adéquation Royaume-Uni du 28 juin 2021, et adhésion
+          au cadre de protection des données UE–États-Unis (
+          <em>EU–US Data Privacy Framework</em>) pour OpenAI.
         </P>
 
         <H2 id="conservation">8. Durées de conservation</H2>

@@ -125,7 +125,7 @@ suivants, qui agissent en qualité de **sous-traitants** pour notre compte :
 
 | Prestataire | Rôle | Données concernées | Localisation |
 |---|---|---|---|
-| **Vercel** | Hébergement de l'application | Données techniques de requête, journaux | États-Unis (région `iad1`, Washington D.C.) |
+| **Vercel** | Hébergement de l'application | Données techniques de requête, journaux | Union européenne (Paris, `cdg1`) |
 | **Supabase** | Base de données et stockage des photos | Foyers, recettes, sessions, photos | Union européenne (Irlande, `eu-west-1`) |
 | **Upstash** | Limitation de débit (sécurité) | Adresse IP, identifiants de session | Royaume-Uni (Londres, `eu-west-2`) |
 | **OpenAI** | Transcription audio, lecture d'images, structuration de texte | Contenu soumis aux imports (section 5) | États-Unis |
@@ -140,18 +140,18 @@ API.
 
 ## 7. Transferts de données hors Union européenne
 
-Certains sous-traitants traitent des données **en dehors de l'Union
-européenne** :
+Vercel et Supabase, qui hébergent l'essentiel de vos données, opèrent
+**au sein de l'Union européenne**. Deux sous-traitants traitent néanmoins
+des données en dehors de l'UE :
 
-- **Vercel** (hébergement de l'application) et **OpenAI** (imports IA) opèrent
-  aux **États-Unis** ;
+- **OpenAI** (imports IA) opère aux **États-Unis** ;
 - **Upstash** (limitation de débit) opère au **Royaume-Uni**.
 
 Ces transferts sont encadrés par des garanties appropriées au sens du RGPD :
 clauses contractuelles types de la Commission européenne, décision
 d'adéquation Royaume-Uni du 28 juin 2021, et/ou adhésion au cadre de
-protection des données UE–États-Unis (*EU–US Data Privacy Framework*), selon
-le prestataire concerné.
+protection des données UE–États-Unis (*EU–US Data Privacy Framework*) pour
+OpenAI.
 
 ---
 
