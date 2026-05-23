@@ -16,9 +16,8 @@ const config: CapacitorConfig = {
   appId: "fr.anthonykocken.mijote",
   appName: "Mijote",
   // Required by Capacitor even when loading a remote server.url; holds the
-  // bundled fallback assets (incl. public/offline.html, shipped in the iOS
-  // app bundle by `cap sync`). Wired as the actual error fallback via
-  // ios/App/App/MainViewController.swift (WKNavigationDelegate override).
+  // bundled fallback assets (incl. public/offline.html, served by Capacitor
+  // via server.errorPath below when the remote URL is unreachable).
   webDir: "public",
   server: {
     // First-party origin, loaded directly in the WebView. Must be a clean
@@ -31,11 +30,10 @@ const config: CapacitorConfig = {
     allowNavigation: ["mijote.anthonykocken.fr", "staging.mijote.anthonykocken.fr"],
     cleartext: false,
     // Path (relative to webDir = "public") to the local HTML page served by
-    // Capacitor when the remote server.url is unreachable at launch. This
-    // replaces the bespoke MainViewController fallback we tried — Capacitor
-    // handles the WKWebView state machine internally, which we couldn't
-    // reliably do from a custom WKNavigationDelegate.
-    // See discussion #7978 and issue #8302 in ionic-team/capacitor.
+    // Capacitor when the remote server.url is unreachable at launch.
+    // This is Capacitor's supported escape hatch for offline-at-launch when
+    // using remote loading. See discussion #7978 and issue #8302 in
+    // ionic-team/capacitor.
     errorPath: "offline.html",
   },
   ios: {
