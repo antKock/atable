@@ -45,6 +45,9 @@ export default function LandingScreen() {
         className="flex flex-1 flex-col items-center justify-center px-6"
         style={{
           paddingTop: 'calc(env(safe-area-inset-top) + 96px)',
+          // Compense les safe-areas iOS pour garder le même gap titre/boutons qu'au web.
+          paddingBottom:
+            'calc(env(safe-area-inset-top) + env(safe-area-inset-bottom))',
         }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- local SVG with internal Gaussian blur filter; next/image would force dangerouslyAllowSVG globally */}
