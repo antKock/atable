@@ -16,7 +16,9 @@ const config: CapacitorConfig = {
   appId: "fr.anthonykocken.atable",
   appName: "À Table",
   // Required by Capacitor even when loading a remote server.url; holds the
-  // bundled fallback assets. TODO (Phase 3): point at an offline fallback page.
+  // bundled fallback assets (incl. public/offline.html, shipped in the iOS
+  // app bundle by `cap sync`). Wiring it as the actual error fallback needs a
+  // small native WKNavigationDelegate override in iOS — see Phase 4.
   webDir: "public",
   server: {
     // First-party origin, loaded directly in the WebView. Must be a clean
