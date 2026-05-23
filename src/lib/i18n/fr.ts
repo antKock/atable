@@ -1,6 +1,6 @@
 export const t = {
   // App
-  appName: "atable",
+  appName: "Mijote",
 
   // Navigation
   nav: {

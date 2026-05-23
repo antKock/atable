@@ -18,7 +18,7 @@ describe("isNativeApp", () => {
   });
 
   it("is true when the user-agent carries the native marker", () => {
-    vi.stubGlobal("navigator", { userAgent: "Mozilla/5.0 ATableNative/1.0" });
+    vi.stubGlobal("navigator", { userAgent: "Mozilla/5.0 MijoteNative/1.0" });
     expect(isNativeApp()).toBe(true);
   });
 

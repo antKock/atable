@@ -17,21 +17,21 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://atable.anthonykocken.fr"),
+  metadataBase: new URL("https://mijote.anthonykocken.fr"),
   title: t.appName,
-  description: "Votre bibliothèque de recettes personnelle",
+  description: "Tes recettes, réunies comme par magie",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "À Table",
+    title: "Mijote",
   },
   icons: {
     apple: "/icons/icon-192.png",
   },
   openGraph: {
     title: t.appName,
-    description: "Votre bibliothèque de recettes personnelle",
+    description: "Tes recettes, réunies comme par magie",
     siteName: t.appName,
     locale: "fr_FR",
     type: "website",

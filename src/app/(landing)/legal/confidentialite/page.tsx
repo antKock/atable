@@ -5,15 +5,15 @@ import type { Metadata } from "next";
 // Toute mise à jour du markdown doit être répercutée ici.
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité — À Table",
+  title: "Politique de confidentialité — Mijote",
   description:
-    "Politique de confidentialité de l'application À Table. Aucune publicité, aucun pistage, données minimales.",
+    "Politique de confidentialité de l'application Mijote. Aucune publicité, aucun pistage, données minimales.",
   alternates: { canonical: "/legal/confidentialite" },
   robots: { index: true, follow: true },
   openGraph: {
-    title: "Politique de confidentialité — À Table",
+    title: "Politique de confidentialité — Mijote",
     description:
-      "Politique de confidentialité de l'application À Table. Aucune publicité, aucun pistage, données minimales.",
+      "Politique de confidentialité de l'application Mijote. Aucune publicité, aucun pistage, données minimales.",
     type: "article",
   },
 };
@@ -98,7 +98,7 @@ export default function PrivacyPolicyPage() {
 
         <H2 id="qui-sommes-nous">1. Qui sommes-nous</H2>
         <P>
-          À Table (« l&apos;Application », « le Service ») est une application
+          Mijote (« l&apos;Application », « le Service ») est une application
           de gestion de recettes de cuisine et de planification de menus,
           accessible sur le Web et sur l&apos;App Store iOS.
         </P>
@@ -120,17 +120,17 @@ export default function PrivacyPolicyPage() {
           <li>
             Application accessible à l&apos;adresse :{" "}
             <a
-              href="https://atable.anthonykocken.fr"
+              href="https://mijote.anthonykocken.fr"
               className="text-foreground underline underline-offset-2 hover:no-underline"
             >
-              https://atable.anthonykocken.fr
+              https://mijote.anthonykocken.fr
             </a>
           </li>
         </UL>
 
         <H2 id="approche">2. Notre approche : le strict minimum de données</H2>
         <P>
-          À Table est conçue pour fonctionner <strong>sans compte
+          Mijote est conçue pour fonctionner <strong>sans compte
           traditionnel</strong>. Vous n&apos;avez besoin de fournir{" "}
           <strong>
             ni adresse e-mail, ni nom, ni numéro de téléphone, ni mot de passe
@@ -287,7 +287,7 @@ export default function PrivacyPolicyPage() {
             audio est transmis à OpenAI pour transcription, puis le texte
             obtenu est structuré.{" "}
             <strong>L&apos;enregistrement audio n&apos;est jamais conservé</strong>{" "}
-            par À Table : seul le texte de la recette résultante est enregistré.
+            par Mijote : seul le texte de la recette résultante est enregistré.
           </li>
           <li>
             <strong>Import par photo / capture d&apos;écran</strong> :
@@ -296,7 +296,7 @@ export default function PrivacyPolicyPage() {
             <strong>
               Les images d&apos;import ne sont pas conservées
             </strong>{" "}
-            par À Table : seule la recette structurée résultante est
+            par Mijote : seule la recette structurée résultante est
             enregistrée. (Les photos que vous{" "}
             <strong>ajoutez délibérément</strong> à une recette, à
             l&apos;inverse, sont conservées — voir{" "}

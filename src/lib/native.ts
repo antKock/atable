@@ -5,7 +5,7 @@ import { Capacitor } from "@capacitor/core";
  * regular web browser.
  *
  * Checks Capacitor's own bridge first, then falls back to the custom
- * user-agent (`ATableNative/…`) and the `?native=1` URL flag that the native
+ * user-agent (`MijoteNative/…`) and the `?native=1` URL flag that the native
  * shell appends to `server.url` — see capacitor.config.ts.
  */
 export function isNativeApp(): boolean {
@@ -17,7 +17,7 @@ export function isNativeApp(): boolean {
 
   if (
     typeof navigator !== "undefined" &&
-    navigator.userAgent.includes("ATableNative")
+    navigator.userAgent.includes("MijoteNative")
   ) {
     return true;
   }
