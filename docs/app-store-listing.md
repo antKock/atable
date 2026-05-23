@@ -193,7 +193,7 @@ Tes retours sont les bienvenus : kocken.anthony@gmail.com
 
 | Champ | Valeur |
 |---|---|
-| **Bundle ID** | `fr.anthonykocken.atable` *(inchangé — identifiant technique créé avant le rebrand ; le changer obligerait à recréer App ID, certificats et profils de provisioning)* |
+| **Bundle ID** | `fr.anthonykocken.mijote` *(aligné avec le rebrand le 2026-05-23 — possible parce qu'aucun App ID n'avait encore été créé chez Apple. Pour les rebrands ultérieurs il faudra le garder car immuable)* |
 | **Langue principale** | Français (France) |
 | **Tranche d'âge** | 4+ (aucun contenu sensible) |
 | **In-App Purchases** | Aucun |

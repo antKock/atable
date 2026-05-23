@@ -117,7 +117,7 @@ Apple à gérer pour la v1.
 - [x] S'inscrire à l'**Apple Developer Program** — 99 $/an, formule
       *Individual*. ✅ Payé le 2026-05-22, validé le 2026-05-23.
 - [ ] Créer l'app dans **App Store Connect** : nom, bundle ID
-      (`fr.anthonykocken.atable`), langue principale. ⚠️ Bien basculer sur
+      (`fr.anthonykocken.mijote`), langue principale. ⚠️ Bien basculer sur
       **sa propre équipe** dans le sélecteur (pas « Naiane » / « Riverman
       studio », qui ne sont pas à nous).
 
