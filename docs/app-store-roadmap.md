@@ -391,8 +391,9 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
       `https://mijote.anthonykocken.fr/support`
       (source : `src/app/(landing)/support/page.tsx`).
 - [x] **Page de repli hors-ligne** — `public/offline.html` bundlé via webDir +
-      `ios/App/App/MainViewController.swift` qui la charge sur erreur réseau
-      (à valider en Phase 4 sur Xcode).
+      `server.errorPath: "offline.html"` dans `capacitor.config.ts` (Capacitor
+      la charge nativement quand `server.url` est injoignable au démarrage).
+      Validé en simulateur le 2026-05-23.
 - [x] **Texte de la fiche App Store saisi dans ASC** (nom, sous-titre,
       description nettoyée des caractères refusés, mots-clés, catégorie,
       URLs, promo text). Source : [`app-store-listing.md`](./app-store-listing.md).
@@ -482,7 +483,7 @@ Pré-requis dans le repo (déjà en place, à vérifier la première fois) :
   fr.anthonykocken.mijote` ✅
 - `ios/App/App/Assets.xcassets/AppIcon.appiconset/AppIcon-512@2x.png` :
   icône Mijote 1024×1024 sans alpha ✅
-- `ios/App/App/MainViewController.swift` : fallback offline.html ✅
+- `capacitor.config.ts` : `server.errorPath = "offline.html"` (fallback offline natif) ✅
 - `ios/App/App/Info.plist` : 3 usage descriptions (micro/caméra/photos) ✅
 
 ### Étapes

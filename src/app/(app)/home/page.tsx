@@ -22,9 +22,18 @@ export default async function HomePage({ searchParams }: Props) {
   return (
     <div className="pb-6 pt-6">
       <header className="mb-4 flex items-center justify-between px-4">
-        <h1 className="text-[22px] font-extrabold tracking-tight">
-          <span className="text-foreground">a</span>
-          <span className="text-accent">table</span>
+        <h1
+          className="text-foreground"
+          style={{
+            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
+            fontVariationSettings: '"opsz" 144',
+            fontWeight: 700,
+            fontSize: "22px",
+            lineHeight: 1,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Mijote
         </h1>
         <Link
           href="/household"
