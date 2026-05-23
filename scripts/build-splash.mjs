@@ -29,9 +29,10 @@ const TARGET_FILES = [
 
 const SPLASH_SIZE = 2732;
 // Cocotte width relative to the canvas. The icon SVG has empty top/bottom
-// margins inside its 1024 viewBox so the visible cocotte ends up ~28% of the
-// final canvas (≈ Spotify / Notion proportions).
-const LOGO_SIZE = 1024;
+// margins inside its 1024 viewBox so the visible cocotte ends up ~75% of
+// LOGO_SIZE. At 700, the cocotte reads as a discreet centred logo
+// (~19% of the canvas, ≈ Instagram / minimal-splash proportions).
+const LOGO_SIZE = 700;
 // `#F5F1E8` — the app cream background (cf. globals.css `--background`).
 const CREAM = { r: 0xf5, g: 0xf1, b: 0xe8, alpha: 1 };
 
