@@ -50,18 +50,18 @@
 :root {
   --radius: 0.875rem; /* 14px — warm, not sharp */
 
-  /* atable palette — Warm White & Olive */
-  --background: #F8FAF7;
-  --foreground: #1A1F1A;
+  /* Mijote palette — Warm Cream & Olive (DS_UPDATE 2026-05-23, see globals.css.bak / git history to rollback) */
+  --background: #F5F1E8; /* DS_UPDATE: was #F8FAF7 (cool warm-white) → cream warm, brand-aligned with cocotte */
+  --foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — Δ~4 on green channel, imperceptible */
   --surface: #FFFFFF;
   --card: #FFFFFF;
-  --card-foreground: #1A1F1A;
+  --card-foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
   --popover: #FFFFFF;
-  --popover-foreground: #1A1F1A;
+  --popover-foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
   --primary: #6E7A38;
   --primary-foreground: #FFFFFF;
   --secondary: #EEF2E4;
-  --secondary-foreground: #1A1F1A;
+  --secondary-foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
   --muted: #EEF2E4;
   --muted-foreground: #6B6E68;
   --accent: #6E7A38;
@@ -70,6 +70,11 @@
   --border: #E5DED6;
   --input: #E5DED6;
   --ring: #6E7A38;
+
+  /* Mijote brand — sage hero family (DS_UPDATE 2026-05-23, new tokens, no rollback needed) */
+  --sage-100: #B6C4A8; /* gradient top (lightest) */
+  --sage-500: #9AAD8C; /* gradient body */
+  --sage-800: #6B7F5C; /* gradient outer (darkest) */
 
   /* v3 — Shimmer */
   --shimmer-base: #E5DED6;
@@ -140,4 +145,12 @@ body {
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
+}
+
+/* Mijote brand — sage hero gradient (use on onboarding / brand-hero surfaces) */
+.bg-sage-radial {
+  background: radial-gradient(80% 80% at 50% 38%,
+    var(--sage-100) 0%,
+    var(--sage-500) 55%,
+    var(--sage-800) 100%);
 }

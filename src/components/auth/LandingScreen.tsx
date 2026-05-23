@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
 import { t } from '@/lib/i18n/fr'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
@@ -37,70 +36,85 @@ export default function LandingScreen() {
     return <CodeEntryForm onCancel={() => setView('menu')} />
   }
 
+  // Welcome / first-launch (Mijote onboarding 06-A). Sage hero is full-bleed
+  // (extends behind status bar + home indicator), so we render fixed inset-0
+  // and ignore the parent (landing)/layout safe-area padding.
   return (
-    <div className="flex min-h-screen w-full flex-col">
-      {/* Brand mark */}
-      <div className="flex flex-1 flex-col items-center justify-center px-8 py-10">
-        <Image
-          src="/icons/icon-512.png"
-          alt="Mijote"
-          width={160}
-          height={160}
-          priority
-          className="h-40 w-40 sm:h-44 sm:w-44"
+    <div className="bg-sage-radial fixed inset-0 flex flex-col text-background">
+      <div
+        className="flex flex-1 flex-col items-center justify-center px-6"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top) + 96px)',
+        }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element -- local SVG with internal Gaussian blur filter; next/image would force dangerouslyAllowSVG globally */}
+        <img
+          src="/cocotte-illustration.svg"
+          alt=""
+          aria-hidden="true"
+          width={320}
+          height={320}
+          className="h-auto w-[min(320px,81vw)] select-none"
+          draggable={false}
         />
         <h1
-          className="mt-6 text-5xl font-bold tracking-tight text-foreground"
-          style={{ fontFamily: 'Georgia, serif' }}
+          className="mt-7 text-center"
+          style={{
+            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
+            fontVariationSettings: '"opsz" 144',
+            fontWeight: 700,
+            fontSize: 'clamp(72px, 23vw, 92px)',
+            lineHeight: 0.95,
+            letterSpacing: '-0.025em',
+          }}
         >
           {t.landing.title}
         </h1>
-        <p className="mt-3 text-center text-lg text-foreground">
-          {t.landing.tagline}
-        </p>
-        <p
-          className="mt-1 text-center text-base italic text-accent"
-          style={{ fontFamily: 'Georgia, serif' }}
-        >
-          {t.landing.subtitle}
-        </p>
       </div>
 
-      {/* CTAs */}
-      <div className="flex w-full flex-col items-center gap-6 px-6 pb-12">
-        <div className="flex w-full max-w-sm flex-col gap-3">
-          {demoError && (
-            <p className="text-center text-sm text-destructive">{demoError}</p>
-          )}
-
-          {/* Primary: Demo */}
-          <button
-            type="button"
-            onClick={handleTryApp}
-            disabled={demoLoading}
-            className="flex min-h-[44px] items-center justify-center rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+      <div
+        className="flex w-full flex-col gap-2.5 px-6"
+        style={{
+          paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)',
+        }}
+      >
+        {demoError && (
+          <p
+            role="alert"
+            className="text-center text-sm font-medium text-background"
           >
-            {demoLoading ? '…' : t.landing.tryApp}
-          </button>
+            {demoError}
+          </p>
+        )}
 
-          {/* Secondary: Create */}
-          <button
-            type="button"
-            onClick={() => setView('create')}
-            className="flex min-h-[44px] items-center justify-center rounded-xl border border-border bg-background px-6 text-base font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            {t.landing.createHousehold}
-          </button>
+        {/* Primary — cream pill */}
+        <button
+          type="button"
+          onClick={handleTryApp}
+          disabled={demoLoading}
+          className="flex h-[54px] items-center justify-center rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+        >
+          {demoLoading ? '…' : t.landing.tryApp}
+        </button>
 
-          {/* Tertiary: Join */}
-          <button
-            type="button"
-            onClick={() => setView('join')}
-            className="flex min-h-[44px] items-center justify-center rounded-xl px-6 text-base font-semibold text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-          >
-            {t.landing.joinHousehold}
-          </button>
-        </div>
+        {/* Secondary — ghost outlined pill (1.5px cream @55%) */}
+        <button
+          type="button"
+          onClick={() => setView('create')}
+          className="flex h-[54px] items-center justify-center rounded-[27px] bg-transparent text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
+          style={{ boxShadow: 'inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)' }}
+        >
+          {t.landing.createHousehold}
+        </button>
+
+        {/* Tertiary — text link */}
+        <button
+          type="button"
+          onClick={() => setView('join')}
+          className="flex w-full items-center justify-center bg-transparent py-[14px] text-[16px] font-medium text-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
+        >
+          {t.landing.joinHousehold}
+        </button>
       </div>
     </div>
   )
