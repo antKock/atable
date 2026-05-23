@@ -28,7 +28,7 @@ export default async function HomePage({ searchParams }: Props) {
             fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
             fontVariationSettings: '"opsz" 144',
             fontWeight: 700,
-            fontSize: "22px",
+            fontSize: "24px",
             lineHeight: 1,
             letterSpacing: "-0.02em",
           }}
