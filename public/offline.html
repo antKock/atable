@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+    <title>Hors ligne — À Table</title>
+    <style>
+      :root { color-scheme: light; }
+      html, body {
+        margin: 0;
+        height: 100%;
+        background: linear-gradient(to bottom, #F8FAF7, #EDE8E0);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Helvetica Neue", sans-serif;
+        color: #1c1c1e;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: env(safe-area-inset-top) 24px env(safe-area-inset-bottom);
+        text-align: center;
+      }
+      main { max-width: 360px; }
+      .logo { font-size: 56px; line-height: 1; margin-bottom: 24px; }
+      h1 { font-size: 22px; font-weight: 600; margin: 0 0 12px; letter-spacing: -0.01em; }
+      p { font-size: 15px; line-height: 1.5; color: #1c1c1e99; margin: 0 0 24px; }
+      button {
+        background: #1c1c1e;
+        color: #fff;
+        border: 0;
+        border-radius: 12px;
+        padding: 14px 24px;
+        font-size: 16px;
+        font-weight: 500;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+      }
+      button:active { opacity: 0.85; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <div class="logo" aria-hidden="true">🍽️</div>
+      <h1>Pas de connexion</h1>
+      <p>
+        À Table a besoin d&rsquo;une connexion internet pour charger vos
+        recettes. Vérifiez votre connexion et réessayez.
+      </p>
+      <button type="button" onclick="location.reload()">Réessayer</button>
+    </main>
+  </body>
+</html>
