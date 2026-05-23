@@ -30,6 +30,13 @@ const config: CapacitorConfig = {
     // environment server.url resolves to.
     allowNavigation: ["mijote.anthonykocken.fr", "staging.mijote.anthonykocken.fr"],
     cleartext: false,
+    // Path (relative to webDir = "public") to the local HTML page served by
+    // Capacitor when the remote server.url is unreachable at launch. This
+    // replaces the bespoke MainViewController fallback we tried — Capacitor
+    // handles the WKWebView state machine internally, which we couldn't
+    // reliably do from a custom WKNavigationDelegate.
+    // See discussion #7978 and issue #8302 in ionic-team/capacitor.
+    errorPath: "offline.html",
   },
   ios: {
     // Lets middleware.ts recognise the native shell. Must NOT contain any
