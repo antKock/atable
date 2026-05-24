@@ -223,7 +223,7 @@ export default async function RecipeDetailPage({ params }: Props) {
             <SectionLabel id="ingredients-heading">
               {t.detail.ingredients}
             </SectionLabel>
-            <ul className="divide-y divide-border">
+            <ul>
               {ingredientLines.map((line, i) => (
                 <li key={i} className="py-2.5 text-base text-foreground">
                   {line.trim()}
