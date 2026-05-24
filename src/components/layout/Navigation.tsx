@@ -32,42 +32,12 @@ function useKeyboardOpen(): boolean {
   return open;
 }
 
-type NavigationProps = {
-  /** Hide the lg+ fixed wordmark (e.g. when DemoBanner already occupies the top). */
-  hideWordmark?: boolean;
-};
-
-export default function Navigation({ hideWordmark = false }: NavigationProps) {
+export default function Navigation() {
   const pathname = usePathname();
   const keyboardOpen = useKeyboardOpen();
-  // Home page renders its own Mijote heading — skip the fixed wordmark there.
-  const showWordmark = !hideWordmark && pathname !== "/home";
 
   return (
     <>
-      {/* Desktop-only wordmark (top-left, fixed) */}
-      {showWordmark && (
-      <div
-        aria-hidden="true"
-        className="pointer-events-none fixed left-6 top-6 z-40 hidden items-center gap-2 lg:flex"
-      >
-        <span
-          style={{
-            fontFamily: "var(--font-fraunces)",
-            fontVariationSettings: '"opsz" 144',
-            fontStyle: "italic",
-            fontWeight: 600,
-            fontSize: 22,
-            letterSpacing: "-0.02em",
-            color: "var(--foreground)",
-            lineHeight: 1,
-          }}
-        >
-          Mijote
-        </span>
-      </div>
-      )}
-
       {/* Floating pill nav — universelle, tous breakpoints */}
       <nav
         aria-label={t.a11y.mainNav}
