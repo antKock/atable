@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { RefreshCw, Trash2 } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { t } from "@/lib/i18n/fr";
 import CocotteIllustration from "./CocotteIllustration";
 
@@ -26,17 +26,15 @@ export default function PhotoManager({
   regenerateRequested = false,
 }: PhotoManagerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewUrl = useMemo(
+    () => (previewFile ? URL.createObjectURL(previewFile) : null),
+    [previewFile],
+  );
 
   useEffect(() => {
-    if (!previewFile) {
-      setPreviewUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(previewFile);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [previewFile]);
+    if (!previewUrl) return;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   const displaySrc = previewUrl ?? currentPhotoUrl ?? currentGeneratedUrl;
   const hasPhoto = !!displaySrc;

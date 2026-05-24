@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Camera } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n/fr";
 
@@ -25,18 +25,16 @@ export default function PhotoPicker({
   onRemove,
 }: PhotoPickerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const previewUrl = useMemo(
+    () => (previewFile ? URL.createObjectURL(previewFile) : null),
+    [previewFile],
+  );
 
-  // Create / revoke blob URL when previewFile changes
+  // Revoke blob URL when it changes or on unmount
   useEffect(() => {
-    if (!previewFile) {
-      setPreviewUrl(null);
-      return;
-    }
-    const url = URL.createObjectURL(previewFile);
-    setPreviewUrl(url);
-    return () => URL.revokeObjectURL(url);
-  }, [previewFile]);
+    if (!previewUrl) return;
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [previewUrl]);
 
   const displaySrc = previewUrl ?? currentUrl;
   const hasPhoto = !removed && !!displaySrc;

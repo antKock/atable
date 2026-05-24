@@ -57,8 +57,14 @@ export default function LibraryContent({
     { revalidateOnMount: true },
   );
 
-  const liveRecipes = libraryData?.recipes ?? [];
-  const liveTags = libraryData?.tags ?? [];
+  const liveRecipes = useMemo(
+    () => libraryData?.recipes ?? [],
+    [libraryData?.recipes],
+  );
+  const liveTags = useMemo(
+    () => libraryData?.tags ?? [],
+    [libraryData?.tags],
+  );
 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>(() =>

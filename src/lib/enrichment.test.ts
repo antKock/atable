@@ -41,7 +41,7 @@ describe("enrichRecipe — skip path", () => {
       { data: recipeDbRow({ photo_url: "https://x/p.jpg", enrichment_status: "enriched" }) },
       { count: 2 }, // recipe_tags count
     ]);
-    await enrichRecipe("recipe-1", false);
+    await enrichRecipe("recipe-1");
     expect(mockChat).not.toHaveBeenCalled();
     expect(mockImages).not.toHaveBeenCalled();
     expect(updatePayloads("recipes")).toHaveLength(0);
@@ -53,7 +53,7 @@ describe("enrichRecipe — skip path", () => {
       { count: 2 },
       { error: null }, // status update
     ]);
-    await enrichRecipe("recipe-1", false);
+    await enrichRecipe("recipe-1");
     expect(mockChat).not.toHaveBeenCalled();
     expect(updatePayloads("recipes")).toEqual([{ enrichment_status: "enriched" }]);
   });
@@ -86,7 +86,7 @@ describe("enrichRecipe — full enrichment", () => {
     mockChat.mockResolvedValue(chatCompletion(enrichmentResult()));
     mockImages.mockResolvedValue(imageResponse());
 
-    await enrichRecipe("recipe-1", true);
+    await enrichRecipe("recipe-1");
 
     expect(mockChat.mock.calls[0][0].model).toBe("gpt-4o-mini");
     const updates = updatePayloads("recipes");
@@ -111,7 +111,7 @@ describe("enrichRecipe — full enrichment", () => {
     ]);
     mockChat.mockRejectedValue(new Error("OpenAI unavailable"));
 
-    await enrichRecipe("recipe-1", true);
+    await enrichRecipe("recipe-1");
 
     expect(updatePayloads("recipes")).toContainEqual({ enrichment_status: "failed" });
     expect(mockImages).not.toHaveBeenCalled();
@@ -122,7 +122,7 @@ describe("enrichRecipe — full enrichment", () => {
       { data: null, error: { message: "not found" } },
       { error: null }, // failed-status update
     ]);
-    await enrichRecipe("missing-recipe", false);
+    await enrichRecipe("missing-recipe");
     expect(updatePayloads("recipes")).toContainEqual({ enrichment_status: "failed" });
     expect(mockChat).not.toHaveBeenCalled();
   });

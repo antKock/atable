@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback, useEffect, useSyncExternalStore } from "react";
 import { haptics } from "@/lib/haptics";
 
 const MAX_DURATION_S = 180; // 3 minutes
@@ -16,8 +16,20 @@ export interface VoiceRecorderState {
   stop: () => void;
 }
 
+// Mount-only feature detection (no subscription). SSR snapshot = false to
+// avoid hydration mismatch; client snapshot reads the real APIs.
+const noopSubscribe = () => () => {};
+const detectMediaSupport = () =>
+  typeof MediaRecorder !== "undefined" &&
+  !!navigator.mediaDevices?.getUserMedia;
+const ssrMediaSupport = () => false;
+
 export function useVoiceRecorder(): VoiceRecorderState {
-  const [isSupported, setIsSupported] = useState(false);
+  const isSupported = useSyncExternalStore(
+    noopSubscribe,
+    detectMediaSupport,
+    ssrMediaSupport,
+  );
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>(() =>
@@ -33,14 +45,6 @@ export function useVoiceRecorder(): VoiceRecorderState {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const startTimeRef = useRef<number>(0);
-
-  // Detect support client-side only to avoid SSR hydration mismatch
-  useEffect(() => {
-    setIsSupported(
-      typeof MediaRecorder !== "undefined" &&
-      !!navigator.mediaDevices?.getUserMedia,
-    );
-  }, []);
 
   const cleanup = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -62,20 +66,25 @@ export function useVoiceRecorder(): VoiceRecorderState {
     return () => cleanup();
   }, [cleanup]);
 
+  // updateWaveform schedules itself via rAF. We define the recursive tick as
+  // a local `const`: the inner self-reference is resolved at call time, after
+  // the binding is initialized — no TDZ / "accessed before declared" issue.
   const updateWaveform = useCallback(() => {
-    if (!analyserRef.current) return;
-    const data = new Uint8Array(analyserRef.current.frequencyBinCount);
-    analyserRef.current.getByteFrequencyData(data);
+    const tick = (): void => {
+      if (!analyserRef.current) return;
+      const data = new Uint8Array(analyserRef.current.frequencyBinCount);
+      analyserRef.current.getByteFrequencyData(data);
 
-    // Sample evenly across the frequency data
-    const step = Math.floor(data.length / WAVEFORM_BARS);
-    const bars: number[] = [];
-    for (let i = 0; i < WAVEFORM_BARS; i++) {
-      bars.push(data[i * step] / 255);
-    }
-    setWaveformData(bars);
+      const step = Math.floor(data.length / WAVEFORM_BARS);
+      const bars: number[] = [];
+      for (let i = 0; i < WAVEFORM_BARS; i++) {
+        bars.push(data[i * step] / 255);
+      }
+      setWaveformData(bars);
 
-    rafRef.current = requestAnimationFrame(updateWaveform);
+      rafRef.current = requestAnimationFrame(tick);
+    };
+    tick();
   }, []);
 
   const stop = useCallback(() => {
