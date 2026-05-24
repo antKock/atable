@@ -122,9 +122,42 @@ html {
   min-height: 100%;
 }
 
+/* Landing hero paints html sage so Safari overscroll & the iOS status-bar
+   bleed match the fixed inset-0 sage panel instead of revealing the cream. */
+html:has(.bg-sage-radial) {
+  background-color: var(--sage-500);
+  background-image: none;
+}
+
 body {
   color: var(--foreground);
   overflow-x: hidden;
+  /* Cover the viewport so the page colour (html bg) is visible across the
+     whole device — incl. behind the iOS status bar and in Safari's
+     overscroll/bounce area — even when content is shorter than 100vh. */
+  min-height: 100vh;
+}
+
+/* Mijote landing — responsive hero sizing.
+   Defaults match iOS-app dimensions (tall viewports). The max-height media
+   query below kicks in on shorter viewports (mobile Safari with URL bar,
+   short laptops) to prevent the cocotte+title from overlapping the buttons.
+   iPhone 14+ in the native app sits ≥800px viewport so it stays unaffected. */
+.landing-cocotte {
+  width: min(320px, 81vw);
+}
+.landing-hero-pad {
+  padding-top: calc(env(safe-area-inset-top) + 96px);
+  /* Compense les safe-areas iOS pour garder le même gap titre/boutons qu'au web. */
+  padding-bottom: calc(env(safe-area-inset-top) + env(safe-area-inset-bottom));
+}
+@media (max-height: 780px) {
+  .landing-cocotte {
+    width: min(320px, 81vw, 30vh);
+  }
+  .landing-hero-pad {
+    padding-top: calc(env(safe-area-inset-top) + max(20px, 6vh));
+  }
 }
 
 @keyframes shimmer {

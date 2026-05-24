@@ -41,15 +41,7 @@ export default function LandingScreen() {
   // and ignore the parent (landing)/layout safe-area padding.
   return (
     <div className="bg-sage-radial fixed inset-0 flex flex-col text-background">
-      <div
-        className="flex flex-1 flex-col items-center justify-center px-6"
-        style={{
-          paddingTop: 'calc(env(safe-area-inset-top) + 96px)',
-          // Compense les safe-areas iOS pour garder le même gap titre/boutons qu'au web.
-          paddingBottom:
-            'calc(env(safe-area-inset-top) + env(safe-area-inset-bottom))',
-        }}
-      >
+      <div className="landing-hero-pad flex flex-1 flex-col items-center justify-center px-6">
         {/* eslint-disable-next-line @next/next/no-img-element -- local SVG with internal Gaussian blur filter; next/image would force dangerouslyAllowSVG globally */}
         <img
           src="/cocotte-illustration.svg"
@@ -57,11 +49,11 @@ export default function LandingScreen() {
           aria-hidden="true"
           width={320}
           height={320}
-          className="h-auto w-[min(320px,81vw)] select-none"
+          className="landing-cocotte h-auto select-none"
           draggable={false}
         />
         <h1
-          className="mt-7 text-center"
+          className="landing-title mt-7 text-center"
           style={{
             fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
             fontVariationSettings: '"opsz" 144',
@@ -76,7 +68,7 @@ export default function LandingScreen() {
       </div>
 
       <div
-        className="flex w-full flex-col gap-2.5 px-6"
+        className="mx-auto flex w-full max-w-[400px] flex-col gap-2.5 px-6"
         style={{
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)',
         }}
