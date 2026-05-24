@@ -20,9 +20,16 @@ import { t } from "@/lib/i18n/fr";
 interface ConfirmDeleteDialogProps {
   recipeId: string;
   triggerClassName?: string;
+  triggerIconSize?: number;
+  triggerIconStroke?: number;
 }
 
-export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: ConfirmDeleteDialogProps) {
+export default function ConfirmDeleteDialog({
+  recipeId,
+  triggerClassName,
+  triggerIconSize,
+  triggerIconStroke,
+}: ConfirmDeleteDialogProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const [open, setOpen] = useState(false);
@@ -64,7 +71,10 @@ export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: Conf
           aria-label={t.actions.delete}
           className={triggerClassName ?? "min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive"}
         >
-          <Trash2 size={triggerClassName ? 16 : 20} />
+          <Trash2
+            size={triggerIconSize ?? (triggerClassName ? 16 : 20)}
+            strokeWidth={triggerIconStroke ?? 2}
+          />
         </Button>
       </DialogTrigger>
       <DialogContent showCloseButton={false}>

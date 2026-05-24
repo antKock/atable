@@ -15,6 +15,32 @@ import ShimmerBlock from "@/components/recipes/ShimmerBlock";
 import Chip from "@/components/recipes/Chip";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 
+function SectionLabel({
+  id,
+  children,
+}: {
+  id?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <h2
+      id={id}
+      style={{
+        fontFamily: "var(--font-fraunces)",
+        fontVariationSettings: '"opsz" 144',
+        fontStyle: "italic",
+        fontWeight: 500,
+        fontSize: 16,
+        color: "var(--accent)",
+        letterSpacing: "-0.005em",
+        marginBottom: 14,
+      }}
+    >
+      {children}
+    </h2>
+  );
+}
+
 type Props = {
   params: Promise<{ id: string }>;
 };
@@ -124,27 +150,42 @@ export default async function RecipeDetailPage({ params }: Props) {
           />
         )}
 
-        {/* Back button — frosted glass, overlaid top-left */}
+        {/* Back button — clean white circle */}
         <Link
           href="/home"
           aria-label={t.a11y.backButton}
-          className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          style={{
+            background: "#fff",
+            boxShadow:
+              "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+          }}
         >
-          <ArrowLeft size={18} />
+          <ArrowLeft size={18} strokeWidth={1.75} />
         </Link>
 
-        {/* Edit + Delete — frosted glass, overlaid top-right */}
-        <div className="absolute right-3 top-3 flex gap-1.5">
+        {/* Edit + Delete pill — single white pill with separator */}
+        <div
+          className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full p-1"
+          style={{
+            background: "#fff",
+            boxShadow:
+              "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+          }}
+        >
           <Link
             href={`/recipes/${id}/edit`}
             aria-label={t.actions.edit}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <Pencil size={16} />
+            <Pencil size={14} strokeWidth={1.75} />
           </Link>
+          <div className="h-4 w-px bg-border" />
           <ConfirmDeleteDialog
             recipeId={id}
-            triggerClassName="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 text-foreground shadow-sm backdrop-blur-sm transition-colors hover:bg-white hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            triggerClassName="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            triggerIconSize={14}
+            triggerIconStroke={1.75}
           />
         </div>
       </div>
@@ -179,38 +220,25 @@ export default async function RecipeDetailPage({ params }: Props) {
 
         {/* Ingredients */}
         {ingredientLines.length > 0 && (
-          <>
-            <div className="my-5 h-px" style={{ background: "var(--divider)" }} />
-            <section aria-labelledby="ingredients-heading">
-              <h2
-                id="ingredients-heading"
-                className="mb-3 text-[11px] font-bold uppercase tracking-[0.9px] text-muted-foreground"
-              >
-                {t.detail.ingredients}
-              </h2>
-              <ul className="divide-y divide-border">
-                {ingredientLines.map((line, i) => (
-                  <li key={i} className="py-2.5 text-base text-foreground">
-                    {line.trim()}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </>
+          <section aria-labelledby="ingredients-heading" className="mt-8">
+            <SectionLabel id="ingredients-heading">
+              {t.detail.ingredients}
+            </SectionLabel>
+            <ul className="divide-y divide-border">
+              {ingredientLines.map((line, i) => (
+                <li key={i} className="py-2.5 text-base text-foreground">
+                  {line.trim()}
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         {/* Steps */}
         {stepLines.length > 0 && (
-          <>
-            <div className="my-5 h-px" style={{ background: "var(--divider)" }} />
-            <section aria-labelledby="steps-heading">
-              <h2
-                id="steps-heading"
-                className="mb-4 text-[11px] font-bold uppercase tracking-[0.9px] text-muted-foreground"
-              >
-                {t.detail.steps}
-              </h2>
-              <ol className="flex flex-col gap-4">
+          <section aria-labelledby="steps-heading" className="mt-8">
+            <SectionLabel id="steps-heading">{t.detail.steps}</SectionLabel>
+            <ol className="flex flex-col gap-4">
                 {stepLines.map((line, i) => (
                   <li key={i} className="flex gap-3">
                     <span
@@ -236,15 +264,12 @@ export default async function RecipeDetailPage({ params }: Props) {
                   </li>
                 ))}
               </ol>
-            </section>
-          </>
+          </section>
         )}
 
         {/* Tags + Seasons */}
         {(recipe.tags.length > 0 || (recipe.seasons && recipe.seasons.length > 0) || isEnriching) && (
-          <>
-            <div className="my-5 h-px" style={{ background: "var(--divider)" }} />
-            <div className="flex flex-wrap gap-2" aria-live="polite">
+          <div className="mt-8 flex flex-wrap gap-2" aria-live="polite">
               {isEnriching ? (
                 <>
                   <ShimmerBlock variant="pill" className="w-16" />
@@ -266,8 +291,7 @@ export default async function RecipeDetailPage({ params }: Props) {
                   ))}
                 </>
               )}
-            </div>
-          </>
+          </div>
         )}
       </div>
     </div>

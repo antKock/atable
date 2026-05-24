@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
+import CocotteIllustration from "./CocotteIllustration";
 import type { CarouselSection } from "@/lib/queries/carousels";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -86,7 +87,21 @@ export default function HomeContent() {
         </div>
       ) : !hasRecipes ? (
         <div className="mx-auto mt-16 max-w-xs px-4 text-center">
-          <p className="text-lg font-medium text-foreground">
+          <div className="mb-5 flex justify-center">
+            <CocotteIllustration size={72} accent="var(--accent)" />
+          </div>
+          <p
+            className="text-foreground"
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontVariationSettings: '"opsz" 144',
+              fontStyle: "italic",
+              fontWeight: 500,
+              fontSize: 22,
+              lineHeight: 1.15,
+              letterSpacing: "-0.01em",
+            }}
+          >
             {t.empty.libraryTitle}
           </p>
           <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>

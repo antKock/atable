@@ -10,6 +10,7 @@ import { useRecipeSearch } from "@/hooks/useRecipeSearch";
 import { Skeleton } from "@/components/ui/skeleton";
 import FilterBar from "./FilterBar";
 import RecipeCard from "./RecipeCard";
+import CocotteIllustration from "./CocotteIllustration";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
 import { matchesFilters } from "@/lib/filters";
@@ -161,8 +162,22 @@ export default function LibraryContent({
       {/* Recipe grid */}
       {displayedRecipes.length === 0 ? (
         liveRecipes.length === 0 ? (
-          <div className="mx-auto mt-16 max-w-xs text-center">
-            <p className="text-lg font-medium text-foreground">
+          <div className="mx-auto mt-16 max-w-xs px-4 text-center">
+            <div className="mb-5 flex justify-center">
+              <CocotteIllustration size={72} accent="var(--accent)" />
+            </div>
+            <p
+              className="text-foreground"
+              style={{
+                fontFamily: "var(--font-fraunces)",
+                fontVariationSettings: '"opsz" 144',
+                fontStyle: "italic",
+                fontWeight: 500,
+                fontSize: 22,
+                lineHeight: 1.15,
+                letterSpacing: "-0.01em",
+              }}
+            >
               {t.empty.libraryTitle}
             </p>
             <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
