@@ -74,7 +74,7 @@ export default function Navigation({ hideWordmark = false }: NavigationProps) {
         aria-hidden={keyboardOpen}
         className="fixed left-1/2 z-50"
         style={{
-          bottom: "calc(env(safe-area-inset-bottom) + 12px)",
+          bottom: "max(env(safe-area-inset-bottom), 12px)",
           width: "min(calc(100% - 32px), 380px)",
           height: 60,
           background: "rgba(245, 241, 232, 0.92)",
