@@ -53,7 +53,7 @@ export default function RecipeDetailLoading() {
         {/* Ingredients */}
         <section className="mt-8">
           <Skeleton className="mb-3.5 h-5 w-32" />
-          <div>
+          <div className="pl-4">
             {Array.from({ length: 4 }).map((_, i) => (
               <div key={i} className="py-2.5">
                 <Skeleton className="h-5 w-full" />
