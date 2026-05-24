@@ -119,7 +119,21 @@ export default function LibraryContent({
         </div>
         <div className="grid grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="aspect-[3/4] w-full rounded-xl" />
+            <div
+              key={i}
+              className="overflow-hidden rounded-xl border border-border/40"
+              style={{
+                background: "var(--card-gradient)",
+                boxShadow: "var(--card-shadow-sm)",
+                borderBottom: "1px solid var(--card-border-accent)",
+              }}
+            >
+              <Skeleton className="aspect-[3/4] w-full rounded-none" />
+              <div className="px-3 py-2.5">
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="mt-1.5 h-3 w-1/2" />
+              </div>
+            </div>
           ))}
         </div>
       </>

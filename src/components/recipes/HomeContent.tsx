@@ -23,11 +23,18 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 function CarouselCardSkeleton() {
   return (
-    <div className="w-[62vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-65" style={{ background: "var(--card-gradient)", boxShadow: "var(--card-shadow)" }}>
+    <div
+      className="w-[62vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-65"
+      style={{
+        background: "var(--card-gradient)",
+        boxShadow: "var(--card-shadow-sm)",
+        borderBottom: "1px solid var(--card-border-accent)",
+      }}
+    >
       <Skeleton className="aspect-3/2 w-full rounded-none" />
       <div className="px-3 py-2.5">
-        <Skeleton className="h-4 w-3/4" />
-        <Skeleton className="mt-1 h-3 w-1/2" />
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="mt-1.5 h-3 w-1/2" />
       </div>
     </div>
   );
@@ -36,7 +43,7 @@ function CarouselCardSkeleton() {
 function CarouselSkeleton() {
   return (
     <div>
-      <Skeleton className="mb-3 ml-4 h-5 w-28" />
+      <Skeleton className="mb-3 ml-4 h-5 w-32" />
       <div className="flex gap-3 overflow-hidden px-4">
         <CarouselCardSkeleton />
         <CarouselCardSkeleton />

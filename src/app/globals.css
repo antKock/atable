@@ -76,9 +76,9 @@
   --sage-500: #9AAD8C; /* gradient body */
   --sage-800: #6B7F5C; /* gradient outer (darkest) */
 
-  /* v3 — Shimmer */
-  --shimmer-base: #E5DED6;
-  --shimmer-highlight: #F0EDE8;
+  /* v3 — Shimmer (DS_UPDATE 2026-05-24: olive-tinted, aligned with --chip-bg-selected) */
+  --shimmer-base: rgba(110, 122, 56, 0.10);
+  --shimmer-highlight: rgba(110, 122, 56, 0.04);
   --reveal-duration: 300ms;
 
   /* v5 — Chip tokens (Lot 00 foundations) */

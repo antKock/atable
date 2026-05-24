@@ -11,7 +11,7 @@ import WakeLockActivator from "@/components/recipes/WakeLockActivator";
 import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
 import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
 import MetadataGrid from "@/components/recipes/MetadataGrid";
-import ShimmerBlock from "@/components/recipes/ShimmerBlock";
+import { Skeleton } from "@/components/ui/skeleton";
 import Chip from "@/components/recipes/Chip";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 
@@ -28,9 +28,8 @@ function SectionLabel({
       style={{
         fontFamily: "var(--font-fraunces)",
         fontVariationSettings: '"opsz" 144',
-        fontStyle: "italic",
         fontWeight: 500,
-        fontSize: 16,
+        fontSize: 20,
         color: "var(--accent)",
         letterSpacing: "-0.005em",
         marginBottom: 14,
@@ -132,7 +131,7 @@ export default async function RecipeDetailPage({ params }: Props) {
       {/* Photo hero with overlaid controls */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-secondary">
         {isImageLoading && !heroImageUrl ? (
-          <ShimmerBlock variant="image" className="absolute inset-0" />
+          <Skeleton className="absolute inset-0 rounded-none" />
         ) : heroImageUrl ? (
           <Image
             src={heroImageUrl}
@@ -272,9 +271,9 @@ export default async function RecipeDetailPage({ params }: Props) {
           <div className="mt-8 flex flex-wrap gap-2" aria-live="polite">
               {isEnriching ? (
                 <>
-                  <ShimmerBlock variant="pill" className="w-16" />
-                  <ShimmerBlock variant="pill" className="w-20" />
-                  <ShimmerBlock variant="pill" className="w-14" />
+                  <Skeleton className="h-6 w-16 rounded-full" />
+                  <Skeleton className="h-6 w-20 rounded-full" />
+                  <Skeleton className="h-6 w-14 rounded-full" />
                 </>
               ) : (
                 <>
