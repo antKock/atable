@@ -189,7 +189,7 @@ export default function LibraryContent({
             <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
             <Link
               href="/recipes/new"
-              className="mt-6 inline-flex min-h-[44px] items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="mt-6 inline-flex min-h-11 items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
               style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
             >
               {t.actions.addRecipe}

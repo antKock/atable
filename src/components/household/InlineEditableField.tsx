@@ -66,7 +66,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
             type="button"
             onClick={enterEdit}
             aria-label={t.household.rename}
-            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <Pencil size={16} />
           </button>
@@ -92,7 +92,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
           onClick={handleSave}
           disabled={isSaving}
           aria-label={t.actions.save}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-accent transition-colors hover:bg-muted disabled:opacity-50"
+          className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-accent transition-colors hover:bg-muted disabled:opacity-50"
         >
           {isSaving ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-accent border-t-transparent" />
@@ -105,7 +105,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
           onClick={cancel}
           disabled={isSaving}
           aria-label={t.actions.cancel}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+          className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
         >
           <X size={18} />
         </button>

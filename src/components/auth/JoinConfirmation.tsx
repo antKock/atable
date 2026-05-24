@@ -51,7 +51,7 @@ export default function JoinConfirmation({ householdName, joinCode }: Props) {
         type="button"
         onClick={handleJoin}
         disabled={loading}
-        className="flex w-full min-h-[44px] items-center justify-center rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        className="flex w-full min-h-11 items-center justify-center rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
         {loading ? '…' : t.joinLink.confirm}
       </button>

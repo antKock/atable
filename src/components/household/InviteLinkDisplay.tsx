@@ -45,7 +45,7 @@ export default function InviteLinkDisplay({ joinCode }: Props) {
         type="button"
         onClick={handleCopy}
         aria-label={copied ? t.household.copied : t.household.copy}
-        className="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/10"
+        className="flex min-h-11 min-w-[44px] shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/10"
       >
         {copied ? <Check size={18} /> : <Copy size={18} />}
       </button>

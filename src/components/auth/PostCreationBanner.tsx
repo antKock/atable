@@ -49,7 +49,7 @@ export default function PostCreationBanner({ householdName, code }: Props) {
         type="button"
         onClick={handleShare}
         aria-label={copied ? t.household.copied : t.household.copy}
-        className="flex min-h-[44px] min-w-[44px] flex-shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/20"
+        className="flex min-h-11 min-w-[44px] flex-shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/20"
       >
         {copied ? <Check size={18} /> : <Share2 size={18} />}
       </button>

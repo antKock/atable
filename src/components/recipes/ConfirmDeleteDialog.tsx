@@ -83,7 +83,7 @@ export default function ConfirmDeleteDialog({
             variant="ghost"
             size="icon"
             aria-label={t.actions.delete}
-            className={triggerClassName ?? "min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive"}
+            className={triggerClassName ?? "min-h-11 min-w-[44px] text-muted-foreground hover:text-destructive"}
           >
             <Trash2
               size={triggerIconSize ?? (triggerClassName ? 16 : 20)}
@@ -102,7 +102,7 @@ export default function ConfirmDeleteDialog({
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={isDeleting}
-            className="min-h-[44px]"
+            className="min-h-11"
           >
             {t.deleteDialog.cancel}
           </Button>
@@ -110,7 +110,7 @@ export default function ConfirmDeleteDialog({
             variant="destructive"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="min-h-[44px]"
+            className="min-h-11"
           >
             {t.deleteDialog.confirm}
           </Button>

@@ -414,7 +414,7 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
           type="submit"
           size="lg"
           disabled={!canSave || isSaving}
-          className="h-[50px] w-full min-h-[44px] rounded-xl"
+          className="h-[50px] w-full min-h-11 rounded-xl"
         >
           {t.actions.save}
         </Button>

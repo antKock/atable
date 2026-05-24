@@ -37,7 +37,7 @@ export default async function HomePage({ searchParams }: Props) {
         <Link
           href="/household"
           aria-label={t.household.menuButton}
-          className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <Users size={20} />
         </Link>
