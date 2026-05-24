@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
   for (const recipe of recipes) {
     try {
       console.log(`[batch-enrich] Processing: ${recipe.title}`);
-      await enrichRecipe(recipe.id, true);
+      await enrichRecipe(recipe.id);
       results.push({ id: recipe.id, title: recipe.title, status: "ok" });
     } catch (error) {
       console.error(`[batch-enrich] Failed: ${recipe.title}`, error);

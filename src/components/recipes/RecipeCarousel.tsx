@@ -1,5 +1,5 @@
 import { t } from "@/lib/i18n/fr";
-import RecipeCardCarousel from "./RecipeCardCarousel";
+import RecipeCard from "./RecipeCard";
 import type { CarouselRecipeItem } from "@/lib/queries/carousels";
 
 interface RecipeCarouselProps {
@@ -17,7 +17,7 @@ export default function RecipeCarousel({ title, recipes }: RecipeCarouselProps) 
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {recipes.map((recipe) => (
-          <RecipeCardCarousel key={recipe.id} recipe={recipe} />
+          <RecipeCard key={recipe.id} recipe={recipe} variant="carousel" />
         ))}
       </div>
     </section>

@@ -114,20 +114,28 @@ describe("RecipeForm (edit mode)", () => {
     render(
       <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
     );
-    expect(screen.getByLabelText("Retirer le tag viande")).toBeDefined();
-    expect(screen.getByLabelText("Retirer le tag four")).toBeDefined();
+    expect(screen.getByLabelText("Retirer viande")).toBeDefined();
+    expect(screen.getByLabelText("Retirer four")).toBeDefined();
   });
 
   it("pre-fills v3 metadata fields in edit mode", () => {
     render(
       <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
     );
-    const prepSelect = screen.getByLabelText("Prép.") as HTMLSelectElement;
-    expect(prepSelect.value).toBe("20-30 min");
-    const cookSelect = screen.getByLabelText("Cuisson") as HTMLSelectElement;
-    expect(cookSelect.value).toBe("1h - 2h");
-    const complexitySelect = screen.getByLabelText("Difficulté") as HTMLSelectElement;
-    expect(complexitySelect.value).toBe("moyen");
+    // Prep, cook and complexity are now ChipSelector groups, not <select>.
+    // Verify the active chip is aria-pressed.
+    const prepGroup = screen.getByRole("group", { name: "Prép." });
+    expect(prepGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe(
+      "20-30 min"
+    );
+    const cookGroup = screen.getByRole("group", { name: "Cuisson" });
+    expect(cookGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe(
+      "1h - 2h"
+    );
+    const complexityGroup = screen.getByRole("group", { name: "Difficulté" });
+    expect(
+      complexityGroup.querySelector('[aria-pressed="true"]')?.textContent
+    ).toBe("Moyen");
   });
 
   it("pre-selects cost chip in edit mode", () => {

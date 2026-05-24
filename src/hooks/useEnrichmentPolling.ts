@@ -19,7 +19,8 @@ export function useEnrichmentPolling(
 ) {
   const router = useRouter();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const startTimeRef = useRef(Date.now());
+  // Initialized in the polling effect (Date.now() is impure during render)
+  const startTimeRef = useRef<number>(0);
   const lastEnrichmentRef = useRef(initialEnrichmentStatus);
   const lastImageRef = useRef(initialImageStatus);
 

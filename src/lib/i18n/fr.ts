@@ -27,16 +27,11 @@ export const t = {
   form: {
     titleLabel: "Titre",
     titlePlaceholder: "Nom de la recette",
-    titleRequired: "(requis)",
     ingredientsLabel: "Ingrédients",
     ingredientsPlaceholder: "Un ingrédient par ligne…",
-    ingredientsOptional: "(optionnel)",
     stepsLabel: "Préparation",
     stepsPlaceholder: "Une étape par ligne…",
-    stepsOptional: "(optionnel)",
     tagsLabel: "Tags",
-    tagsOptional: "(optionnel)",
-    photoOptional: "(optionnel)",
   },
 
   // Recipe detail
@@ -49,14 +44,14 @@ export const t = {
 
   // Feedback
   feedback: {
-    recipeSaved: "Ajoutée à votre bibliothèque",
+    recipeSaved: "Ajoutée à ta bibliothèque",
     recipeUpdated: "Recette mise à jour",
     recipeDeleted: "Recette supprimée",
-    saveError: "Impossible d'enregistrer la recette. Veuillez réessayer.",
-    updateError: "Impossible de mettre à jour la recette. Veuillez réessayer.",
-    deleteError: "Impossible de supprimer la recette. Veuillez réessayer.",
+    saveError: "Impossible d'enregistrer la recette. Réessaie.",
+    updateError: "Impossible de mettre à jour la recette. Réessaie.",
+    deleteError: "Impossible de supprimer la recette. Réessaie.",
     photoError: "La photo n'a pas pu être ajoutée",
-    loadError: "Impossible de charger les recettes. Vérifiez votre connexion.",
+    loadError: "Impossible de charger les recettes. Vérifie ta connexion.",
   },
 
   // Metadata labels
@@ -150,10 +145,10 @@ export const t = {
 
   // Empty states
   empty: {
-    libraryTitle: "Votre bibliothèque est vide",
-    libraryBody: "Commencez par ajouter une recette que vous aimez.",
+    libraryTitle: "La cocotte est vide",
+    libraryBody: "Ajoute ta première recette pour démarrer ta bibliothèque.",
     searchTitle: "Aucun résultat",
-    searchBody: "Essayez avec un autre titre, ingrédient ou tag.",
+    searchBody: "Essaie avec un autre titre, ingrédient ou tag.",
   },
 
   // Delete confirmation
@@ -170,10 +165,10 @@ export const t = {
   // Import
   import: {
     title: "Nouvelle recette",
-    subtitle: "Comment souhaitez-vous ajouter votre recette ?",
+    subtitle: "Comment veux-tu ajouter ta recette ?",
     screenshot: {
       title: "Depuis une photo",
-      description: "Importez une capture d'écran ou photo de recette",
+      description: "Importe une capture d'écran ou photo de recette",
       upload: "Choisir des images",
       uploadHint: "Plusieurs images possibles — JPG, PNG — max 10 Mo",
       analyze: "Analyser",
@@ -182,19 +177,19 @@ export const t = {
     },
     voice: {
       title: "Dictée vocale",
-      description: "Dictez votre recette à voix haute",
-      record: "Appuyez pour dicter",
+      description: "Dicte ta recette à voix haute",
+      record: "Appuie pour dicter",
       recording: "Enregistrement en cours…",
       processing: "Analyse de la recette…",
       stop: "Arrêter",
       maxDuration: "3 minutes max",
       error: "Impossible d'extraire la recette depuis l'audio",
       errorNoMic: "Accès au microphone refusé",
-      errorUnsupported: "Votre navigateur ne supporte pas l'enregistrement audio",
+      errorUnsupported: "Ton navigateur ne supporte pas l'enregistrement audio",
     },
     url: {
       title: "Depuis un lien",
-      description: "Collez l'URL d'une recette en ligne",
+      description: "Colle l'URL d'une recette en ligne",
       placeholder: "https://marmiton.org/recette/...",
     },
     manual: {
@@ -204,13 +199,13 @@ export const t = {
     divider: "ou",
     loading: "Extraction de la recette en cours…",
     error:
-      "Impossible d'extraire la recette. Réessayez ou saisissez-la manuellement.",
+      "Impossible d'extraire la recette. Réessaie ou saisis-la manuellement.",
     errorSiteBlocked:
-      "Ce site bloque l'accès automatique. Essayez avec une capture d'écran ou la saisie manuelle.",
+      "Ce site bloque l'accès automatique. Essaie avec une capture d'écran ou la saisie manuelle.",
     errorRateLimit:
-      "Trop de requêtes, réessayez dans quelques instants.",
+      "Trop de requêtes, réessaie dans quelques instants.",
     errorSiteUnreachable:
-      "Impossible d'accéder au site. Vérifiez l'URL et réessayez.",
+      "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
   },
 
   // Search
@@ -262,7 +257,7 @@ export const t = {
     preview: (name: string) => `Foyer « ${name} » trouvé — Rejoindre ?`,
     confirm: "Rejoindre",
     notFound: "Ce code ne correspond à aucun foyer",
-    rateLimited: "Trop de tentatives, réessayez plus tard",
+    rateLimited: "Trop de tentatives, réessaie plus tard",
     invalidFormat: "Format invalide — ex : OLIVE-4821",
     searching: "Recherche en cours…",
   },
@@ -280,7 +275,7 @@ export const t = {
     inviteCodeLabel: "Code invitation",
     inviteLinkCopied: "Lien d'invitation copié !",
     shareTitle: (name: string) => `Rejoindre mon foyer « ${name} » sur Mijote`,
-    createError: "Impossible de créer le foyer. Veuillez réessayer.",
+    createError: "Impossible de créer le foyer. Réessaie.",
     menu: "Mon foyer",
     menuButton: "Menu du foyer",
     shareCode: "Code du foyer",
@@ -295,7 +290,7 @@ export const t = {
     revokeDeviceConfirm: "Révoquer cet appareil ?",
     deviceRevoked: "Appareil révoqué",
     leaveConfirm: "Quitter le foyer ?",
-    leaveBody: "Vous devrez rejoindre avec un code ou un lien pour accéder à nouveau aux recettes.",
+    leaveBody: "Tu devras rejoindre avec un code ou un lien pour accéder à nouveau aux recettes.",
     leaveAction: "Quitter",
     demoLabel: "Démo",
     currentDevice: "cet appareil",
@@ -310,7 +305,7 @@ export const t = {
     deleteFinalBody:
       "Cette action est irréversible. Le foyer et toutes ses recettes seront définitivement perdus.",
     deleteFinalAction: "Supprimer définitivement",
-    leaveError: "Une erreur s'est produite. Veuillez réessayer.",
+    leaveError: "Une erreur s'est produite. Réessaie.",
   },
 
   // Accessibility

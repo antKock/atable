@@ -8,7 +8,6 @@ import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { t } from "@/lib/i18n/fr";
 import RecipeForm from "@/components/recipes/RecipeForm";
-import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -34,20 +33,27 @@ export default async function EditRecipePage({ params }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
-      <div className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Link
-            href={`/recipes/${id}`}
-            aria-label={t.a11y.backButton}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <ArrowLeft size={20} />
-          </Link>
-          <h1 className="text-2xl font-semibold text-foreground">
-            {t.actions.edit}
-          </h1>
-        </div>
-        <ConfirmDeleteDialog recipeId={id} />
+      <div className="mb-8 flex items-center gap-3">
+        <Link
+          href={`/recipes/${id}`}
+          aria-label={t.a11y.backButton}
+          className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <ArrowLeft size={20} strokeWidth={1.75} />
+        </Link>
+        <h1
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontVariationSettings: '"opsz" 144',
+            fontStyle: "italic",
+            fontWeight: 500,
+            fontSize: 28,
+            letterSpacing: "-0.015em",
+            color: "var(--foreground)",
+          }}
+        >
+          {t.actions.edit}
+        </h1>
       </div>
 
       <RecipeForm

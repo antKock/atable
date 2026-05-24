@@ -81,15 +81,11 @@
   --shimmer-highlight: #F0EDE8;
   --reveal-duration: 300ms;
 
-  /* v3 — Tag chips */
-  --tag-chip-bg: rgba(110, 122, 56, 0.12);
-  --tag-chip-text: #4A5225;
-
-  /* v3 — Season accents */
-  --season-spring: #7CB342;
-  --season-summer: #F4A836;
-  --season-autumn: #D4763D;
-  --season-winter: #5C9DC0;
+  /* v5 — Chip tokens (Lot 00 foundations) */
+  --chip-bg: rgba(26, 26, 24, 0.05);          /* neutre ultra-discret pour tags affichés */
+  --chip-text: var(--muted-foreground);
+  --chip-bg-selected: rgba(110, 122, 56, 0.10); /* olive 10% pour chips form sélectionnés */
+  --chip-text-selected: var(--accent);
 
   /* v4 — Depth & volume */
   --card-gradient: linear-gradient(168deg, #FFFFFF, #F5F7F0);

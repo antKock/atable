@@ -40,12 +40,33 @@ export default function ChipSelector({
             type="button"
             aria-pressed={isSelected}
             onClick={() => handleToggle(opt.value)}
-            className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-              isSelected
-                ? "bg-accent text-white"
-                : "bg-transparent border border-border text-muted-foreground"
-            }`}
+            className="inline-flex items-center gap-1 rounded-full text-sm font-medium transition-colors"
+            style={{
+              padding: isSelected ? "6px 14px 6px 11px" : "6px 14px",
+              background: isSelected
+                ? "var(--chip-bg-selected)"
+                : "var(--surface)",
+              color: isSelected ? "var(--chip-text-selected)" : "var(--foreground)",
+              border: isSelected
+                ? "1px solid transparent"
+                : "1px solid var(--border)",
+            }}
           >
+            {isSelected && (
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+            )}
             {opt.label}
           </button>
         );

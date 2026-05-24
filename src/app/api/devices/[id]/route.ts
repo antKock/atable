@@ -21,7 +21,7 @@ export async function DELETE(
   // Prevent self-revocation
   if (deviceId === sessionId) {
     return NextResponse.json(
-      { error: 'Vous ne pouvez pas révoquer votre propre appareil' },
+      { error: 'Tu ne peux pas révoquer ton propre appareil' },
       { status: 400 }
     )
   }

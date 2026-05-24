@@ -2,11 +2,31 @@ import Image from "next/image";
 import Link from "next/link";
 import { t } from "@/lib/i18n/fr";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
-import type { RecipeListItem } from "@/types/recipe";
+import { parseDurationMax } from "@/lib/filters";
 
 interface RecipeCardProps {
-  recipe: RecipeListItem;
+  recipe: {
+    id: string;
+    title: string;
+    photoUrl: string | null;
+    generatedImageUrl: string | null;
+    prepTime?: string | null;
+    cookTime?: string | null;
+    cost?: string | null;
+  };
   variant?: "carousel" | "grid";
+}
+
+function formatDuration(
+  prep: string | null | undefined,
+  cook: string | null | undefined,
+): string | null {
+  const total = parseDurationMax(prep ?? null) + parseDurationMax(cook ?? null);
+  if (total === 0) return null;
+  if (total < 60) return `${total} min`;
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return m > 0 ? `${h}h${m.toString().padStart(2, "0")}` : `${h}h`;
 }
 
 export default function RecipeCard({
@@ -15,21 +35,29 @@ export default function RecipeCard({
 }: RecipeCardProps) {
   const isCarousel = variant === "carousel";
   const imageUrl = recipe.photoUrl ?? recipe.generatedImageUrl;
+  const duration = formatDuration(recipe.prepTime, recipe.cookTime);
+  // Always render the subtitle line with "—" placeholders so cards keep a
+  // uniform height — metadata arrives ~20s later via AI enrichment.
+  const subtitle = `${duration ?? "—"} · ${recipe.cost ?? "—"}`;
 
   return (
     <Link
       href={`/recipes/${recipe.id}`}
-      aria-label={t.a11y.recipeCard(recipe.title)}
-      className={`group relative block overflow-hidden rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-        isCarousel ? "w-56 flex-none lg:w-64" : "w-full"
+      aria-label={recipe.title}
+      className={`group block overflow-hidden rounded-xl border border-border/40 transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+        isCarousel ? "w-[62vw] flex-none lg:w-[260px]" : "w-full"
       }`}
       style={{
         background: "var(--card-gradient)",
         boxShadow: "var(--card-shadow-sm)",
-        borderBottom: "2.5px solid var(--card-border-accent)",
+        borderBottom: "1px solid var(--card-border-accent)",
       }}
     >
-      <div className={`relative w-full ${isCarousel ? "aspect-[3/2]" : "aspect-[3/4]"}`}>
+      <div
+        className={`relative w-full ${
+          isCarousel ? "aspect-[3/2]" : "aspect-[3/4]"
+        }`}
+      >
         {imageUrl ? (
           <Image
             src={imageUrl}
@@ -38,7 +66,7 @@ export default function RecipeCard({
             className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
             sizes={
               isCarousel
-                ? "(max-width: 1024px) 224px, 256px"
+                ? "(max-width: 1024px) 62vw, 260px"
                 : "(max-width: 768px) 50vw, 33vw"
             }
           />
@@ -48,17 +76,14 @@ export default function RecipeCard({
             style={{ background: getRecipePlaceholderGradient(recipe.id) }}
           />
         )}
-        {/* Title overlay */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/68 to-transparent p-3">
-          <p className="line-clamp-2 text-sm font-bold leading-snug text-white">
-            {recipe.title}
-          </p>
-          {isCarousel && recipe.tags[0] && (
-            <p className="mt-0.5 text-[10px] text-white/72 leading-tight">
-              {recipe.tags[0].name}
-            </p>
-          )}
-        </div>
+      </div>
+      <div className="px-3 py-2.5">
+        <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
+          {recipe.title}
+        </p>
+        <p className="mt-1 text-xs leading-tight text-muted-foreground">
+          {subtitle}
+        </p>
       </div>
     </Link>
   );

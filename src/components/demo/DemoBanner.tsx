@@ -27,7 +27,7 @@ export default function DemoBanner() {
       style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}
     >
       <p className="text-xs font-medium text-accent">
-        Mode démo — vos recettes ne seront pas conservées
+        Mode démo — tes recettes ne seront pas conservées
       </p>
       <button
         type="button"
