@@ -63,7 +63,7 @@ export default function RecipeCard({
             src={imageUrl}
             alt={t.a11y.recipePhoto(recipe.title)}
             fill
-            className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-105"
+            className="object-cover"
             sizes={
               isCarousel
                 ? "(max-width: 1024px) 62vw, 260px"
