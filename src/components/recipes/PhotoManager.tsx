@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Camera, RefreshCw } from "lucide-react";
+import { RefreshCw, Trash2 } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 import { t } from "@/lib/i18n/fr";
+import CocotteIllustration from "./CocotteIllustration";
 
 interface PhotoManagerProps {
   currentPhotoUrl: string | null;
@@ -37,7 +38,6 @@ export default function PhotoManager({
     return () => URL.revokeObjectURL(url);
   }, [previewFile]);
 
-  // Image display priority: previewFile > photoUrl > generatedUrl > placeholder
   const displaySrc = previewUrl ?? currentPhotoUrl ?? currentGeneratedUrl;
   const hasPhoto = !!displaySrc;
   const showRegenerate = !!currentGeneratedUrl || regenerateRequested;
@@ -49,14 +49,7 @@ export default function PhotoManager({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-foreground">
-        Photo{" "}
-        <span className="font-normal text-muted-foreground">
-          {t.form.photoOptional}
-        </span>
-      </label>
-
+    <div>
       <input
         ref={inputRef}
         type="file"
@@ -84,21 +77,23 @@ export default function PhotoManager({
                 type="button"
                 onClick={onRegenerate}
                 aria-label={t.photoManager.regenerateAriaLabel}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-medium min-h-[44px] flex-1 justify-center transition-colors ${
+                className={`flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
                   regenerateRequested
-                    ? "bg-accent/20 text-accent border border-accent/30"
-                    : "bg-white/85 backdrop-blur-sm text-foreground"
+                    ? "border-accent/30 bg-accent/10 text-accent"
+                    : "border-border bg-surface text-foreground hover:bg-secondary"
                 }`}
               >
-                <RefreshCw size={14} aria-hidden="true" />
-                {regenerateRequested ? t.photoManager.regenerateScheduled : t.photoManager.regenerate}
+                <RefreshCw size={14} strokeWidth={1.75} aria-hidden="true" />
+                {regenerateRequested
+                  ? t.photoManager.regenerateScheduled
+                  : t.photoManager.regenerate}
               </button>
             )}
             <button
               type="button"
               onClick={() => inputRef.current?.click()}
               aria-label={t.photoManager.replaceAriaLabel}
-              className="flex-1 rounded-lg bg-white/85 backdrop-blur-sm px-3 py-2 text-xs font-medium min-h-[44px] text-foreground"
+              className="flex min-h-[40px] flex-1 items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
             >
               {t.photoManager.replace}
             </button>
@@ -106,9 +101,9 @@ export default function PhotoManager({
               type="button"
               onClick={onRemove}
               aria-label={t.photoManager.removeAriaLabel}
-              className="flex-1 rounded-lg bg-white/85 backdrop-blur-sm px-3 py-2 text-xs font-medium min-h-[44px] text-destructive"
+              className="flex min-h-[40px] w-10 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground hover:text-destructive"
             >
-              {t.photoManager.remove}
+              <Trash2 size={14} strokeWidth={1.75} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -116,12 +111,26 @@ export default function PhotoManager({
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="flex aspect-[4/3] w-full cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-border bg-secondary/50 transition-colors hover:bg-secondary"
+          className="flex w-full items-center gap-3 rounded-xl border-none p-3.5 text-left transition-opacity hover:opacity-90"
+          style={{
+            background:
+              "linear-gradient(155deg, rgba(110, 122, 56, 0.07), rgba(110, 122, 56, 0.02))",
+          }}
           aria-label={t.actions.addPhoto}
         >
-          <div className="flex flex-col items-center gap-2 text-muted-foreground">
-            <Camera size={32} aria-hidden="true" />
-            <span className="text-sm font-medium">{t.actions.addPhoto}</span>
+          <div className="flex-none">
+            <CocotteIllustration size={40} accent="var(--accent)" />
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-medium text-foreground">
+              {t.actions.addPhoto}
+            </div>
+            <div className="text-xs text-muted-foreground">
+              ou Mijote en générera une
+            </div>
+          </div>
+          <div className="flex-none text-2xl font-light text-muted-foreground">
+            +
           </div>
         </button>
       )}

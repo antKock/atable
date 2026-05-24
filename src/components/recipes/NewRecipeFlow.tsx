@@ -43,9 +43,19 @@ export default function NewRecipeFlow() {
           aria-label={t.a11y.backButton}
           className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <ArrowLeft size={20} />
+          <ArrowLeft size={20} strokeWidth={1.75} />
         </button>
-        <h1 className="text-2xl font-semibold text-foreground">
+        <h1
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontVariationSettings: '"opsz" 144',
+            fontStyle: "italic",
+            fontWeight: 500,
+            fontSize: 28,
+            letterSpacing: "-0.015em",
+            color: "var(--foreground)",
+          }}
+        >
           {view === "intent" ? t.import.title : t.actions.addRecipe}
         </h1>
       </div>

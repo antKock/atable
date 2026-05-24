@@ -22,6 +22,7 @@ interface ConfirmDeleteDialogProps {
   triggerClassName?: string;
   triggerIconSize?: number;
   triggerIconStroke?: number;
+  triggerLabel?: string;
 }
 
 export default function ConfirmDeleteDialog({
@@ -29,6 +30,7 @@ export default function ConfirmDeleteDialog({
   triggerClassName,
   triggerIconSize,
   triggerIconStroke,
+  triggerLabel,
 }: ConfirmDeleteDialogProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
@@ -65,17 +67,30 @@ export default function ConfirmDeleteDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t.actions.delete}
-          className={triggerClassName ?? "min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive"}
-        >
-          <Trash2
-            size={triggerIconSize ?? (triggerClassName ? 16 : 20)}
-            strokeWidth={triggerIconStroke ?? 2}
-          />
-        </Button>
+        {triggerLabel ? (
+          <button
+            type="button"
+            aria-label={triggerLabel}
+            className={
+              triggerClassName ??
+              "text-xs text-muted-foreground underline underline-offset-[3px] decoration-[rgba(107,110,104,0.4)]"
+            }
+          >
+            {triggerLabel}
+          </button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.actions.delete}
+            className={triggerClassName ?? "min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive"}
+          >
+            <Trash2
+              size={triggerIconSize ?? (triggerClassName ? 16 : 20)}
+              strokeWidth={triggerIconStroke ?? 2}
+            />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>
