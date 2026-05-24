@@ -41,6 +41,8 @@ export const metadata: Metadata = {
     title: "Mijote",
   },
   icons: {
+    icon: "/icons/icon-192.png",
+    shortcut: "/icons/icon-192.png",
     apple: "/icons/icon-192.png",
   },
   openGraph: {

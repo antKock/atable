@@ -7,22 +7,40 @@ export default function HouseholdLoading() {
       <Skeleton className="mb-6 h-8 w-36" />
 
       {/* Household name label + value */}
-      <Skeleton className="mb-1 h-3 w-28" />
-      <Skeleton className="mb-6 h-6 w-48" />
+      <div className="mb-6">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="mt-1 h-6 w-48" />
+      </div>
 
-      {/* Join code card */}
-      <Skeleton className="mb-3 h-16 w-full rounded-xl" />
+      {/* Join code card — matches CodeDisplay chrome */}
+      <div className="mb-3 rounded-xl border border-border bg-muted/50 px-4 py-3">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="mt-1.5 h-6 w-32" />
+      </div>
 
-      {/* Invite link card */}
-      <Skeleton className="mb-6 h-16 w-full rounded-xl" />
+      {/* Invite link card — matches InviteLinkDisplay chrome */}
+      <div className="mb-6 rounded-xl border border-border bg-muted/50 px-4 py-3">
+        <Skeleton className="h-3 w-28" />
+        <Skeleton className="mt-1.5 h-4 w-full max-w-xs" />
+      </div>
 
       {/* Devices label */}
       <Skeleton className="mb-2 h-3 w-20" />
       {/* Device rows */}
-      <div className="flex flex-col gap-2">
-        <Skeleton className="h-12 w-full rounded-lg" />
-        <Skeleton className="h-12 w-full rounded-lg" />
+      <div className="mb-6 flex flex-col gap-2">
+        {Array.from({ length: 2 }).map((_, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-border bg-background px-4 py-3"
+          >
+            <Skeleton className="h-4 w-2/5" />
+            <Skeleton className="mt-1.5 h-3.5 w-1/4" />
+          </div>
+        ))}
       </div>
+
+      {/* Leave household button */}
+      <Skeleton className="h-11 w-40 rounded-lg" />
     </div>
   );
 }

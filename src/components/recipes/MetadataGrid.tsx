@@ -1,7 +1,7 @@
 "use client";
 
 import { t } from "@/lib/i18n/fr";
-import ShimmerBlock from "./ShimmerBlock";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface MetadataGridProps {
   prepTime: string | null;
@@ -12,7 +12,7 @@ interface MetadataGridProps {
 }
 
 function MetadataValue({ value, isLoading }: { value: string | null; isLoading: boolean }) {
-  if (isLoading) return <ShimmerBlock variant="rect" className="w-16" />;
+  if (isLoading) return <Skeleton className="h-4 w-16" />;
   return (
     <span
       className="text-sm font-medium text-foreground transition-opacity"
