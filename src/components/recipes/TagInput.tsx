@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { t } from "@/lib/i18n/fr";
-import TagChip from "./TagChip";
+import Chip from "./Chip";
 import type { Tag } from "@/types/recipe";
 
 const CATEGORY_ORDER = [
@@ -181,9 +181,9 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
       {selectedTags.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {selectedTags.map((tag) => (
-            <TagChip
+            <Chip
               key={tag.id}
-              name={tag.name}
+              label={tag.name}
               editable
               onRemove={() => onRemove(tag.id)}
             />

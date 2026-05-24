@@ -82,10 +82,6 @@
   --shimmer-highlight: #F0EDE8;
   --reveal-duration: 300ms;
 
-  /* v3 — Tag chips (DEPRECATED — removed in Lot 1 when SeasonBadge/TagChip components are deleted) */
-  --tag-chip-bg: rgba(110, 122, 56, 0.12);
-  --tag-chip-text: #4A5225;
-
   /* v5 — Chip tokens (Lot 00 foundations) */
   --chip-bg: rgba(26, 26, 24, 0.05);          /* neutre ultra-discret pour tags affichés */
   --chip-text: var(--muted-foreground);

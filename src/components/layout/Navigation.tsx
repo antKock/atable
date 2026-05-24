@@ -73,8 +73,18 @@ export default function Navigation() {
         }}
       >
         <div className="px-6 py-8">
-          <span className="text-xl font-extrabold tracking-tight text-foreground">
-            a<span className="text-accent">table</span>
+          <span
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontVariationSettings: '"opsz" 144',
+              fontSize: 24,
+              fontWeight: 600,
+              letterSpacing: "-0.025em",
+              color: "var(--foreground)",
+              lineHeight: 1,
+            }}
+          >
+            Mijote
           </span>
         </div>
         <ul className="flex flex-col gap-1 px-3">

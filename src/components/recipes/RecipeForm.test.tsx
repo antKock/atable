@@ -114,8 +114,8 @@ describe("RecipeForm (edit mode)", () => {
     render(
       <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
     );
-    expect(screen.getByLabelText("Retirer le tag viande")).toBeDefined();
-    expect(screen.getByLabelText("Retirer le tag four")).toBeDefined();
+    expect(screen.getByLabelText("Retirer viande")).toBeDefined();
+    expect(screen.getByLabelText("Retirer four")).toBeDefined();
   });
 
   it("pre-fills v3 metadata fields in edit mode", () => {

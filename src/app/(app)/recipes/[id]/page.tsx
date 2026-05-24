@@ -12,8 +12,7 @@ import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
 import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
 import MetadataGrid from "@/components/recipes/MetadataGrid";
 import ShimmerBlock from "@/components/recipes/ShimmerBlock";
-import TagChip from "@/components/recipes/TagChip";
-import SeasonBadge from "@/components/recipes/SeasonBadge";
+import Chip from "@/components/recipes/Chip";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 
 type Props = {
@@ -152,7 +151,18 @@ export default async function RecipeDetailPage({ params }: Props) {
 
       {/* Recipe content */}
       <div className="px-4 pt-6">
-        <h1 className="font-serif text-[22px] font-bold leading-tight tracking-[-0.4px] text-foreground">
+        <h1
+          className="text-foreground"
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontVariationSettings: '"opsz" 144',
+            fontSize: 28,
+            fontWeight: 600,
+            lineHeight: 1.05,
+            letterSpacing: "-0.02em",
+            textWrap: "balance",
+          }}
+        >
           {recipe.title}
         </h1>
 
@@ -204,8 +214,19 @@ export default async function RecipeDetailPage({ params }: Props) {
                 {stepLines.map((line, i) => (
                   <li key={i} className="flex gap-3">
                     <span
-                      className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-                      style={{ background: "var(--btn-gradient)" }}
+                      className="flex-shrink-0"
+                      style={{
+                        minWidth: 28,
+                        fontFamily: "var(--font-fraunces)",
+                        fontVariationSettings: '"opsz" 144',
+                        fontStyle: "italic",
+                        fontWeight: 500,
+                        fontSize: 24,
+                        lineHeight: 1.05,
+                        color: "var(--accent)",
+                        textAlign: "right",
+                        transform: "translateY(2px)",
+                      }}
                     >
                       {i + 1}
                     </span>
@@ -233,10 +254,15 @@ export default async function RecipeDetailPage({ params }: Props) {
               ) : (
                 <>
                   {recipe.tags.map((tag) => (
-                    <TagChip key={tag.id || tag.name} name={tag.name} />
+                    <Chip key={tag.id || tag.name} label={tag.name} />
                   ))}
                   {recipe.seasons?.map((season) => (
-                    <SeasonBadge key={season} season={season} />
+                    <Chip
+                      key={season}
+                      label={
+                        t.seasons[season as keyof typeof t.seasons] ?? season
+                      }
+                    />
                   ))}
                 </>
               )}
