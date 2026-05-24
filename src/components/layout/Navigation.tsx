@@ -40,11 +40,13 @@ type NavigationProps = {
 export default function Navigation({ hideWordmark = false }: NavigationProps) {
   const pathname = usePathname();
   const keyboardOpen = useKeyboardOpen();
+  // Home page renders its own Mijote heading — skip the fixed wordmark there.
+  const showWordmark = !hideWordmark && pathname !== "/home";
 
   return (
     <>
       {/* Desktop-only wordmark (top-left, fixed) */}
-      {!hideWordmark && (
+      {showWordmark && (
       <div
         aria-hidden="true"
         className="pointer-events-none fixed left-6 top-6 z-40 hidden items-center gap-2 lg:flex"
@@ -101,7 +103,7 @@ export default function Navigation({ hideWordmark = false }: NavigationProps) {
                 >
                   {isAdd ? (
                     <span
-                      className="flex h-12 w-12 items-center justify-center rounded-full text-white"
+                      className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white"
                       style={{
                         background: "var(--btn-gradient)",
                         boxShadow: "var(--btn-shadow)",
