@@ -254,7 +254,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                             id={`tag-option-${idx}`}
                             data-index={idx}
                             role="option"
-                            aria-selected={isActive}
+                            aria-selected={false}
                             className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${
                               isActive
                                 ? "font-medium text-foreground"
@@ -271,21 +271,22 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                             }}
                             onMouseEnter={() => setActiveIndex(idx)}
                           >
-                            {isActive && (
-                              <svg
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="var(--accent)"
-                                strokeWidth={2.5}
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                aria-hidden="true"
-                              >
-                                <path d="M20 6 9 17l-5-5" />
-                              </svg>
-                            )}
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="var(--accent)"
+                              strokeWidth={2.5}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                              style={{
+                                visibility: isActive ? "visible" : "hidden",
+                              }}
+                            >
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
                             {tag.name}
                           </li>
                         );
@@ -298,7 +299,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                     id={`tag-option-${itemIndex}`}
                     data-index={itemIndex}
                     role="option"
-                    aria-selected={itemIndex === activeIndex}
+                    aria-selected={false}
                     className={`flex cursor-pointer items-center gap-2 border-t border-border px-3 py-2 text-sm ${
                       itemIndex === activeIndex
                         ? "font-medium text-foreground"
@@ -316,21 +317,22 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                     }}
                     onMouseEnter={() => setActiveIndex(itemIndex)}
                   >
-                    {itemIndex === activeIndex && (
-                      <svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="var(--accent)"
-                        strokeWidth={2.5}
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        aria-hidden="true"
-                      >
-                        <path d="M20 6 9 17l-5-5" />
-                      </svg>
-                    )}
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--accent)"
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      style={{
+                        visibility: itemIndex === activeIndex ? "visible" : "hidden",
+                      }}
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
                     Créer &lsquo;{query.trim()}&rsquo;
                   </li>
                 )}

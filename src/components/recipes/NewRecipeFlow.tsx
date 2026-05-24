@@ -56,7 +56,7 @@ export default function NewRecipeFlow() {
             color: "var(--foreground)",
           }}
         >
-          {view === "intent" ? t.import.title : t.actions.addRecipe}
+          {t.import.title}
         </h1>
       </div>
 

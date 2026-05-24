@@ -27,16 +27,11 @@ export const t = {
   form: {
     titleLabel: "Titre",
     titlePlaceholder: "Nom de la recette",
-    titleRequired: "(requis)",
     ingredientsLabel: "Ingrédients",
     ingredientsPlaceholder: "Un ingrédient par ligne…",
-    ingredientsOptional: "(optionnel)",
     stepsLabel: "Préparation",
     stepsPlaceholder: "Une étape par ligne…",
-    stepsOptional: "(optionnel)",
     tagsLabel: "Tags",
-    tagsOptional: "(optionnel)",
-    photoOptional: "(optionnel)",
   },
 
   // Recipe detail

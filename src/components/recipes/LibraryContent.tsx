@@ -197,12 +197,28 @@ export default function LibraryContent({
           </div>
         ) : (
           <div className="mx-auto mt-12 max-w-xs px-4 text-center">
-            <p className="text-lg font-medium text-foreground">
+            <div className="mb-4 flex justify-center" style={{ opacity: 0.6 }}>
+              <CocotteIllustration size={56} accent="var(--accent)" />
+            </div>
+            <p
+              className="text-foreground"
+              style={{
+                fontFamily: "var(--font-fraunces)",
+                fontVariationSettings: '"opsz" 144',
+                fontStyle: "italic",
+                fontWeight: 500,
+                fontSize: 20,
+                lineHeight: 1.15,
+                letterSpacing: "-0.01em",
+              }}
+            >
               {isSearching ? t.empty.searchTitle : t.filters.noResults}
             </p>
-            <p className="mt-2 text-muted-foreground">
-              {isSearching ? t.empty.searchBody : ""}
-            </p>
+            {isSearching && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t.empty.searchBody}
+              </p>
+            )}
           </div>
         )
       ) : (

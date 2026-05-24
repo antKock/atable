@@ -163,12 +163,13 @@ export default function FilterBar({
           type="button"
           aria-pressed={filters.season}
           onClick={toggleSeason}
-          className={`flex h-8 flex-none items-center rounded-full px-3 text-[13px] font-medium transition-colors ${
+          className={`flex h-8 flex-none items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
             filters.season
-              ? "bg-accent text-accent-foreground"
+              ? "border border-transparent bg-accent/10 text-accent"
               : "border border-border bg-background text-foreground"
           }`}
         >
+          {filters.season && <Check size={12} strokeWidth={2.5} />}
           {t.filters.deSaison}
         </button>
 

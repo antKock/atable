@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "atable_device_token";
 
@@ -13,16 +13,13 @@ export function getDeviceToken(): string {
   return token;
 }
 
-// Mount-only read: localStorage is not reactive, so we don't subscribe to
-// updates. useSyncExternalStore gives us a hydration-safe way to read it
-// once on mount (server snapshot = null, client snapshot = token).
-const noopSubscribe = () => () => {};
-const serverSnapshot = (): string | null => null;
-
 export function useDeviceToken(): string | null {
-  return useSyncExternalStore(
-    noopSubscribe,
-    () => getDeviceToken(),
-    serverSnapshot,
-  );
+  const [token, setToken] = useState<string | null>(null);
+  useEffect(() => {
+    // One-shot mount-only read from localStorage. setState here is the
+    // intent — we don't want to subscribe to anything, just hydrate once.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setToken(getDeviceToken());
+  }, []);
+  return token;
 }

@@ -86,11 +86,8 @@ function FieldLabel({
   optional?: boolean;
   htmlFor?: string;
 }) {
-  return (
-    <label
-      htmlFor={htmlFor}
-      className="mb-2 block text-sm font-medium text-foreground"
-    >
+  const inner = (
+    <>
       {children}
       {required && (
         <span className="ml-1.5 text-xs font-normal text-muted-foreground">
@@ -102,7 +99,16 @@ function FieldLabel({
           optionnel
         </span>
       )}
-    </label>
+    </>
+  );
+  const className = "mb-2 block text-sm font-medium text-foreground";
+  // Render <label> only when bound to a real form control; otherwise <div>
+  // to avoid orphan <label> elements above ChipSelector groups (which expose
+  // their own role="group" + aria-label).
+  return htmlFor ? (
+    <label htmlFor={htmlFor} className={className}>{inner}</label>
+  ) : (
+    <div className={className}>{inner}</div>
   );
 }
 

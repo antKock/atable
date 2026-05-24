@@ -154,7 +154,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         <Link
           href="/home"
           aria-label={t.a11y.backButton}
-          className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-foreground transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           style={{
             background: "#fff",
             boxShadow:

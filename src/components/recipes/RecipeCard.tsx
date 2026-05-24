@@ -36,11 +36,9 @@ export default function RecipeCard({
   const isCarousel = variant === "carousel";
   const imageUrl = recipe.photoUrl ?? recipe.generatedImageUrl;
   const duration = formatDuration(recipe.prepTime, recipe.cookTime);
-
-  const subtitleParts: string[] = [];
-  if (duration) subtitleParts.push(duration);
-  if (recipe.cost) subtitleParts.push(recipe.cost);
-  const subtitle = subtitleParts.join(" · ");
+  // Always render the subtitle line with "—" placeholders so cards keep a
+  // uniform height — metadata arrives ~20s later via AI enrichment.
+  const subtitle = `${duration ?? "—"} · ${recipe.cost ?? "—"}`;
 
   return (
     <Link
@@ -83,11 +81,9 @@ export default function RecipeCard({
         <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
           {recipe.title}
         </p>
-        {subtitle && (
-          <p className="mt-1 text-xs leading-tight text-muted-foreground">
-            {subtitle}
-          </p>
-        )}
+        <p className="mt-1 text-xs leading-tight text-muted-foreground">
+          {subtitle}
+        </p>
       </div>
     </Link>
   );
