@@ -75,7 +75,7 @@ export default function SupportPage() {
         <H2 id="contact">Nous écrire</H2>
         <P>
           Pour toute demande — assistance, signalement de bug, suggestion,
-          exercice de vos droits RGPD :{" "}
+          exercice de tes droits RGPD :{" "}
           <a
             href={`mailto:${contactEmail}?subject=${encodeURIComponent("Support Mijote")}`}
             className="text-foreground underline underline-offset-2 hover:no-underline"
@@ -85,19 +85,19 @@ export default function SupportPage() {
           .
         </P>
         <P>
-          Pour aider au diagnostic, merci d&apos;indiquer dans votre message :
+          Pour aider au diagnostic, merci d&apos;indiquer dans ton message :
         </P>
         <ul className="my-3 list-disc space-y-1 pl-6 text-foreground/90">
           <li>Le modèle d&apos;appareil (iPhone, navigateur).</li>
-          <li>L&apos;action que vous tentiez de faire.</li>
-          <li>Ce que vous voyez à l&apos;écran (capture si possible).</li>
+          <li>L&apos;action que tu tentais de faire.</li>
+          <li>Ce que tu vois à l&apos;écran (capture si possible).</li>
         </ul>
 
         <H2 id="faq">Questions fréquentes</H2>
 
         <FAQ question="Comment ajouter une recette ?">
           <p>
-            Depuis l&apos;écran d&apos;accueil, appuyez sur le bouton{" "}
+            Depuis l&apos;écran d&apos;accueil, appuie sur le bouton{" "}
             <strong>+ Ajouter</strong>. Trois choix :
           </p>
           <ul className="list-disc space-y-1 pl-5">
@@ -106,11 +106,11 @@ export default function SupportPage() {
               le titre, les ingrédients et les étapes.
             </li>
             <li>
-              <strong>Dictée vocale</strong> — vous parlez, on transcrit et on
+              <strong>Dictée vocale</strong> — tu parles, on transcrit et on
               structure.
             </li>
             <li>
-              <strong>Lien URL</strong> — collez l&apos;adresse d&apos;un blog
+              <strong>Lien URL</strong> — colle l&apos;adresse d&apos;un blog
               culinaire, on récupère et on met en forme.
             </li>
           </ul>
@@ -122,29 +122,29 @@ export default function SupportPage() {
 
         <FAQ question="Comment partager mon foyer avec ma famille ?">
           <p>
-            Ouvrez l&apos;écran <strong>Foyer</strong> depuis la barre de
+            Ouvre l&apos;écran <strong>Foyer</strong> depuis la barre de
             navigation. Le <strong>code d&apos;invitation</strong> y est
-            affiché (ex. <code>THYME-0421</code>). Communiquez-le à la personne
-            que vous voulez ajouter : elle l&apos;entrera sur l&apos;écran
+            affiché (ex. <code>THYME-0421</code>). Communique-le à la personne
+            que tu veux ajouter : elle l&apos;entrera sur l&apos;écran
             d&apos;accueil de l&apos;application.
           </p>
           <p>
-            ⚠️ Le code fait office de clé d&apos;accès : ne le partagez
+            ⚠️ Le code fait office de clé d&apos;accès : ne le partage
             qu&apos;avec les personnes de confiance.
           </p>
         </FAQ>
 
         <FAQ question="J'ai perdu mon code d'invitation, comment retrouver mon foyer ?">
           <p>
-            Si un appareil est encore connecté au foyer, ouvrez l&apos;écran{" "}
+            Si un appareil est encore connecté au foyer, ouvre l&apos;écran{" "}
             <strong>Foyer</strong> : le code y est toujours visible.
           </p>
           <p>
-            Si plus aucun appareil n&apos;est connecté et que vous avez perdu
+            Si plus aucun appareil n&apos;est connecté et que tu as perdu
             le code, le foyer ne peut malheureusement plus être récupéré.
             C&apos;est le revers de la médaille d&apos;une authentification
             anonyme — nous ne stockons ni e-mail ni mot de passe pour vérifier
-            votre identité.
+            ton identité.
           </p>
         </FAQ>
 
@@ -153,25 +153,25 @@ export default function SupportPage() {
           <ul className="list-disc space-y-1 pl-5">
             <li>
               <strong>Photo trop floue ou texte trop petit</strong> —
-              rapprochez-vous, prenez plusieurs clichés.
+              rapproche-toi, prends plusieurs clichés.
             </li>
             <li>
               <strong>Page web protégée</strong> (paywall, JavaScript lourd) —
-              copiez le texte de la recette et utilisez la saisie manuelle.
+              copie le texte de la recette et utilise la saisie manuelle.
             </li>
             <li>
               <strong>Dictée vocale dans un endroit bruyant</strong> —
-              réessayez au calme.
+              réessaie au calme.
             </li>
           </ul>
           <p>
-            En dernier recours, vous pouvez créer la recette manuellement
+            En dernier recours, tu peux créer la recette manuellement
             depuis le bouton <strong>+ Ajouter → Saisie manuelle</strong>.
           </p>
         </FAQ>
 
         <FAQ question="Comment supprimer mes données ?">
-          <p>Vous avez le contrôle total depuis l&apos;application :</p>
+          <p>Tu as le contrôle total depuis l&apos;application :</p>
           <ul className="list-disc space-y-1 pl-5">
             <li>
               <strong>Supprimer une recette</strong> : depuis sa page,
@@ -191,7 +191,7 @@ export default function SupportPage() {
           </ul>
           <p>
             Pour toute autre demande RGPD (accès, copie, portabilité),
-            contactez-nous par e-mail à l&apos;adresse plus haut.
+            contacte-nous par e-mail à l&apos;adresse plus haut.
           </p>
         </FAQ>
 
@@ -213,9 +213,9 @@ export default function SupportPage() {
             >
               mijote.anthonykocken.fr
             </a>
-            . Vous pouvez l&apos;utiliser depuis n&apos;importe quel
+            . Tu peux l&apos;utiliser depuis n&apos;importe quel
             navigateur, et l&apos;ajouter à l&apos;écran d&apos;accueil de
-            votre téléphone (mode PWA).
+            ton téléphone (mode PWA).
           </p>
         </FAQ>
 
