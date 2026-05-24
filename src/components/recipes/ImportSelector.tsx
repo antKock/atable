@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Image, Link2, AlignLeft, ChevronRight, Upload, Plus, X, Loader2, Mic, Square } from "lucide-react";
+import NextImage from "next/image";
+import { Image as ImageIcon, Link2, AlignLeft, ChevronRight, Upload, Plus, X, Loader2, Mic, Square } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import { haptics } from "@/lib/haptics";
 import { resizeImageToBase64 } from "@/lib/image-resize";
@@ -228,7 +229,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
         onClick={() => expanded !== "screenshot" && toggleCard("screenshot")}
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[rgba(110,122,56,0.12)]">
-          <Image size={20} className="text-accent" />
+          <ImageIcon size={20} className="text-accent" aria-hidden="true" />
         </div>
         <div className="min-w-0 flex-1">
           <h3 className="text-base font-semibold">{t.import.screenshot.title}</h3>
@@ -291,10 +292,13 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                       key={entry.key} /* F14 */
                       className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[10px] border-[1.5px] border-border"
                     >
-                      <img
+                      <NextImage
                         src={entry.previewUrl}
                         alt=""
-                        className="h-full w-full object-cover"
+                        fill
+                        sizes="72px"
+                        className="object-cover"
+                        unoptimized
                       />
                       <button
                         type="button"

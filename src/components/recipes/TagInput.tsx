@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { t } from "@/lib/i18n/fr";
-import TagChip from "./TagChip";
+import Chip from "./Chip";
 import type { Tag } from "@/types/recipe";
 
 const CATEGORY_ORDER = [
@@ -181,9 +181,9 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
       {selectedTags.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">
           {selectedTags.map((tag) => (
-            <TagChip
+            <Chip
               key={tag.id}
-              name={tag.name}
+              label={tag.name}
               editable
               onRemove={() => onRemove(tag.id)}
             />
@@ -213,7 +213,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
         onKeyDown={handleKeyDown}
         placeholder="Ajouter un tag…"
         autoComplete="off"
-        className="h-12 w-full rounded-md border border-border bg-background px-3 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-accent"
+        className="h-12 w-full rounded-[10px] border border-border bg-surface px-3 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
 
       {/* Dropdown */}
@@ -230,30 +230,63 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
               <>
                 {sortedGroups.map(([category, tags]) => (
                   <li key={category} role="group" aria-label={category}>
-                    <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                    <div
+                      className="px-3 pt-2 pb-1"
+                      style={{
+                        fontFamily: "var(--font-fraunces)",
+                        fontVariationSettings: '"opsz" 144',
+                        fontStyle: "italic",
+                        fontWeight: 500,
+                        fontSize: 12,
+                        color: "var(--accent)",
+                        letterSpacing: "-0.005em",
+                      }}
+                    >
                       {category}
                     </div>
                     <ul role="group">
                       {tags.map((tag) => {
                         const idx = itemIndex++;
+                        const isActive = idx === activeIndex;
                         return (
                           <li
                             key={tag.id}
                             id={`tag-option-${idx}`}
                             data-index={idx}
                             role="option"
-                            aria-selected={idx === activeIndex}
-                            className={`cursor-pointer px-3 py-2 text-sm ${
-                              idx === activeIndex
-                                ? "bg-accent text-white"
+                            aria-selected={false}
+                            className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${
+                              isActive
+                                ? "font-medium text-foreground"
                                 : "text-foreground hover:bg-secondary"
                             }`}
+                            style={{
+                              background: isActive
+                                ? "var(--chip-bg-selected)"
+                                : undefined,
+                            }}
                             onMouseDown={(e) => {
                               e.preventDefault();
                               selectTag(tag);
                             }}
                             onMouseEnter={() => setActiveIndex(idx)}
                           >
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="var(--accent)"
+                              strokeWidth={2.5}
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                              style={{
+                                visibility: isActive ? "visible" : "hidden",
+                              }}
+                            >
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
                             {tag.name}
                           </li>
                         );
@@ -266,18 +299,40 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                     id={`tag-option-${itemIndex}`}
                     data-index={itemIndex}
                     role="option"
-                    aria-selected={itemIndex === activeIndex}
-                    className={`cursor-pointer border-t border-border px-3 py-2 text-sm ${
+                    aria-selected={false}
+                    className={`flex cursor-pointer items-center gap-2 border-t border-border px-3 py-2 text-sm ${
                       itemIndex === activeIndex
-                        ? "bg-accent text-white"
+                        ? "font-medium text-foreground"
                         : "text-foreground hover:bg-secondary"
                     }`}
+                    style={{
+                      background:
+                        itemIndex === activeIndex
+                          ? "var(--chip-bg-selected)"
+                          : undefined,
+                    }}
                     onMouseDown={(e) => {
                       e.preventDefault();
                       createTag();
                     }}
                     onMouseEnter={() => setActiveIndex(itemIndex)}
                   >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="var(--accent)"
+                      strokeWidth={2.5}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                      style={{
+                        visibility: itemIndex === activeIndex ? "visible" : "hidden",
+                      }}
+                    >
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
                     Créer &lsquo;{query.trim()}&rsquo;
                   </li>
                 )}

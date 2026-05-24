@@ -98,7 +98,7 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
           }}
         >
           Tu pourras inviter d&apos;autres personnes à le rejoindre.
-          Vos recettes seront partagées au sein du foyer.
+          Tes recettes seront partagées au sein du foyer.
         </p>
 
         <div className="relative" style={{ marginTop: '28px' }}>

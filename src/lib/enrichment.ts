@@ -86,10 +86,7 @@ async function generateAndUploadImage(
 
 // ---------- Main enrichment pipeline ----------
 
-export async function enrichRecipe(
-  recipeId: string,
-  isCreate: boolean,
-): Promise<void> {
+export async function enrichRecipe(recipeId: string): Promise<void> {
   const supabase = createServerClient();
 
   try {

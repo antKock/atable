@@ -5,6 +5,7 @@ import { JoinCodeSchema } from '@/lib/schemas/household'
 import { joinRateLimit } from '@/lib/redis'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
+import { t } from '@/lib/i18n/fr'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     const { success } = await joinRateLimit.limit(ip)
     if (!success) {
       return NextResponse.json(
-        { error: 'Trop de tentatives, réessayez plus tard' },
+        { error: t.join.rateLimited },
         { status: 429 }
       )
     }

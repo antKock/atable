@@ -10,12 +10,11 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Navigation", () => {
-  it("renders all three navigation items (Story 1.4)", () => {
+  it("exposes all three navigation items via aria-label (Lot 6 pill)", () => {
     render(<Navigation />);
-    expect(screen.getAllByText("Accueil").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Bibliothèque").length).toBeGreaterThan(0);
-    const addLinks = screen.getAllByRole("link", { name: /ajouter/i });
-    expect(addLinks.length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /accueil/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /bibliothèque/i }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("link", { name: /ajouter/i }).length).toBeGreaterThan(0);
   });
 
   it("renders links pointing to correct hrefs", () => {
@@ -37,18 +36,16 @@ describe("Navigation", () => {
     expect(activeLinks[0].getAttribute("href")).toBe("/home");
   });
 
-  it("renders two nav elements (mobile bottom + desktop side rail)", () => {
+  it("renders a single floating pill nav (Lot 6 unification)", () => {
     const { container } = render(<Navigation />);
-    expect(container.querySelectorAll("nav").length).toBe(2);
+    expect(container.querySelectorAll("nav").length).toBe(1);
   });
 
-  it("hides mobile nav on large screens via lg:hidden class (Story 1.4)", () => {
+  it("pill is centered horizontally and fixed at bottom (Lot 6)", () => {
     const { container } = render(<Navigation />);
-    // Mobile nav uses lg:hidden; desktop rail uses lg:flex
-    const navElements = container.querySelectorAll("nav");
-    const mobileNav = navElements[0];
-    const desktopNav = navElements[1];
-    expect(mobileNav.className).toContain("lg:hidden");
-    expect(desktopNav.className).toContain("lg:flex");
+    const nav = container.querySelector("nav")!;
+    expect(nav.className).toContain("fixed");
+    expect(nav.className).toContain("left-1/2");
+    expect(nav.className).toContain("z-50");
   });
 });

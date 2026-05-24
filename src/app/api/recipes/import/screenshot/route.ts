@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { ImportScreenshotSchema } from "@/lib/schemas/import";
 import { extractRecipeFromImages } from "@/lib/import";
+import { t } from "@/lib/i18n/fr";
 
 export async function POST(request: Request) {
   try {
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     const status = (error as { status?: number }).status;
     if (status === 429) {
       return NextResponse.json(
-        { error: "Trop de requêtes, réessayez dans quelques instants" },
+        { error: t.import.errorRateLimit },
         { status: 429 },
       );
     }

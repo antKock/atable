@@ -57,7 +57,7 @@ export async function GET(request: NextRequest) {
     const recipes = (data ?? []).map(mapDbRowToRecipeListItem);
 
     return NextResponse.json(recipes);
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Erreur serveur" },
       { status: 500 }
@@ -111,11 +111,11 @@ export async function POST(request: NextRequest) {
     revalidatePath("/recipes/[id]", "page");
 
     after(async () => {
-      await enrichRecipe(data.id, true);
+      await enrichRecipe(data.id);
     });
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
-  } catch (err) {
+  } catch {
     return NextResponse.json(
       { error: "Erreur serveur" },
       { status: 500 }

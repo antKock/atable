@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
 import { joinRateLimit } from '@/lib/redis'
+import { t } from '@/lib/i18n/fr'
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get('code') ?? ''
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   const { success } = await joinRateLimit.limit(ip)
   if (!success) {
     return NextResponse.json(
-      { error: 'Trop de tentatives, réessayez plus tard' },
+      { error: t.join.rateLimited },
       { status: 429 }
     )
   }

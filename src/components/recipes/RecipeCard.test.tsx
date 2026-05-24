@@ -25,11 +25,9 @@ describe("RecipeCard", () => {
     expect(link.getAttribute("href")).toBe("/recipes/abc-123");
   });
 
-  it("displays the recipe title in the overlay", () => {
+  it("displays the recipe title below the photo", () => {
     render(<RecipeCard recipe={baseRecipe} />);
-    // Use getAllByText since the title also appears as aria-label on the link
-    const matches = screen.getAllByText("Poulet rôti");
-    expect(matches.length).toBeGreaterThan(0);
+    expect(screen.getByText("Poulet rôti")).not.toBeNull();
   });
 
   it("shows a warm placeholder when no photo or generated image is provided", () => {
@@ -70,7 +68,7 @@ describe("RecipeCard", () => {
     const { container } = render(
       <RecipeCard recipe={baseRecipe} variant="carousel" />
     );
-    expect(container.querySelector("a")?.className).toContain("w-56");
+    expect(container.querySelector("a")?.className).toContain("w-[62vw]");
   });
 
   it("applies full-width class in grid variant", () => {

@@ -16,6 +16,9 @@ export function getDeviceToken(): string {
 export function useDeviceToken(): string | null {
   const [token, setToken] = useState<string | null>(null);
   useEffect(() => {
+    // One-shot mount-only read from localStorage. setState here is the
+    // intent — we don't want to subscribe to anything, just hydrate once.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setToken(getDeviceToken());
   }, []);
   return token;

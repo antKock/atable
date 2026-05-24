@@ -7,6 +7,7 @@ import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
+import CocotteIllustration from "./CocotteIllustration";
 import type { CarouselSection } from "@/lib/queries/carousels";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
@@ -22,9 +23,9 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 function CarouselCardSkeleton() {
   return (
-    <div className="w-[70vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-[280px]" style={{ background: "var(--card-gradient)", boxShadow: "var(--card-shadow)" }}>
+    <div className="w-[62vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-[260px]" style={{ background: "var(--card-gradient)", boxShadow: "var(--card-shadow)" }}>
       <Skeleton className="aspect-[3/2] w-full rounded-none" />
-      <div className="px-1.5 py-2">
+      <div className="px-3 py-2.5">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="mt-1 h-3 w-1/2" />
       </div>
@@ -68,7 +69,6 @@ export default function HomeContent() {
         <Link
           href="/library?search=true"
           className="relative flex h-11 w-full items-center rounded-xl border border-input bg-surface pl-10 pr-4 text-base text-muted-foreground"
-          style={{ boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06)" }}
         >
           <Search
             size={18}
@@ -87,7 +87,21 @@ export default function HomeContent() {
         </div>
       ) : !hasRecipes ? (
         <div className="mx-auto mt-16 max-w-xs px-4 text-center">
-          <p className="text-lg font-medium text-foreground">
+          <div className="mb-5 flex justify-center">
+            <CocotteIllustration size={72} accent="var(--accent)" />
+          </div>
+          <p
+            className="text-foreground"
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontVariationSettings: '"opsz" 144',
+              fontStyle: "italic",
+              fontWeight: 500,
+              fontSize: 22,
+              lineHeight: 1.15,
+              letterSpacing: "-0.01em",
+            }}
+          >
             {t.empty.libraryTitle}
           </p>
           <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>

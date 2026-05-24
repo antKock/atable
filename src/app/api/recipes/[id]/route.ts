@@ -156,7 +156,7 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
         await regenerateImage(id);
       }
       if (contentChanged) {
-        await enrichRecipe(id, false);
+        await enrichRecipe(id);
       }
     });
 

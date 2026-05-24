@@ -20,9 +20,18 @@ import { t } from "@/lib/i18n/fr";
 interface ConfirmDeleteDialogProps {
   recipeId: string;
   triggerClassName?: string;
+  triggerIconSize?: number;
+  triggerIconStroke?: number;
+  triggerLabel?: string;
 }
 
-export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: ConfirmDeleteDialogProps) {
+export default function ConfirmDeleteDialog({
+  recipeId,
+  triggerClassName,
+  triggerIconSize,
+  triggerIconStroke,
+  triggerLabel,
+}: ConfirmDeleteDialogProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const [open, setOpen] = useState(false);
@@ -58,14 +67,30 @@ export default function ConfirmDeleteDialog({ recipeId, triggerClassName }: Conf
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t.actions.delete}
-          className={triggerClassName ?? "min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive"}
-        >
-          <Trash2 size={triggerClassName ? 16 : 20} />
-        </Button>
+        {triggerLabel ? (
+          <button
+            type="button"
+            aria-label={triggerLabel}
+            className={
+              triggerClassName ??
+              "text-xs text-muted-foreground underline underline-offset-[3px] decoration-[rgba(107,110,104,0.4)]"
+            }
+          >
+            {triggerLabel}
+          </button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t.actions.delete}
+            className={triggerClassName ?? "min-h-[44px] min-w-[44px] text-muted-foreground hover:text-destructive"}
+          >
+            <Trash2
+              size={triggerIconSize ?? (triggerClassName ? 16 : 20)}
+              strokeWidth={triggerIconStroke ?? 2}
+            />
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent showCloseButton={false}>
         <DialogHeader>

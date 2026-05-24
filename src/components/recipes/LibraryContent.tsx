@@ -10,6 +10,7 @@ import { useRecipeSearch } from "@/hooks/useRecipeSearch";
 import { Skeleton } from "@/components/ui/skeleton";
 import FilterBar from "./FilterBar";
 import RecipeCard from "./RecipeCard";
+import CocotteIllustration from "./CocotteIllustration";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
 import { matchesFilters } from "@/lib/filters";
@@ -56,8 +57,14 @@ export default function LibraryContent({
     { revalidateOnMount: true },
   );
 
-  const liveRecipes = libraryData?.recipes ?? [];
-  const liveTags = libraryData?.tags ?? [];
+  const liveRecipes = useMemo(
+    () => libraryData?.recipes ?? [],
+    [libraryData?.recipes],
+  );
+  const liveTags = useMemo(
+    () => libraryData?.tags ?? [],
+    [libraryData?.tags],
+  );
 
   const [query, setQuery] = useState("");
   const [filters, setFilters] = useState<FilterState>(() =>
@@ -138,7 +145,6 @@ export default function LibraryContent({
             aria-label={t.search.ariaLabel}
             autoFocus={autoFocusSearch}
             className="h-11 w-full rounded-xl border border-input bg-surface pl-10 pr-10 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-            style={{ boxShadow: "inset 0 2px 4px rgba(0,0,0,0.06)" }}
           />
           {isSearching && (
             <button
@@ -162,8 +168,22 @@ export default function LibraryContent({
       {/* Recipe grid */}
       {displayedRecipes.length === 0 ? (
         liveRecipes.length === 0 ? (
-          <div className="mx-auto mt-16 max-w-xs text-center">
-            <p className="text-lg font-medium text-foreground">
+          <div className="mx-auto mt-16 max-w-xs px-4 text-center">
+            <div className="mb-5 flex justify-center">
+              <CocotteIllustration size={72} accent="var(--accent)" />
+            </div>
+            <p
+              className="text-foreground"
+              style={{
+                fontFamily: "var(--font-fraunces)",
+                fontVariationSettings: '"opsz" 144',
+                fontStyle: "italic",
+                fontWeight: 500,
+                fontSize: 22,
+                lineHeight: 1.15,
+                letterSpacing: "-0.01em",
+              }}
+            >
               {t.empty.libraryTitle}
             </p>
             <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
@@ -177,12 +197,28 @@ export default function LibraryContent({
           </div>
         ) : (
           <div className="mx-auto mt-12 max-w-xs px-4 text-center">
-            <p className="text-lg font-medium text-foreground">
+            <div className="mb-4 flex justify-center" style={{ opacity: 0.6 }}>
+              <CocotteIllustration size={56} accent="var(--accent)" />
+            </div>
+            <p
+              className="text-foreground"
+              style={{
+                fontFamily: "var(--font-fraunces)",
+                fontVariationSettings: '"opsz" 144',
+                fontStyle: "italic",
+                fontWeight: 500,
+                fontSize: 20,
+                lineHeight: 1.15,
+                letterSpacing: "-0.01em",
+              }}
+            >
               {isSearching ? t.empty.searchTitle : t.filters.noResults}
             </p>
-            <p className="mt-2 text-muted-foreground">
-              {isSearching ? t.empty.searchBody : ""}
-            </p>
+            {isSearching && (
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t.empty.searchBody}
+              </p>
+            )}
           </div>
         )
       ) : (

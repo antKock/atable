@@ -12,6 +12,7 @@ import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import PhotoManager from "./PhotoManager";
 import TagInput from "./TagInput";
 import ChipSelector from "./ChipSelector";
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import type { Recipe, Tag } from "@/types/recipe";
 
 const PREP_TIME_OPTIONS = ["< 10 min", "10-20 min", "20-30 min", "30-45 min", "> 45 min"];
@@ -44,6 +45,72 @@ interface EditProps {
 }
 
 type RecipeFormProps = CreateProps | EditProps;
+
+function ActLabel({
+  children,
+  hint,
+}: {
+  children: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <div className="mb-4 mt-2">
+      <div
+        style={{
+          fontFamily: "var(--font-fraunces)",
+          fontVariationSettings: '"opsz" 144',
+          fontStyle: "italic",
+          fontWeight: 500,
+          fontSize: 18,
+          color: "var(--accent)",
+          letterSpacing: "-0.005em",
+        }}
+      >
+        {children}
+      </div>
+      {hint && (
+        <p className="mt-0.5 text-xs italic text-muted-foreground">{hint}</p>
+      )}
+    </div>
+  );
+}
+
+function FieldLabel({
+  children,
+  required,
+  optional,
+  htmlFor,
+}: {
+  children: React.ReactNode;
+  required?: boolean;
+  optional?: boolean;
+  htmlFor?: string;
+}) {
+  const inner = (
+    <>
+      {children}
+      {required && (
+        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+          requis
+        </span>
+      )}
+      {optional && (
+        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
+          optionnel
+        </span>
+      )}
+    </>
+  );
+  const className = "mb-2 block text-sm font-medium text-foreground";
+  // Render <label> only when bound to a real form control; otherwise <div>
+  // to avoid orphan <label> elements above ChipSelector groups (which expose
+  // their own role="group" + aria-label).
+  return htmlFor ? (
+    <label htmlFor={htmlFor} className={className}>{inner}</label>
+  ) : (
+    <div className={className}>{inner}</div>
+  );
+}
 
 export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }: RecipeFormProps) {
   const router = useRouter();
@@ -122,7 +189,6 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
         mutate("/api/library");
         router.push(`/recipes/${recipeId}`);
 
-        // Fire-and-forget background upload after redirect (same pattern as create mode)
         if (photoFile) {
           uploadPhoto(photoFile, recipeId).then((result) => {
             if ("error" in result) {
@@ -131,7 +197,6 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
           });
         }
       } else {
-        // Create: POST text first, then upload photo in background
         const response = await fetch("/api/recipes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -159,7 +224,6 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
         mutate("/api/library");
         router.push("/home");
 
-        // Fire-and-forget background upload after redirect
         if (photoFile) {
           uploadPhoto(photoFile, created.id).then((result) => {
             if ("error" in result) {
@@ -182,15 +246,15 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col">
+      {/* ===== ACT 1 — L'essentiel ===== */}
+      <ActLabel>L&apos;essentiel</ActLabel>
+
       {/* Title */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="title" className="text-sm font-medium text-foreground">
-          {t.form.titleLabel}{" "}
-          <span className="font-normal text-muted-foreground">
-            {t.form.titleRequired}
-          </span>
-        </label>
+      <div className="mb-6">
+        <FieldLabel htmlFor="title" required>
+          {t.form.titleLabel}
+        </FieldLabel>
         <Input
           id="title"
           type="text"
@@ -203,39 +267,11 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
         />
       </div>
 
-      {/* Photo */}
-      <PhotoManager
-        currentPhotoUrl={isEdit && !photoRemoved ? initialData.photoUrl : null}
-        currentGeneratedUrl={isEdit && !photoRemoved ? initialData.generatedImageUrl : null}
-        previewFile={photoFile}
-        regenerateRequested={regenerateRequested}
-        onRegenerate={() => {
-          setRegenerateRequested(true);
-          setPhotoFile(null);
-        }}
-        onReplace={(file) => {
-          setPhotoFile(file);
-          setPhotoRemoved(false);
-          setRegenerateRequested(false);
-        }}
-        onRemove={() => {
-          setPhotoFile(null);
-          setPhotoRemoved(true);
-          setRegenerateRequested(false);
-        }}
-      />
-
       {/* Ingredients */}
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="ingredients"
-          className="text-sm font-medium text-foreground"
-        >
-          {t.form.ingredientsLabel}{" "}
-          <span className="font-normal text-muted-foreground">
-            {t.form.ingredientsOptional}
-          </span>
-        </label>
+      <div className="mb-6">
+        <FieldLabel htmlFor="ingredients" optional>
+          {t.form.ingredientsLabel}
+        </FieldLabel>
         <Textarea
           id="ingredients"
           value={ingredients ?? ""}
@@ -247,13 +283,10 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
       </div>
 
       {/* Steps */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="steps" className="text-sm font-medium text-foreground">
-          {t.form.stepsLabel}{" "}
-          <span className="font-normal text-muted-foreground">
-            {t.form.stepsOptional}
-          </span>
-        </label>
+      <div className="mb-6">
+        <FieldLabel htmlFor="steps" optional>
+          {t.form.stepsLabel}
+        </FieldLabel>
         <Textarea
           id="steps"
           value={steps ?? ""}
@@ -264,62 +297,60 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
         />
       </div>
 
-      {/* Tags */}
-      <div className="flex flex-col gap-1.5">
-        <label className="text-sm font-medium text-foreground">
-          {t.form.tagsLabel}{" "}
-          <span className="font-normal text-muted-foreground">
-            {t.form.tagsOptional}
-          </span>
-        </label>
-        <TagInput
-          selectedTags={selectedTags}
-          onAdd={handleAddTag}
-          onRemove={handleRemoveTag}
+      {/* ===== ACT 2 — Les détails ===== */}
+      <ActLabel hint="Mijote complète si tu laisses vide">Les détails</ActLabel>
+
+      {/* Photo */}
+      <div className="mb-6">
+        <PhotoManager
+          currentPhotoUrl={isEdit && !photoRemoved ? initialData.photoUrl : null}
+          currentGeneratedUrl={isEdit && !photoRemoved ? initialData.generatedImageUrl : null}
+          previewFile={photoFile}
+          regenerateRequested={regenerateRequested}
+          onRegenerate={() => {
+            setRegenerateRequested(true);
+            setPhotoFile(null);
+          }}
+          onReplace={(file) => {
+            setPhotoFile(file);
+            setPhotoRemoved(false);
+            setRegenerateRequested(false);
+          }}
+          onRemove={() => {
+            setPhotoFile(null);
+            setPhotoRemoved(true);
+            setRegenerateRequested(false);
+          }}
         />
       </div>
 
-      {/* Prep time & Cook time */}
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="prepTime" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            {t.metadata.prepTime}
-          </label>
-          <select
-            id="prepTime"
-            value={prepTime ?? ""}
-            onChange={(e) => setPrepTime(e.target.value || null)}
-            className="h-12 rounded-md border border-border bg-background px-3 text-base text-foreground"
-          >
-            <option value="">—</option>
-            {PREP_TIME_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="cookTime" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-            {t.metadata.cookTime}
-          </label>
-          <select
-            id="cookTime"
-            value={cookTime ?? ""}
-            onChange={(e) => setCookTime(e.target.value || null)}
-            className="h-12 rounded-md border border-border bg-background px-3 text-base text-foreground"
-          >
-            <option value="">—</option>
-            {COOK_TIME_OPTIONS.map((opt) => (
-              <option key={opt} value={opt}>{opt}</option>
-            ))}
-          </select>
-        </div>
+      {/* Prep time */}
+      <div className="mb-6">
+        <FieldLabel>{t.metadata.prepTime}</FieldLabel>
+        <ChipSelector
+          options={PREP_TIME_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+          selected={prepTime ?? ""}
+          onChange={(v) => setPrepTime((v as string) || null)}
+          mode="single"
+          label={t.metadata.prepTime}
+        />
+      </div>
+
+      {/* Cook time */}
+      <div className="mb-6">
+        <FieldLabel>{t.metadata.cookTime}</FieldLabel>
+        <ChipSelector
+          options={COOK_TIME_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+          selected={cookTime ?? ""}
+          onChange={(v) => setCookTime((v as string) || null)}
+          mode="single"
+          label={t.metadata.cookTime}
+        />
       </div>
 
       {/* Cost */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          {t.metadata.cost}
-        </span>
+      <div className="mb-6">
+        <FieldLabel>{t.metadata.cost}</FieldLabel>
         <ChipSelector
           options={COST_OPTIONS}
           selected={cost ?? ""}
@@ -330,28 +361,33 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
       </div>
 
       {/* Complexity */}
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="complexity" className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          {t.metadata.complexity}
-        </label>
-        <select
-          id="complexity"
-          value={complexity ?? ""}
-          onChange={(e) => setComplexity(e.target.value || null)}
-          className="h-12 rounded-md border border-border bg-background px-3 text-base text-foreground"
-        >
-          <option value="">—</option>
-          {COMPLEXITY_OPTIONS.map((opt) => (
-            <option key={opt} value={opt}>{t.complexity[opt as keyof typeof t.complexity]}</option>
-          ))}
-        </select>
+      <div className="mb-6">
+        <FieldLabel>{t.metadata.complexity}</FieldLabel>
+        <ChipSelector
+          options={COMPLEXITY_OPTIONS.map((opt) => ({
+            value: opt,
+            label: t.complexity[opt as keyof typeof t.complexity],
+          }))}
+          selected={complexity ?? ""}
+          onChange={(v) => setComplexity((v as string) || null)}
+          mode="single"
+          label={t.metadata.complexity}
+        />
+      </div>
+
+      {/* Tags */}
+      <div className="mb-6">
+        <FieldLabel optional>{t.form.tagsLabel}</FieldLabel>
+        <TagInput
+          selectedTags={selectedTags}
+          onAdd={handleAddTag}
+          onRemove={handleRemoveTag}
+        />
       </div>
 
       {/* Seasons */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-          {t.metadata.seasons}
-        </span>
+      <div className="mb-6">
+        <FieldLabel>{t.metadata.seasons}</FieldLabel>
         <ChipSelector
           options={SEASON_OPTIONS}
           selected={seasons}
@@ -363,23 +399,39 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
 
       {/* Submit */}
       <div
-        className={stickySubmit
-          ? "sticky bottom-0 pt-3"
-          : undefined}
-        style={stickySubmit ? {
-          paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
-          background: "linear-gradient(to bottom, transparent, var(--background) 12px)",
-        } : undefined}
+        className={stickySubmit ? "sticky bottom-0 -mx-4 px-4 pt-3" : undefined}
+        style={
+          stickySubmit
+            ? {
+                paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
+                background:
+                  "linear-gradient(to bottom, transparent, var(--background) 18px, var(--background))",
+              }
+            : undefined
+        }
       >
         <Button
           type="submit"
           size="lg"
           disabled={!canSave || isSaving}
-          className="w-full min-h-[44px]"
+          className="h-[50px] w-full min-h-[44px] rounded-xl"
         >
           {t.actions.save}
         </Button>
       </div>
+
+      {/* Delete (edit mode only) */}
+      {isEdit && (
+        <div
+          className="mt-6 text-center"
+          style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+        >
+          <ConfirmDeleteDialog
+            recipeId={recipeId}
+            triggerLabel="Supprimer cette recette"
+          />
+        </div>
+      )}
     </form>
   );
 }

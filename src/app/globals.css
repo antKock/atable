@@ -81,15 +81,11 @@
   --shimmer-highlight: #F0EDE8;
   --reveal-duration: 300ms;
 
-  /* v3 — Tag chips */
-  --tag-chip-bg: rgba(110, 122, 56, 0.12);
-  --tag-chip-text: #4A5225;
-
-  /* v3 — Season accents */
-  --season-spring: #7CB342;
-  --season-summer: #F4A836;
-  --season-autumn: #D4763D;
-  --season-winter: #5C9DC0;
+  /* v5 — Chip tokens (Lot 00 foundations) */
+  --chip-bg: rgba(26, 26, 24, 0.05);          /* neutre ultra-discret pour tags affichés */
+  --chip-text: var(--muted-foreground);
+  --chip-bg-selected: rgba(110, 122, 56, 0.10); /* olive 10% pour chips form sélectionnés */
+  --chip-text-selected: var(--accent);
 
   /* v4 — Depth & volume */
   --card-gradient: linear-gradient(168deg, #FFFFFF, #F5F7F0);
@@ -100,8 +96,8 @@
     0 14px 36px rgba(0, 0, 0, 0.04);
   --card-shadow-sm:
     0 1px 2px rgba(110, 122, 56, 0.05),
-    0 4px 12px rgba(110, 122, 56, 0.07),
-    0 12px 28px rgba(0, 0, 0, 0.03);
+    0 2px 4px rgba(110, 122, 56, 0.06),
+    0 3px 8px rgba(0, 0, 0, 0.04);
   --btn-gradient: linear-gradient(155deg, #7d8c40, #5d6a2e);
   --btn-shadow:
     0 2px 6px rgba(93, 106, 46, 0.22),
