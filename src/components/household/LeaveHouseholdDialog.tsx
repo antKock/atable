@@ -80,7 +80,7 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
         variant="ghost"
         type="button"
         onClick={() => setStep('leave')}
-        className="min-h-[44px] text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+        className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
       >
         {t.household.leaveHousehold}
       </Button>
@@ -88,7 +88,7 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
         variant="ghost"
         type="button"
         onClick={() => setStep('delete-1')}
-        className="min-h-[44px] text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+        className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
       >
         {t.household.deleteHousehold}
       </Button>
@@ -105,7 +105,7 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
                 variant="outline"
                 onClick={close}
                 disabled={isSubmitting}
-                className="min-h-[44px]"
+                className="min-h-11"
               >
                 {t.actions.cancel}
               </Button>
@@ -113,7 +113,7 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
                 variant="destructive"
                 onClick={current.onConfirm}
                 disabled={isSubmitting}
-                className="min-h-[44px]"
+                className="min-h-11"
               >
                 {current.action}
               </Button>

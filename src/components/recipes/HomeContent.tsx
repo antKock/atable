@@ -23,8 +23,8 @@ function shuffleArray<T>(arr: T[]): T[] {
 
 function CarouselCardSkeleton() {
   return (
-    <div className="w-[62vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-[260px]" style={{ background: "var(--card-gradient)", boxShadow: "var(--card-shadow)" }}>
-      <Skeleton className="aspect-[3/2] w-full rounded-none" />
+    <div className="w-[62vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-65" style={{ background: "var(--card-gradient)", boxShadow: "var(--card-shadow)" }}>
+      <Skeleton className="aspect-3/2 w-full rounded-none" />
       <div className="px-3 py-2.5">
         <Skeleton className="h-4 w-3/4" />
         <Skeleton className="mt-1 h-3 w-1/2" />
@@ -107,7 +107,7 @@ export default function HomeContent() {
           <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
           <Link
             href="/recipes/new"
-            className="mt-6 inline-flex min-h-[44px] items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            className="mt-6 inline-flex min-h-11 items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
             style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
           >
             {t.actions.addRecipe}

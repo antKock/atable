@@ -45,7 +45,7 @@ export default function RecipeCard({
       href={`/recipes/${recipe.id}`}
       aria-label={recipe.title}
       className={`group block overflow-hidden rounded-xl border border-border/40 transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-        isCarousel ? "w-[62vw] flex-none lg:w-[260px]" : "w-full"
+        isCarousel ? "w-[62vw] flex-none lg:w-65" : "w-full"
       }`}
       style={{
         background: "var(--card-gradient)",
@@ -55,7 +55,7 @@ export default function RecipeCard({
     >
       <div
         className={`relative w-full ${
-          isCarousel ? "aspect-[3/2]" : "aspect-[3/4]"
+          isCarousel ? "aspect-3/2" : "aspect-[3/4]"
         }`}
       >
         {imageUrl ? (

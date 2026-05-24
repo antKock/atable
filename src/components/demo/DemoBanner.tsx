@@ -33,7 +33,7 @@ export default function DemoBanner() {
         type="button"
         onClick={handleExit}
         disabled={loading}
-        className="min-h-[44px] shrink-0 rounded-lg px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 disabled:opacity-50"
+        className="min-h-11 shrink-0 rounded-lg px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 disabled:opacity-50"
       >
         {loading ? '…' : 'Quitter la démo'}
       </button>

@@ -67,7 +67,7 @@ export default function DeviceListItem({ device, isCurrentDevice, onRevoke }: Pr
                 <Button
                   variant="outline"
                   onClick={() => setOpen(false)}
-                  className="min-h-[44px]"
+                  className="min-h-11"
                 >
                   {t.actions.cancel}
                 </Button>
@@ -77,7 +77,7 @@ export default function DeviceListItem({ device, isCurrentDevice, onRevoke }: Pr
                     setOpen(false)
                     onRevoke(device.id)
                   }}
-                  className="min-h-[44px]"
+                  className="min-h-11"
                 >
                   {t.household.revokeDevice}
                 </Button>

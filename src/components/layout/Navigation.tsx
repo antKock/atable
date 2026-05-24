@@ -107,8 +107,6 @@ export default function Navigation({ hideWordmark = false }: NavigationProps) {
                       style={{
                         background: "var(--btn-gradient)",
                         boxShadow: "var(--btn-shadow)",
-                        // Débordant légèrement en haut — signale l'action principale
-                        transform: "translateY(-2px)",
                       }}
                     >
                       <Icon size={22} strokeWidth={2.5} />
