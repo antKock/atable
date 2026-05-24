@@ -22,8 +22,10 @@ export default async function HomePage({ searchParams }: Props) {
   return (
     <div className="pb-6 pt-6">
       <header className="mb-4 flex items-center justify-between px-4">
+        {/* Wordmark visible en mobile/tab-portrait ; sur lg+ le Nav fournit
+            déjà un wordmark fixed top-left (Lot 6 — pill universelle) */}
         <h1
-          className="text-4xl text-foreground"
+          className="text-4xl text-foreground lg:hidden"
           style={{
             fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
             fontVariationSettings: '"opsz" 144',
@@ -34,6 +36,7 @@ export default async function HomePage({ searchParams }: Props) {
         >
           Mijote
         </h1>
+        <span className="hidden lg:block" aria-hidden="true" />
         <Link
           href="/household"
           aria-label={t.household.menuButton}
