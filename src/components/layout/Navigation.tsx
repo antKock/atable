@@ -44,12 +44,12 @@ export default function Navigation() {
                         boxShadow: "var(--btn-shadow)",
                       }}
                     >
-                      <Icon size={22} strokeWidth={2.5} />
+                      <Icon size={22} strokeWidth={2.25} />
                     </span>
                   ) : (
                     <Icon
                       size={26}
-                      strokeWidth={isActive ? 2.4 : 1.8}
+                      strokeWidth={isActive ? 2 : 1.75}
                       style={{
                         color: isActive ? "var(--accent)" : "var(--nav-inactive)",
                         filter: isActive ? "drop-shadow(0 0 4px rgba(110, 122, 56, 0.35))" : "none",
