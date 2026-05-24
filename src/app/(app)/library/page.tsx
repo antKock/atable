@@ -15,7 +15,16 @@ export default async function LibraryPage({ searchParams }: Props) {
 
   return (
     <div className="pb-8 pt-6">
-      <h1 className="mb-4 px-4 text-2xl font-semibold text-foreground">
+      <h1
+        className="mb-4 px-4 text-foreground"
+        style={{
+          fontFamily: "var(--font-fraunces)",
+          fontVariationSettings: '"opsz" 144',
+          fontSize: 32,
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
+        }}
+      >
         {t.nav.library}
       </h1>
       <LibraryContent autoFocusSearch={search === "true"} />

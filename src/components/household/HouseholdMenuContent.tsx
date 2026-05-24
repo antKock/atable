@@ -48,7 +48,18 @@ export default function HouseholdMenuContent({ household, sessionId, devices }: 
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
-      <h1 className="mb-6 text-2xl font-semibold text-foreground">{t.household.menu}</h1>
+      <h1
+        className="mb-6 text-foreground"
+        style={{
+          fontFamily: "var(--font-fraunces)",
+          fontVariationSettings: '"opsz" 144',
+          fontSize: 32,
+          fontWeight: 600,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {t.household.menu}
+      </h1>
 
       {/* Household name with inline rename */}
       <div className="mb-6">

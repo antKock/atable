@@ -4,7 +4,7 @@ export default function HouseholdLoading() {
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       {/* Title */}
-      <Skeleton className="mb-6 h-8 w-36" />
+      <Skeleton className="mb-6 h-10 w-36" />
 
       {/* Household name label + value */}
       <div className="mb-6">
