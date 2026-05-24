@@ -12,18 +12,20 @@ export default async function AppShell({ children }: { children: React.ReactNode
   return (
     <>
       <DeviceTokenProvider />
-      <div className="lg:pl-56">
-        {isDemo && <DemoBanner />}
+      {/* DemoBanner stays full-width across the viewport so it doesn't
+          collide with the fixed lg+ wordmark from Navigation (Lot 6). */}
+      {isDemo && <DemoBanner />}
+      <div className="mx-auto max-w-[1100px]">
         {/* When the demo banner is shown it already clears the notch; otherwise
             the page content needs the top safe-area padding itself. */}
         <main
-          className="min-h-screen pb-24 lg:pb-0"
+          className="min-h-screen pb-28"
           style={isDemo ? undefined : { paddingTop: 'env(safe-area-inset-top)' }}
         >
           {children}
         </main>
       </div>
-      <Navigation />
+      <Navigation hideWordmark={isDemo} />
       <Toaster />
     </>
   )
