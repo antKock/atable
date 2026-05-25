@@ -180,10 +180,10 @@ Aucun bandeau de consentement aux cookies n'est donc nécessaire.
   sécurisé (inaccessible au JavaScript, signé cryptographiquement, transmis
   uniquement en HTTPS) et a une durée de vie d'un an.
 - **Stockage local du navigateur** (`localStorage`) : utilisé à des fins
-  strictement fonctionnelles — mémoriser votre préférence de thème
-  (clair/sombre), accélérer l'affichage via une mémoire tampon des données déjà
-  chargées, et conserver un identifiant technique aléatoire servant à organiser
-  le stockage de vos photos. Ces informations restent sur votre appareil.
+  strictement fonctionnelles — accélérer l'affichage via une mémoire tampon des
+  données déjà chargées, et conserver un identifiant technique aléatoire
+  servant à organiser le stockage de vos photos. Ces informations restent sur
+  votre appareil.
 
 ---
 

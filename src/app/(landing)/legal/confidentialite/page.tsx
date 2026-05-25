@@ -498,11 +498,10 @@ export default function PrivacyPolicyPage() {
           <li>
             <strong>Stockage local du navigateur</strong> (
             <code>localStorage</code>) : utilisé à des fins strictement
-            fonctionnelles — mémoriser votre préférence de thème (clair/sombre),
-            accélérer l&apos;affichage via une mémoire tampon des données déjà
-            chargées, et conserver un identifiant technique aléatoire servant à
-            organiser le stockage de vos photos. Ces informations restent sur
-            votre appareil.
+            fonctionnelles — accélérer l&apos;affichage via une mémoire tampon
+            des données déjà chargées, et conserver un identifiant technique
+            aléatoire servant à organiser le stockage de vos photos. Ces
+            informations restent sur votre appareil.
           </li>
         </UL>
 
