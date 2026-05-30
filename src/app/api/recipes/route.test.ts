@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { GET, POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
-import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 import { recipeDbRow } from "@/test/fixtures";
 
 vi.mock("@/lib/supabase/server");
@@ -73,6 +73,37 @@ describe("POST /api/recipes", () => {
 
   it("rejects an empty title with 422", async () => {
     const res = await POST(postRequest({ title: "" }));
+    expect(res.status).toBe(422);
+  });
+
+  it("records the add-method source on the inserted recipe", async () => {
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte", source: "url" }));
+    const insert = findCall(supa, "recipes")?.ops.find((o) => o.method === "insert");
+    expect((insert?.args[0] as { source?: string }).source).toBe("url");
+  });
+
+  it("records the creating device from the session header", async () => {
+    mockHeaders.mockResolvedValue(
+      new Headers({ "x-household-id": "household-1", "x-session-id": "session-9" }),
+    );
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte" }));
+    const insert = findCall(supa, "recipes")?.ops.find((o) => o.method === "insert");
+    expect((insert?.args[0] as { created_by_device_id?: string }).created_by_device_id).toBe(
+      "session-9",
+    );
+  });
+
+  it("defaults source to 'manual' when omitted", async () => {
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte" }));
+    const insert = findCall(supa, "recipes")?.ops.find((o) => o.method === "insert");
+    expect((insert?.args[0] as { source?: string }).source).toBe("manual");
+  });
+
+  it("rejects an invalid source with 422", async () => {
+    const res = await POST(postRequest({ title: "Tarte", source: "telepathy" }));
     expect(res.status).toBe(422);
   });
 

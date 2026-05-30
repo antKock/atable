@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
   try {
     const hdrs = await headers();
     const householdId = hdrs.get("x-household-id");
+    const sessionId = hdrs.get("x-session-id");
     if (!householdId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -92,6 +93,8 @@ export async function POST(request: NextRequest) {
         steps: result.data.steps ?? null,
         photo_url: result.data.photoUrl ?? null,
         household_id: householdId,
+        source: result.data.source,
+        created_by_device_id: sessionId,
         enrichment_status: "pending",
         image_status: "pending",
       })

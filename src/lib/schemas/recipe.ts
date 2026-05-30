@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+// How a recipe was added — the method that pre-filled the create form.
+export const RECIPE_SOURCES = ["manual", "url", "photo", "voice"] as const;
+export type RecipeSource = (typeof RECIPE_SOURCES)[number];
+
 export const RecipeCreateSchema = z.object({
   title: z.string().min(1, "Le titre est requis"),
   ingredients: z.string().nullable().optional(),
@@ -11,6 +15,7 @@ export const RecipeCreateSchema = z.object({
   complexity: z.string().nullable().optional(),
   seasons: z.array(z.string()).optional().default([]),
   tagIds: z.array(z.string()).optional().default([]),
+  source: z.enum(RECIPE_SOURCES).optional().default("manual"),
 });
 
 export const RecipeUpdateSchema = z.object({
