@@ -1,0 +1,192 @@
+/* Mijote usage dashboard — scoped styles. Everything lives under .mijote-dash
+   so the design tokens never leak into the main app theme. Ported from the
+   design handoff; fonts mapped onto the app's loaded next/font variables. */
+
+.mijote-dash {
+  --d-foreground: #1a1a18;
+  --d-surface: #fbf8f1;
+  --d-muted: #6b6e68;
+  --d-faint: #9a968c;
+  --d-accent: #6e7a38;
+  --d-accent-soft: rgba(110, 122, 56, 0.1);
+  --d-border: #e8e0cc;
+  --d-rule: #dcd2be;
+  --d-doc-bg: #f1ecdf;
+  --d-pos: #5d6a2e;
+  --d-neg: #b85c3d;
+
+  --d-sans: var(--font-inter), system-ui, sans-serif;
+  --d-display: var(--font-fraunces), Georgia, serif;
+  --d-mono: var(--font-dm-mono), ui-monospace, monospace;
+
+  min-height: 100vh;
+  font-family: var(--d-sans);
+  color: var(--d-foreground);
+  background: var(--d-doc-bg);
+  background-image:
+    radial-gradient(ellipse at 12% -5%, rgba(168, 180, 144, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 88% 102%, rgba(229, 222, 214, 0.2) 0%, transparent 55%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.mijote-dash .recharts-surface { overflow: visible; }
+.mijote-dash .recharts-text { font-family: var(--d-sans); }
+
+/* ===== Topbar ===== */
+.mijote-dash .topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 36px;
+  border-bottom: 1px solid var(--d-rule);
+  background: rgba(241, 236, 223, 0.85);
+  backdrop-filter: blur(8px);
+}
+.mijote-dash .brand { display: flex; align-items: center; gap: 11px; }
+.mijote-dash .brand .name {
+  font-family: var(--d-display); font-variation-settings: "opsz" 144;
+  font-style: italic; font-weight: 600; font-size: 22px; letter-spacing: -0.01em;
+}
+.mijote-dash .brand .sep { width: 1px; height: 20px; background: var(--d-rule); }
+.mijote-dash .brand .ctx {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--d-muted);
+}
+.mijote-dash .topbar-right { display: flex; align-items: center; gap: 12px; }
+.mijote-dash .toplink {
+  display: flex; align-items: center; gap: 7px; font-size: 12.5px;
+  color: var(--d-muted); text-decoration: none;
+}
+.mijote-dash .btn-ghost {
+  font-family: var(--d-sans); font-size: 12.5px; font-weight: 600;
+  color: var(--d-foreground); background: var(--d-surface);
+  border: 1px solid var(--d-border); border-radius: 9px;
+  padding: 8px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+}
+.mijote-dash .btn-ghost:hover { border-color: var(--d-rule); }
+
+/* ===== Filter bar ===== */
+.mijote-dash .filterbar {
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 14px 36px;
+  background: rgba(241, 236, 223, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--d-rule);
+}
+.mijote-dash .fgroup { display: flex; align-items: center; gap: 7px; }
+.mijote-dash .flabel {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--d-faint); margin-right: 2px;
+}
+.mijote-dash .chip {
+  font-size: 12.5px; font-weight: 500; color: var(--d-muted);
+  background: var(--d-surface); border: 1px solid var(--d-border);
+  border-radius: 999px; padding: 6px 13px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  transition: all 0.12s ease;
+}
+.mijote-dash .chip:hover { border-color: var(--d-rule); color: var(--d-foreground); }
+.mijote-dash .chip.on { background: var(--d-accent); border-color: var(--d-accent); color: #fff; }
+.mijote-dash .chip .dot { width: 7px; height: 7px; border-radius: 50%; }
+.mijote-dash .fdivider { width: 1px; height: 22px; background: var(--d-rule); margin: 0 4px; }
+.mijote-dash .fsearch {
+  font-family: var(--d-sans); font-size: 12.5px; color: var(--d-foreground);
+  background: var(--d-surface); border: 1px solid var(--d-border); border-radius: 999px;
+  padding: 7px 14px 7px 14px; width: 190px;
+}
+.mijote-dash .fsearch::placeholder { color: var(--d-faint); }
+.mijote-dash .fsearch:focus { outline: none; border-color: var(--d-accent); }
+
+/* ===== Page ===== */
+.mijote-dash .page { max-width: 1480px; margin: 0 auto; padding: 32px 36px 100px; }
+@media (max-width: 700px) {
+  .mijote-dash .page, .mijote-dash .topbar, .mijote-dash .filterbar {
+    padding-left: 18px; padding-right: 18px;
+  }
+}
+
+/* ===== KPI row ===== */
+.mijote-dash .kpi-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); gap: 16px;
+}
+@media (max-width: 560px) { .mijote-dash .kpi-row { grid-template-columns: repeat(2, 1fr); } }
+.mijote-dash .kpi {
+  background: var(--d-surface); border: 1px solid var(--d-border); border-radius: 14px;
+  padding: 16px 16px 8px; display: flex; flex-direction: column; gap: 2px;
+  position: relative; overflow: hidden;
+}
+.mijote-dash .kpi .klabel { font-size: 11.5px; font-weight: 600; color: var(--d-muted); }
+.mijote-dash .kpi .ksub { font-size: 10px; color: var(--d-faint); letter-spacing: 0.02em; }
+.mijote-dash .kpi .kval {
+  font-family: var(--d-mono); font-weight: 500; font-size: 28px; letter-spacing: -0.01em;
+  margin-top: 8px; line-height: 1; white-space: nowrap;
+}
+.mijote-dash .kpi .ktotal-line { font-size: 11px; color: var(--d-faint); margin-top: 6px; }
+.mijote-dash .kpi .kdelta {
+  font-size: 11.5px; font-weight: 600; display: inline-flex; align-items: center;
+  gap: 3px; margin-top: 6px;
+}
+.mijote-dash .kdelta.pos { color: var(--d-pos); }
+.mijote-dash .kdelta.neg { color: var(--d-neg); }
+.mijote-dash .kpi .kspark { height: 34px; margin: auto -16px -8px; }
+
+/* ===== Signals strip ===== */
+.mijote-dash .signals { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+@media (max-width: 900px) { .mijote-dash .signals { grid-template-columns: repeat(2, 1fr); } }
+.mijote-dash .signal {
+  background: linear-gradient(155deg, rgba(110, 122, 56, 0.05), rgba(110, 122, 56, 0.01));
+  border: 1px solid var(--d-border); border-radius: 14px; padding: 16px 18px;
+}
+.mijote-dash .signal.warn {
+  background: linear-gradient(155deg, rgba(184, 92, 61, 0.06), rgba(184, 92, 61, 0.01));
+  border-color: rgba(184, 92, 61, 0.18);
+}
+.mijote-dash .signal .sval { font-family: var(--d-mono); font-weight: 500; font-size: 24px; line-height: 1; }
+.mijote-dash .signal.warn .sval { color: var(--d-neg); }
+.mijote-dash .signal .slabel { font-size: 12.5px; font-weight: 600; margin-top: 8px; }
+.mijote-dash .signal .shint { font-size: 11px; color: var(--d-faint); margin-top: 3px; line-height: 1.4; }
+
+/* ===== Section ===== */
+.mijote-dash .section { margin-top: 56px; }
+.mijote-dash .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; }
+.mijote-dash .section-head .n {
+  font-family: var(--d-display); font-variation-settings: "opsz" 144;
+  font-style: italic; font-weight: 400; font-size: 30px; color: var(--d-accent);
+  letter-spacing: -0.02em; line-height: 1;
+}
+.mijote-dash .section-head h2 {
+  font-family: var(--d-display); font-variation-settings: "opsz" 144;
+  font-weight: 600; font-size: 27px; letter-spacing: -0.015em; margin: 0; line-height: 1;
+}
+.mijote-dash .section-head .meta { margin-left: auto; font-size: 11.5px; color: var(--d-faint); align-self: center; }
+
+/* ===== Cards grid ===== */
+.mijote-dash .cards { display: grid; grid-template-columns: repeat(12, 1fr); gap: 20px; }
+@media (max-width: 880px) {
+  .mijote-dash .cards { grid-template-columns: 1fr; }
+  .mijote-dash .cards > * { grid-column: 1 / -1 !important; }
+}
+.mijote-dash .card {
+  background: var(--d-surface); border: 1px solid var(--d-border); border-radius: 16px;
+  padding: 20px 22px; display: flex; flex-direction: column;
+}
+.mijote-dash .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.mijote-dash .card-title { font-size: 14.5px; font-weight: 600; letter-spacing: -0.005em; }
+.mijote-dash .card-sub { font-size: 11.5px; color: var(--d-faint); margin-top: 3px; line-height: 1.4; }
+.mijote-dash .card-badge {
+  font-family: var(--d-mono); font-size: 10px; color: var(--d-accent);
+  background: var(--d-accent-soft); border-radius: 6px; padding: 3px 8px; white-space: nowrap;
+}
+.mijote-dash .legend-inline { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.mijote-dash .legend-inline .li { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--d-muted); }
+.mijote-dash .legend-inline .sw { width: 11px; height: 3px; border-radius: 2px; }
+.mijote-dash .legend-inline .sw.dash { background-image: repeating-linear-gradient(90deg, currentColor 0 4px, transparent 4px 7px); height: 2px; }
+
+/* Empty / accumulating state for prospective charts */
+.mijote-dash .chart-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; text-align: center; color: var(--d-faint);
+  border: 1px dashed var(--d-border); border-radius: 12px;
+}
+.mijote-dash .chart-empty .ce-title { font-size: 12.5px; font-weight: 600; color: var(--d-muted); }
+.mijote-dash .chart-empty .ce-sub { font-size: 11px; max-width: 240px; line-height: 1.4; }
