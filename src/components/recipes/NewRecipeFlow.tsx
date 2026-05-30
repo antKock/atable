@@ -7,6 +7,7 @@ import { t } from "@/lib/i18n/fr";
 import ImportSelector from "./ImportSelector";
 import RecipeForm from "./RecipeForm";
 import type { ImportedRecipeData } from "@/lib/import";
+import type { RecipeSource } from "@/lib/schemas/recipe";
 
 type View = "intent" | "form";
 
@@ -14,14 +15,17 @@ export default function NewRecipeFlow() {
   const router = useRouter();
   const [view, setView] = useState<View>("intent");
   const [importedData, setImportedData] = useState<ImportedRecipeData | null>(null);
+  const [source, setSource] = useState<RecipeSource>("manual");
 
-  function handleImportComplete(data: ImportedRecipeData) {
+  function handleImportComplete(data: ImportedRecipeData, importSource: RecipeSource) {
     setImportedData(data);
+    setSource(importSource);
     setView("form");
   }
 
   function handleManual() {
     setImportedData(null);
+    setSource("manual");
     setView("form");
   }
 
@@ -74,6 +78,7 @@ export default function NewRecipeFlow() {
         <RecipeForm
           mode="create"
           initialData={importedData}
+          source={source}
           stickySubmit
         />
       )}

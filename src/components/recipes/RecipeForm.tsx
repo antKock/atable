@@ -14,6 +14,7 @@ import TagInput from "./TagInput";
 import ChipSelector from "./ChipSelector";
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import type { Recipe, Tag } from "@/types/recipe";
+import type { RecipeSource } from "@/lib/schemas/recipe";
 
 const PREP_TIME_OPTIONS = ["< 10 min", "10-20 min", "20-30 min", "30-45 min", "> 45 min"];
 const COOK_TIME_OPTIONS = ["Aucune", "< 15 min", "15-30 min", "30 min - 1h", "1h - 2h", "> 2h"];
@@ -34,6 +35,8 @@ interface CreateProps {
   mode: "create";
   initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons">> | null;
   recipeId?: never;
+  /** How the form was reached — recorded for the add-method analytics. */
+  source?: RecipeSource;
   stickySubmit?: boolean;
 }
 
@@ -41,6 +44,7 @@ interface EditProps {
   mode: "edit";
   initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags" | "photoUrl" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "generatedImageUrl">;
   recipeId: string;
+  source?: never;
   stickySubmit?: boolean;
 }
 
@@ -112,7 +116,7 @@ function FieldLabel({
   );
 }
 
-export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }: RecipeFormProps) {
+export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit }: RecipeFormProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const isEdit = mode === "edit";
@@ -210,6 +214,7 @@ export default function RecipeForm({ mode, initialData, recipeId, stickySubmit }
             cost: cost || null,
             complexity: complexity || null,
             seasons,
+            source: source ?? "manual",
           }),
         });
 

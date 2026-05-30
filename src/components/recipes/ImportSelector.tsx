@@ -8,6 +8,7 @@ import { haptics } from "@/lib/haptics";
 import { resizeImageToBase64 } from "@/lib/image-resize";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import type { ImportedRecipeData } from "@/lib/import";
+import type { RecipeSource } from "@/lib/schemas/recipe";
 
 type ExpandedCard = "screenshot" | "voice" | "url" | null;
 
@@ -20,7 +21,7 @@ interface FileWithKey {
 }
 
 interface ImportSelectorProps {
-  onImportComplete: (data: ImportedRecipeData) => void;
+  onImportComplete: (data: ImportedRecipeData, source: RecipeSource) => void;
   onManual: () => void;
 }
 
@@ -70,7 +71,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
 
         const data: ImportedRecipeData = await res.json();
         void haptics.success();
-        onImportComplete(data);
+        onImportComplete(data, "voice");
       } catch (err) {
         if ((err as Error).name !== "AbortError") {
           setError((err as Error).message || t.import.voice.error);
@@ -169,7 +170,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
 
       const data: ImportedRecipeData = await res.json();
       void haptics.success();
-      onImportComplete(data);
+      onImportComplete(data, "photo");
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         setError(t.import.error);
@@ -207,7 +208,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
 
       const data: ImportedRecipeData = await res.json();
       void haptics.success();
-      onImportComplete(data);
+      onImportComplete(data, "url");
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         setError((err as Error).message || t.import.error);
@@ -290,7 +291,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                   {fileEntries.map((entry) => (
                     <div
                       key={entry.key} /* F14 */
-                      className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-[10px] border-[1.5px] border-border"
+                      className="relative h-18 w-18 shrink-0 overflow-hidden rounded-[10px] border-[1.5px] border-border"
                     >
                       <NextImage
                         src={entry.previewUrl}
@@ -303,7 +304,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                       <button
                         type="button"
                         onClick={() => removeFile(entry.key)}
-                        className="absolute right-[3px] top-[3px] flex h-[22px] w-[22px] items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/75"
+                        className="absolute right-0.75 top-0.75 flex h-5.5 w-5.5 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/75"
                       >
                         <X size={13} />
                       </button>
@@ -313,7 +314,7 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                     <button
                       type="button"
                       onClick={() => addMoreInputRef.current?.click()}
-                      className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-[10px] border-2 border-dashed border-border text-muted-foreground transition-all hover:border-accent hover:text-accent"
+                      className="flex h-18 w-18 shrink-0 items-center justify-center rounded-[10px] border-2 border-dashed border-border text-muted-foreground transition-all hover:border-accent hover:text-accent"
                     >
                       <Plus size={24} />
                     </button>
@@ -326,14 +327,14 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                     {t.import.screenshot.count(fileEntries.length)}
                   </span>
                   {loading ? (
-                    <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
+                    <div className="flex h-10.5 w-10.5 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
                       <Loader2 size={20} className="animate-spin" />
                     </div>
                   ) : (
                     <button
                       type="button"
                       onClick={handleScreenshotSubmit}
-                      className="flex h-[42px] items-center gap-1.5 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-85"
+                      className="flex h-10.5 items-center gap-1.5 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-85"
                     >
                       {t.import.screenshot.analyze}
                       <ChevronRight size={18} />
@@ -393,11 +394,11 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
                 /* Recording state */
                 <div className="flex flex-col items-center gap-4 py-4">
                   {/* Waveform visualizer */}
-                  <div className="flex h-12 items-end gap-[3px]">
+                  <div className="flex h-12 items-end gap-0.75">
                     {voice.waveformData.map((v, i) => (
                       <div
                         key={i}
-                        className="w-[6px] rounded-full bg-accent transition-all duration-75"
+                        className="w-1.5 rounded-full bg-accent transition-all duration-75"
                         style={{ height: `${Math.max(4, v * 48)}px` }}
                       />
                     ))}

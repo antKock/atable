@@ -31,3 +31,21 @@ export function isNativeApp(): boolean {
 
   return false;
 }
+
+export type Platform = "ios" | "android" | "web";
+
+/**
+ * Coarse platform the app is running on, for analytics. Native shell →
+ * Capacitor's reported OS (ios/android); everything else → web.
+ */
+export function getPlatform(): Platform {
+  try {
+    if (isNativeApp()) {
+      const p = Capacitor.getPlatform();
+      if (p === "ios" || p === "android") return p;
+    }
+  } catch {
+    // Capacitor bridge unavailable — treat as web.
+  }
+  return "web";
+}
