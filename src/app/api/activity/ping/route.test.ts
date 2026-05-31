@@ -55,6 +55,21 @@ describe("POST /api/activity/ping", () => {
     expect(payloadOf("device_sessions", "update")).toMatchObject({ platform: "web" });
   });
 
+  it("records the app version when provided", async () => {
+    await POST(postRequest({ platform: "ios", appVersion: "55adf8d6456da1d13a647e6884e6acfb504e1d3f" }));
+    expect(payloadOf("daily_activity", "upsert").app_version).toBe(
+      "55adf8d6456da1d13a647e6884e6acfb504e1d3f",
+    );
+  });
+
+  it("stores null app_version when absent, and ignores an over-long value", async () => {
+    await POST(postRequest({ platform: "web" }));
+    expect(payloadOf("daily_activity", "upsert").app_version).toBeNull();
+
+    await POST(postRequest({ platform: "web", appVersion: "x".repeat(65) }));
+    expect(payloadOf("daily_activity", "upsert").app_version).toBeNull();
+  });
+
   it("falls back to 'unknown' for an unrecognised platform", async () => {
     await POST(postRequest({ platform: "windows-phone" }));
     expect(payloadOf("daily_activity", "upsert").platform).toBe("unknown");
