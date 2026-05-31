@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, DM_Mono } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
+import VersionWatcher from "@/components/VersionWatcher";
 import "./globals.css";
 
 const inter = Inter({
@@ -65,6 +66,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body className={`${inter.variable} ${fraunces.variable} ${dmMono.variable} font-sans antialiased`}>
+        <VersionWatcher />
         <SWRProvider>{children}</SWRProvider>
       </body>
     </html>
