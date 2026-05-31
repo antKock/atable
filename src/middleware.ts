@@ -4,7 +4,7 @@ import { verifySession } from '@/lib/auth/session'
 import { redis } from '@/lib/redis'
 
 // Exact-match public routes (no session required)
-const PUBLIC_ROUTES = ['/', '/support', '/api/households']
+const PUBLIC_ROUTES = ['/', '/support', '/api/households', '/api/version']
 // Prefix-match public routes
 const PUBLIC_PREFIXES = [
   '/join/',

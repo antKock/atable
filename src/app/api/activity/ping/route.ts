@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
   }
 
   let platform = "unknown";
+  let appVersion: string | null = null;
   try {
     const body = await request.json();
     if (
@@ -29,8 +30,13 @@ export async function POST(request: NextRequest) {
     ) {
       platform = body.platform;
     }
+    // Optional build id (see /lib/version). Capped so a malformed body can't
+    // write arbitrarily large strings.
+    if (typeof body?.appVersion === "string" && body.appVersion.length <= 64) {
+      appVersion = body.appVersion;
+    }
   } catch {
-    // No / invalid JSON body — platform stays 'unknown'.
+    // No / invalid JSON body — platform stays 'unknown', appVersion null.
   }
 
   const supabase = createServerClient();
@@ -42,6 +48,7 @@ export async function POST(request: NextRequest) {
       household_id: householdId,
       device_id: sessionId,
       platform,
+      app_version: appVersion,
       day: today,
       origin: "ping",
     },

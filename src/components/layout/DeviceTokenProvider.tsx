@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { getDeviceToken } from "@/hooks/useDeviceToken";
 import { getPlatform } from "@/lib/native";
+import { BUILD_ID } from "@/lib/version";
 
 const PING_GUARD_KEY = "mijote_activity_pinged_on";
 
@@ -21,7 +22,7 @@ function pingActivityOncePerDay() {
   fetch("/api/activity/ping", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ platform: getPlatform() }),
+    body: JSON.stringify({ platform: getPlatform(), appVersion: BUILD_ID }),
     keepalive: true,
   })
     .then((res) => {
