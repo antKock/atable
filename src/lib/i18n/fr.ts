@@ -327,14 +327,19 @@ export const t = {
     notFoundBody: "Ce lien de partage n'est plus valide.",
   },
 
-  // Install-app banner (iOS web users — incentive to install the native app,
-  // with the foyer code for session continuity into the fresh WebView)
+  // Install-app banner (iOS web users). Two steps: invite to install, then —
+  // once they tap install — reveal the foyer code for session continuity into
+  // the fresh app WebView (separate cookie jar from Safari).
   installBanner: {
     title: "Garde Mijote sur ton iPhone",
-    body: "Installe l'app, puis rejoins ton foyer avec ce code :",
+    body: "Installe l'app pour garder tes recettes à portée de main, même hors connexion.",
+    install: "Installer l'app",
+    // Step 2 — after tapping install
+    codeTitle: "Encore une étape",
+    codeBody: "Ouvre Mijote et rejoins ton foyer avec ce code :",
+    reopenStore: "Rouvrir l'App Store",
     codeCopied: "Code copié",
     copyCode: "Copier le code",
-    install: "Installer l'app",
     dismiss: "Plus tard",
   },
 

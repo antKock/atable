@@ -13,21 +13,32 @@ const DISMISS_COOKIE = "mijote_install_dismissed";
 const DISMISS_MAX_AGE = 60 * 60 * 24 * 180; // 180 days
 
 type Props = {
-  // The viewer's foyer join code — shown so they can re-join their household
-  // inside the freshly-installed app (Safari and the app's WebView don't share
-  // a cookie jar, so the session can't carry over automatically).
+  // The viewer's foyer join code — revealed only after they tap install, so they
+  // can re-join their household inside the freshly-installed app (Safari and the
+  // app's WebView don't share a cookie jar, so the session can't carry over).
   code: string;
 };
 
-// Shown only to iOS web visitors (gated server-side in the (app) layout). Nudges
-// installing the native app and carries the foyer code across the gap.
+// Shown only to iOS web visitors (gated server-side in the (app) layout). Two
+// steps: nudge to install, then surface the foyer code for the handoff.
 export default function InstallAppBanner({ code }: Props) {
   const [hidden, setHidden] = useState(false);
+  const [showCode, setShowCode] = useState(false);
   const [copied, setCopied] = useState(false);
 
   function dismiss() {
     document.cookie = `${DISMISS_COOKIE}=1; max-age=${DISMISS_MAX_AGE}; path=/`;
     setHidden(true);
+  }
+
+  function openStore() {
+    // New tab so Safari keeps the current page → the user returns to step 2.
+    window.open(APP_STORE_URL, "_blank");
+  }
+
+  function handleInstall() {
+    openStore();
+    setShowCode(true);
   }
 
   async function copyCode() {
@@ -54,30 +65,53 @@ export default function InstallAppBanner({ code }: Props) {
         <X size={16} />
       </button>
 
-      <p className="pr-8 text-sm font-semibold text-foreground">
-        {t.installBanner.title}
-      </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">
-        {t.installBanner.body}
-      </p>
-
-      <button
-        type="button"
-        onClick={copyCode}
-        aria-label={t.installBanner.copyCode}
-        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-background px-2.5 py-1 font-mono text-sm font-medium text-foreground transition-colors hover:bg-accent/10"
-      >
-        {code}
-        {copied ? (
-          <Check size={14} className="text-accent" />
-        ) : (
-          <Copy size={14} className="text-muted-foreground" />
-        )}
-      </button>
-
-      <Button asChild size="lg" className="mt-3 h-[50px] w-full min-h-11 rounded-xl">
-        <a href={APP_STORE_URL}>{t.installBanner.install}</a>
-      </Button>
+      {!showCode ? (
+        <>
+          <p className="pr-8 text-sm font-semibold text-foreground">
+            {t.installBanner.title}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t.installBanner.body}
+          </p>
+          <Button
+            type="button"
+            size="lg"
+            onClick={handleInstall}
+            className="mt-3 h-[50px] w-full min-h-11 rounded-xl"
+          >
+            {t.installBanner.install}
+          </Button>
+        </>
+      ) : (
+        <>
+          <p className="pr-8 text-sm font-semibold text-foreground">
+            {t.installBanner.codeTitle}
+          </p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            {t.installBanner.codeBody}
+          </p>
+          <button
+            type="button"
+            onClick={copyCode}
+            aria-label={t.installBanner.copyCode}
+            className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-background px-2.5 py-1 font-mono text-sm font-medium text-foreground transition-colors hover:bg-accent/10"
+          >
+            {code}
+            {copied ? (
+              <Check size={14} className="text-accent" />
+            ) : (
+              <Copy size={14} className="text-muted-foreground" />
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={openStore}
+            className="mt-3 block text-xs font-medium text-accent transition-opacity hover:opacity-80"
+          >
+            {t.installBanner.reopenStore}
+          </button>
+        </>
+      )}
     </div>
   );
 }
