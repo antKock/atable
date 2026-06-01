@@ -27,6 +27,16 @@ const nextConfig: NextConfig = {
         hostname: "upload.wikimedia.org",
       },
     ],
+    // Cap the width buckets: each unique (source × width × format) is a Vercel
+    // "Image Optimization transformation". Defaults expose 8 deviceSizes +
+    // 8 imageSizes → a single recipe photo can be transformed at many widths.
+    // Trim to what the layout actually needs (hero ~672/100vw retina; cards
+    // ~256-384) to cut the transformation count.
+    deviceSizes: [640, 828, 1080],
+    imageSizes: [256, 384],
+    formats: ["image/webp"],
+    // Long cache so optimized variants aren't regenerated (reduces cache writes).
+    minimumCacheTTL: 2678400, // 31 days
   },
   // Serve the Apple App Site Association from the well-known path via the API
   // route (guarantees application/json + lets it read APPLE_APP_ID at runtime).
