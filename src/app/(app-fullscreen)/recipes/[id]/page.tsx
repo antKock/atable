@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
@@ -11,6 +11,7 @@ import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
 import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
 import RecipeView from "@/components/recipes/RecipeView";
 import ShareButton from "@/components/recipes/ShareButton";
+import BackCircleButton from "@/components/recipes/BackCircleButton";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -81,18 +82,7 @@ export default async function RecipeDetailPage({ params }: Props) {
   const heroOverlay = (
     <>
       {/* Back button — clean white circle */}
-      <Link
-        href="/home"
-        aria-label={t.a11y.backButton}
-        className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        style={{
-          background: "#fff",
-          boxShadow:
-            "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
-        }}
-      >
-        <ArrowLeft size={18} strokeWidth={1.75} />
-      </Link>
+      <BackCircleButton href="/home" />
 
       {/* Share + Edit + Delete pill — single white pill with separators.
           Share is the first action (Lot 3 grammar: ink glyph, same size/stroke
