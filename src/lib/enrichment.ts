@@ -42,7 +42,7 @@ async function generateAndUploadImage(
     prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting.`,
     n: 1,
     size: "1024x1024",
-    quality: "medium",
+    quality: "low",
     // Return WebP (~150-250 KB) instead of the default ~2 MB PNG — ~90% lighter
     // at the source, no post-processing. output_compression 80 ≈ quality 80.
     output_format: "webp",
