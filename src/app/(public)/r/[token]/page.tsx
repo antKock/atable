@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import RecipeView from "@/components/recipes/RecipeView";
+import InAppBackButton from "@/components/recipes/InAppBackButton";
 import ShareRecipeActions, {
   type ViewerState,
 } from "@/components/recipes/ShareRecipeActions";
@@ -72,7 +73,7 @@ export default async function SharedRecipePage({ params }: Props) {
   // alone situates the app.
   return (
     <div className="min-h-dvh bg-background pb-40">
-      <RecipeView recipe={recipe} />
+      <RecipeView recipe={recipe} heroOverlay={<InAppBackButton />} />
       <ShareRecipeActions
         token={token}
         viewerState={viewerState}
