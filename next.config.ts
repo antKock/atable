@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },
   images: {
+    // Serve images directly (no Vercel Image Optimization) → 0 transformations.
+    // Safe now that sources are web-weight: generated images are WebP and
+    // uploads are resized/compressed client-side. All next/image usage is
+    // recipe photos, so this has no collateral. Supersedes the width/format
+    // settings below (kept as a fallback if this is ever reverted).
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
