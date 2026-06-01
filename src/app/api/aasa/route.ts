@@ -5,12 +5,14 @@ import { NextResponse } from "next/server";
 // no auth/middleware applies). Declares that this site's /r/* links belong to
 // the Mijote app, enabling Universal Links (open the app instead of Safari).
 //
-// APPLE_APP_ID must be "<TeamID>.fr.anthonykocken.mijote" (set in Vercel env,
-// prod + staging). Without it we serve an empty association rather than a
-// broken one.
+// appID is "<TeamID>.<bundleId>". Both parts are public (the AASA itself is
+// served publicly) and the bundle id is immutable, so the production value is
+// the default; APPLE_APP_ID can still override it if the team ever changes.
+const DEFAULT_APP_ID = "7H527R9HJJ.fr.anthonykocken.mijote";
+
 export function GET() {
-  const appID = process.env.APPLE_APP_ID;
-  const appIDs = appID ? [appID] : [];
+  const appID = process.env.APPLE_APP_ID || DEFAULT_APP_ID;
+  const appIDs = [appID];
 
   return NextResponse.json({
     applinks: {
