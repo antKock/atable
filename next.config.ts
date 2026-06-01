@@ -28,6 +28,16 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  // Serve the Apple App Site Association from the well-known path via the API
+  // route (guarantees application/json + lets it read APPLE_APP_ID at runtime).
+  async rewrites() {
+    return [
+      {
+        source: "/.well-known/apple-app-site-association",
+        destination: "/api/aasa",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

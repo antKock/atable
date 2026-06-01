@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Share } from "lucide-react";
 import { toast } from "sonner";
 import { t } from "@/lib/i18n/fr";
+import { isNativeApp } from "@/lib/native";
 
 type Props = {
   recipeId: string;
@@ -37,7 +38,16 @@ export default function ShareButton({
       }
       const url: string = data.url;
 
-      if (navigator.share) {
+      // Native iOS shell: use the Capacitor Share plugin — navigator.share is
+      // unreliable in WKWebView. Web: Web Share API, then clipboard fallback.
+      if (isNativeApp()) {
+        try {
+          const { Share: CapShare } = await import("@capacitor/share");
+          await CapShare.share({ title: recipeTitle, url });
+        } catch {
+          // User dismissed the native sheet — not an error.
+        }
+      } else if (navigator.share) {
         try {
           await navigator.share({ title: recipeTitle, url });
         } catch {
