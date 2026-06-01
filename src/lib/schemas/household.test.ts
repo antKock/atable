@@ -30,12 +30,22 @@ describe("JoinCodeSchema", () => {
     expect(JoinCodeSchema.safeParse("THYME-0421").success).toBe(true);
   });
 
-  it("rejects lowercase letters", () => {
-    expect(JoinCodeSchema.safeParse("olive-4821").success).toBe(false);
+  it("normalizes lowercase to the canonical form", () => {
+    const r = JoinCodeSchema.safeParse("olive-4821");
+    expect(r.success).toBe(true);
+    expect(r.success && r.data).toBe("OLIVE-4821");
   });
 
-  it("rejects a missing dash", () => {
-    expect(JoinCodeSchema.safeParse("OLIVE4821").success).toBe(false);
+  it("accepts a missing dash and inserts it", () => {
+    const r = JoinCodeSchema.safeParse("OLIVE4821");
+    expect(r.success).toBe(true);
+    expect(r.success && r.data).toBe("OLIVE-4821");
+  });
+
+  it("tolerates stray spaces and mixed case", () => {
+    const r = JoinCodeSchema.safeParse("  Olive 4821 ");
+    expect(r.success).toBe(true);
+    expect(r.success && r.data).toBe("OLIVE-4821");
   });
 
   it("rejects the wrong number of digits", () => {

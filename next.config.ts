@@ -12,6 +12,12 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },
   images: {
+    // Serve images directly (no Vercel Image Optimization) → 0 transformations.
+    // Safe now that sources are web-weight: generated images are WebP and
+    // uploads are resized/compressed client-side. All next/image usage is
+    // recipe photos, so this has no collateral. Supersedes the width/format
+    // settings below (kept as a fallback if this is ever reverted).
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
@@ -27,6 +33,16 @@ const nextConfig: NextConfig = {
         hostname: "upload.wikimedia.org",
       },
     ],
+    // Cap the width buckets: each unique (source × width × format) is a Vercel
+    // "Image Optimization transformation". Defaults expose 8 deviceSizes +
+    // 8 imageSizes → a single recipe photo can be transformed at many widths.
+    // Trim to what the layout actually needs (hero ~672/100vw retina; cards
+    // ~256-384) to cut the transformation count.
+    deviceSizes: [640, 828, 1080],
+    imageSizes: [256, 384],
+    formats: ["image/webp"],
+    // Long cache so optimized variants aren't regenerated (reduces cache writes).
+    minimumCacheTTL: 2678400, // 31 days
   },
   // Serve the Apple App Site Association from the well-known path via the API
   // route (guarantees application/json + lets it read APPLE_APP_ID at runtime).

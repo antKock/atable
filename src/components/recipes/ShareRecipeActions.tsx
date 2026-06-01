@@ -67,15 +67,16 @@ export default function ShareRecipeActions({
   }
 
   // Guest path: the household was just created/joined (session cookie is now
-  // set), so the copy call is authenticated. Land on the saved copy.
+  // set), so the copy call is authenticated. Then land on home — `replace` so
+  // the share page leaves history (no bounce back to its now-authenticated
+  // "add to foyer" CTA, which would copy the recipe a second time).
   async function handleGuestSuccess() {
     try {
-      const id = await copyToHousehold();
-      window.location.href = id ? `/recipes/${id}` : "/home";
+      await copyToHousehold();
     } catch {
-      // The household exists either way — drop them home rather than stranding.
-      window.location.href = "/home";
+      // Copy failed — the household still exists, so land them home anyway.
     }
+    window.location.replace("/home");
   }
 
   async function handleAddToHousehold() {
