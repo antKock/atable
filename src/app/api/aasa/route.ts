@@ -19,7 +19,10 @@ export function GET() {
       details: [
         {
           appIDs,
-          components: [{ "/": "/r/*", comment: "Shared recipe links" }],
+          components: [
+            { "/": "/r/*", comment: "Shared recipe links" },
+            { "/": "/join/*", comment: "Foyer invitation links" },
+          ],
         },
       ],
     },
