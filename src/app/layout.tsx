@@ -3,6 +3,7 @@ import { Inter, Fraunces, DM_Mono } from "next/font/google";
 import { t } from "@/lib/i18n/fr";
 import SWRProvider from "@/components/providers/SWRProvider";
 import VersionWatcher from "@/components/VersionWatcher";
+import DeepLinkHandler from "@/components/DeepLinkHandler";
 import "./globals.css";
 
 const inter = Inter({
@@ -67,6 +68,7 @@ export default function RootLayout({
     <html lang="fr">
       <body className={`${inter.variable} ${fraunces.variable} ${dmMono.variable} font-sans antialiased`}>
         <VersionWatcher />
+        <DeepLinkHandler />
         <SWRProvider>{children}</SWRProvider>
       </body>
     </html>

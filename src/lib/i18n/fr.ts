@@ -308,6 +308,41 @@ export const t = {
     leaveError: "Une erreur s'est produite. Réessaie.",
   },
 
+  // Recipe sharing
+  share: {
+    action: "Partager",
+    linkCopied: "Lien copié",
+    shareError: "Le partage a échoué",
+    // Public share page (/r/<token>)
+    save: "Enregistrer cette recette",
+    reminderLabel: "Recette à enregistrer",
+    haveHousehold: "J'ai déjà un foyer — le rejoindre",
+    addToHousehold: "Ajouter à mon foyer",
+    adding: "Ajout en cours…",
+    added: "Ajoutée à ton foyer",
+    viewMyHousehold: "Voir mon foyer",
+    alreadyOwned: "Déjà dans ton foyer",
+    addError: "Impossible d'ajouter la recette. Réessaie.",
+    notFoundTitle: "Recette introuvable",
+    notFoundBody: "Ce lien de partage n'est plus valide.",
+  },
+
+  // Install-app banner (iOS web users). Two steps: invite to install, then —
+  // once they tap install — reveal the foyer code for session continuity into
+  // the fresh app WebView (separate cookie jar from Safari).
+  installBanner: {
+    title: "Garde Mijote sur ton iPhone",
+    body: "Installe l'app pour garder tes recettes à portée de main, même hors connexion.",
+    install: "Installer l'app",
+    // Step 2 — after tapping install
+    codeTitle: "Encore une étape",
+    codeBody: "Ouvre Mijote et rejoins ton foyer avec ce code :",
+    reopenStore: "Rouvrir l'App Store",
+    codeCopied: "Code copié",
+    copyCode: "Copier le code",
+    dismiss: "Plus tard",
+  },
+
   // Accessibility
   a11y: {
     backButton: "Retour",

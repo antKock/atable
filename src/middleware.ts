@@ -8,6 +8,7 @@ const PUBLIC_ROUTES = ['/', '/support', '/api/households', '/api/version']
 // Prefix-match public routes
 const PUBLIC_PREFIXES = [
   '/join/',
+  '/r/',
   '/legal/',
   '/api/households/lookup',
   '/api/households/join',

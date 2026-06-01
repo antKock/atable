@@ -1,13 +1,23 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { t } from '@/lib/i18n/fr'
 
 type Props = {
   onCancel: () => void
+  // When provided, called on successful creation instead of the default
+  // navigation — lets a caller run follow-up work (e.g. saving a shared recipe
+  // into the just-created household) before redirecting.
+  onSuccess?: (data: { redirect?: string }) => void | Promise<void>
+  // Optional content rendered above the title (e.g. the share "recipe to save"
+  // card). Default cold-onboarding usage leaves this empty.
+  headerSlot?: ReactNode
+  // Optional override of the bottom secondary link. Defaults to a Cancel button
+  // wired to onCancel; the share flow swaps it for "join an existing foyer".
+  secondary?: { label: ReactNode; onClick: () => void }
 }
 
-export default function CreateHouseholdForm({ onCancel }: Props) {
+export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, secondary }: Props) {
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -28,6 +38,10 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
       if (!response.ok) {
         setError((data as { error?: string }).error ?? t.household.createError)
         setSubmitting(false)
+        return
+      }
+      if (onSuccess) {
+        await onSuccess(data as { redirect?: string })
         return
       }
       window.location.href = (data as { redirect?: string }).redirect ?? '/home'
@@ -71,6 +85,8 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
         }}
       >
+        {headerSlot && <div style={{ marginBottom: 22 }}>{headerSlot}</div>}
+
         <h1
           className="text-foreground"
           style={{
@@ -178,7 +194,7 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
 
         <button
           type="button"
-          onClick={onCancel}
+          onClick={secondary ? secondary.onClick : onCancel}
           disabled={submitting}
           className="w-full bg-transparent text-foreground disabled:opacity-50"
           style={{
@@ -189,7 +205,7 @@ export default function CreateHouseholdForm({ onCancel }: Props) {
             fontSize: '16px',
           }}
         >
-          {t.actions.cancel}
+          {secondary ? secondary.label : t.actions.cancel}
         </button>
       </form>
     </div>

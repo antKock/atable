@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { t } from "@/lib/i18n/fr";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
+import { maybeRequestReview } from "@/lib/review";
 import PhotoManager from "./PhotoManager";
 import TagInput from "./TagInput";
 import ChipSelector from "./ChipSelector";
@@ -227,6 +228,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         toast.success(t.feedback.recipeSaved, { duration: 2500 });
         mutate("/api/carousels");
         mutate("/api/library");
+        // Ask for an App Store rating once they've added their 3rd recipe
+        // (native-only, once ever).
+        void maybeRequestReview();
         router.push("/home");
 
         if (photoFile) {

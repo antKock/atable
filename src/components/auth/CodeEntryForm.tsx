@@ -1,13 +1,20 @@
 'use client'
 
-import { useState, type FormEvent } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { t } from '@/lib/i18n/fr'
 
 type Props = {
   onCancel: () => void
+  // When provided, called on successful join instead of the default navigation
+  // — lets a caller run follow-up work (e.g. saving a shared recipe into the
+  // joined household) before redirecting.
+  onSuccess?: (data: { redirect?: string }) => void | Promise<void>
+  // Optional content rendered above the title (e.g. the share "recipe to save"
+  // card). Default cold-onboarding usage leaves this empty.
+  headerSlot?: ReactNode
 }
 
-export default function CodeEntryForm({ onCancel }: Props) {
+export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props) {
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -29,6 +36,10 @@ export default function CodeEntryForm({ onCancel }: Props) {
         else if (response.status === 400) setError(t.join.invalidFormat)
         else setError((data as { error?: string }).error ?? t.join.notFound)
         setSubmitting(false)
+        return
+      }
+      if (onSuccess) {
+        await onSuccess(data as { redirect?: string })
         return
       }
       window.location.href = (data as { redirect?: string }).redirect ?? '/home'
@@ -72,6 +83,8 @@ export default function CodeEntryForm({ onCancel }: Props) {
           paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
         }}
       >
+        {headerSlot && <div style={{ marginBottom: 22 }}>{headerSlot}</div>}
+
         <h1
           className="text-foreground"
           style={{
