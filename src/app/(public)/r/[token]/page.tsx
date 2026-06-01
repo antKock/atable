@@ -72,7 +72,10 @@ export default async function SharedRecipePage({ params }: Props) {
   // No edit/delete controls and — per the design — no brand banner; the CTA
   // alone situates the app.
   return (
-    <div className="min-h-dvh bg-background pb-40">
+    <div
+      className="min-h-dvh bg-background pb-40"
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
+    >
       <RecipeView recipe={recipe} heroOverlay={<InAppBackButton />} />
       <ShareRecipeActions
         token={token}
