@@ -77,6 +77,9 @@ async function generateAndUploadImage(
     .upload(storagePath, imageBuffer, {
       contentType: "image/webp",
       upsert: true,
+      // Long cache: images are served directly (unoptimized), so let the CDN /
+      // browser cache them and keep Supabase egress low.
+      cacheControl: "2592000", // 30 days
     });
 
   if (uploadError) throw uploadError;

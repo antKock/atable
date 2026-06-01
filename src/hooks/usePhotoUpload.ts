@@ -20,7 +20,12 @@ export async function _uploadToStorage(
 ): Promise<{ url: string } | { error: string }> {
   const { error } = await supabase.storage
     .from("recipe-photos")
-    .upload(path, file, { upsert: true, contentType: file.type || undefined });
+    .upload(path, file, {
+      upsert: true,
+      contentType: file.type || undefined,
+      // Long cache: served directly (unoptimized) → keep Supabase egress low.
+      cacheControl: "2592000", // 30 days
+    });
 
   if (error) return { error: error.message };
 
