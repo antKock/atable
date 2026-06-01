@@ -1,13 +1,32 @@
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import Navigation from '@/components/layout/Navigation'
 import DeviceTokenProvider from '@/components/layout/DeviceTokenProvider'
 import { Toaster } from '@/components/ui/sonner'
 import DemoBanner from '@/components/demo/DemoBanner'
+import InstallAppBanner from '@/components/app/InstallAppBanner'
+import { createServerClient } from '@/lib/supabase/server'
 
 export default async function AppShell({ children }: { children: React.ReactNode }) {
   const hdrs = await headers()
   const householdId = hdrs.get('x-household-id')
   const isDemo = householdId === process.env.DEMO_HOUSEHOLD_ID && !!householdId
+
+  // iOS web visitors (not the native shell) get a one-time, dismissible nudge to
+  // install the app. The foyer code travels with it so they can re-join inside
+  // the app's WebView, which doesn't share Safari's cookie jar. Gated server-side
+  // so the lookup runs only for the eligible, not-yet-dismissed audience.
+  const ua = hdrs.get('user-agent') ?? ''
+  const isIOSWeb = /iPhone|iPad|iPod/i.test(ua) && !ua.includes('MijoteNative')
+  const dismissed = (await cookies()).get('mijote_install_dismissed')?.value === '1'
+  let installCode: string | null = null
+  if (isIOSWeb && !dismissed && !isDemo && householdId) {
+    const { data } = await createServerClient()
+      .from('households')
+      .select('join_code')
+      .eq('id', householdId)
+      .single()
+    installCode = (data?.join_code as string | undefined) ?? null
+  }
 
   return (
     <>
@@ -20,6 +39,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
           className="min-h-screen pb-28"
           style={isDemo ? undefined : { paddingTop: 'env(safe-area-inset-top)' }}
         >
+          {installCode && <InstallAppBanner code={installCode} />}
           {children}
         </main>
       </div>

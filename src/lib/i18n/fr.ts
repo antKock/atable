@@ -327,6 +327,17 @@ export const t = {
     notFoundBody: "Ce lien de partage n'est plus valide.",
   },
 
+  // Install-app banner (iOS web users — incentive to install the native app,
+  // with the foyer code for session continuity into the fresh WebView)
+  installBanner: {
+    title: "Garde Mijote sur ton iPhone",
+    body: "Installe l'app, puis rejoins ton foyer avec ce code :",
+    codeCopied: "Code copié",
+    copyCode: "Copier le code",
+    install: "Installer l'app",
+    dismiss: "Plus tard",
+  },
+
   // Accessibility
   a11y: {
     backButton: "Retour",
