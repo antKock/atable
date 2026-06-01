@@ -308,6 +308,25 @@ export const t = {
     leaveError: "Une erreur s'est produite. Réessaie.",
   },
 
+  // Recipe sharing
+  share: {
+    action: "Partager",
+    linkCopied: "Lien copié",
+    shareError: "Le partage a échoué",
+    // Public share page (/r/<token>)
+    save: "Enregistrer cette recette",
+    reminderLabel: "Recette à enregistrer",
+    haveHousehold: "J'ai déjà un foyer — le rejoindre",
+    addToHousehold: "Ajouter à mon foyer",
+    adding: "Ajout en cours…",
+    added: "Ajoutée à ton foyer",
+    viewMyHousehold: "Voir mon foyer",
+    alreadyOwned: "Déjà dans ton foyer",
+    addError: "Impossible d'ajouter la recette. Réessaie.",
+    notFoundTitle: "Recette introuvable",
+    notFoundBody: "Ce lien de partage n'est plus valide.",
+  },
+
   // Accessibility
   a11y: {
     backButton: "Retour",
