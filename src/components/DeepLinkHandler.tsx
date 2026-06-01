@@ -30,9 +30,17 @@ export default function DeepLinkHandler() {
     (async () => {
       try {
         const { App } = await import("@capacitor/app");
-        // Cold start: the app launched from a link.
-        const launch = await App.getLaunchUrl();
-        if (launch?.url) routeTo(launch.url);
+        // Cold start: route the launch URL, but ONLY ONCE per app session.
+        // getLaunchUrl keeps returning the launch URL across in-app navigations,
+        // and a window.location navigation reloads the JS context — without this
+        // guard, every full-page navigation re-reads the launch URL and bounces
+        // the user back to it (e.g. /r/<token>). sessionStorage survives those
+        // reloads but is cleared when the app is genuinely relaunched.
+        if (!sessionStorage.getItem("mijote_launch_routed")) {
+          sessionStorage.setItem("mijote_launch_routed", "1");
+          const launch = await App.getLaunchUrl();
+          if (launch?.url) routeTo(launch.url);
+        }
         // Warm: link tapped while the app is already running.
         const handle = await App.addListener("appUrlOpen", ({ url }) =>
           routeTo(url),
