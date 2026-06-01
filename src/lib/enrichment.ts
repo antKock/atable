@@ -43,6 +43,10 @@ async function generateAndUploadImage(
     n: 1,
     size: "1024x1024",
     quality: "medium",
+    // Return WebP (~150-250 KB) instead of the default ~2 MB PNG — ~90% lighter
+    // at the source, no post-processing. output_compression 80 ≈ quality 80.
+    output_format: "webp",
+    output_compression: 80,
   });
 
   const imageData = imageResponse.data?.[0];
@@ -66,12 +70,12 @@ async function generateAndUploadImage(
 
   // Upload to Supabase Storage
   const supabase = createServerClient();
-  const storagePath = `generated/${recipeId}/ai-image.png`;
+  const storagePath = `generated/${recipeId}/ai-image.webp`;
 
   const { error: uploadError } = await supabase.storage
     .from("recipe-photos")
     .upload(storagePath, imageBuffer, {
-      contentType: "image/png",
+      contentType: "image/webp",
       upsert: true,
     });
 
