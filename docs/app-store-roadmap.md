@@ -490,7 +490,7 @@ Pré-requis dans le repo (déjà en place, à vérifier la première fois) :
 
 - [ ] **Sync Capacitor** : `npx cap sync ios` à la racine du repo. Vérifier
       que tout build sans warning.
-- [ ] **Ouvrir Xcode** : `open ios/App/App.xcworkspace`. Sélectionner sa
+- [ ] **Ouvrir Xcode** : `open ios/App/App.xcodeproj` (projet SPM — pas de `.xcworkspace`). Sélectionner sa
       Team Apple Developer dans Signing & Capabilities (⚠️ pas Naiane /
       Riverman studio).
 - [ ] **Captures simulateur** : iPhone 16 Pro Max (6.7", taille
