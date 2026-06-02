@@ -40,13 +40,9 @@ const ISO = (d: Date) => d.toISOString().slice(0, 10);
 const fr = (n: number) => Math.round(n).toLocaleString("fr-FR");
 const pct = (num: number, den: number) => (den > 0 ? (num / den) * 100 : 0);
 
-function weekKey(isoDay: string): string {
-  // Monday-anchored ISO week start for a YYYY-MM-DD string.
-  const d = new Date(isoDay + "T00:00:00Z");
-  const dow = (d.getUTCDay() + 6) % 7; // 0 = Monday
-  d.setUTCDate(d.getUTCDate() - dow);
-  return ISO(d);
-}
+// Trend charts (WAU/MAU, parc, acquisition, recipe creation) are sampled one
+// point per day over this rolling window.
+const DAILY_DAYS = 90;
 
 function shortLabel(isoDay: string): string {
   const d = new Date(isoDay + "T00:00:00Z");
@@ -70,8 +66,8 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const today = new Date();
   const from60 = new Date(today);
   from60.setUTCDate(from60.getUTCDate() - 60);
-  const from182 = new Date(today);
-  from182.setUTCDate(from182.getUTCDate() - 182);
+  const fromDaily = new Date(today);
+  fromDaily.setUTCDate(fromDaily.getUTCDate() - DAILY_DAYS);
 
   const rpc = <T = Row[]>(fn: string, params: Record<string, unknown> = {}) =>
     supabase.rpc(fn, params).then(({ data, error }) => {
@@ -84,7 +80,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     recipesDaily,
     enrichment,
     activation,
-    activeWeekly,
+    activeDaily,
     cumulative,
     acquisition,
     householdSize,
@@ -98,12 +94,12 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     platformsRows,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
-    rpc("analytics_recipes_created_daily", { p_from: ISO(from182), p_household_ids: hh, p_platform: plat }),
+    rpc("analytics_recipes_created_daily", { p_from: ISO(fromDaily), p_household_ids: hh, p_platform: plat }),
     rpc("analytics_enrichment", { p_household_ids: hh }),
     rpc("analytics_activation", {}),
-    rpc("analytics_active_weekly", { p_weeks: 26, p_platform: plat, p_household_ids: hh }),
-    rpc("analytics_cumulative_parc", { p_weeks: 26 }),
-    rpc("analytics_acquisition_weekly", { p_weeks: 26 }),
+    rpc("analytics_active_daily", { p_days: DAILY_DAYS, p_platform: plat, p_household_ids: hh }),
+    rpc("analytics_cumulative_parc_daily", { p_days: DAILY_DAYS }),
+    rpc("analytics_acquisition_daily", { p_days: DAILY_DAYS }),
     rpc("analytics_household_size_dist", {}),
     rpc("analytics_recipes_per_household_dist", { p_household_ids: hh }),
     rpc("analytics_source_mix", { p_household_ids: hh, p_platform: plat }),
@@ -117,36 +113,39 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
 
-  // ---- time series ----
-  const wauMau = (activeWeekly as Row[]).map((r) => ({
-    label: shortLabel(r.week as string),
+  // ---- time series (one point per day) ----
+  const wauMau = (activeDaily as Row[]).map((r) => ({
+    label: shortLabel(r.day as string),
     wau: Number(r.wau),
     mau: Number(r.mau),
     stickiness: r.stickiness == null ? 0 : Number(r.stickiness),
   }));
 
   const parc = (cumulative as Row[]).map((r) => ({
-    label: shortLabel(r.week as string),
+    label: shortLabel(r.day as string),
     foyers: Number(r.foyers),
     appareils: Number(r.appareils),
     recettes: Number(r.recettes),
   }));
 
   const acquisitionSeries = (acquisition as Row[]).map((r) => ({
-    label: shortLabel(r.week as string),
+    label: shortLabel(r.day as string),
     devices: Number(r.devices),
     foyers: Number(r.foyers),
   }));
 
-  // weekly recipe creation (bucket daily → week)
-  const weekMap = new Map<string, number>();
+  // daily recipe creation (analytics_recipes_created_daily is already per-day,
+  // but only returns days with ≥1 recipe — zero-fill the gaps for a clean line)
+  const recipeByDay = new Map<string, number>();
   for (const r of recipesDaily as Row[]) {
-    const wk = weekKey(r.day as string);
-    weekMap.set(wk, (weekMap.get(wk) ?? 0) + Number(r.recipes));
+    recipeByDay.set(r.day as string, Number(r.recipes));
   }
-  const recipeCreation = [...weekMap.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([wk, total]) => ({ label: shortLabel(wk), total }));
+  const recipeCreation = Array.from({ length: DAILY_DAYS }, (_, i) => {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - (DAILY_DAYS - 1 - i));
+    const iso = ISO(d);
+    return { label: shortLabel(iso), total: recipeByDay.get(iso) ?? 0 };
+  });
 
   // ---- distributions ----
   const sizeBins = { "1": 0, "2": 0, "3": 0, "4": 0, "5+": 0 };
@@ -341,8 +340,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   ];
 
   // ---- signals ----
-  const newFoyers4w =
-    acquisitionSeries.slice(-4).reduce((s, w) => s + w.foyers, 0) / Math.max(1, Math.min(4, acquisitionSeries.length));
+  const newFoyersWeek = acquisitionSeries.slice(-7).reduce((s, d) => s + d.foyers, 0);
   const signals: Signal[] = [
     {
       value: fr(k.dormant_households ?? 0),
@@ -356,9 +354,9 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
       hint: "profondeur d'usage moyenne",
     },
     {
-      value: fr(newFoyers4w),
+      value: fr(newFoyersWeek),
       label: "Nouveaux foyers / sem.",
-      hint: "moyenne sur 4 semaines",
+      hint: "total des 7 derniers jours",
     },
     {
       value: "à venir",

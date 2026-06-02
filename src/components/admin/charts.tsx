@@ -134,7 +134,7 @@ export function ChartWauMau({ data, height = 260 }: { data: any[]; height?: numb
           </linearGradient>
         </defs>
         <CartesianGrid {...gridProps} />
-        <XAxis dataKey="label" {...axisProps} interval={4} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={44} />
         <Tooltip content={<Tip />} />
         <Area type="monotone" dataKey="mau" name="MAU" stroke={P.olive} strokeWidth={2} fill="url(#gMau)" dot={false} activeDot={{ r: 4 }} />
@@ -156,7 +156,7 @@ export function ChartStickiness({ data, height = 172 }: { data: any[]; height?: 
           </linearGradient>
         </defs>
         <CartesianGrid {...gridProps} />
-        <XAxis dataKey="label" {...axisProps} interval={6} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={36} domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
         <Tooltip content={<Tip suffix=" %" />} />
         <Area type="monotone" dataKey="stickiness" name="Stickiness" stroke={P.sage} strokeWidth={2} fill="url(#gSticky)" dot={false} activeDot={{ r: 4 }} />
@@ -187,7 +187,7 @@ export function ChartAcquisition({ data, height = 250 }: { data: any[]; height?:
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
         <CartesianGrid {...gridProps} />
-        <XAxis dataKey="label" {...axisProps} interval={4} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={36} />
         <Tooltip content={<Tip />} />
         <Line type="monotone" dataKey="devices" name="Nouveaux appareils" stroke={P.olive} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
@@ -212,7 +212,7 @@ export function ChartParc({ data, height = 280 }: { data: any[]; height?: number
           </linearGradient>
         </defs>
         <CartesianGrid {...gridProps} />
-        <XAxis dataKey="label" {...axisProps} interval={4} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis yAxisId="count" {...axisProps} width={48} />
         <YAxis yAxisId="recipes" orientation="right" {...axisProps} width={52} tickFormatter={(v: number) => `${Math.round(v / 1000)}k`} />
         <Tooltip content={<Tip />} />
@@ -251,7 +251,7 @@ export function ChartRecipeCreation({ data, height = 250 }: { data: any[]; heigh
           </linearGradient>
         </defs>
         <CartesianGrid {...gridProps} />
-        <XAxis dataKey="label" {...axisProps} interval={4} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={44} />
         <Tooltip content={<Tip />} />
         <Area type="monotone" dataKey="total" name="Recettes créées" stroke={P.olive} strokeWidth={2} fill="url(#gCreate)" dot={false} activeDot={{ r: 4 }} />

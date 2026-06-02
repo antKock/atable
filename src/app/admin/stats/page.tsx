@@ -197,7 +197,7 @@ export default async function DashboardPage({
             <Card
               span={8}
               title="Appareils actifs — WAU / MAU"
-              sub="Moyenne hebdomadaire sur 6 mois — l'usage quotidien n'a pas de sens ici"
+              sub="Fenêtre glissante 7 j / 30 j, échantillonnée par jour sur 90 jours"
               badge="WAU · MAU"
               footer={<LegendInline items={[{ label: "MAU", color: P.olive }, { label: "WAU", color: P.terracotta }]} />}
             >
@@ -256,7 +256,7 @@ export default async function DashboardPage({
             <Card
               span={8}
               title="Nouveaux appareils & foyers"
-              sub="Acquisition hebdomadaire (flux, non cumulé)"
+              sub="Acquisition quotidienne (flux, non cumulé)"
               footer={
                 <LegendInline
                   items={[
@@ -278,7 +278,7 @@ export default async function DashboardPage({
         <div className="section">
           <SectionHead n="03" title="Contenu — recettes" meta="Comment les foyers remplissent l'app" />
           <div className="cards">
-            <Card span={7} title="Volume de création de recettes" sub="Tendance hebdomadaire">
+            <Card span={7} title="Volume de création de recettes" sub="Tendance quotidienne">
               <ChartRecipeCreation data={data.recipeCreation} height={250} />
             </Card>
             <Card span={5} title="Recettes par foyer" sub="Distribution">
