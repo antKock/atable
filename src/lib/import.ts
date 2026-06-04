@@ -29,8 +29,8 @@ const EXTRACTION_SYSTEM_PROMPT = `Tu es un assistant culinaire expert. Extrais l
 
 Champs à extraire :
 - title (string, obligatoire) : le nom de la recette
-- ingredients (string | null) : liste des ingrédients, un par ligne
-- steps (string | null) : étapes de préparation, une par ligne
+- ingredients (string | null) : liste des ingrédients, un par ligne. N'inclus AUCUN marqueur en début de ligne (pas de tiret, puce, point, astérisque ni numéro) — uniquement le texte de l'ingrédient.
+- steps (string | null) : étapes de préparation, une par ligne. N'inclus AUCUN numéro ni marqueur en début de ligne (pas de « 1. », « 2) », tiret, puce ni « Étape 1 ») — uniquement le texte de l'étape.
 - prepTime (string | null) : temps de préparation — valeurs possibles : ${VALID_PREP_TIMES.join(", ")}
 - cookTime (string | null) : temps de cuisson — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 - cost (string | null) : coût estimé — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
@@ -76,13 +76,58 @@ const IMPORT_JSON_SCHEMA = {
   },
 } as const;
 
+// ---------- List-marker normalisation ----------
+
+// Leading bullet glyphs (and their trailing whitespace) at the start of a line.
+const BULLET_PREFIX = /^[-*•·‣–—●▪◦]+\s+/;
+
+/**
+ * Strip a leading list marker from an ingredient line.
+ *
+ * Conservative on purpose: only removes bullets and a number that is *explicitly*
+ * punctuated as an enumerator ("1.", "2)"). A bare leading number is left intact
+ * because it is almost always a quantity ("2 oeufs", "200 g de farine").
+ */
+function stripIngredientMarker(line: string): string {
+  return line
+    .replace(BULLET_PREFIX, "")
+    .replace(/^\d+\s*[.)]\s+/, "")
+    .trim();
+}
+
+/**
+ * Strip a leading list marker from a step line: "1.", "2)", "3 -", "Étape 4:",
+ * "Step 5", or a bullet. Steps are enumerators, so removing a leading number is
+ * safe here.
+ */
+function stripStepMarker(line: string): string {
+  return line
+    .replace(/^(?:étape|etape|step)\s*\d+\s*[.):\-–—]?\s*/i, "")
+    .replace(/^\(?\d+\)?\s*[.)°:\-–—]\s*/, "")
+    .replace(BULLET_PREFIX, "")
+    .trim();
+}
+
+/** Apply `strip` to every non-empty line, dropping blank lines. */
+function normaliseList(
+  text: string | null,
+  strip: (line: string) => string,
+): string | null {
+  if (text == null) return text;
+  const lines = text
+    .split("\n")
+    .map((line) => strip(line.trim()))
+    .filter((line) => line.length > 0);
+  return lines.length > 0 ? lines.join("\n") : null;
+}
+
 // ---------- Map result to RecipeFormData ----------
 
 function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoUrl"> {
   return {
-    title: result.title,
-    ingredients: result.ingredients ?? "",
-    steps: result.steps ?? "",
+    title: result.title.trim(),
+    ingredients: normaliseList(result.ingredients, stripIngredientMarker) ?? "",
+    steps: normaliseList(result.steps, stripStepMarker) ?? "",
     prepTime: result.prepTime ?? undefined,
     cookTime: result.cookTime ?? undefined,
     cost: result.cost ?? undefined,
