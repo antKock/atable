@@ -25,7 +25,7 @@ COOK TIME — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 COST — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
 COMPLEXITY — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 
-IMAGE PROMPT — décris visuellement le plat terminé en anglais (pour DALL-E). Sois précis sur la présentation, les couleurs, l'angle de vue.
+IMAGE PROMPT — décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. Si la recette liste des ingrédients, ne représente QUE les ingrédients, garnitures et accompagnements listés — n'ajoute jamais d'aliments, ingrédients, herbes, sauces ou décorations non mentionnés. EXCEPTION : si aucun ingrédient n'est listé (par exemple seulement un titre), imagine librement une version classique et appétissante du plat d'après son nom.
 
 Réponds UNIQUEMENT avec le JSON structuré, sans texte supplémentaire.`;
 }
@@ -39,7 +39,7 @@ async function generateAndUploadImage(
   // Generate with gpt-image-1
   const imageResponse = await openai.images.generate({
     model: "gpt-image-1.5",
-    prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting.`,
+    prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting. Only show the food items explicitly described above — do not add any extra ingredients, garnishes, herbs, sauces, side dishes or decorations that are not described.`,
     n: 1,
     size: "1024x1024",
     quality: "low",
@@ -88,7 +88,12 @@ async function generateAndUploadImage(
     .from("recipe-photos")
     .getPublicUrl(storagePath);
 
-  return urlData.publicUrl;
+  // The storage path is deterministic (upsert overwrites in place), so the
+  // public URL is identical on every regeneration. Append a cache-busting
+  // version param so the stored URL actually changes — otherwise React keeps
+  // the same <Image src> and the CDN/browser serves the 30-day-cached old
+  // image, making "regenerate" look like a no-op.
+  return `${urlData.publicUrl}?v=${Date.now()}`;
 }
 
 // ---------- Main enrichment pipeline ----------

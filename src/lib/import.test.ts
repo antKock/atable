@@ -82,6 +82,53 @@ describe("extractRecipeFromImages", () => {
 });
 
 // --------------------------------------------------------------------------
+// List-marker normalisation (applied to every extraction path via toFormData)
+// --------------------------------------------------------------------------
+describe("list-marker normalisation", () => {
+  it("strips leading bullets and dashes from ingredients", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(
+        importResult({ ingredients: "- Pommes\n• Pâte brisée\n* Sucre" }),
+      ),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe("Pommes\nPâte brisée\nSucre");
+  });
+
+  it("strips step numbers, 'Étape N' labels and bullets from steps", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(
+        importResult({
+          steps: "1. Éplucher les pommes\n2) Garnir la pâte\nÉtape 3 : Enfourner",
+        }),
+      ),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.steps).toBe(
+      "Éplucher les pommes\nGarnir la pâte\nEnfourner",
+    );
+  });
+
+  it("keeps leading quantities in ingredients (does not strip bare numbers)", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(
+        importResult({ ingredients: "200 g de farine\n2 oeufs\n- 1 pincée de sel" }),
+      ),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe("200 g de farine\n2 oeufs\n1 pincée de sel");
+  });
+
+  it("drops blank lines left by stripping", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(importResult({ ingredients: "- Pommes\n\n- Sucre\n" })),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe("Pommes\nSucre");
+  });
+});
+
+// --------------------------------------------------------------------------
 // extractRecipeFromVoice — Whisper transcription + structuring
 // --------------------------------------------------------------------------
 describe("extractRecipeFromVoice", () => {
