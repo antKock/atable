@@ -25,7 +25,7 @@ COOK TIME — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 COST — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
 COMPLEXITY — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 
-IMAGE PROMPT — décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. IMPÉRATIF : ne représente QUE les ingrédients, garnitures et accompagnements explicitement listés dans la recette. N'ajoute jamais d'aliments, ingrédients, herbes, sauces ou décorations qui ne sont pas mentionnés dans la recette.
+IMAGE PROMPT — décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. Si la recette liste des ingrédients, ne représente QUE les ingrédients, garnitures et accompagnements listés — n'ajoute jamais d'aliments, ingrédients, herbes, sauces ou décorations non mentionnés. EXCEPTION : si aucun ingrédient n'est listé (par exemple seulement un titre), imagine librement une version classique et appétissante du plat d'après son nom.
 
 Réponds UNIQUEMENT avec le JSON structuré, sans texte supplémentaire.`;
 }
