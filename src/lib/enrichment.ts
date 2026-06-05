@@ -13,6 +13,12 @@ import {
 
 // ---------- System prompt ----------
 
+// Shared instruction for writing the image prompt. The "only depict listed
+// ingredients" rule lives here, in the text-LLM instruction, where negation
+// actually works — image models honour it poorly (naming "herbs" can even make
+// them appear), so the constraint must be baked into the prompt text itself.
+const IMAGE_PROMPT_INSTRUCTION = `Décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. Si la recette liste des ingrédients, ne représente QUE les ingrédients, garnitures et accompagnements listés — n'ajoute aucun aliment, ingrédient, herbe, feuille verte, sauce ou décoration non mentionné, et ne suggère pas de garniture "pour la présentation". EXCEPTION : si aucun ingrédient n'est listé (par exemple seulement un titre), imagine librement une version classique et appétissante du plat d'après son nom.`;
+
 function buildSystemPrompt(predefinedTagNames: string[]): string {
   return `Tu es un assistant culinaire expert. Analyse la recette et retourne un JSON structuré.
 
@@ -25,9 +31,59 @@ COOK TIME — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 COST — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
 COMPLEXITY — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 
-IMAGE PROMPT — décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. Si la recette liste des ingrédients, ne représente QUE les ingrédients, garnitures et accompagnements listés — n'ajoute jamais d'aliments, ingrédients, herbes, sauces ou décorations non mentionnés. EXCEPTION : si aucun ingrédient n'est listé (par exemple seulement un titre), imagine librement une version classique et appétissante du plat d'après son nom.
+IMAGE PROMPT — ${IMAGE_PROMPT_INSTRUCTION}
 
 Réponds UNIQUEMENT avec le JSON structuré, sans texte supplémentaire.`;
+}
+
+// Builds a recipe content block (title + ingredients + steps) for the prompt.
+function recipeUserContent(recipe: {
+  title: string;
+  ingredients: string | null;
+  steps: string | null;
+}): string {
+  return `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients ?? ""}\nPréparation:\n${recipe.steps ?? ""}`;
+}
+
+// Generates a fresh image prompt from the recipe content. Used when
+// regenerating an image so the prompt (and therefore the picture) actually
+// changes instead of replaying the originally stored one.
+async function generateImagePrompt(recipe: {
+  title: string;
+  ingredients: string | null;
+  steps: string | null;
+}): Promise<string> {
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o-mini",
+    response_format: {
+      type: "json_schema",
+      json_schema: {
+        name: "image_prompt",
+        strict: true,
+        schema: {
+          type: "object",
+          properties: { imagePrompt: { type: "string" } },
+          required: ["imagePrompt"],
+          additionalProperties: false,
+        },
+      },
+    },
+    messages: [
+      {
+        role: "system",
+        content: `Tu es un assistant culinaire expert. ${IMAGE_PROMPT_INSTRUCTION}\n\nRéponds UNIQUEMENT avec le JSON structuré { "imagePrompt": "..." }.`,
+      },
+      { role: "user", content: recipeUserContent(recipe) },
+    ],
+  });
+
+  const content = response.choices[0].message.content;
+  if (!content) throw new Error("Empty image-prompt response");
+  const parsed = JSON.parse(content) as { imagePrompt?: unknown };
+  if (typeof parsed.imagePrompt !== "string" || parsed.imagePrompt.length === 0) {
+    throw new Error("Invalid image-prompt response");
+  }
+  return parsed.imagePrompt;
 }
 
 // ---------- Image pipeline ----------
@@ -39,7 +95,7 @@ async function generateAndUploadImage(
   // Generate with gpt-image-1
   const imageResponse = await openai.images.generate({
     model: "gpt-image-1.5",
-    prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting. Only show the food items explicitly described above — do not add any extra ingredients, garnishes, herbs, sauces, side dishes or decorations that are not described.`,
+    prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting. Show only the dish exactly as described above, plated simply and without any added garnish or decoration.`,
     n: 1,
     size: "1024x1024",
     quality: "low",
@@ -194,10 +250,7 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
             },
             messages: [
               { role: "system", content: buildSystemPrompt(predefinedTagNames) },
-              {
-                role: "user",
-                content: `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients ?? ""}\nPréparation:\n${recipe.steps ?? ""}`,
-              },
+              { role: "user", content: recipeUserContent(recipe) },
             ],
           });
 
@@ -288,12 +341,12 @@ export async function regenerateImage(recipeId: string): Promise<void> {
   try {
     const { data: recipe, error } = await supabase
       .from("recipes")
-      .select("image_prompt")
+      .select("title, ingredients, steps, image_prompt")
       .eq("id", recipeId)
       .single();
 
-    if (error || !recipe?.image_prompt) {
-      console.error("[regenerateImage] No image_prompt found:", recipeId);
+    if (error || !recipe?.title) {
+      console.error("[regenerateImage] Recipe not found:", recipeId);
       await supabase
         .from("recipes")
         .update({ image_status: "failed" })
@@ -306,8 +359,31 @@ export async function regenerateImage(recipeId: string): Promise<void> {
       .update({ image_status: "pending" })
       .eq("id", recipeId);
 
+    // Recompute the image prompt from the recipe content. Replaying the stored
+    // prompt would reproduce the exact same picture (and any mistakes baked into
+    // it, e.g. herb garnishes the LLM had added). Fall back to the stored prompt
+    // if the recompute fails.
+    let imagePrompt = recipe.image_prompt;
+    try {
+      imagePrompt = await withRetry(() => generateImagePrompt(recipe));
+      await supabase
+        .from("recipes")
+        .update({ image_prompt: imagePrompt })
+        .eq("id", recipeId);
+    } catch (err) {
+      console.error("[regenerateImage] Prompt recompute failed, reusing stored prompt:", err);
+    }
+
+    if (!imagePrompt) {
+      await supabase
+        .from("recipes")
+        .update({ image_status: "failed" })
+        .eq("id", recipeId);
+      return;
+    }
+
     const imageUrl = await withRetry(() =>
-      generateAndUploadImage(recipeId, recipe.image_prompt),
+      generateAndUploadImage(recipeId, imagePrompt),
     );
 
     await supabase

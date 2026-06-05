@@ -129,27 +129,69 @@ describe("enrichRecipe — full enrichment", () => {
 });
 
 describe("regenerateImage", () => {
-  it("generates a new image and stores its URL", async () => {
+  it("recomputes the prompt, then generates and stores a new image", async () => {
     supa.queueResults([
-      { data: { image_prompt: "An apple pie" } }, // recipe select
+      {
+        data: {
+          title: "Tarte aux pommes",
+          ingredients: "pommes",
+          steps: "cuire",
+          image_prompt: "old prompt",
+        },
+      }, // recipe select
       { error: null }, // image_status pending
+      { error: null }, // image_prompt refresh
       { error: null }, // final update
     ]);
+    mockChat.mockResolvedValue(
+      chatCompletion({ imagePrompt: "A fresh apple pie, overhead" }),
+    );
     mockImages.mockResolvedValue(imageResponse());
 
     await regenerateImage("recipe-1");
 
+    // The prompt was recomputed (LLM call) rather than the stored one replayed
+    expect(mockChat).toHaveBeenCalledTimes(1);
     expect(mockImages).toHaveBeenCalledTimes(1);
     expect(supa.uploadMock).toHaveBeenCalledTimes(1);
+
     const updates = updatePayloads("recipes");
+    const promptUpdate = updates.find((u) => "image_prompt" in u)!;
+    expect(promptUpdate.image_prompt).toBe("A fresh apple pie, overhead");
+    // The image was generated from the new prompt, not the stored one
+    expect(mockImages.mock.calls[0][0].prompt).toContain("A fresh apple pie, overhead");
+
     const finalUpdate = updates.find((u) => u.image_status === "generated")!;
     expect(finalUpdate).toBeDefined();
     expect(typeof finalUpdate.generated_image_url).toBe("string");
   });
 
-  it("marks the image failed when the recipe has no image_prompt", async () => {
+  it("falls back to the stored prompt when the recompute fails", async () => {
     supa.queueResults([
-      { data: { image_prompt: null } },
+      {
+        data: {
+          title: "Tarte",
+          ingredients: null,
+          steps: null,
+          image_prompt: "stored prompt",
+        },
+      }, // recipe select
+      { error: null }, // image_status pending
+      { error: null }, // final update
+    ]);
+    mockChat.mockRejectedValue(new Error("LLM down"));
+    mockImages.mockResolvedValue(imageResponse());
+
+    await regenerateImage("recipe-1");
+
+    expect(mockImages).toHaveBeenCalledTimes(1);
+    expect(mockImages.mock.calls[0][0].prompt).toContain("stored prompt");
+    expect(updatePayloads("recipes").find((u) => u.image_status === "generated")).toBeDefined();
+  });
+
+  it("marks the image failed when the recipe is missing", async () => {
+    supa.queueResults([
+      { data: null, error: { message: "not found" } },
       { error: null }, // failed-status update
     ]);
     await regenerateImage("recipe-1");
