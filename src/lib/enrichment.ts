@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import openai from "@/lib/openai";
 import { withRetry } from "@/lib/retry";
 import { createServerClient } from "@/lib/supabase/server";
@@ -259,6 +260,7 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
           return EnrichmentResponseSchema.parse(JSON.parse(content));
         });
       } catch (error) {
+        Sentry.captureException(error);
         console.error("[enrichment] GPT-4o-mini failed after retries:", error);
         await supabase
           .from("recipes")
@@ -316,6 +318,7 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
           })
           .eq("id", recipeId);
       } catch (error) {
+        Sentry.captureException(error);
         console.error("[enrichment] Image generation failed:", error);
         await supabase
           .from("recipes")
@@ -325,6 +328,7 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
       }
     }
   } catch (error) {
+    Sentry.captureException(error);
     console.error("[enrichment] Unexpected error:", error);
     await supabase
       .from("recipes")
@@ -394,6 +398,7 @@ export async function regenerateImage(recipeId: string): Promise<void> {
       })
       .eq("id", recipeId);
   } catch (error) {
+    Sentry.captureException(error);
     console.error("[regenerateImage] Failed:", error);
     await supabase
       .from("recipes")

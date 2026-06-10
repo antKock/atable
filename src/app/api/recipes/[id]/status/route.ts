@@ -1,17 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const GET = withHouseholdAuth(
+  async (_request: NextRequest, { params }: RouteContext, { householdId }) => {
     const { id } = await params;
     const supabase = createServerClient();
     const { data, error } = await supabase
@@ -29,10 +23,5 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
       enrichmentStatus: data.enrichment_status,
       imageStatus: data.image_status,
     });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
-      { status: 500 },
-    );
-  }
-}
+  },
+);

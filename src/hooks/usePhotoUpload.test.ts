@@ -1,75 +1,86 @@
-import { describe, it, expect, vi } from "vitest";
-import { buildStoragePath, _uploadToStorage } from "./usePhotoUpload";
+// @vitest-environment happy-dom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { usePhotoUpload } from "./usePhotoUpload";
+import { resizeImageToBlob } from "@/lib/image-resize";
 
-describe("buildStoragePath", () => {
-  it("returns the correct path format", () => {
-    expect(buildStoragePath("device-abc", "recipe-123")).toBe(
-      "device-abc/recipe-123/photo.webp"
-    );
-  });
+vi.mock("@/lib/image-resize", () => ({
+  resizeImageToBlob: vi.fn(),
+}));
 
-  it("uses the device token as the first path segment", () => {
-    const path = buildStoragePath("my-device", "my-recipe");
-    expect(path.startsWith("my-device/")).toBe(true);
-  });
+const fetchMock = vi.fn();
 
-  it("uses the recipe id as the second path segment", () => {
-    const path = buildStoragePath("token", "rec-456");
-    expect(path).toContain("/rec-456/");
-  });
-
-  it("always ends with photo.webp", () => {
-    const path = buildStoragePath("a", "b");
-    expect(path.endsWith("photo.webp")).toBe(true);
-  });
+beforeEach(() => {
+  vi.mocked(resizeImageToBlob).mockReset();
+  fetchMock.mockReset();
+  vi.stubGlobal("fetch", fetchMock);
 });
 
-describe("_uploadToStorage", () => {
-  function makeMockSupabase(opts: {
-    uploadError?: string | null;
-    publicUrl?: string;
-  }) {
-    const { uploadError = null, publicUrl = "https://example.com/photo.webp" } =
-      opts;
-    return {
-      storage: {
-        from: () => ({
-          upload: vi.fn().mockResolvedValue({
-            error: uploadError ? { message: uploadError } : null,
-          }),
-          getPublicUrl: vi.fn().mockReturnValue({
-            data: { publicUrl },
-          }),
-        }),
-      },
-    };
-  }
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
-  it("returns url on successful upload", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = makeMockSupabase({ publicUrl: "https://cdn.example.com/img.webp" }) as any;
-    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
-    const result = await _uploadToStorage(supabase, file, "token/recipe/photo.webp");
-    expect(result).toEqual({ url: "https://cdn.example.com/img.webp" });
+function makeFile(bytes = 4, name = "photo.jpg"): File {
+  return new File([new Uint8Array(bytes)], name, { type: "image/jpeg" });
+}
+
+describe("uploadPhoto", () => {
+  it("resizes then POSTs the photo to the recipe photo endpoint", async () => {
+    const resizedBlob = new Blob([new Uint8Array(2)], { type: "image/webp" });
+    vi.mocked(resizeImageToBlob).mockResolvedValue({ blob: resizedBlob, ext: "webp" });
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ url: "https://cdn.example.com/img.webp?v=1" }), {
+        status: 200,
+      }),
+    );
+
+    const { uploadPhoto } = usePhotoUpload();
+    const result = await uploadPhoto(makeFile(), "recipe-123");
+
+    expect(result).toEqual({ url: "https://cdn.example.com/img.webp?v=1" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("/api/recipes/recipe-123/photo");
+    expect(init.method).toBe("POST");
+    const sent = init.body as FormData;
+    const sentFile = sent.get("photo") as File;
+    // The server derives the extension from the MIME type, not the filename.
+    expect(sentFile.type).toBe("image/webp");
   });
 
-  it("returns error when upload fails", async () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = makeMockSupabase({ uploadError: "Storage quota exceeded" }) as any;
-    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
-    const result = await _uploadToStorage(supabase, file, "token/recipe/photo.webp");
-    expect(result).toEqual({ error: "Storage quota exceeded" });
+  it("falls back to the original file when resizing fails", async () => {
+    vi.mocked(resizeImageToBlob).mockRejectedValue(new Error("no canvas"));
+    fetchMock.mockResolvedValue(
+      new Response(JSON.stringify({ url: "https://cdn.example.com/raw.jpg" }), {
+        status: 200,
+      }),
+    );
+
+    const { uploadPhoto } = usePhotoUpload();
+    const result = await uploadPhoto(makeFile(4, "original.jpg"), "recipe-1");
+
+    expect(result).toEqual({ url: "https://cdn.example.com/raw.jpg" });
+    const sentFile = (fetchMock.mock.calls[0][1].body as FormData).get("photo") as File;
+    expect(sentFile.type).toBe("image/jpeg");
   });
 
-  it("does not call getPublicUrl when upload fails", async () => {
-    const fromResult = {
-      upload: vi.fn().mockResolvedValue({ error: { message: "fail" } }),
-      getPublicUrl: vi.fn().mockReturnValue({ data: { publicUrl: "" } }),
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = { storage: { from: () => fromResult } } as any;
-    const file = new File(["data"], "photo.jpg", { type: "image/jpeg" });
-    await _uploadToStorage(supabase, file, "token/recipe/photo.webp");
-    expect(fromResult.getPublicUrl).not.toHaveBeenCalled();
+  it("rejects oversized payloads without calling the API", async () => {
+    vi.mocked(resizeImageToBlob).mockRejectedValue(new Error("no canvas"));
+
+    const { uploadPhoto } = usePhotoUpload();
+    const result = await uploadPhoto(makeFile(4 * 1024 * 1024 + 1), "recipe-1");
+
+    expect(result).toEqual({ error: "La photo est trop volumineuse" });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("returns an error when the API call fails", async () => {
+    const resizedBlob = new Blob([new Uint8Array(2)], { type: "image/webp" });
+    vi.mocked(resizeImageToBlob).mockResolvedValue({ blob: resizedBlob, ext: "webp" });
+    fetchMock.mockResolvedValue(new Response("{}", { status: 500 }));
+
+    const { uploadPhoto } = usePhotoUpload();
+    const result = await uploadPhoto(makeFile(), "recipe-1");
+
+    expect(result).toEqual({ error: "La photo n'a pas pu être enregistrée" });
   });
 });

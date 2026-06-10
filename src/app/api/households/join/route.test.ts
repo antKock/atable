@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
-import { joinRateLimit } from "@/lib/redis";
+import { joinRateLimit, joinCodeRateLimit } from "@/lib/redis";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
@@ -11,10 +11,12 @@ vi.mock("next/headers", () => ({ headers: vi.fn() }));
 vi.mock("@/lib/redis", () => ({
   redis: { get: vi.fn() },
   joinRateLimit: { limit: vi.fn() },
+  joinCodeRateLimit: { limit: vi.fn() },
 }));
 
 const mockHeaders = headers as unknown as Mock;
 const mockLimit = joinRateLimit.limit as unknown as Mock;
+const mockCodeLimit = joinCodeRateLimit.limit as unknown as Mock;
 
 let supa: SupabaseMock;
 
@@ -25,6 +27,7 @@ beforeEach(() => {
     new Headers({ "user-agent": "Mozilla/5.0", "x-forwarded-for": "1.2.3.4" }),
   );
   mockLimit.mockResolvedValue({ success: true });
+  mockCodeLimit.mockResolvedValue({ success: true });
 });
 
 function request(body: unknown): NextRequest {
@@ -73,6 +76,13 @@ describe("POST /api/households/join (Fix 1.2)", () => {
     mockLimit.mockResolvedValue({ success: false });
     const res = await POST(request({ code: "OLIVE-4821" }));
     expect(res.status).toBe(429);
+  });
+
+  it("returns 429 when the code itself is rate-limited (distributed brute-force)", async () => {
+    mockCodeLimit.mockResolvedValue({ success: false });
+    const res = await POST(request({ code: "OLIVE-4821" }));
+    expect(res.status).toBe(429);
+    expect(mockCodeLimit).toHaveBeenCalledWith("OLIVE-4821");
   });
 
   it("returns 404 when the code matches no household", async () => {

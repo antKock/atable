@@ -4,10 +4,25 @@ import { z } from "zod";
 export const RECIPE_SOURCES = ["manual", "url", "photo", "voice"] as const;
 export type RecipeSource = (typeof RECIPE_SOURCES)[number];
 
+// Size caps: keep user text within sane bounds — recipe fields are injected
+// into OpenAI prompts, so unbounded input means unbounded token spend.
+export const MAX_TITLE_LENGTH = 200;
+export const MAX_TEXT_LENGTH = 10_000;
+
+const titleField = z
+  .string()
+  .min(1, "Le titre est requis")
+  .max(MAX_TITLE_LENGTH, "Le titre est trop long (200 caractères max)");
+const textField = z
+  .string()
+  .max(MAX_TEXT_LENGTH, "Texte trop long (10 000 caractères max)")
+  .nullable()
+  .optional();
+
 export const RecipeCreateSchema = z.object({
-  title: z.string().min(1, "Le titre est requis"),
-  ingredients: z.string().nullable().optional(),
-  steps: z.string().nullable().optional(),
+  title: titleField,
+  ingredients: textField,
+  steps: textField,
   photoUrl: z.string().url().nullable().optional(),
   prepTime: z.string().nullable().optional(),
   cookTime: z.string().nullable().optional(),
@@ -19,9 +34,9 @@ export const RecipeCreateSchema = z.object({
 });
 
 export const RecipeUpdateSchema = z.object({
-  title: z.string().min(1, "Le titre est requis"),
-  ingredients: z.string().nullable().optional(),
-  steps: z.string().nullable().optional(),
+  title: titleField,
+  ingredients: textField,
+  steps: textField,
   photoUrl: z.string().url().nullable().optional(),
   prepTime: z.string().nullable().optional(),
   cookTime: z.string().nullable().optional(),

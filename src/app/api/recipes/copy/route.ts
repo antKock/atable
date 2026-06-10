@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const BUCKET = "recipe-photos";
@@ -35,15 +35,8 @@ async function duplicateImage(
 // Copies a shared recipe (resolved by its capability token) into the caller's
 // household. Used both by guests right after they create/join a household and
 // by members of another household adding a friend's recipe.
-export async function POST(request: NextRequest) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    const sessionId = hdrs.get("x-session-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const POST = withHouseholdAuth(
+  async (request: NextRequest, _ctx, { householdId, sessionId }) => {
     const body = await request.json().catch(() => ({}));
     const token = typeof body.token === "string" ? body.token.trim() : "";
     if (!token) {
@@ -127,10 +120,5 @@ export async function POST(request: NextRequest) {
     revalidatePath("/home");
 
     return NextResponse.json({ ok: true, recipeId: newId });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

@@ -56,17 +56,7 @@ describe("mapDbRowToRecipe", () => {
     expect(recipe.tags[0].id).toBe("t1");
   });
 
-  it("falls back to the legacy tags TEXT[] column", () => {
-    const recipe = mapDbRowToRecipe(
-      recipeDbRow({ recipe_tags: undefined, tags: ["Végétarien", "Été"] }),
-    );
-    expect(recipe.tags).toEqual([
-      { id: "", name: "Végétarien", category: null },
-      { id: "", name: "Été", category: null },
-    ]);
-  });
-
-  it("returns an empty tags array when neither source is present", () => {
+  it("returns an empty tags array when the join is absent (legacy TEXT[] dropped in 018)", () => {
     const recipe = mapDbRowToRecipe(
       recipeDbRow({ recipe_tags: undefined, tags: undefined }),
     );

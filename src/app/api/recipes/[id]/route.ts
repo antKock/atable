@@ -1,23 +1,17 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { RecipeUpdateSchema } from "@/lib/schemas/recipe";
 import { enrichRecipe, regenerateImage } from "@/lib/enrichment";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
 export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: NextRequest, { params }: RouteContext) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const GET = withHouseholdAuth(
+  async (_request: NextRequest, { params }: RouteContext, { householdId }) => {
     const { id } = await params;
     const supabase = createServerClient();
     const { data, error } = await supabase
@@ -32,22 +26,11 @@ export async function GET(_request: NextRequest, { params }: RouteContext) {
     }
 
     return NextResponse.json(mapDbRowToRecipe(data));
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
+  },
+);
 
-export async function PUT(request: NextRequest, { params }: RouteContext) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const PUT = withHouseholdAuth(
+  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
     const { id } = await params;
     const body = await request.json();
     const result = RecipeUpdateSchema.safeParse(body);
@@ -161,22 +144,11 @@ export async function PUT(request: NextRequest, { params }: RouteContext) {
     });
 
     return NextResponse.json(mapDbRowToRecipe(data));
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
+  },
+);
 
-export async function DELETE(_request: NextRequest, { params }: RouteContext) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const DELETE = withHouseholdAuth(
+  async (_request: NextRequest, { params }: RouteContext, { householdId }) => {
     const { id } = await params;
     const supabase = createServerClient();
 
@@ -202,10 +174,5 @@ export async function DELETE(_request: NextRequest, { params }: RouteContext) {
     revalidatePath("/home");
 
     return new NextResponse(null, { status: 204 });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

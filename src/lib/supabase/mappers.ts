@@ -1,21 +1,15 @@
 import type { Recipe, RecipeListItem, Tag } from "@/types/recipe";
 
 // Flatten nested recipe_tags join into tags array
-// Falls back to legacy tags TEXT[] column when join is absent
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function mapTags(row: Record<string, any>): Tag[] {
   const relationalTags = row.recipe_tags;
-  if (Array.isArray(relationalTags) && relationalTags.length > 0) {
-    return relationalTags
-      .map((rt: { tags: { id: string; name: string; category: string | null } } | null) =>
-        rt?.tags ? { id: rt.tags.id, name: rt.tags.name, category: rt.tags.category } : null,
-      )
-      .filter(Boolean) as Tag[];
-  }
-  if (Array.isArray(row.tags)) {
-    return row.tags.map((name: string) => ({ id: "", name, category: null }));
-  }
-  return [];
+  if (!Array.isArray(relationalTags)) return [];
+  return relationalTags
+    .map((rt: { tags: { id: string; name: string; category: string | null } } | null) =>
+      rt?.tags ? { id: rt.tags.id, name: rt.tags.name, category: rt.tags.category } : null,
+    )
+    .filter(Boolean) as Tag[];
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

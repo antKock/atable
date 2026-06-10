@@ -338,6 +338,33 @@ export default async function DashboardPage({
             <Card span={4} title="Répartition par plateforme" sub="Angle de lecture transverse">
               <ChartPlatforms data={data.platforms} height={200} />
             </Card>
+            <Card
+              span={12}
+              title="Échecs d'enrichissement"
+              sub="Recettes dont le pipeline IA a échoué (20 dernières) — relancer via batch-enrich"
+              badge={data.enrichmentFailures.length > 0 ? String(data.enrichmentFailures.length) : undefined}
+            >
+              {data.enrichmentFailures.length === 0 ? (
+                <div className="fail-empty">Aucun échec d&apos;enrichissement — pipeline au vert.</div>
+              ) : (
+                <div className="fail-table">
+                  <div className="fail-row fail-head">
+                    <span>Recette</span>
+                    <span>Foyer</span>
+                    <span>Échec</span>
+                    <span>Dernière activité</span>
+                  </div>
+                  {data.enrichmentFailures.map((f) => (
+                    <div className="fail-row" key={f.id}>
+                      <span className="fail-title">{f.title}</span>
+                      <span>{f.household}</span>
+                      <span className="fail-part">{f.failedPart}</span>
+                      <span>{f.updatedAt}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </Card>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { generateShareToken } from "@/lib/auth/share-token";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -10,14 +10,8 @@ const MAX_ATTEMPTS = 5;
 // POST /api/recipes/[id]/share
 // Idempotently mints (or returns the existing) capability token for a recipe
 // the caller's household owns, and returns the public share URL.
-export async function POST(request: NextRequest, { params }: RouteContext) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+export const POST = withHouseholdAuth(
+  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
     const { id } = await params;
     const supabase = createServerClient();
 
@@ -76,10 +70,5 @@ export async function POST(request: NextRequest, { params }: RouteContext) {
 
     const url = `${request.nextUrl.origin}/r/${token}`;
     return NextResponse.json({ token, url });
-  } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

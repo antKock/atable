@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { verifySession } from '@/lib/auth/session'
+import {
+  verifySession,
+  signSession,
+  setSessionCookie,
+  SESSION_RENEW_AFTER_S,
+} from '@/lib/auth/session'
 import { redis } from '@/lib/redis'
 
 // Exact-match public routes (no session required)
@@ -70,14 +75,30 @@ export async function middleware(request: NextRequest) {
         })
         return res
       }
-    } catch {
+    } catch (err) {
       // Redis unavailable → fail open, let the request through
+      console.error('[middleware] revocation check failed (Redis down?), failing open:', err)
     }
 
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-household-id', payload.hid)
     requestHeaders.set('x-session-id', payload.sid)
-    return NextResponse.next({ request: { headers: requestHeaders } })
+    const response = NextResponse.next({ request: { headers: requestHeaders } })
+
+    // Sliding renewal: re-sign tokens older than the renewal window so active
+    // devices never hit the absolute expiry. Only inactivity for the full
+    // session lifetime forces re-entering the join code.
+    const tokenAgeS = Math.floor(Date.now() / 1000) - payload.iat
+    if (tokenAgeS > SESSION_RENEW_AFTER_S) {
+      try {
+        const fresh = await signSession({ hid: payload.hid, sid: payload.sid })
+        setSessionCookie(response, fresh)
+      } catch {
+        // Renewal is best-effort; the current token is still valid.
+      }
+    }
+
+    return response
   }
 
   return NextResponse.next()

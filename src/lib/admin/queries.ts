@@ -36,6 +36,14 @@ export type KpiCard = {
 
 export type Signal = { value: string; label: string; hint: string; warn?: boolean };
 
+export type EnrichmentFailure = {
+  id: string;
+  title: string;
+  household: string;
+  failedPart: string;
+  updatedAt: string;
+};
+
 const ISO = (d: Date) => d.toISOString().slice(0, 10);
 const fr = (n: number) => Math.round(n).toLocaleString("fr-FR");
 const pct = (num: number, den: number) => (den > 0 ? (num / den) * 100 : 0);
@@ -92,6 +100,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     loginFreq,
     depth,
     platformsRows,
+    enrichmentFailureRows,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
     rpc("analytics_recipes_created_daily", { p_from: ISO(fromDaily), p_household_ids: hh, p_platform: plat }),
@@ -109,6 +118,19 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     rpc("analytics_login_frequency", { p_platform: plat, p_household_ids: hh }),
     rpc<number>("analytics_depth", { p_household_ids: hh }),
     rpc("analytics_recipes_by_platform", { p_household_ids: hh }),
+    // Direct table read (no RPC): recipes whose AI pipeline failed, so the
+    // dashboard surfaces what would otherwise only live in Sentry.
+    supabase
+      .from("recipes")
+      .select("id, title, enrichment_status, image_status, updated_at, households(name)")
+      .or("enrichment_status.eq.failed,image_status.eq.failed")
+      .eq("is_seed", false)
+      .order("updated_at", { ascending: false })
+      .limit(20)
+      .then(({ data, error }) => {
+        if (error) throw new Error(`enrichment_failures: ${error.message}`);
+        return (data ?? []) as Row[];
+      }),
   ]);
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
@@ -365,9 +387,24 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     },
   ];
 
+  const enrichmentFailures: EnrichmentFailure[] = (enrichmentFailureRows as Row[]).map((r) => {
+    const meta = r.enrichment_status === "failed";
+    const image = r.image_status === "failed";
+    const hhRel = r.households as { name?: string } | { name?: string }[] | null;
+    const household = (Array.isArray(hhRel) ? hhRel[0]?.name : hhRel?.name) ?? "—";
+    return {
+      id: String(r.id),
+      title: String(r.title ?? "Sans titre"),
+      household,
+      failedPart: meta && image ? "métadonnées + image" : meta ? "métadonnées" : "image",
+      updatedAt: shortLabel(String(r.updated_at).slice(0, 10)),
+    };
+  });
+
   return {
     kpis,
     signals,
+    enrichmentFailures,
     wauMau,
     parc,
     acquisition: acquisitionSeries,
