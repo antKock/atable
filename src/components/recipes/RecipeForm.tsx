@@ -272,6 +272,11 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         }
       } else {
         payload.source = source ?? "manual";
+        // Tell the server a user photo is coming so enrichment skips (and
+        // doesn't bill) an AI image that the upload would immediately hide.
+        if (form.photoFile) {
+          payload.willUploadPhoto = true;
+        }
 
         const response = await fetch("/api/recipes", {
           method: "POST",
@@ -297,6 +302,19 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
           uploadPhoto(form.photoFile, created.id).then((result) => {
             if ("error" in result) {
               toast.error(t.feedback.photoError, { duration: Infinity });
+              // Image generation was skipped in anticipation of this photo;
+              // since it failed, fall back to generating an AI image so the
+              // recipe isn't left imageless.
+              void fetch(`/api/recipes/${created.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  title: payload.title,
+                  ingredients: payload.ingredients,
+                  steps: payload.steps,
+                  regenerateImage: true,
+                }),
+              });
             }
           });
         }

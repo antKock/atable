@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { headers } from "next/headers";
 import { GET, POST } from "./route";
+import { enrichRecipe } from "@/lib/enrichment";
 import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, findCall, calledWith, type SupabaseMock } from "@/test/supabase-mock";
 import { recipeDbRow } from "@/test/fixtures";
@@ -105,6 +106,22 @@ describe("POST /api/recipes", () => {
   it("rejects an invalid source with 422", async () => {
     const res = await POST(postRequest({ title: "Tarte", source: "telepathy" }));
     expect(res.status).toBe(422);
+  });
+
+  it("tells enrichment to skip image generation when a user photo is incoming", async () => {
+    vi.mocked(enrichRecipe).mockClear();
+    vi.mocked(after).mockImplementation(((fn: () => unknown) => void fn()) as never);
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte", willUploadPhoto: true }));
+    expect(enrichRecipe).toHaveBeenCalledWith("recipe-1", { skipImage: true });
+  });
+
+  it("lets enrichment generate an image when no user photo is incoming", async () => {
+    vi.mocked(enrichRecipe).mockClear();
+    vi.mocked(after).mockImplementation(((fn: () => unknown) => void fn()) as never);
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte" }));
+    expect(enrichRecipe).toHaveBeenCalledWith("recipe-1", { skipImage: undefined });
   });
 
   it("returns 401 without a household header", async () => {

@@ -34,7 +34,7 @@ export const POST = withHouseholdAuth(async (request: Request, _ctx, { household
       );
     }
 
-    const result = await extractRecipeFromVoice(audio);
+    const result = await extractRecipeFromVoice(audio, { householdId });
     return NextResponse.json(result);
   } catch (error) {
     console.error("[import/voice] Error:", error);

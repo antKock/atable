@@ -20,12 +20,17 @@ import {
   ChartRetention,
   GaugeRadial,
   ChartAiPipeline,
-  ChartAiCostPlaceholder,
+  ChartAiCostTrend,
+  ChartCostByType,
   ChartPlatforms,
 } from "@/components/admin/charts";
 import "./dashboard.css";
 
 export const dynamic = "force-dynamic";
+
+// USD formatter — OpenAI bills in dollars, so the cost section stays in $.
+const money = (n: number) =>
+  `$${n.toLocaleString("en-US", { minimumFractionDigits: n < 1 ? 3 : 2, maximumFractionDigits: n < 1 ? 4 : 2 })}`;
 
 function Cocotte({ size = 24 }: { size?: number }) {
   return (
@@ -324,10 +329,40 @@ export default async function DashboardPage({
 
         {/* 05 — Qualité & coût IA */}
         <div className="section">
-          <SectionHead n="05" title="Qualité & coût IA" meta="Pipeline d'enrichissement — spécifique Mijote" />
+          <SectionHead n="05" title="Qualité & coût IA" meta="Pipeline d'enrichissement & dépense OpenAI — spécifique Mijote" />
           <div className="cards">
-            <Card span={12} title="Coût IA / jour vs volume" sub="Coût (€) comparé au volume d'appels et aux recettes créées/modifiées" badge="à venir">
-              <ChartAiCostPlaceholder height={230} />
+            <Card span={8} title="Coût IA / jour par usage" sub="Dépense OpenAI quotidienne, empilée par type d'appel (USD)" badge="USD">
+              <ChartAiCostTrend data={data.aiCost.daily} height={230} />
+            </Card>
+            <Card span={4} title="Répartition par usage" sub="Part de la dépense — 30 j">
+              <ChartCostByType data={data.aiCost.byType} height={200} />
+            </Card>
+            <Card
+              span={4}
+              title="Économie unitaire"
+              sub="Coût moyen sur 30 j"
+              footer={
+                <div className="cost-recon">
+                  {data.aiCost.billed30d != null
+                    ? `Facturé OpenAI (org.) : ${money(data.aiCost.billed30d)} · instrumenté : ${money(data.aiCost.total30d)}`
+                    : `Total instrumenté : ${money(data.aiCost.total30d)}`}
+                </div>
+              }
+            >
+              <div className="cost-stats">
+                <div className="cost-stat">
+                  <span className="cs-val">{money(data.aiCost.costPerRecipe)}</span>
+                  <span className="cs-lab">/ recette enrichie</span>
+                </div>
+                <div className="cost-stat">
+                  <span className="cs-val">{money(data.aiCost.costPerImage)}</span>
+                  <span className="cs-lab">/ image générée</span>
+                </div>
+                <div className="cost-stat">
+                  <span className="cs-val">{data.aiCost.imagesCount.toLocaleString("fr-FR")}</span>
+                  <span className="cs-lab">images · {data.aiCost.callsTotal.toLocaleString("fr-FR")} appels (30 j)</span>
+                </div>
+              </div>
             </Card>
             <Card span={4} title="Pipeline d'enrichissement" sub="Taux de succès / échec des appels">
               <ChartAiPipeline data={data.aiPipeline} success={data.aiPipeline[0]?.value ?? 0} height={200} />

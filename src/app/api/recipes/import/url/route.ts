@@ -19,7 +19,7 @@ export const POST = withHouseholdAuth(async (request: Request, _ctx, { household
       );
     }
 
-    const formData = await extractRecipeFromUrl(parsed.data.url);
+    const formData = await extractRecipeFromUrl(parsed.data.url, { householdId });
     return NextResponse.json(formData);
   } catch (error) {
     console.error("[import/url] Error:", error);

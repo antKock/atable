@@ -426,13 +426,44 @@ export function ChartAiPipeline({ data, success, height = 200 }: { data: any[]; 
   );
 }
 
-export function ChartAiCostPlaceholder({ height = 230 }: { height?: number }) {
+// Daily OpenAI spend (USD), stacked by usage type.
+export function ChartAiCostTrend({ data, height = 230 }: { data: any[]; height?: number }) {
+  if (sum(data, ["total"]) === 0)
+    return <ChartEmpty height={height} sub="Le coût IA se remplit dès le prochain import ou enrichissement (en USD)." />;
   return (
-    <div className="chart-empty" style={{ height }}>
-      <div className="ce-title">À venir</div>
-      <div className="ce-sub">
-        Le coût IA nécessite de logger chaque appel OpenAI (type, tokens, coût). Instrumentation prévue dans une prochaine itération.
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: -4, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
+        <YAxis {...axisProps} width={48} tickFormatter={(v: number) => `$${v}`} />
+        <Tooltip content={<Tip suffix=" $" />} />
+        <Area type="monotone" dataKey="ocr" name="Lecture OCR" stackId="c" stroke={P.ochre} fill={P.ochre} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="metadata" name="Métadonnées" stackId="c" stroke={P.sage} fill={P.sage} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="image" name="Génération image" stackId="c" stroke={P.terracotta} fill={P.terracotta} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="import" name="Import URL / vocal" stackId="c" stroke={P.clay} fill={P.clay} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+// OpenAI spend share by usage type (donut, USD).
+export function ChartCostByType({ data, height = 200 }: { data: any[]; height?: number }) {
+  if (sum(data, ["value"]) === 0) return <ChartEmpty height={height} sub="Aucune dépense IA sur la période." />;
+  return (
+    <div style={{ display: "flex", alignItems: "center", height, gap: 8 }}>
+      <div style={{ flex: "0 0 50%", height: "100%" }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={data} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="88%" paddingAngle={2} stroke="none">
+              {data.map((d, i) => (
+                <Cell key={i} fill={d.color} />
+              ))}
+            </Pie>
+            <Tooltip content={<Tip suffix=" $" />} />
+          </PieChart>
+        </ResponsiveContainer>
       </div>
+      <LegendList items={data} unit=" $" />
     </div>
   );
 }

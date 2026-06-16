@@ -81,6 +81,10 @@ export const POST = withHouseholdAuth(
       .from("recipes")
       .update({
         photo_url: url,
+        // The user's photo is the image now — settle image_status so any
+        // "image pending" spinner clears (notably when creation deferred AI
+        // generation because this upload was expected).
+        image_status: "none",
         updated_at: new Date().toISOString(),
       })
       .eq("id", id)

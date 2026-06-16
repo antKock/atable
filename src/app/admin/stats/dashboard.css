@@ -211,3 +211,16 @@
 }
 .mijote-dash .fail-title { font-weight: 600; color: var(--d-foreground); }
 .mijote-dash .fail-part { font-family: var(--d-mono); font-size: 11px; color: var(--d-neg); }
+
+/* AI cost — unit economics tile */
+.mijote-dash .cost-stats { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 2px; }
+.mijote-dash .cost-stat { display: flex; flex-direction: column; gap: 2px; }
+.mijote-dash .cost-stat .cs-val {
+  font-family: var(--d-mono); font-size: 22px; font-weight: 500;
+  color: var(--d-foreground); line-height: 1.1;
+}
+.mijote-dash .cost-stat .cs-lab { font-size: 12px; color: var(--d-muted); }
+.mijote-dash .cost-recon {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--d-rule);
+  font-size: 11px; color: var(--d-faint); line-height: 1.35;
+}

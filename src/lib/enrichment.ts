@@ -1,6 +1,7 @@
 import * as Sentry from "@sentry/nextjs";
 import openai from "@/lib/openai";
 import { withRetry } from "@/lib/retry";
+import { recordAiCost, textCostUsd, imageCostUsd } from "@/lib/ai-cost";
 import { createServerClient } from "@/lib/supabase/server";
 import { EnrichmentResponseSchema } from "@/lib/schemas/enrichment";
 import type { EnrichmentResponse } from "@/lib/schemas/enrichment";
@@ -49,11 +50,14 @@ function recipeUserContent(recipe: {
 // Generates a fresh image prompt from the recipe content. Used when
 // regenerating an image so the prompt (and therefore the picture) actually
 // changes instead of replaying the originally stored one.
-async function generateImagePrompt(recipe: {
-  title: string;
-  ingredients: string | null;
-  steps: string | null;
-}): Promise<string> {
+async function generateImagePrompt(
+  recipe: {
+    title: string;
+    ingredients: string | null;
+    steps: string | null;
+  },
+  ctx?: { householdId: string; recipeId: string },
+): Promise<string> {
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
     response_format: {
@@ -84,6 +88,17 @@ async function generateImagePrompt(recipe: {
   if (typeof parsed.imagePrompt !== "string" || parsed.imagePrompt.length === 0) {
     throw new Error("Invalid image-prompt response");
   }
+  if (ctx) {
+    await recordAiCost({
+      householdId: ctx.householdId,
+      recipeId: ctx.recipeId,
+      callType: "image_prompt",
+      model: "gpt-4o-mini",
+      inputTokens: response.usage?.prompt_tokens ?? null,
+      outputTokens: response.usage?.completion_tokens ?? null,
+      costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+    });
+  }
   return parsed.imagePrompt;
 }
 
@@ -92,18 +107,31 @@ async function generateImagePrompt(recipe: {
 async function generateAndUploadImage(
   recipeId: string,
   imagePrompt: string,
+  householdId: string,
 ): Promise<string> {
+  const IMAGE_QUALITY = "low";
+  const IMAGE_SIZE = "1024x1024";
   // Generate with gpt-image-1
   const imageResponse = await openai.images.generate({
     model: "gpt-image-1.5",
     prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting. Show only the dish exactly as described above, plated simply and without any added garnish or decoration.`,
     n: 1,
-    size: "1024x1024",
-    quality: "low",
+    size: IMAGE_SIZE,
+    quality: IMAGE_QUALITY,
     // Return WebP (~150-250 KB) instead of the default ~2 MB PNG — ~90% lighter
     // at the source, no post-processing. output_compression 80 ≈ quality 80.
     output_format: "webp",
     output_compression: 80,
+  });
+
+  await recordAiCost({
+    householdId,
+    recipeId,
+    callType: "image",
+    model: "gpt-image-1.5",
+    inputTokens: imageResponse.usage?.input_tokens ?? null,
+    outputTokens: imageResponse.usage?.output_tokens ?? null,
+    costUsd: imageCostUsd(IMAGE_QUALITY, IMAGE_SIZE),
   });
 
   const imageData = imageResponse.data?.[0];
@@ -155,14 +183,17 @@ async function generateAndUploadImage(
 
 // ---------- Main enrichment pipeline ----------
 
-export async function enrichRecipe(recipeId: string): Promise<void> {
+export async function enrichRecipe(
+  recipeId: string,
+  options?: { skipImage?: boolean },
+): Promise<void> {
   const supabase = createServerClient();
 
   try {
     // 1. Read recipe data
     const { data: recipe, error: fetchError } = await supabase
       .from("recipes")
-      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt, photo_url, generated_image_url, enrichment_status")
+      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt, photo_url, generated_image_url, enrichment_status, household_id")
       .eq("id", recipeId)
       .single();
 
@@ -193,7 +224,11 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
       .eq("recipe_id", recipeId);
 
     const needsMetadata = !hasAllMetadata || tagCount === 0;
-    const needsImage = !hasImage;
+    // skipImage: the caller knows a user photo is about to be uploaded (which
+    // will set photo_url), so generating an AI image here would be wasted spend.
+    // image_status is left "pending" — the photo-upload route clears it on
+    // success, or the create flow falls back to generation if the upload fails.
+    const needsImage = !hasImage && !options?.skipImage;
 
     console.log(`[enrichment] ${recipeId} — needsMetadata=${needsMetadata} needsImage=${needsImage} (tags=${tagCount})`);
 
@@ -257,7 +292,17 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
 
           const content = response.choices[0].message.content;
           if (!content) throw new Error("Empty response from GPT-4o-mini");
-          return EnrichmentResponseSchema.parse(JSON.parse(content));
+          const enrichResult = EnrichmentResponseSchema.parse(JSON.parse(content));
+          await recordAiCost({
+            householdId: recipe.household_id,
+            recipeId,
+            callType: "metadata",
+            model: "gpt-4o-mini",
+            inputTokens: response.usage?.prompt_tokens ?? null,
+            outputTokens: response.usage?.completion_tokens ?? null,
+            costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+          });
+          return enrichResult;
         });
       } catch (error) {
         Sentry.captureException(error);
@@ -308,7 +353,7 @@ export async function enrichRecipe(recipeId: string): Promise<void> {
       console.log(`[enrichment] ${recipeId} — calling DALL-E`);
       try {
         const imageUrl = await withRetry(() =>
-          generateAndUploadImage(recipeId, imagePrompt),
+          generateAndUploadImage(recipeId, imagePrompt, recipe.household_id),
         );
         await supabase
           .from("recipes")
@@ -345,7 +390,7 @@ export async function regenerateImage(recipeId: string): Promise<void> {
   try {
     const { data: recipe, error } = await supabase
       .from("recipes")
-      .select("title, ingredients, steps, image_prompt")
+      .select("title, ingredients, steps, image_prompt, household_id")
       .eq("id", recipeId)
       .single();
 
@@ -369,7 +414,9 @@ export async function regenerateImage(recipeId: string): Promise<void> {
     // if the recompute fails.
     let imagePrompt = recipe.image_prompt;
     try {
-      imagePrompt = await withRetry(() => generateImagePrompt(recipe));
+      imagePrompt = await withRetry(() =>
+        generateImagePrompt(recipe, { householdId: recipe.household_id, recipeId }),
+      );
       await supabase
         .from("recipes")
         .update({ image_prompt: imagePrompt })
@@ -387,7 +434,7 @@ export async function regenerateImage(recipeId: string): Promise<void> {
     }
 
     const imageUrl = await withRetry(() =>
-      generateAndUploadImage(recipeId, imagePrompt),
+      generateAndUploadImage(recipeId, imagePrompt, recipe.household_id),
     );
 
     await supabase

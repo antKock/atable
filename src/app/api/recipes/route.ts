@@ -94,7 +94,7 @@ export const POST = withHouseholdAuth(
     revalidatePath("/recipes/[id]", "page");
 
     after(async () => {
-      await enrichRecipe(data.id);
+      await enrichRecipe(data.id, { skipImage: result.data.willUploadPhoto });
     });
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });

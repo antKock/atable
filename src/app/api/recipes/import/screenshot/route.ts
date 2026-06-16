@@ -20,7 +20,7 @@ export const POST = withHouseholdAuth(async (request: Request, _ctx, { household
       );
     }
 
-    const formData = await extractRecipeFromImages(parsed.data.images);
+    const formData = await extractRecipeFromImages(parsed.data.images, { householdId });
     return NextResponse.json(formData);
   } catch (error) {
     console.error("[import/screenshot] Error:", error);

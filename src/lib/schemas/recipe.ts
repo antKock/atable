@@ -31,6 +31,11 @@ export const RecipeCreateSchema = z.object({
   seasons: z.array(z.string()).optional().default([]),
   tagIds: z.array(z.string()).optional().default([]),
   source: z.enum(RECIPE_SOURCES).optional().default("manual"),
+  // Set by the create form when the user attached their own photo. The photo is
+  // uploaded *after* creation (the Storage path needs the recipe id), so without
+  // this hint enrichment would generate — and bill — an AI image that the photo
+  // immediately hides. When true, enrichment skips image generation.
+  willUploadPhoto: z.boolean().optional(),
 });
 
 export const RecipeUpdateSchema = z.object({
