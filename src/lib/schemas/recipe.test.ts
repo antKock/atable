@@ -69,3 +69,32 @@ describe("RecipeUpdateSchema", () => {
     expect(result.seasons).toBeUndefined();
   });
 });
+
+describe("size limits (anti prompt-flooding)", () => {
+  it("rejects a title over 200 characters", () => {
+    expect(
+      RecipeCreateSchema.safeParse({ title: "x".repeat(201) }).success,
+    ).toBe(false);
+  });
+
+  it("rejects ingredients over 10 000 characters", () => {
+    expect(
+      RecipeCreateSchema.safeParse({ title: "Ok", ingredients: "x".repeat(10_001) })
+        .success,
+    ).toBe(false);
+  });
+
+  it("rejects steps over 10 000 characters on update", () => {
+    expect(
+      RecipeUpdateSchema.safeParse({ title: "Ok", steps: "x".repeat(10_001) })
+        .success,
+    ).toBe(false);
+  });
+
+  it("accepts text at exactly the limit", () => {
+    expect(
+      RecipeCreateSchema.safeParse({ title: "Ok", steps: "x".repeat(10_000) })
+        .success,
+    ).toBe(true);
+  });
+});

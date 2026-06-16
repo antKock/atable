@@ -1,24 +1,11 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { fetchCarouselSections } from "@/lib/queries/carousels";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
-export async function GET() {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withHouseholdAuth(async (_request, _ctx, { householdId }) => {
+  const supabase = createServerClient();
+  const sections = await fetchCarouselSections(supabase, householdId);
 
-    const supabase = createServerClient();
-    const sections = await fetchCarouselSections(supabase, householdId);
-
-    return NextResponse.json(sections);
-  } catch {
-    return NextResponse.json(
-      { error: "Erreur serveur" },
-      { status: 500 },
-    );
-  }
-}
+  return NextResponse.json(sections);
+});

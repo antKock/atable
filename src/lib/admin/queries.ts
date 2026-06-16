@@ -1,10 +1,30 @@
 import { createServerClient } from "@/lib/supabase/server";
+import { getBilledOpenAiSpend } from "@/lib/admin/openai-costs";
 import {
+  PALETTE,
   METHOD_LABELS,
   METHOD_COLORS,
   PLATFORM_LABELS,
   PLATFORM_COLORS,
 } from "@/lib/admin/palette";
+
+// AI-cost usage groups (OCR / metadata / image / import) — labels + colours.
+const COST_GROUPS = [
+  { key: "ocr", label: "Lecture OCR", color: PALETTE.ochre },
+  { key: "metadata", label: "Métadonnées", color: PALETTE.sage },
+  { key: "image", label: "Génération image", color: PALETTE.terracotta },
+  { key: "import", label: "Import URL / vocal", color: PALETTE.clay },
+] as const;
+
+// Maps a raw ai_costs.call_type to its display group.
+function costGroup(callType: string): (typeof COST_GROUPS)[number]["key"] {
+  if (callType === "ocr") return "ocr";
+  if (callType === "metadata") return "metadata";
+  if (callType === "image" || callType === "image_prompt") return "image";
+  return "import"; // import_url | import_voice | transcription
+}
+
+const usd = (n: number) => `$${n.toFixed(2)}`;
 
 // ---------------------------------------------------------------------------
 // Server-side data layer for the usage dashboard. Calls the analytics_* RPC
@@ -35,6 +55,14 @@ export type KpiCard = {
 };
 
 export type Signal = { value: string; label: string; hint: string; warn?: boolean };
+
+export type EnrichmentFailure = {
+  id: string;
+  title: string;
+  household: string;
+  failedPart: string;
+  updatedAt: string;
+};
 
 const ISO = (d: Date) => d.toISOString().slice(0, 10);
 const fr = (n: number) => Math.round(n).toLocaleString("fr-FR");
@@ -92,6 +120,10 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     loginFreq,
     depth,
     platformsRows,
+    enrichmentFailureRows,
+    aiCostDailyRows,
+    aiCostSummaryRows,
+    billedSpend,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
     rpc("analytics_recipes_created_daily", { p_from: ISO(fromDaily), p_household_ids: hh, p_platform: plat }),
@@ -109,9 +141,69 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     rpc("analytics_login_frequency", { p_platform: plat, p_household_ids: hh }),
     rpc<number>("analytics_depth", { p_household_ids: hh }),
     rpc("analytics_recipes_by_platform", { p_household_ids: hh }),
+    // Direct table read (no RPC): recipes whose AI pipeline failed, so the
+    // dashboard surfaces what would otherwise only live in Sentry.
+    supabase
+      .from("recipes")
+      .select("id, title, enrichment_status, image_status, updated_at, households(name)")
+      .or("enrichment_status.eq.failed,image_status.eq.failed")
+      .eq("is_seed", false)
+      .order("updated_at", { ascending: false })
+      .limit(20)
+      .then(({ data, error }) => {
+        if (error) throw new Error(`enrichment_failures: ${error.message}`);
+        return (data ?? []) as Row[];
+      }),
+    rpc("analytics_ai_cost_daily", { p_days: DAILY_DAYS }),
+    rpc("analytics_ai_cost_summary", { p_days: 30 }),
+    // Org-wide billed spend (USD, 30d) from the Costs API — null if no admin
+    // key. Reconciles against the instrumented total to catch untracked spend.
+    getBilledOpenAiSpend(30),
   ]);
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
+
+  // ---- AI cost (USD) ----
+  type CostDay = { ocr: number; metadata: number; image: number; import: number };
+  const emptyCostDay = (): CostDay => ({ ocr: 0, metadata: 0, image: 0, import: 0 });
+  const costByDay = new Map<string, CostDay>();
+  for (const r of aiCostDailyRows as Row[]) {
+    const day = r.day as string;
+    if (!costByDay.has(day)) costByDay.set(day, emptyCostDay());
+    costByDay.get(day)![costGroup(r.call_type as string)] += Number(r.cost_usd) || 0;
+  }
+  const aiCostDaily = Array.from({ length: DAILY_DAYS }, (_, i) => {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - (DAILY_DAYS - 1 - i));
+    const iso = ISO(d);
+    const c = costByDay.get(iso) ?? emptyCostDay();
+    return {
+      label: shortLabel(iso),
+      ...c,
+      total: +(c.ocr + c.metadata + c.image + c.import).toFixed(4),
+    };
+  });
+
+  const cs = (aiCostSummaryRows[0] ?? {}) as Record<string, number | null>;
+  const csNum = (key: string) => Number(cs[key] ?? 0) || 0;
+  const aiCostByType = COST_GROUPS.map((g) => ({
+    name: g.label,
+    key: g.key,
+    color: g.color,
+    value: +csNum(`${g.key}_usd`).toFixed(4),
+  })).filter((d) => d.value > 0);
+
+  const aiCost = {
+    daily: aiCostDaily,
+    byType: aiCostByType,
+    total30d: csNum("total_usd"),
+    costPerRecipe: csNum("cost_per_recipe"),
+    costPerImage: csNum("cost_per_image"),
+    recipesCosted: csNum("recipes_costed"),
+    imagesCount: csNum("images_count"),
+    callsTotal: csNum("calls_total"),
+    billed30d: typeof billedSpend === "number" ? billedSpend : null,
+  };
 
   // ---- time series (one point per day) ----
   const wauMau = (activeDaily as Row[]).map((r) => ({
@@ -359,15 +451,32 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
       hint: "total des 7 derniers jours",
     },
     {
-      value: "à venir",
-      label: "Coût IA estimé / mois",
-      hint: "instrumentation des appels OpenAI à venir",
+      value: usd(aiCost.total30d),
+      label: "Coût IA / 30 j",
+      hint: aiCost.billed30d != null
+        ? `facturé OpenAI : ${usd(aiCost.billed30d)} (org. entière)`
+        : "somme instrumentée des appels OpenAI",
     },
   ];
+
+  const enrichmentFailures: EnrichmentFailure[] = (enrichmentFailureRows as Row[]).map((r) => {
+    const meta = r.enrichment_status === "failed";
+    const image = r.image_status === "failed";
+    const hhRel = r.households as { name?: string } | { name?: string }[] | null;
+    const household = (Array.isArray(hhRel) ? hhRel[0]?.name : hhRel?.name) ?? "—";
+    return {
+      id: String(r.id),
+      title: String(r.title ?? "Sans titre"),
+      household,
+      failedPart: meta && image ? "métadonnées + image" : meta ? "métadonnées" : "image",
+      updatedAt: shortLabel(String(r.updated_at).slice(0, 10)),
+    };
+  });
 
   return {
     kpis,
     signals,
+    enrichmentFailures,
     wauMau,
     parc,
     acquisition: acquisitionSeries,
@@ -385,6 +494,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     activationPct,
     coveragePct,
     depth: Number(depth) || 0,
+    aiCost,
   };
 }
 

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
+import { shareRateLimit } from "@/lib/redis";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import RecipeView from "@/components/recipes/RecipeView";
@@ -54,6 +55,21 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function SharedRecipePage({ params }: Props) {
   const { token } = await params;
+
+  // Per-IP limit so share tokens can't be enumerated. Fail open: a Redis
+  // outage must not break shared links. notFound() throws, so it must be
+  // called outside the try block.
+  let limited = false;
+  try {
+    const hdrs = await headers();
+    const ip = (hdrs.get("x-forwarded-for") ?? "127.0.0.1").split(",")[0].trim();
+    const { success } = await shareRateLimit.limit(ip);
+    limited = !success;
+  } catch (err) {
+    console.error("[r/token] rate limit check failed (Redis down?), failing open:", err);
+  }
+  if (limited) notFound();
+
   const result = await getSharedRecipe(token);
   if (!result) notFound();
 

@@ -1,16 +1,14 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { MAX_VOICE_FILE_SIZE, VALID_VOICE_MIME_TYPES } from "@/lib/schemas/import";
 import { extractRecipeFromVoice, ImportError } from "@/lib/import";
+import { enforceImportQuota } from "@/lib/import-quota";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
-export async function POST(request: Request) {
+export const POST = withHouseholdAuth(async (request: Request, _ctx, { householdId }) => {
+  const quotaResponse = await enforceImportQuota(householdId);
+  if (quotaResponse) return quotaResponse;
+
   try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const formData = await request.formData();
     const audio = formData.get("audio");
 
@@ -36,7 +34,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const result = await extractRecipeFromVoice(audio);
+    const result = await extractRecipeFromVoice(audio, { householdId });
     return NextResponse.json(result);
   } catch (error) {
     console.error("[import/voice] Error:", error);
@@ -61,4 +59,4 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   }
-}
+});

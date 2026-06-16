@@ -190,3 +190,37 @@
 }
 .mijote-dash .chart-empty .ce-title { font-size: 12.5px; font-weight: 600; color: var(--d-muted); }
 .mijote-dash .chart-empty .ce-sub { font-size: 11px; max-width: 240px; line-height: 1.4; }
+
+/* Enrichment failures list (section 05) */
+.mijote-dash .fail-empty {
+  display: flex; align-items: center; justify-content: center;
+  padding: 28px 0; font-size: 12.5px; color: var(--d-muted);
+  border: 1px dashed var(--d-border); border-radius: 12px;
+}
+.mijote-dash .fail-table { display: flex; flex-direction: column; }
+.mijote-dash .fail-row {
+  display: grid; grid-template-columns: 2.2fr 1.2fr 1fr 1fr;
+  gap: 12px; align-items: center;
+  padding: 9px 4px; font-size: 12.5px; color: var(--d-muted);
+  border-bottom: 1px solid var(--d-rule);
+}
+.mijote-dash .fail-row:last-child { border-bottom: none; }
+.mijote-dash .fail-head {
+  font-size: 10.5px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--d-faint);
+}
+.mijote-dash .fail-title { font-weight: 600; color: var(--d-foreground); }
+.mijote-dash .fail-part { font-family: var(--d-mono); font-size: 11px; color: var(--d-neg); }
+
+/* AI cost — unit economics tile */
+.mijote-dash .cost-stats { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 2px; }
+.mijote-dash .cost-stat { display: flex; flex-direction: column; gap: 2px; }
+.mijote-dash .cost-stat .cs-val {
+  font-family: var(--d-mono); font-size: 22px; font-weight: 500;
+  color: var(--d-foreground); line-height: 1.1;
+}
+.mijote-dash .cost-stat .cs-lab { font-size: 12px; color: var(--d-muted); }
+.mijote-dash .cost-recon {
+  margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--d-rule);
+  font-size: 11px; color: var(--d-faint); line-height: 1.35;
+}

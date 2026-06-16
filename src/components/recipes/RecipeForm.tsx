@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useReducer } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
@@ -50,6 +50,100 @@ interface EditProps {
 }
 
 type RecipeFormProps = CreateProps | EditProps;
+
+// ---------------------------------------------------------------------------
+// Form state — one reducer instead of 13 useState hooks. The photo actions
+// encode the coupled invariants (replacing a photo cancels removal and
+// regeneration, etc.) in one place instead of in scattered callbacks.
+// ---------------------------------------------------------------------------
+
+type FormState = {
+  title: string;
+  ingredients: string;
+  steps: string;
+  selectedTags: Tag[];
+  photoFile: File | null;
+  photoRemoved: boolean;
+  regenerateRequested: boolean;
+  isSaving: boolean;
+  prepTime: string | null;
+  cookTime: string | null;
+  cost: string | null;
+  complexity: string | null;
+  seasons: string[];
+};
+
+type FormAction =
+  | { type: "setText"; field: "title" | "ingredients" | "steps"; value: string }
+  | { type: "setMetadata"; field: "prepTime" | "cookTime" | "cost" | "complexity"; value: string | null }
+  | { type: "setSeasons"; seasons: string[] }
+  | { type: "addTag"; tag: Tag }
+  | { type: "removeTag"; tagId: string }
+  | { type: "replacePhoto"; file: File }
+  | { type: "removePhoto" }
+  | { type: "requestRegenerate" }
+  | { type: "saveStarted" }
+  | { type: "saveFailed" };
+
+function formReducer(state: FormState, action: FormAction): FormState {
+  switch (action.type) {
+    case "setText":
+      return { ...state, [action.field]: action.value };
+    case "setMetadata":
+      return { ...state, [action.field]: action.value };
+    case "setSeasons":
+      return { ...state, seasons: action.seasons };
+    case "addTag":
+      if (state.selectedTags.some((t) => t.id === action.tag.id)) return state;
+      return { ...state, selectedTags: [...state.selectedTags, action.tag] };
+    case "removeTag":
+      return {
+        ...state,
+        selectedTags: state.selectedTags.filter((t) => t.id !== action.tagId),
+      };
+    case "replacePhoto":
+      return {
+        ...state,
+        photoFile: action.file,
+        photoRemoved: false,
+        regenerateRequested: false,
+      };
+    case "removePhoto":
+      return {
+        ...state,
+        photoFile: null,
+        photoRemoved: true,
+        regenerateRequested: false,
+      };
+    case "requestRegenerate":
+      return { ...state, regenerateRequested: true, photoFile: null };
+    case "saveStarted":
+      return { ...state, isSaving: true };
+    case "saveFailed":
+      return { ...state, isSaving: false };
+  }
+}
+
+function initFormState({ initialData, isEdit }: {
+  initialData: RecipeFormProps["initialData"];
+  isEdit: boolean;
+}): FormState {
+  return {
+    title: initialData?.title ?? "",
+    ingredients: initialData?.ingredients ?? "",
+    steps: initialData?.steps ?? "",
+    selectedTags: isEdit && initialData && "tags" in initialData ? initialData.tags : [],
+    photoFile: null,
+    photoRemoved: false,
+    regenerateRequested: false,
+    isSaving: false,
+    prepTime: initialData?.prepTime ?? null,
+    cookTime: initialData?.cookTime ?? null,
+    cost: initialData?.cost ?? null,
+    complexity: initialData?.complexity ?? null,
+    seasons: initialData?.seasons ?? [],
+  };
+}
 
 function ActLabel({
   children,
@@ -123,65 +217,40 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
   const isEdit = mode === "edit";
   const { uploadPhoto } = usePhotoUpload();
 
-  const [title, setTitle] = useState(initialData?.title ?? "");
-  const [ingredients, setIngredients] = useState(initialData?.ingredients ?? "");
-  const [steps, setSteps] = useState(initialData?.steps ?? "");
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(isEdit && initialData?.tags ? initialData.tags : []);
-  const [photoFile, setPhotoFile] = useState<File | null>(null);
-  const [photoRemoved, setPhotoRemoved] = useState(false);
-  const [regenerateRequested, setRegenerateRequested] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  // v3 metadata
-  const [prepTime, setPrepTime] = useState<string | null>(initialData?.prepTime ?? null);
-  const [cookTime, setCookTime] = useState<string | null>(initialData?.cookTime ?? null);
-  const [cost, setCost] = useState<string | null>(initialData?.cost ?? null);
-  const [complexity, setComplexity] = useState<string | null>(initialData?.complexity ?? null);
-  const [seasons, setSeasons] = useState<string[]>(initialData?.seasons ?? []);
+  const [form, dispatch] = useReducer(formReducer, { initialData, isEdit }, initFormState);
 
-  const canSave = title.trim().length > 0;
-
-  function handleAddTag(tag: Tag) {
-    setSelectedTags((prev) => {
-      if (prev.some((t) => t.id === tag.id)) return prev;
-      return [...prev, tag];
-    });
-  }
-
-  function handleRemoveTag(tagId: string) {
-    setSelectedTags((prev) => prev.filter((t) => t.id !== tagId));
-  }
+  const canSave = form.title.trim().length > 0;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!canSave || isSaving) return;
+    if (!canSave || form.isSaving) return;
 
-    setIsSaving(true);
+    dispatch({ type: "saveStarted" });
     try {
-      const tagIds = selectedTags.map((t) => t.id);
+      const payload: Record<string, unknown> = {
+        title: form.title.trim(),
+        ingredients: form.ingredients.trim() || null,
+        steps: form.steps.trim() || null,
+        tagIds: form.selectedTags.map((t) => t.id),
+        prepTime: form.prepTime || null,
+        cookTime: form.cookTime || null,
+        cost: form.cost || null,
+        complexity: form.complexity || null,
+        seasons: form.seasons,
+      };
 
       if (isEdit) {
-        const body: Record<string, unknown> = {
-          title: title.trim(),
-          ingredients: ingredients.trim() || null,
-          steps: steps.trim() || null,
-          tagIds,
-          prepTime: prepTime || null,
-          cookTime: cookTime || null,
-          cost: cost || null,
-          complexity: complexity || null,
-          seasons,
-        };
-        if (photoRemoved) {
-          body.photoUrl = null;
+        if (form.photoRemoved) {
+          payload.photoUrl = null;
         }
-        if (regenerateRequested) {
-          body.regenerateImage = true;
+        if (form.regenerateRequested) {
+          payload.regenerateImage = true;
         }
 
         const response = await fetch(`/api/recipes/${recipeId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -194,29 +263,25 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         mutate("/api/library");
         router.push(`/recipes/${recipeId}`);
 
-        if (photoFile) {
-          uploadPhoto(photoFile, recipeId).then((result) => {
+        if (form.photoFile) {
+          uploadPhoto(form.photoFile, recipeId).then((result) => {
             if ("error" in result) {
               toast.error(t.feedback.photoError, { duration: Infinity });
             }
           });
         }
       } else {
+        payload.source = source ?? "manual";
+        // Tell the server a user photo is coming so enrichment skips (and
+        // doesn't bill) an AI image that the upload would immediately hide.
+        if (form.photoFile) {
+          payload.willUploadPhoto = true;
+        }
+
         const response = await fetch("/api/recipes", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            title: title.trim(),
-            ingredients: ingredients.trim() || null,
-            steps: steps.trim() || null,
-            tagIds,
-            prepTime: prepTime || null,
-            cookTime: cookTime || null,
-            cost: cost || null,
-            complexity: complexity || null,
-            seasons,
-            source: source ?? "manual",
-          }),
+          body: JSON.stringify(payload),
         });
 
         if (!response.ok) {
@@ -233,10 +298,23 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         void maybeRequestReview();
         router.push("/home");
 
-        if (photoFile) {
-          uploadPhoto(photoFile, created.id).then((result) => {
+        if (form.photoFile) {
+          uploadPhoto(form.photoFile, created.id).then((result) => {
             if ("error" in result) {
               toast.error(t.feedback.photoError, { duration: Infinity });
+              // Image generation was skipped in anticipation of this photo;
+              // since it failed, fall back to generating an AI image so the
+              // recipe isn't left imageless.
+              void fetch(`/api/recipes/${created.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  title: payload.title,
+                  ingredients: payload.ingredients,
+                  steps: payload.steps,
+                  regenerateImage: true,
+                }),
+              });
             }
           });
         }
@@ -250,7 +328,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
             : t.feedback.saveError,
         { duration: Infinity }
       );
-      setIsSaving(false);
+      dispatch({ type: "saveFailed" });
     }
   }
 
@@ -267,8 +345,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <Input
           id="title"
           type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={form.title}
+          onChange={(e) => dispatch({ type: "setText", field: "title", value: e.target.value })}
           placeholder={t.form.titlePlaceholder}
           autoFocus={!isEdit}
           autoComplete="off"
@@ -283,8 +361,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         </FieldLabel>
         <Textarea
           id="ingredients"
-          value={ingredients ?? ""}
-          onChange={(e) => setIngredients(e.target.value)}
+          value={form.ingredients}
+          onChange={(e) => dispatch({ type: "setText", field: "ingredients", value: e.target.value })}
           placeholder={t.form.ingredientsPlaceholder}
           rows={4}
           className="resize-none text-base"
@@ -298,8 +376,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         </FieldLabel>
         <Textarea
           id="steps"
-          value={steps ?? ""}
-          onChange={(e) => setSteps(e.target.value)}
+          value={form.steps}
+          onChange={(e) => dispatch({ type: "setText", field: "steps", value: e.target.value })}
           placeholder={t.form.stepsPlaceholder}
           rows={5}
           className="resize-none text-base"
@@ -312,24 +390,13 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       {/* Photo */}
       <div className="mb-6">
         <PhotoManager
-          currentPhotoUrl={isEdit && !photoRemoved ? initialData.photoUrl : null}
-          currentGeneratedUrl={isEdit && !photoRemoved ? initialData.generatedImageUrl : null}
-          previewFile={photoFile}
-          regenerateRequested={regenerateRequested}
-          onRegenerate={() => {
-            setRegenerateRequested(true);
-            setPhotoFile(null);
-          }}
-          onReplace={(file) => {
-            setPhotoFile(file);
-            setPhotoRemoved(false);
-            setRegenerateRequested(false);
-          }}
-          onRemove={() => {
-            setPhotoFile(null);
-            setPhotoRemoved(true);
-            setRegenerateRequested(false);
-          }}
+          currentPhotoUrl={isEdit && !form.photoRemoved ? initialData.photoUrl : null}
+          currentGeneratedUrl={isEdit && !form.photoRemoved ? initialData.generatedImageUrl : null}
+          previewFile={form.photoFile}
+          regenerateRequested={form.regenerateRequested}
+          onRegenerate={() => dispatch({ type: "requestRegenerate" })}
+          onReplace={(file) => dispatch({ type: "replacePhoto", file })}
+          onRemove={() => dispatch({ type: "removePhoto" })}
         />
       </div>
 
@@ -338,8 +405,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <FieldLabel>{t.metadata.prepTime}</FieldLabel>
         <ChipSelector
           options={PREP_TIME_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
-          selected={prepTime ?? ""}
-          onChange={(v) => setPrepTime((v as string) || null)}
+          selected={form.prepTime ?? ""}
+          onChange={(v) => dispatch({ type: "setMetadata", field: "prepTime", value: (v as string) || null })}
           mode="single"
           label={t.metadata.prepTime}
         />
@@ -350,8 +417,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <FieldLabel>{t.metadata.cookTime}</FieldLabel>
         <ChipSelector
           options={COOK_TIME_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
-          selected={cookTime ?? ""}
-          onChange={(v) => setCookTime((v as string) || null)}
+          selected={form.cookTime ?? ""}
+          onChange={(v) => dispatch({ type: "setMetadata", field: "cookTime", value: (v as string) || null })}
           mode="single"
           label={t.metadata.cookTime}
         />
@@ -362,8 +429,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <FieldLabel>{t.metadata.cost}</FieldLabel>
         <ChipSelector
           options={COST_OPTIONS}
-          selected={cost ?? ""}
-          onChange={(v) => setCost((v as string) || null)}
+          selected={form.cost ?? ""}
+          onChange={(v) => dispatch({ type: "setMetadata", field: "cost", value: (v as string) || null })}
           mode="single"
           label={t.metadata.cost}
         />
@@ -377,8 +444,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
             value: opt,
             label: t.complexity[opt as keyof typeof t.complexity],
           }))}
-          selected={complexity ?? ""}
-          onChange={(v) => setComplexity((v as string) || null)}
+          selected={form.complexity ?? ""}
+          onChange={(v) => dispatch({ type: "setMetadata", field: "complexity", value: (v as string) || null })}
           mode="single"
           label={t.metadata.complexity}
         />
@@ -388,9 +455,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       <div className="mb-6">
         <FieldLabel optional>{t.form.tagsLabel}</FieldLabel>
         <TagInput
-          selectedTags={selectedTags}
-          onAdd={handleAddTag}
-          onRemove={handleRemoveTag}
+          selectedTags={form.selectedTags}
+          onAdd={(tag) => dispatch({ type: "addTag", tag })}
+          onRemove={(tagId) => dispatch({ type: "removeTag", tagId })}
         />
       </div>
 
@@ -399,8 +466,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <FieldLabel>{t.metadata.seasons}</FieldLabel>
         <ChipSelector
           options={SEASON_OPTIONS}
-          selected={seasons}
-          onChange={(v) => setSeasons(v as string[])}
+          selected={form.seasons}
+          onChange={(v) => dispatch({ type: "setSeasons", seasons: v as string[] })}
           mode="multi"
           label={t.metadata.seasons}
         />
@@ -422,7 +489,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <Button
           type="submit"
           size="lg"
-          disabled={!canSave || isSaving}
+          disabled={!canSave || form.isSaving}
           className="h-[50px] w-full min-h-11 rounded-xl"
         >
           {t.actions.save}
@@ -437,7 +504,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         >
           <ConfirmDeleteDialog
             recipeId={recipeId}
-            triggerLabel="Supprimer cette recette"
+            triggerLabel={t.deleteDialog.trigger}
           />
         </div>
       )}

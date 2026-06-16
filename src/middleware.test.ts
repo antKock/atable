@@ -1,16 +1,33 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { middleware } from "./middleware";
-import { verifySession } from "@/lib/auth/session";
+import { verifySession, signSession } from "@/lib/auth/session";
 import { redis } from "@/lib/redis";
 
-vi.mock("@/lib/auth/session", () => ({ verifySession: vi.fn() }));
+vi.mock("@/lib/auth/session", () => ({
+  verifySession: vi.fn(),
+  signSession: vi.fn(),
+  setSessionCookie: (
+    response: { cookies: { set: (opts: object) => void } },
+    token: string,
+  ) => {
+    response.cookies.set({ name: "atable_session", value: token });
+  },
+  SESSION_RENEW_AFTER_S: 60 * 60 * 24 * 30,
+}));
 vi.mock("@/lib/redis", () => ({
   redis: { get: vi.fn() },
   joinRateLimit: { limit: vi.fn() },
 }));
 
+function nowS(): number {
+  return Math.floor(Date.now() / 1000);
+}
+
+// iat older than the 30-day renewal window → triggers sliding renewal
 const PAYLOAD = { hid: "household-1", sid: "session-1", iat: 1_700_000_000 };
+// iat fresh → no renewal
+const FRESH_PAYLOAD = { hid: "household-1", sid: "session-1", iat: nowS() };
 
 function makeRequest(
   path: string,
@@ -34,6 +51,8 @@ function hasDebugHeaders(res: { headers: Headers }): boolean {
 
 beforeEach(() => {
   vi.mocked(verifySession).mockReset();
+  vi.mocked(signSession).mockReset();
+  vi.mocked(signSession).mockResolvedValue("renewed-token");
   vi.mocked(redis.get).mockReset();
 });
 
@@ -106,6 +125,32 @@ describe("middleware — protected routes", () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockRejectedValue(new Error("redis down"));
     const res = await middleware(makeRequest("/home", { cookie: "valid-token" }));
+    expect(res.headers.get("location")).toBeNull();
+  });
+});
+
+describe("middleware — sliding session renewal", () => {
+  it("re-signs and sets a fresh cookie when the token is older than the renewal window", async () => {
+    vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
+    vi.mocked(redis.get).mockResolvedValue(null);
+    const res = await middleware(makeRequest("/home", { cookie: "old-token" }));
+    expect(signSession).toHaveBeenCalledWith({ hid: "household-1", sid: "session-1" });
+    expect(res.cookies.get("atable_session")?.value).toBe("renewed-token");
+  });
+
+  it("does not renew a token younger than the renewal window", async () => {
+    vi.mocked(verifySession).mockResolvedValue(FRESH_PAYLOAD);
+    vi.mocked(redis.get).mockResolvedValue(null);
+    const res = await middleware(makeRequest("/home", { cookie: "fresh-token" }));
+    expect(signSession).not.toHaveBeenCalled();
+    expect(res.cookies.get("atable_session")).toBeUndefined();
+  });
+
+  it("still serves the request when renewal signing fails", async () => {
+    vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
+    vi.mocked(signSession).mockRejectedValue(new Error("no secret"));
+    vi.mocked(redis.get).mockResolvedValue(null);
+    const res = await middleware(makeRequest("/home", { cookie: "old-token" }));
     expect(res.headers.get("location")).toBeNull();
   });
 });

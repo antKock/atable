@@ -1,5 +1,6 @@
 import openai from "@/lib/openai";
 import { withRetry } from "@/lib/retry";
+import { recordAiCost, textCostUsd } from "@/lib/ai-cost";
 import { ImportResultSchema } from "@/lib/schemas/import";
 import type { ImportResult } from "@/lib/schemas/import";
 import {
@@ -12,6 +13,11 @@ import {
 import type { RecipeFormData } from "@/types/recipe";
 
 export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
+
+// Context for cost instrumentation. Routes pass it (household is known from the
+// session); unit tests omit it, so no DB write happens in tests. Imports run
+// before a recipe exists, so there's no recipe_id to attach yet.
+export type ImportMeta = { householdId: string };
 
 export class ImportError extends Error {
   constructor(
@@ -140,7 +146,9 @@ function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoU
 
 export async function extractRecipeFromImages(
   base64Images: string[],
+  meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {
+  console.log(`[import/screenshot] OCR extraction — ${base64Images.length} image(s)`);
   return withRetry(async () => {
     const imageContent = base64Images.map((img) => ({
       type: "image_url" as const,
@@ -173,6 +181,16 @@ export async function extractRecipeFromImages(
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
     const parsed = ImportResultSchema.parse(JSON.parse(content));
+    if (meta) {
+      await recordAiCost({
+        householdId: meta.householdId,
+        callType: "ocr",
+        model: "gpt-4o",
+        inputTokens: response.usage?.prompt_tokens ?? null,
+        outputTokens: response.usage?.completion_tokens ?? null,
+        costUsd: textCostUsd("gpt-4o", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+      });
+    }
     return toFormData(parsed);
   });
 }
@@ -181,6 +199,7 @@ export async function extractRecipeFromImages(
 
 export async function extractRecipeFromVoice(
   audioFile: File,
+  meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {
   // Step 1: Transcribe audio with Whisper
   const transcription = await withRetry(async () => {
@@ -195,6 +214,18 @@ export async function extractRecipeFromVoice(
 
   if (!transcription || transcription.trim().length === 0) {
     throw new ImportError("Empty transcription", "TRANSCRIPTION_FAILED");
+  }
+
+  // Whisper bills per audio-second, which isn't available server-side without
+  // decoding the file — record the call at $0 for now (counted, not priced).
+  // The reconciliation tile (org Costs API) still captures the real spend.
+  if (meta) {
+    await recordAiCost({
+      householdId: meta.householdId,
+      callType: "transcription",
+      model: "whisper-1",
+      costUsd: 0,
+    });
   }
 
   // Step 2: Structure transcription into recipe JSON
@@ -217,6 +248,16 @@ export async function extractRecipeFromVoice(
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
     const parsed = ImportResultSchema.parse(JSON.parse(content));
+    if (meta) {
+      await recordAiCost({
+        householdId: meta.householdId,
+        callType: "import_voice",
+        model: "gpt-4o-mini",
+        inputTokens: response.usage?.prompt_tokens ?? null,
+        outputTokens: response.usage?.completion_tokens ?? null,
+        costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+      });
+    }
     return toFormData(parsed);
   });
 }
@@ -225,6 +266,7 @@ export async function extractRecipeFromVoice(
 
 export async function extractRecipeFromUrl(
   url: string,
+  meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {
   // Fetch HTML server-side
   let res: Response;
@@ -281,6 +323,16 @@ export async function extractRecipeFromUrl(
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
     const parsed = ImportResultSchema.parse(JSON.parse(content));
+    if (meta) {
+      await recordAiCost({
+        householdId: meta.householdId,
+        callType: "import_url",
+        model: "gpt-4o-mini",
+        inputTokens: response.usage?.prompt_tokens ?? null,
+        outputTokens: response.usage?.completion_tokens ?? null,
+        costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+      });
+    }
     return toFormData(parsed);
   });
 }

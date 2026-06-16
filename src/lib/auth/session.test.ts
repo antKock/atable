@@ -67,7 +67,7 @@ describe('setSessionCookie', () => {
     expect(opts.httpOnly).toBe(true)
     expect(opts.secure).toBe(false) // NODE_ENV is 'test', not 'production'
     expect(opts.sameSite).toBe('lax')
-    expect(opts.maxAge).toBe(60 * 60 * 24 * 365)
+    expect(opts.maxAge).toBe(60 * 60 * 24 * 180)
     expect(opts.path).toBe('/')
   })
 })

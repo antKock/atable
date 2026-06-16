@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs";
 
 // Build identifier baked into both the client bundle and the /api/version
 // response. A stale WebView (or PWA) compares its own frozen value against the
@@ -56,4 +57,11 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Source maps are only uploaded when SENTRY_AUTH_TOKEN is present (Vercel);
+// everywhere else this wrapper is inert.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: true,
+  telemetry: false,
+});

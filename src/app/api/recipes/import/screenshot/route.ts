@@ -1,17 +1,15 @@
 import { NextResponse } from "next/server";
-import { headers } from "next/headers";
 import { ImportScreenshotSchema } from "@/lib/schemas/import";
 import { extractRecipeFromImages } from "@/lib/import";
 import { t } from "@/lib/i18n/fr";
+import { enforceImportQuota } from "@/lib/import-quota";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
-export async function POST(request: Request) {
+export const POST = withHouseholdAuth(async (request: Request, _ctx, { householdId }) => {
+  const quotaResponse = await enforceImportQuota(householdId);
+  if (quotaResponse) return quotaResponse;
+
   try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const parsed = ImportScreenshotSchema.safeParse(body);
 
@@ -22,7 +20,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const formData = await extractRecipeFromImages(parsed.data.images);
+    const formData = await extractRecipeFromImages(parsed.data.images, { householdId });
     return NextResponse.json(formData);
   } catch (error) {
     console.error("[import/screenshot] Error:", error);
@@ -38,4 +36,4 @@ export async function POST(request: Request) {
       { status: 422 },
     );
   }
-}
+});

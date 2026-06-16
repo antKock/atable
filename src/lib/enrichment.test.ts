@@ -13,6 +13,13 @@ vi.mock("@/lib/openai", () => ({
     images: { generate: vi.fn() },
   },
 }));
+// Cost metering writes to Supabase; stub it so it doesn't consume queued mock
+// results. Metering itself is covered by ai-cost.test.ts.
+vi.mock("@/lib/ai-cost", () => ({
+  recordAiCost: vi.fn(),
+  textCostUsd: () => 0,
+  imageCostUsd: () => 0,
+}));
 vi.mock("@/lib/supabase/server");
 
 const mockChat = openai.chat.completions.create as unknown as Mock;
@@ -100,6 +107,27 @@ describe("enrichRecipe — full enrichment", () => {
     expect(imageUpdate).toBeDefined();
     expect(supa.calls.some((c) => c.table === "recipe_tags" &&
       c.ops.some((op) => op.method === "insert"))).toBe(true);
+  });
+
+  it("skips image generation when skipImage is set (user photo incoming)", async () => {
+    supa.queueResults([
+      { data: sparse() }, // 1. recipe select
+      { count: 0 }, // 2. recipe_tags count
+      { data: [{ name: "Dessert" }] }, // 3. predefined tags
+      { error: null }, // 4. recipes metadata update
+      { data: [{ id: "t1", name: "Dessert" }] }, // 5. matching tags
+      { error: null }, // 6. recipe_tags insert
+    ]);
+    mockChat.mockResolvedValue(chatCompletion(enrichmentResult()));
+
+    await enrichRecipe("recipe-1", { skipImage: true });
+
+    // Metadata still runs...
+    expect(mockChat).toHaveBeenCalledTimes(1);
+    // ...but no image is generated, and image_status is left untouched.
+    expect(mockImages).not.toHaveBeenCalled();
+    expect(supa.uploadMock).not.toHaveBeenCalled();
+    expect(updatePayloads("recipes").some((u) => "image_status" in u)).toBe(false);
   });
 
   it("marks the recipe failed when the OpenAI call errors", async () => {

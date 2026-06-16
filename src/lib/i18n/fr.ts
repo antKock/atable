@@ -153,6 +153,7 @@ export const t = {
 
   // Delete confirmation
   deleteDialog: {
+    trigger: "Supprimer cette recette",
     title: "Supprimer cette recette ?",
     body: "Cette action est irréversible.",
     confirm: "Supprimer",
@@ -204,6 +205,8 @@ export const t = {
       "Ce site bloque l'accès automatique. Essaie avec une capture d'écran ou la saisie manuelle.",
     errorRateLimit:
       "Trop de requêtes, réessaie dans quelques instants.",
+    errorImportQuota:
+      "Limite quotidienne d'imports atteinte. Réessaie demain.",
     errorSiteUnreachable:
       "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
   },

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { NextRequest } from "next/server";
+import { NextRequest, after } from "next/server";
 import { headers } from "next/headers";
 import { GET, POST } from "./route";
+import { enrichRecipe } from "@/lib/enrichment";
 import { createServerClient } from "@/lib/supabase/server";
-import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
+import { createSupabaseMock, findCall, calledWith, type SupabaseMock } from "@/test/supabase-mock";
 import { recipeDbRow } from "@/test/fixtures";
 
 vi.mock("@/lib/supabase/server");
@@ -107,9 +108,67 @@ describe("POST /api/recipes", () => {
     expect(res.status).toBe(422);
   });
 
+  it("tells enrichment to skip image generation when a user photo is incoming", async () => {
+    vi.mocked(enrichRecipe).mockClear();
+    vi.mocked(after).mockImplementation(((fn: () => unknown) => void fn()) as never);
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte", willUploadPhoto: true }));
+    expect(enrichRecipe).toHaveBeenCalledWith("recipe-1", { skipImage: true });
+  });
+
+  it("lets enrichment generate an image when no user photo is incoming", async () => {
+    vi.mocked(enrichRecipe).mockClear();
+    vi.mocked(after).mockImplementation(((fn: () => unknown) => void fn()) as never);
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    await POST(postRequest({ title: "Tarte" }));
+    expect(enrichRecipe).toHaveBeenCalledWith("recipe-1", { skipImage: undefined });
+  });
+
   it("returns 401 without a household header", async () => {
     mockHeaders.mockResolvedValue(new Headers());
     const res = await POST(postRequest({ title: "Tarte" }));
     expect(res.status).toBe(401);
+  });
+});
+
+describe("GET /api/recipes — filters", () => {
+  function filteredRequest(qs: string): NextRequest {
+    return new NextRequest(`https://test.local/api/recipes?${qs}`);
+  }
+
+  it("filters by tag ids with an inner join", async () => {
+    supa.queueResult({ data: [], error: null });
+    await GET(filteredRequest("tags=tag-1,tag-2"));
+    const ops = findCall(supa, "recipes")!.ops;
+    const select = ops.find((o) => o.method === "select");
+    expect(String(select!.args[0])).toContain("recipe_tags!inner");
+    expect(calledWith(supa, "recipes", "in", "recipe_tags.tag_id", ["tag-1", "tag-2"])).toBe(true);
+  });
+
+  it("filters by season with an array containment", async () => {
+    supa.queueResult({ data: [], error: null });
+    await GET(filteredRequest("season=hiver"));
+    expect(calledWith(supa, "recipes", "contains", "seasons", ["hiver"])).toBe(true);
+  });
+
+  it("filters by cost with an equality", async () => {
+    supa.queueResult({ data: [], error: null });
+    await GET(filteredRequest("cost=%E2%82%AC%E2%82%AC"));
+    expect(calledWith(supa, "recipes", "eq", "cost", "€€")).toBe(true);
+  });
+
+  it("applies no filter ops without query params", async () => {
+    supa.queueResult({ data: [], error: null });
+    await GET(getRequest());
+    const ops = findCall(supa, "recipes")!.ops.map((o) => o.method);
+    expect(ops).not.toContain("in");
+    expect(ops).not.toContain("contains");
+    expect(ops.filter((m) => m === "eq")).toHaveLength(1); // household_id only
+  });
+
+  it("always orders by created_at descending", async () => {
+    supa.queueResult({ data: [], error: null });
+    await GET(getRequest());
+    expect(calledWith(supa, "recipes", "order", "created_at", { ascending: false })).toBe(true);
   });
 });

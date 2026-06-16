@@ -1,79 +1,59 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { RecipeCreateSchema } from "@/lib/schemas/recipe";
 import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import { enrichRecipe } from "@/lib/enrichment";
+import { withHouseholdAuth } from "@/lib/api/with-household-auth";
 
 export const maxDuration = 60;
 
-export async function GET(request: NextRequest) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const GET = withHouseholdAuth(async (request: NextRequest, _ctx, { householdId }) => {
+  const { searchParams } = new URL(request.url);
+  const tagsParam = searchParams.get("tags");
+  const seasonParam = searchParams.get("season");
+  const costParam = searchParams.get("cost");
+
+  const supabase = createServerClient();
+
+  // Use !inner join when filtering by tags to get INNER JOIN behavior
+  const selectClause = tagsParam
+    ? "id, title, ingredients, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags!inner(tag_id, tags!inner(id, name, category))"
+    : "id, title, ingredients, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))";
+
+  let query = supabase
+    .from("recipes")
+    .select(selectClause)
+    .eq("household_id", householdId);
+
+  if (tagsParam) {
+    const tagIds = tagsParam.split(",").filter(Boolean);
+    if (tagIds.length > 0) {
+      query = query.in("recipe_tags.tag_id", tagIds);
     }
-
-    const { searchParams } = new URL(request.url);
-    const tagsParam = searchParams.get("tags");
-    const seasonParam = searchParams.get("season");
-    const costParam = searchParams.get("cost");
-
-    const supabase = createServerClient();
-
-    // Use !inner join when filtering by tags to get INNER JOIN behavior
-    const selectClause = tagsParam
-      ? "id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags!inner(tag_id, tags!inner(id, name, category))"
-      : "id, title, ingredients, tags, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))";
-
-    let query = supabase
-      .from("recipes")
-      .select(selectClause)
-      .eq("household_id", householdId);
-
-    if (tagsParam) {
-      const tagIds = tagsParam.split(",").filter(Boolean);
-      if (tagIds.length > 0) {
-        query = query.in("recipe_tags.tag_id", tagIds);
-      }
-    }
-
-    if (seasonParam) {
-      query = query.contains("seasons", [seasonParam]);
-    }
-
-    if (costParam) {
-      query = query.eq("cost", costParam);
-    }
-
-    const { data, error } = await query.order("created_at", {
-      ascending: false,
-    });
-
-    if (error) throw error;
-
-    const recipes = (data ?? []).map(mapDbRowToRecipeListItem);
-
-    return NextResponse.json(recipes);
-  } catch {
-    return NextResponse.json(
-      { error: "Erreur serveur" },
-      { status: 500 }
-    );
   }
-}
 
-export async function POST(request: NextRequest) {
-  try {
-    const hdrs = await headers();
-    const householdId = hdrs.get("x-household-id");
-    const sessionId = hdrs.get("x-session-id");
-    if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  if (seasonParam) {
+    query = query.contains("seasons", [seasonParam]);
+  }
 
+  if (costParam) {
+    query = query.eq("cost", costParam);
+  }
+
+  const { data, error } = await query.order("created_at", {
+    ascending: false,
+  });
+
+  if (error) throw error;
+
+  const recipes = (data ?? []).map(mapDbRowToRecipeListItem);
+
+  return NextResponse.json(recipes);
+});
+
+export const POST = withHouseholdAuth(
+  async (request: NextRequest, _ctx, { householdId, sessionId }) => {
     const body = await request.json();
     const result = RecipeCreateSchema.safeParse(body);
 
@@ -114,14 +94,9 @@ export async function POST(request: NextRequest) {
     revalidatePath("/recipes/[id]", "page");
 
     after(async () => {
-      await enrichRecipe(data.id);
+      await enrichRecipe(data.id, { skipImage: result.data.willUploadPhoto });
     });
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
-  } catch {
-    return NextResponse.json(
-      { error: "Erreur serveur" },
-      { status: 500 }
-    );
-  }
-}
+  },
+);

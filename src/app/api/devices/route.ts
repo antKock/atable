@@ -1,15 +1,8 @@
 import { NextResponse } from 'next/server'
-import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
+import { withHouseholdAuth } from '@/lib/api/with-household-auth'
 
-export async function GET() {
-  const hdrs = await headers()
-  const householdId = hdrs.get('x-household-id')
-
-  if (!householdId) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
+export const GET = withHouseholdAuth(async (_request, _ctx, { householdId }) => {
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('device_sessions')
@@ -30,4 +23,4 @@ export async function GET() {
   }))
 
   return NextResponse.json(devices)
-}
+})

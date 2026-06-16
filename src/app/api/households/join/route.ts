@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
-import { joinRateLimit } from '@/lib/redis'
+import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
 import { t } from '@/lib/i18n/fr'
@@ -19,6 +19,15 @@ export async function POST(request: NextRequest) {
     const ip = (hdrs.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
     const { success } = await joinRateLimit.limit(ip)
     if (!success) {
+      return NextResponse.json(
+        { error: t.join.rateLimited },
+        { status: 429 }
+      )
+    }
+
+    // Global per-code limit: stops a distributed brute-force that rotates IPs
+    const { success: codeAllowed } = await joinCodeRateLimit.limit(result.data)
+    if (!codeAllowed) {
       return NextResponse.json(
         { error: t.join.rateLimited },
         { status: 429 }
