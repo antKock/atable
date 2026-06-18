@@ -58,6 +58,22 @@ export const DELETE = withHouseholdAuth(
     const supabase = createServerClient()
 
     if (action === 'delete') {
+      // The demo household is shared sample content, not a user's own data — a
+      // demo session must not be able to destroy it for everyone (which has
+      // happened: the whole demo was wiped this way). 'leave' still works, so
+      // Apple 5.1.1(v) — delete *your* data — stays satisfied.
+      const { data: hh } = await supabase
+        .from('households')
+        .select('is_demo')
+        .eq('id', householdId)
+        .single()
+      if (hh?.is_demo) {
+        return NextResponse.json(
+          { error: 'Le foyer démo ne peut pas être supprimé.' },
+          { status: 403 },
+        )
+      }
+
       // Purge Storage files first — the DB row delete cascade won't reach them.
       // Apple 5.1.1(v) requires effective server-side data deletion.
       const { data: recipesToDelete } = await supabase
