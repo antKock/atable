@@ -134,16 +134,6 @@ VALUES
     '00000000-0000-0000-0000-000000000000',
     true,
     NOW() - interval '5 days'
-  ),
-  (
-    gen_random_uuid(),
-    'Financiers aux amandes',
-    '100 g de beurre' || chr(10) || '150 g de sucre glace' || chr(10) || '60 g de poudre d''amandes' || chr(10) || '50 g de farine' || chr(10) || '4 blancs d''œufs' || chr(10) || '1 c. à café d''extrait d''amande amère',
-    'Préchauffer le four à 200°C.' || chr(10) || 'Faire fondre le beurre jusqu''à ce qu''il prenne une couleur noisette.' || chr(10) || 'Mélanger le sucre glace, la poudre d''amandes et la farine.' || chr(10) || 'Incorporer les blancs d''œufs légèrement battus.' || chr(10) || 'Ajouter le beurre noisette tiédi et l''extrait d''amande.' || chr(10) || 'Remplir les moules à financiers aux 3/4.' || chr(10) || 'Cuire 12 à 15 minutes jusqu''à coloration dorée.',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Chocolate_financier.jpg/960px-Chocolate_financier.jpg',
-    '00000000-0000-0000-0000-000000000000',
-    true,
-    NOW() - interval '4 days'
   );
 
 -- ---------------------------------------------------------------------------
@@ -190,10 +180,7 @@ INSERT INTO seed_tag_mapping (title, tag_name) VALUES
   ('Ratatouille provençale',      'mijoté'),
   ('Taboulé libanais',            'salade'),
   ('Taboulé libanais',            'été'),
-  ('Taboulé libanais',            'végétarien'),
-  ('Financiers aux amandes',      'dessert'),
-  ('Financiers aux amandes',      'gâteau'),
-  ('Financiers aux amandes',      'amandes');
+  ('Taboulé libanais',            'végétarien');
 
 -- Create any tag that doesn't already exist (case-insensitive against
 -- predefined tags) as a demo-household custom tag.
