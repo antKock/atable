@@ -1,7 +1,8 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { isAdmin } from "@/lib/admin/auth";
-import { getDashboardData, type KpiCard, type Signal } from "@/lib/admin/queries";
+import { getDashboardData, getHouseholdsForPicker, type KpiCard, type Signal } from "@/lib/admin/queries";
+import { resolvePeriod, isPeriodKey } from "@/lib/admin/periods";
 import { PALETTE as P } from "@/lib/admin/palette";
 import FilterBar from "@/components/admin/FilterBar";
 import {
@@ -155,9 +156,15 @@ export default async function DashboardPage({
   const sp = await searchParams;
   const rawPlatform = typeof sp.platform === "string" ? sp.platform : undefined;
   const platform = rawPlatform === "ios" || rawPlatform === "android" || rawPlatform === "web" ? rawPlatform : null;
+  const period = isPeriodKey(sp.period) ? sp.period : undefined;
+  const householdIds = typeof sp.hh === "string" ? sp.hh.split(",").filter(Boolean) : null;
 
-  const data = await getDashboardData({ platform });
+  const [data, households] = await Promise.all([
+    getDashboardData({ platform, period, householdIds }),
+    getHouseholdsForPicker(),
+  ]);
   const dormant = data.signals.find((s) => s.warn)?.value ?? "0";
+  const periodSpan = resolvePeriod(period).span;
 
   return (
     <div className="mijote-dash">
@@ -178,7 +185,7 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <FilterBar />
+      <FilterBar households={households} />
 
       <div className="page">
         {/* KPI row */}
@@ -202,7 +209,7 @@ export default async function DashboardPage({
             <Card
               span={8}
               title="Appareils actifs — WAU / MAU"
-              sub="Fenêtre glissante 7 j / 30 j, échantillonnée par jour sur 90 jours"
+              sub={`Fenêtre glissante 7 j / 30 j, échantillonnée par jour · ${periodSpan}`}
               badge="WAU · MAU"
               footer={<LegendInline items={[{ label: "MAU", color: P.olive }, { label: "WAU", color: P.terracotta }]} />}
             >

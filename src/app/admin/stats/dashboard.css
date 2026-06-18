@@ -96,6 +96,25 @@
 }
 .mijote-dash .fsearch::placeholder { color: var(--d-faint); }
 .mijote-dash .fsearch:focus { outline: none; border-color: var(--d-accent); }
+.mijote-dash .chip-x {
+  border: none; background: none; cursor: pointer; padding: 0; margin-left: 2px;
+  font-size: 15px; line-height: 1; color: inherit; opacity: 0.75;
+}
+.mijote-dash .chip-x:hover { opacity: 1; }
+.mijote-dash .fpicker { position: relative; }
+.mijote-dash .fsearch { width: 160px; }
+.mijote-dash .fpicker-menu {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 40;
+  min-width: 200px; max-height: 240px; overflow-y: auto;
+  background: var(--d-surface); border: 1px solid var(--d-border); border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); padding: 5px;
+}
+.mijote-dash .fopt {
+  display: block; width: 100%; text-align: left; border: none; background: none;
+  font-family: var(--d-sans); font-size: 12.5px; color: var(--d-foreground);
+  padding: 7px 10px; border-radius: 8px; cursor: pointer; white-space: nowrap;
+}
+.mijote-dash .fopt:hover { background: var(--d-bg-soft, rgba(0, 0, 0, 0.05)); }
 
 /* ===== Page ===== */
 .mijote-dash .page { max-width: 1480px; margin: 0 auto; padding: 32px 36px 100px; }
