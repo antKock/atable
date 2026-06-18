@@ -1,5 +1,6 @@
 import { createServerClient } from "@/lib/supabase/server";
 import { getBilledOpenAiSpend } from "@/lib/admin/openai-costs";
+import { resolvePeriod, type PeriodKey } from "@/lib/admin/periods";
 import {
   PALETTE,
   METHOD_LABELS,
@@ -36,11 +37,27 @@ const usd = (n: number) => `$${n.toFixed(2)}`;
 // ---------------------------------------------------------------------------
 
 export type DashboardFilters = {
-  from?: string; // ISO date (YYYY-MM-DD)
-  to?: string;
+  period?: PeriodKey; // rolling window for trend charts & period-sensitive metrics
   platform?: "ios" | "android" | "web" | null;
   householdIds?: string[] | null;
 };
+
+export type HouseholdOption = { id: string; name: string };
+
+// Households for the filter-bar picker — real foyers only (demo/test excluded),
+// alphabetical. Kept separate from getDashboardData since the list is filter-
+// independent (you always pick from every household).
+export async function getHouseholdsForPicker(): Promise<HouseholdOption[]> {
+  const supabase = createServerClient();
+  const { data, error } = await supabase
+    .from("households")
+    .select("id, name")
+    .eq("is_demo", false)
+    .not("name", "ilike", "test%")
+    .order("name", { ascending: true });
+  if (error) throw new Error(`households_picker: ${error.message}`);
+  return (data ?? []).map((h) => ({ id: String(h.id), name: String(h.name ?? "Sans nom") }));
+}
 
 export type KpiCard = {
   id: string;
@@ -68,9 +85,12 @@ const ISO = (d: Date) => d.toISOString().slice(0, 10);
 const fr = (n: number) => Math.round(n).toLocaleString("fr-FR");
 const pct = (num: number, den: number) => (den > 0 ? (num / den) * 100 : 0);
 
-// Trend charts (WAU/MAU, parc, acquisition, recipe creation) are sampled one
-// point per day over this rolling window.
-const DAILY_DAYS = 90;
+// Hard ceiling on the resolved "Depuis le début" window, so a stray early
+// timestamp can't blow up the per-day generate_series in the RPCs (~3 years).
+const MAX_DAYS = 1100;
+// Unit-economics windows (AI cost summary, billed spend) stay a trailing 30 d
+// snapshot regardless of the selected period — their cards are labelled "30 j".
+const COST_DAYS = 30;
 
 function shortLabel(isoDay: string): string {
   const d = new Date(isoDay + "T00:00:00Z");
@@ -91,17 +111,40 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const hh = filters.householdIds && filters.householdIds.length ? filters.householdIds : null;
   const plat = filters.platform ?? null;
 
-  const today = new Date();
-  const from60 = new Date(today);
-  from60.setUTCDate(from60.getUTCDate() - 60);
-  const fromDaily = new Date(today);
-  fromDaily.setUTCDate(fromDaily.getUTCDate() - DAILY_DAYS);
-
   const rpc = <T = Row[]>(fn: string, params: Record<string, unknown> = {}) =>
     supabase.rpc(fn, params).then(({ data, error }) => {
       if (error) throw new Error(`${fn}: ${error.message}`);
       return (data ?? []) as T;
     });
+
+  const today = new Date();
+
+  // Resolve the selected period into a concrete day window. "Depuis le début"
+  // (days = null) is resolved to the age of the oldest real household.
+  const period = resolvePeriod(filters.period);
+  let days = period.days;
+  if (days == null) {
+    const { data: oldest } = await supabase
+      .from("households")
+      .select("created_at")
+      .eq("is_demo", false)
+      .not("name", "ilike", "test%")
+      .order("created_at", { ascending: true })
+      .limit(1);
+    const first = oldest?.[0]?.created_at ? new Date(oldest[0].created_at as string) : null;
+    const age = first ? Math.ceil((today.getTime() - first.getTime()) / 86_400_000) + 1 : 365;
+    days = Math.min(MAX_DAYS, Math.max(90, age));
+  }
+  const months = Math.max(1, Math.ceil(days / 30));
+
+  // Period window start, and a ≥60 d window for the recipe-creation series so
+  // the "Recettes créées 30 j" KPI keeps its 30-vs-prior-30 delta even at 1 mois.
+  const from60 = new Date(today);
+  from60.setUTCDate(from60.getUTCDate() - 60);
+  const fromPeriod = new Date(today);
+  fromPeriod.setUTCDate(fromPeriod.getUTCDate() - days);
+  const fromRecipes = new Date(today);
+  fromRecipes.setUTCDate(fromRecipes.getUTCDate() - Math.max(days, 60));
 
   const [
     kpisRow,
@@ -126,20 +169,20 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     billedSpend,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
-    rpc("analytics_recipes_created_daily", { p_from: ISO(fromDaily), p_household_ids: hh, p_platform: plat }),
+    rpc("analytics_recipes_created_daily", { p_from: ISO(fromRecipes), p_household_ids: hh, p_platform: plat }),
     rpc("analytics_enrichment", { p_household_ids: hh }),
     rpc("analytics_activation", {}),
-    rpc("analytics_active_daily", { p_days: DAILY_DAYS, p_platform: plat, p_household_ids: hh }),
-    rpc("analytics_cumulative_parc_daily", { p_days: DAILY_DAYS }),
-    rpc("analytics_acquisition_daily", { p_days: DAILY_DAYS }),
+    rpc("analytics_active_daily", { p_days: days, p_platform: plat, p_household_ids: hh }),
+    rpc("analytics_cumulative_parc_daily", { p_days: days }),
+    rpc("analytics_acquisition_daily", { p_days: days }),
     rpc("analytics_household_size_dist", {}),
     rpc("analytics_recipes_per_household_dist", { p_household_ids: hh }),
-    rpc("analytics_source_mix", { p_household_ids: hh, p_platform: plat }),
-    rpc("analytics_source_mix_monthly", { p_months: 9, p_household_ids: hh }),
+    rpc("analytics_source_mix", { p_from: ISO(fromPeriod), p_household_ids: hh, p_platform: plat }),
+    rpc("analytics_source_mix_monthly", { p_months: months, p_household_ids: hh }),
     rpc("analytics_top_households", { p_limit: 8 }),
     rpc("analytics_retention_cohorts", { p_cohorts: 3, p_max_week: 8 }),
-    rpc("analytics_login_frequency", { p_platform: plat, p_household_ids: hh }),
-    rpc<number>("analytics_depth", { p_household_ids: hh }),
+    rpc("analytics_login_frequency", { p_days: days, p_platform: plat, p_household_ids: hh }),
+    rpc<number>("analytics_depth", { p_days: days, p_household_ids: hh }),
     rpc("analytics_recipes_by_platform", { p_household_ids: hh }),
     // Direct table read (no RPC): recipes whose AI pipeline failed, so the
     // dashboard surfaces what would otherwise only live in Sentry.
@@ -154,11 +197,11 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
         if (error) throw new Error(`enrichment_failures: ${error.message}`);
         return (data ?? []) as Row[];
       }),
-    rpc("analytics_ai_cost_daily", { p_days: DAILY_DAYS }),
-    rpc("analytics_ai_cost_summary", { p_days: 30 }),
+    rpc("analytics_ai_cost_daily", { p_days: days }),
+    rpc("analytics_ai_cost_summary", { p_days: COST_DAYS }),
     // Org-wide billed spend (USD, 30d) from the Costs API — null if no admin
     // key. Reconciles against the instrumented total to catch untracked spend.
-    getBilledOpenAiSpend(30),
+    getBilledOpenAiSpend(COST_DAYS),
   ]);
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
@@ -172,9 +215,9 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     if (!costByDay.has(day)) costByDay.set(day, emptyCostDay());
     costByDay.get(day)![costGroup(r.call_type as string)] += Number(r.cost_usd) || 0;
   }
-  const aiCostDaily = Array.from({ length: DAILY_DAYS }, (_, i) => {
+  const aiCostDaily = Array.from({ length: days }, (_, i) => {
     const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - (DAILY_DAYS - 1 - i));
+    d.setUTCDate(d.getUTCDate() - (days - 1 - i));
     const iso = ISO(d);
     const c = costByDay.get(iso) ?? emptyCostDay();
     return {
@@ -232,9 +275,9 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   for (const r of recipesDaily as Row[]) {
     recipeByDay.set(r.day as string, Number(r.recipes));
   }
-  const recipeCreation = Array.from({ length: DAILY_DAYS }, (_, i) => {
+  const recipeCreation = Array.from({ length: days }, (_, i) => {
     const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - (DAILY_DAYS - 1 - i));
+    d.setUTCDate(d.getUTCDate() - (days - 1 - i));
     const iso = ISO(d);
     return { label: shortLabel(iso), total: recipeByDay.get(iso) ?? 0 };
   });
