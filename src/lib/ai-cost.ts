@@ -19,7 +19,9 @@ export type AiCallType =
   | "metadata" // recipe enrichment: tags, times, cost, seasons (gpt-4o-mini)
   | "image" // dish image generation (gpt-image-1.5)
   | "image_prompt" // image-prompt authoring before generation (gpt-4o-mini)
-  | "import_url" // recipe parse from a scraped web page (gpt-4o-mini)
+  | "import_url" // recipe parse from a directly-fetched web page (gpt-4o-mini)
+  | "import_instagram" // recipe parse from an Instagram caption (gpt-4o-mini); also an Apify scrape row
+  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (gpt-4o-mini); also an Apify scrape row
   | "import_voice" // recipe parse from a voice transcription (gpt-4o-mini)
   | "transcription"; // voice → text (whisper-1)
 

@@ -1,6 +1,13 @@
 import openai from "@/lib/openai";
 import { withRetry } from "@/lib/retry";
-import { recordAiCost, textCostUsd } from "@/lib/ai-cost";
+import { recordAiCost, textCostUsd, type AiCallType } from "@/lib/ai-cost";
+import {
+  runApifyActor,
+  isApifyConfigured,
+  APIFY_ACTORS,
+  APIFY_PRICING,
+  INCLUDE_INSTAGRAM_TRANSCRIPT,
+} from "@/lib/apify";
 import { ImportResultSchema } from "@/lib/schemas/import";
 import type { ImportResult } from "@/lib/schemas/import";
 import {
@@ -262,13 +269,80 @@ export async function extractRecipeFromVoice(
   });
 }
 
+// ---------- Shared text → recipe structuring ----------
+
+/**
+ * Structure a free-text recipe (cleaned HTML, Instagram caption, crawler
+ * markdown) into form data via gpt-4o-mini. Shared by all URL-derived import
+ * paths; `callType` attributes the cost to the right voie in the dashboard.
+ */
+async function structureRecipeFromText(
+  text: string,
+  opts: { callType: AiCallType; meta?: ImportMeta },
+): Promise<ImportedRecipeData> {
+  return withRetry(async () => {
+    const response = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      response_format: {
+        type: "json_schema",
+        json_schema: IMPORT_JSON_SCHEMA,
+      },
+      messages: [
+        { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+        {
+          role: "user",
+          content: `Extrais la recette depuis ce contenu :\n\n${text}`,
+        },
+      ],
+    });
+
+    const content = response.choices[0].message.content;
+    if (!content) throw new Error("Empty response from OpenAI");
+    const parsed = ImportResultSchema.parse(JSON.parse(content));
+    if (opts.meta) {
+      await recordAiCost({
+        householdId: opts.meta.householdId,
+        callType: opts.callType,
+        model: "gpt-4o-mini",
+        inputTokens: response.usage?.prompt_tokens ?? null,
+        outputTokens: response.usage?.completion_tokens ?? null,
+        costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+      });
+    }
+    return toFormData(parsed);
+  });
+}
+
+/** Record the flat-estimate cost of one Apify scrape (separate from the GPT row). */
+async function recordApifyCost(
+  meta: ImportMeta | undefined,
+  callType: AiCallType,
+  actor: string,
+  costUsd: number,
+): Promise<void> {
+  if (!meta) return;
+  await recordAiCost({ householdId: meta.householdId, callType, model: `apify:${actor}`, costUsd });
+}
+
 // ---------- URL scraping ----------
 
-export async function extractRecipeFromUrl(
-  url: string,
-  meta?: ImportMeta,
-): Promise<ImportedRecipeData> {
-  // Fetch HTML server-side
+// Below this length, a 200 response is almost certainly a JS-rendered shell the
+// plain fetch can't read — fall back to the headless crawler instead of feeding
+// GPT an empty page.
+const MIN_CONTENT_LENGTH = 200;
+
+const INSTAGRAM_HOST = /(?:^|\.)(instagram\.com|instagr\.am)$/i;
+
+function isInstagramUrl(url: string): boolean {
+  try {
+    return INSTAGRAM_HOST.test(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+/** Direct server-side fetch + HTML cleanup. Throws ImportError on block/error. */
+async function fetchAndCleanHtml(url: string): Promise<string> {
   let res: Response;
   try {
     res = await fetch(url, {
@@ -285,15 +359,12 @@ export async function extractRecipeFromUrl(
   if (res.status === 403 || res.status === 429) {
     throw new ImportError("Site blocked bot access", "SITE_BLOCKED");
   }
-
   if (!res.ok) {
     throw new ImportError(`Failed to fetch URL: ${res.status}`, "SITE_UNREACHABLE");
   }
 
   const html = await res.text();
-
-  // Strip non-content tags via regex
-  const cleaned = html
+  return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<nav[\s\S]*?<\/nav>/gi, "")
@@ -303,36 +374,103 @@ export async function extractRecipeFromUrl(
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 50000); // ~12k tokens — generous enough for any recipe page
+}
 
-  return withRetry(async () => {
-    const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: {
-        type: "json_schema",
-        json_schema: IMPORT_JSON_SCHEMA,
-      },
-      messages: [
-        { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Extrais la recette depuis ce contenu de page web :\n\n${cleaned}`,
-        },
-      ],
+/**
+ * Instagram post/reel → recipe. Uses the Apify reel scraper for the caption
+ * (transcript is a paid add-on, gated behind INCLUDE_INSTAGRAM_TRANSCRIPT).
+ */
+async function extractRecipeFromInstagram(
+  url: string,
+  meta?: ImportMeta,
+): Promise<ImportedRecipeData> {
+  if (!isApifyConfigured()) {
+    throw new ImportError("Instagram import unavailable", "SITE_UNREACHABLE");
+  }
+
+  let items: Array<{ caption?: string | null; transcript?: string | null }>;
+  try {
+    items = await runApifyActor(APIFY_ACTORS.instagramReel, {
+      // `username` accepts a username, profile URL, ID, or reel URL.
+      username: [url],
+      resultsLimit: 1,
+      includeTranscript: INCLUDE_INSTAGRAM_TRANSCRIPT, // paid add-on
     });
+  } catch {
+    throw new ImportError("Instagram unreachable via Apify", "SITE_UNREACHABLE");
+  }
+  await recordApifyCost(meta, "import_instagram", "instagram-reel-scraper", APIFY_PRICING.instagramReel);
 
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error("Empty response from OpenAI");
-    const parsed = ImportResultSchema.parse(JSON.parse(content));
-    if (meta) {
-      await recordAiCost({
-        householdId: meta.householdId,
-        callType: "import_url",
-        model: "gpt-4o-mini",
-        inputTokens: response.usage?.prompt_tokens ?? null,
-        outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
-      });
+  const item = items[0];
+  const caption = item?.caption?.trim() || "";
+  const transcript = INCLUDE_INSTAGRAM_TRANSCRIPT ? item?.transcript?.trim() || "" : "";
+  const text = [caption, transcript].filter(Boolean).join("\n\n");
+  if (!text) {
+    throw new ImportError("No recipe text found in Instagram post", "EXTRACTION_FAILED");
+  }
+
+  return structureRecipeFromText(text, { callType: "import_instagram", meta });
+}
+
+/** Headless-crawler fallback for sites the direct fetch can't read. */
+async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedRecipeData> {
+  let items: Array<{ markdown?: string | null; text?: string | null }>;
+  try {
+    items = await runApifyActor(APIFY_ACTORS.websiteCrawler, {
+      startUrls: [{ url }],
+      maxCrawlPages: 1,
+      maxCrawlDepth: 0,
+      saveMarkdown: true,
+      // "none" keeps the full page text. The default "readableText" prunes
+      // recipe cards as non-article content (verified: marmiton's ingredients
+      // and steps were dropped), leaving only boilerplate. GPT handles the
+      // extra noise, exactly as the direct-fetch path feeds it cleaned HTML.
+      htmlTransformer: "none",
+      proxyConfiguration: { useApifyProxy: true }, // required by the actor
+    });
+  } catch {
+    throw new ImportError("Site unreachable via crawler", "SITE_UNREACHABLE");
+  }
+  await recordApifyCost(meta, "import_url_crawler", "website-content-crawler", APIFY_PRICING.websiteCrawler);
+
+  const item = items[0];
+  const markdown = (item?.markdown || item?.text || "").trim().slice(0, 50000);
+  if (!markdown) {
+    throw new ImportError("Crawler returned no content", "EXTRACTION_FAILED");
+  }
+  return structureRecipeFromText(markdown, { callType: "import_url_crawler", meta });
+}
+
+export async function extractRecipeFromUrl(
+  url: string,
+  meta?: ImportMeta,
+): Promise<ImportedRecipeData> {
+  // Instagram needs the dedicated scraper — a plain fetch sees nothing usable.
+  if (isInstagramUrl(url)) {
+    return extractRecipeFromInstagram(url, meta);
+  }
+
+  // 1. Direct fetch — free and fast, handles the large majority of sites.
+  let cleaned: string;
+  try {
+    cleaned = await fetchAndCleanHtml(url);
+  } catch (err) {
+    // 2. Blocked or unreachable → retry through the headless crawler when Apify
+    //    is configured; otherwise surface the original error as before.
+    if (
+      err instanceof ImportError &&
+      (err.code === "SITE_BLOCKED" || err.code === "SITE_UNREACHABLE") &&
+      isApifyConfigured()
+    ) {
+      return crawlWithApify(url, meta);
     }
-    return toFormData(parsed);
-  });
+    throw err;
+  }
+
+  // 3. 200 but near-empty body → JS-rendered page; crawl instead of parsing air.
+  if (cleaned.length < MIN_CONTENT_LENGTH && isApifyConfigured()) {
+    return crawlWithApify(url, meta);
+  }
+
+  return structureRecipeFromText(cleaned, { callType: "import_url", meta });
 }
