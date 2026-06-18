@@ -9,20 +9,31 @@ import {
   PLATFORM_COLORS,
 } from "@/lib/admin/palette";
 
-// AI-cost usage groups (OCR / metadata / image / import) — labels + colours.
+// AI-cost usage groups — labels + colours. The single "import" bucket is split
+// into its distinct voies so the dashboard tracks direct / Instagram / crawler
+// URL imports separately (plus voice). Keys match analytics_ai_cost_summary's
+// `<key>_usd` columns and the ChartAiCostTrend dataKeys.
 const COST_GROUPS = [
   { key: "ocr", label: "Lecture OCR", color: PALETTE.ochre },
   { key: "metadata", label: "Métadonnées", color: PALETTE.sage },
   { key: "image", label: "Génération image", color: PALETTE.terracotta },
-  { key: "import", label: "Import URL / vocal", color: PALETTE.clay },
+  { key: "import_url", label: "Import web", color: PALETTE.clay },
+  { key: "import_instagram", label: "Import Instagram", color: PALETTE.olive },
+  { key: "import_crawler", label: "Import web (anti-blocage)", color: PALETTE.oliveSoft },
+  { key: "import_voice", label: "Import vocal", color: PALETTE.oliveDeep },
 ] as const;
 
+type CostGroupKey = (typeof COST_GROUPS)[number]["key"];
+
 // Maps a raw ai_costs.call_type to its display group.
-function costGroup(callType: string): (typeof COST_GROUPS)[number]["key"] {
+function costGroup(callType: string): CostGroupKey {
   if (callType === "ocr") return "ocr";
   if (callType === "metadata") return "metadata";
   if (callType === "image" || callType === "image_prompt") return "image";
-  return "import"; // import_url | import_voice | transcription
+  if (callType === "import_instagram") return "import_instagram";
+  if (callType === "import_url_crawler") return "import_crawler";
+  if (callType === "import_voice" || callType === "transcription") return "import_voice";
+  return "import_url"; // import_url (direct fetch) — the default
 }
 
 const usd = (n: number) => `$${n.toFixed(2)}`;
@@ -207,8 +218,9 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
 
   // ---- AI cost (USD) ----
-  type CostDay = { ocr: number; metadata: number; image: number; import: number };
-  const emptyCostDay = (): CostDay => ({ ocr: 0, metadata: 0, image: 0, import: 0 });
+  type CostDay = Record<CostGroupKey, number>;
+  const emptyCostDay = (): CostDay =>
+    Object.fromEntries(COST_GROUPS.map((g) => [g.key, 0])) as CostDay;
   const costByDay = new Map<string, CostDay>();
   for (const r of aiCostDailyRows as Row[]) {
     const day = r.day as string;
@@ -223,7 +235,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     return {
       label: shortLabel(iso),
       ...c,
-      total: +(c.ocr + c.metadata + c.image + c.import).toFixed(4),
+      total: +COST_GROUPS.reduce((s, g) => s + c[g.key], 0).toFixed(4),
     };
   });
 

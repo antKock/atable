@@ -190,8 +190,8 @@ export const t = {
     },
     url: {
       title: "Depuis un lien",
-      description: "Colle l'URL d'une recette en ligne",
-      placeholder: "https://marmiton.org/recette/...",
+      description: "Colle l'URL d'une recette en ligne ou d'un post Instagram",
+      placeholder: "https://marmiton.org/… ou instagram.com/reel/…",
     },
     manual: {
       title: "Saisie manuelle",
@@ -206,7 +206,7 @@ export const t = {
     errorRateLimit:
       "Trop de requêtes, réessaie dans quelques instants.",
     errorImportQuota:
-      "Limite quotidienne d'imports atteinte. Réessaie demain.",
+      "Limite quotidienne d'imports atteinte. Réessaie dans 24h.",
     errorSiteUnreachable:
       "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
   },

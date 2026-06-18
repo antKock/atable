@@ -440,7 +440,10 @@ export function ChartAiCostTrend({ data, height = 230 }: { data: any[]; height?:
         <Area type="monotone" dataKey="ocr" name="Lecture OCR" stackId="c" stroke={P.ochre} fill={P.ochre} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
         <Area type="monotone" dataKey="metadata" name="Métadonnées" stackId="c" stroke={P.sage} fill={P.sage} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
         <Area type="monotone" dataKey="image" name="Génération image" stackId="c" stroke={P.terracotta} fill={P.terracotta} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
-        <Area type="monotone" dataKey="import" name="Import URL / vocal" stackId="c" stroke={P.clay} fill={P.clay} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="import_url" name="Import web" stackId="c" stroke={P.clay} fill={P.clay} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="import_instagram" name="Import Instagram" stackId="c" stroke={P.olive} fill={P.olive} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="import_crawler" name="Import web (anti-blocage)" stackId="c" stroke={P.oliveSoft} fill={P.oliveSoft} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="import_voice" name="Import vocal" stackId="c" stroke={P.oliveDeep} fill={P.oliveDeep} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
       </AreaChart>
     </ResponsiveContainer>
   );
