@@ -49,11 +49,36 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
   });
 
   it("action=delete removes recipes and the household", async () => {
-    supa.queueResults([{ error: null }, { error: null }]);
+    // 1st result = the is_demo guard SELECT (non-demo), then recipes + household.
+    supa.queueResults([
+      { data: { is_demo: false }, error: null },
+      { error: null },
+      { error: null },
+    ]);
     const res = await DELETE(deleteRequest("delete"), ctx());
     expect(res.status).toBe(200);
     expect(supa.calls.some((c) => c.table === "recipes")).toBe(true);
-    expect(supa.calls.some((c) => c.table === "households")).toBe(true);
+    expect(
+      supa.calls.some(
+        (c) =>
+          c.table === "households" &&
+          c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(true);
+  });
+
+  it("refuses to delete the demo household with 403", async () => {
+    supa.queueResult({ data: { is_demo: true }, error: null });
+    const res = await DELETE(deleteRequest("delete"), ctx());
+    expect(res.status).toBe(403);
+    // The household row must NOT be deleted.
+    expect(
+      supa.calls.some(
+        (c) =>
+          c.table === "households" &&
+          c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(false);
   });
 
   it("clears the session cookie", async () => {

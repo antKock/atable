@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { createServerClient } from '@/lib/supabase/server'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
@@ -41,10 +42,11 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (err) {
+    // Report to Sentry — this used to only console.error, so a 4-week demo
+    // outage (deleted demo household → FK violation) went unalerted. Return a
+    // generic message rather than leaking the raw DB error to the client.
+    Sentry.captureException(err)
     console.error(`[demo/session] caught error:`, err)
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
