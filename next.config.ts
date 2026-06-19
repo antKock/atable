@@ -53,6 +53,10 @@ const nextConfig: NextConfig = {
         source: "/.well-known/apple-app-site-association",
         destination: "/api/aasa",
       },
+      {
+        source: "/.well-known/assetlinks.json",
+        destination: "/api/assetlinks",
+      },
     ];
   },
 };
