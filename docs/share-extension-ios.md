@@ -1,268 +1,161 @@
-# Share Extension iOS — « Mijote » dans la share sheet (cas URL)
+# Share Extension iOS — « Mijote » dans la share sheet (Plan C)
 
 Objectif : quand on partage une **URL** depuis une autre app (Instagram…),
-« Mijote » apparaît dans la share sheet ; un tap ouvre l'app directement sur
-l'import URL avec le lien pré-rempli.
+« Mijote » apparaît dans la share sheet ; un tap ouvre une **feuille Mijote sur
+place** (sans quitter l'app source) qui charge le flow d'import, montre le
+loading, le formulaire pré-rempli, et permet de **valider/corriger puis
+enregistrer**.
 
-Ce guide couvre **uniquement la partie native Xcode**. Le code TS/Next
-(`DeepLinkHandler`, écran de loading, lecture du param `?import=url&url=…`) et
-le scheme `mijote://` dans l'`Info.plist` principal sont gérés côté repo
-séparément — voir la section « Pré-requis repo » en bas.
+## Pourquoi cette approche (et pas « ouvrir l'app »)
+
+Apple **n'autorise pas** une Share Extension à ouvrir son app conteneur :
+- `extensionContext.open` ne marche que pour les Today widgets (renvoie `false`
+  pour une Share Extension — vérifié).
+- Le hack responder-chain `openURL:` est **mort depuis iOS 18** (UIKit force un
+  `false`). C'était le « blink » qu'on observait.
+- Confirmé par un ingénieur Apple DTS : *« there isn't a supported way to do
+  this »*.
+
+Ce que fait Messenger/WhatsApp n'est PAS ouvrir l'app : c'est **afficher l'UI de
+leur propre extension sur place** et faire le travail dedans. C'est le modèle
+voulu par Apple, et c'est ce qu'on adopte : **une Share Extension avec UI qui
+héberge un `WKWebView`** chargeant notre flow d'import web existant.
+
+```
+Insta → Partager → Mijote → [feuille Mijote s'ouvre sur place]
+   → WKWebView charge https://<host>/recipes/new?import=url&url=…&ext=1
+   → loading screen (déjà codé) → formulaire pré-rempli
+   → relire / corriger → Enregistrer → la feuille se ferme → retour Insta
+```
 
 - Bundle app : `fr.anthonykocken.mijote`
 - Bundle extension : `fr.anthonykocken.mijote.ShareExtension`
-- Team ID : `7H527R9HJJ`
-- Deployment target : **iOS 15.0**
-- Pas d'App Group, pas de plugin (inutiles pour le cas URL).
+- App Group : `group.fr.anthonykocken.mijote`
+- Team ID : `7H527R9HJJ` · Deployment target : **iOS 15.0**
+
+## Le nœud : authentifier le WebView de l'extension
+
+L'auth de l'app est **100 % par cookie** (`atable_session`, JWT signé). Le
+WebView de l'extension a son **propre** cookie store → il faut lui injecter ce
+cookie. Le cookie est `httpOnly` (le JS ne peut pas le lire) **mais le natif
+oui** via `WKHTTPCookieStore`.
+
+Mécanique :
+1. **App** : au passage en arrière-plan, lit `atable_session` depuis son cookie
+   store et l'écrit dans un **Keychain partagé**.
+2. **Extension** : lit le cookie dans le Keychain partagé, l'injecte dans le
+   cookie store de son WebView, puis charge l'URL d'import.
+
+App Group + Keychain Sharing sont les mécanismes **recommandés par Apple** pour
+partager des données app ↔ extension.
 
 ---
 
-## Étape 1 — Créer la cible Share Extension
+## Phase 0 — Capabilities (🔧 manuel : portail + Xcode)
 
-1. Ouvrir `ios/App/App.xcworkspace` dans Xcode (le **workspace**, pas le
-   `.xcodeproj`).
-2. `File > New > Target…`
-3. Choisir **Share Extension** (section iOS). `Next`.
-4. Renseigner :
-   - **Product Name** : `ShareExtension`
-   - **Language** : Swift
-   - Laisser le reste par défaut. `Finish`.
-5. Si Xcode propose « Activate "ShareExtension" scheme? » → **Activate**.
+1. **Portail Apple Developer** : créer l'App Group `group.fr.anthonykocken.mijote`.
+2. **Xcode**, sur les **DEUX** cibles (`App` et `ShareExtension`),
+   onglet *Signing & Capabilities* :
+   - **+ Capability → App Groups** → cocher `group.fr.anthonykocken.mijote`.
+   - **+ Capability → Keychain Sharing** → groupe `fr.anthonykocken.mijote`.
+3. Vérifier que la cible `ShareExtension` existe déjà (créée précédemment) avec :
+   - Bundle id `fr.anthonykocken.mijote.ShareExtension`, Team `7H527R9HJJ`,
+     iOS 15, signing Automatic.
+   - `Info.plist` : `NSExtensionPrincipalClass = $(PRODUCT_MODULE_NAME).ShareViewController`
+     + règle d'activation `NSExtensionActivationSupportsWebURLWithMaxCount = 1`
+     et `NSExtensionActivationSupportsText = true`. (Déjà en place.)
 
-Xcode crée un dossier `ShareExtension/` avec : `ShareViewController.swift`,
-`Info.plist`, `MainInterface.storyboard`, `ShareExtension.entitlements`, et
-ajoute la build phase « Embed App Extensions » sur le target `App`.
-
----
-
-## Étape 2 — Régler le target de l'extension
-
-Sélectionner le projet `App` dans le navigateur → target **ShareExtension** :
-
-- Onglet **General** :
-  - **Minimum Deployments / iOS** : `15.0`
-- Onglet **Signing & Capabilities** :
-  - **Automatically manage signing** : coché
-  - **Team** : `Anthony Kocken (7H527R9HJJ)`
-  - **Bundle Identifier** : `fr.anthonykocken.mijote.ShareExtension`
-
-> Avec le signing automatique, l'App ID de l'extension est créé tout seul côté
-> Apple Developer. **Aucune action sur le portail nécessaire** (on n'utilise pas
-> d'App Group).
+> La règle d'activation est ce qui fait **apparaître Mijote** dans la share
+> sheet — c'est le mécanisme Apple, on n'y touche pas.
 
 ---
 
-## Étape 3 — Supprimer le storyboard (UI inutile)
+## Phase 1 — Exporter le cookie de session vers le Keychain partagé (💻 cible App)
 
-On veut une extension **sans interface** : tap → l'app s'ouvre direct. On retire
-le storyboard fourni par le template.
+Côté natif app : à `applicationDidEnterBackground` / `didBecomeActive`, lire le
+cookie `atable_session` du WebView et l'écrire dans le Keychain partagé.
 
-1. Dans `ShareExtension/`, sélectionner **`MainInterface.storyboard`** →
-   `Delete` → **Move to Trash**.
+- Lecture : `WKWebsiteDataStore.default().httpCookieStore.getAllCookies { … }`
+  → filtrer `name == "atable_session"`.
+- Écriture : Keychain, `kSecAttrAccessGroup = "<TeamID>.fr.anthonykocken.mijote"`.
 
----
+⚠️ À vérifier tôt : que la WebView Capacitor utilise bien
+`WKWebsiteDataStore.default()` (sinon on lit le mauvais store).
 
-## Étape 4 — Remplacer `ShareViewController.swift`
-
-Ouvrir `ShareExtension/ShareViewController.swift` et **remplacer tout le
-contenu** par :
-
-```swift
-import UIKit
-import UniformTypeIdentifiers
-
-// Share Extension sans UI : extrait l'URL partagée, ouvre l'app hôte via le
-// scheme custom mijote://import?url=<encodé>, puis se ferme immédiatement.
-class ShareViewController: UIViewController {
-
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        extractSharedURL { [weak self] url in
-            guard let self = self else { return }
-            if let url = url {
-                self.openMainApp(with: url)
-            }
-            self.extensionContext?.completeRequest(returningItems: nil)
-        }
-    }
-
-    private func extractSharedURL(completion: @escaping (URL?) -> Void) {
-        guard
-            let item = extensionContext?.inputItems.first as? NSExtensionItem,
-            let providers = item.attachments
-        else { completion(nil); return }
-
-        // 1) Pièce jointe de type URL (cas le plus courant).
-        if let p = providers.first(where: {
-            $0.hasItemConformingToTypeIdentifier(UTType.url.identifier)
-        }) {
-            p.loadItem(forTypeIdentifier: UTType.url.identifier, options: nil) { data, _ in
-                DispatchQueue.main.async { completion(data as? URL) }
-            }
-            return
-        }
-
-        // 2) Fallback : texte contenant un lien (Instagram partage parfois du texte).
-        if let p = providers.first(where: {
-            $0.hasItemConformingToTypeIdentifier(UTType.text.identifier)
-        }) {
-            p.loadItem(forTypeIdentifier: UTType.text.identifier, options: nil) { data, _ in
-                let url = (data as? String).flatMap { Self.firstURL(in: $0) }
-                DispatchQueue.main.async { completion(url) }
-            }
-            return
-        }
-
-        completion(nil)
-    }
-
-    private static func firstURL(in text: String) -> URL? {
-        let detector = try? NSDataDetector(
-            types: NSTextCheckingResult.CheckingType.link.rawValue
-        )
-        let range = NSRange(text.startIndex..., in: text)
-        guard
-            let match = detector?.firstMatch(in: text, options: [], range: range),
-            let r = Range(match.range, in: text)
-        else { return nil }
-        return URL(string: String(text[r]))
-    }
-
-    private func openMainApp(with sharedURL: URL) {
-        var components = URLComponents()
-        components.scheme = "mijote"
-        components.host = "import"
-        components.queryItems = [
-            URLQueryItem(name: "url", value: sharedURL.absoluteString)
-        ]
-        guard let deepLink = components.url else { return }
-
-        // UIApplication.shared est indisponible dans une extension :
-        // on remonte la responder chain jusqu'à un objet qui sait ouvrir une URL.
-        let selector = NSSelectorFromString("openURL:")
-        var responder: UIResponder? = self
-        while let r = responder {
-            if r.responds(to: selector) {
-                r.perform(selector, with: deepLink)
-                return
-            }
-            responder = r.next
-        }
-    }
-}
-```
+Testable isolément : poser un log de la valeur écrite, vérifier qu'elle arrive
+dans le Keychain.
 
 ---
 
-## Étape 5 — Configurer l'`Info.plist` de l'extension
+## Phase 2 — `ShareViewController` qui héberge le WebView (💻 cible ShareExtension)
 
-Ouvrir `ShareExtension/Info.plist` (clic droit > Open As > Source Code pour
-éditer le XML). Dans le dictionnaire **`NSExtension`**, faire deux choses :
+Remplacer l'extension sans-UI (l'actuel `ShareViewController.swift`, hérité de
+l'approche openURL — **à jeter**) par un `UIViewController` qui :
 
-1. **Supprimer** la clé `NSExtensionMainStoryboard` (elle pointe vers le
-   storyboard qu'on a supprimé).
-2. **Ajouter** `NSExtensionPrincipalClass` + la règle d'activation.
-
-Le bloc `NSExtension` doit ressembler à ceci :
-
-```xml
-<key>NSExtension</key>
-<dict>
-    <key>NSExtensionPointIdentifier</key>
-    <string>com.apple.share-services</string>
-    <key>NSExtensionPrincipalClass</key>
-    <string>$(PRODUCT_MODULE_NAME).ShareViewController</string>
-    <key>NSExtensionAttributes</key>
-    <dict>
-        <key>NSExtensionActivationRule</key>
-        <dict>
-            <key>NSExtensionActivationSupportsWebURLWithMaxCount</key>
-            <integer>1</integer>
-            <key>NSExtensionActivationSupportsText</key>
-            <true/>
-        </dict>
-    </dict>
-</dict>
-```
-
-> C'est `NSExtensionActivationRule` qui fait **apparaître Mijote** dans la share
-> sheet : ici pour 1 URL web, ou du texte (qui peut contenir un lien).
+- présente une **barre de nav** (« Annuler » + titre « Importer dans Mijote »),
+- extrait l'URL partagée (la logique d'extraction actuelle est correcte et
+  réutilisable),
+- lit le cookie depuis le Keychain partagé et l'injecte dans
+  `webView.configuration.websiteDataStore.httpCookieStore`,
+- charge `https://<host>/recipes/new?import=url&url=<encodé>&ext=1`,
+- **dismiss auto au succès** : la page web appelle
+  `window.webkit.messageHandlers.mijoteExt.postMessage("done")` après save →
+  le natif (via `WKScriptMessageHandler`) ferme l'extension,
+- cas **pas de session** (jamais connecté) → message « Ouvre Mijote et
+  connecte-toi d'abord ».
 
 ---
 
-## Étape 6 — Build & test
+## Phase 3 — Adaptations web (💻 réutilise l'existant)
 
-1. En haut de Xcode, choisir le scheme **`App`** (pas `ShareExtension`) et un
-   simulateur ou ton iPhone. `Cmd+R`.
-2. **Test rapide (simulateur OK)** :
-   - Ouvrir **Safari**, aller sur une page de recette.
-   - Bouton Partager → la liste doit contenir **Mijote**.
-   - Tap sur Mijote → l'app Mijote s'ouvre sur l'import URL pré-rempli.
-3. **Test réel (device physique requis)** :
-   - Depuis **Instagram**, ouvrir un Reel/post de recette → Partager → **Mijote**.
-4. Vérifier les deux démarrages :
-   - **App fermée** (cold start) puis partage.
-   - **App déjà ouverte** (warm start) puis partage.
-
-> Si Mijote n'apparaît pas : vérifier la règle d'activation (Étape 5) et que
-> l'extension est bien dans « Embed App Extensions » du target `App`
-> (target App > Build Phases).
-
-> Si Mijote apparaît mais l'app ne s'ouvre pas : vérifier que le scheme
-> `mijote` est bien déclaré dans l'`Info.plist` **principal** (voir Pré-requis
-> repo).
+- L'auto-import depuis `?import=url&url=…` est **déjà codé** (`NewRecipeFlow` +
+  `ImportSelector` + `ImportLoading`).
+- Ajouter le flag `?ext=1` :
+  - masque le chrome (nav / bottom bar) pour un formulaire focalisé,
+  - après un enregistrement réussi, `postMessage("done")` vers le natif.
+- ~20 lignes, pas de refonte.
 
 ---
 
-## Étape 7 — Soumission App Store
+## Phase 4 — Host prod / staging (💻)
 
-- Bumper le build : target `App` > General > **Build** (`CURRENT_PROJECT_VERSION`),
-  +1. (Ajouter une extension = nouveau binaire → passe en review.)
-- `Product > Archive` → upload via l'Organizer.
-- La fiche App Store reste **unique** : l'extension est embarquée, une seule
-  soumission, une seule review.
+L'extension charge la **même origine** que le build (prod
+`https://mijote.anthonykocken.fr` ou staging
+`https://staging.mijote.anthonykocken.fr`), en miroir de `capacitor.config.ts`.
 
 ---
 
-## Pré-requis repo (géré côté code, hors Xcode)
+## Phase 5 — Image (lot suivant, se greffe sans rework)
 
-Ces éléments sont/seront commités dans le repo — listés ici pour info :
-
-1. **`ios/App/App/Info.plist`** — déclaration du scheme custom `mijote` :
-
-   ```xml
-   <key>CFBundleURLTypes</key>
-   <array>
-       <dict>
-           <key>CFBundleURLName</key>
-           <string>fr.anthonykocken.mijote</string>
-           <key>CFBundleURLSchemes</key>
-           <array>
-               <string>mijote</string>
-           </array>
-       </dict>
-   </array>
-   ```
-
-2. **`src/components/DeepLinkHandler.tsx`** — prise en charge de
-   `mijote://import?url=…` → `router.push('/recipes/new?import=url&url=…')`.
-
-3. **`NewRecipeFlow` / écran de loading** — lecture de `?import=url&url=…`,
-   affichage d'un loading plein écran, auto-import, puis formulaire pré-rempli.
-
-> `AppDelegate.swift` n'a **aucune** modification à recevoir : il délègue déjà
-> l'ouverture d'URL au proxy Capacitor, qui émet l'event `appUrlOpen`.
+Même `ShareViewController` + WebView. La règle d'activation ajoute l'image ;
+l'image passe au web via `postMessage` (base64) vers le flow screenshot
+existant. À détailler le moment venu.
 
 ---
 
-## Notes / pièges
+## Soumission App Store
 
-- `npx cap sync ios` **ne supprime pas** le target ajouté (il ne touche qu'aux
-  assets web + SPM). Penser quand même à **commiter** `project.pbxproj` après
-  création du target.
-- La responder-chain + `openURL:` est le pattern standard et accepté pour
-  ouvrir l'app hôte depuis une Share Extension.
-- Pour partager une **image** plus tard (lot 2) : là il faudra un **App Group**
-  (`group.fr.anthonykocken.mijote`, à enregistrer côté portail + activer sur les
-  deux targets) **et** un mini-plugin Capacitor — hors périmètre de ce guide.
-```
+- Bumper `CURRENT_PROJECT_VERSION` (nouveau binaire avec extension → review).
+- `Product > Archive` → upload. Fiche App Store **unique**, l'extension est
+  embarquée.
+- Conforme : WebView de notre propre site, App Group + Keychain Sharing,
+  **aucune API privée**.
+
+---
+
+## Risques résiduels à valider
+
+1. **Capacitor & cookie store** — confirmer `WKWebsiteDataStore.default()`.
+2. **Mémoire sur device réel** — le WKWebView est hors-process (OK en théorie),
+   à valider sur iPhone physique. Repli éventuel : formulaire natif Swift.
+
+---
+
+## Historique
+
+L'approche initiale (v1) ouvrait l'app via un scheme custom `mijote://import`
+puis routait dans `DeepLinkHandler`. **Abandonnée** : iOS ≥ 18 interdit à une
+Share Extension d'ouvrir son app conteneur. Le scheme custom et la branche
+`mijote://` de `DeepLinkHandler` ont été retirés. Tout le travail TS (loading
+screen + auto-import via `?import=url&url=…`) est **conservé** : il est réutilisé
+tel quel par le WebView de l'extension.

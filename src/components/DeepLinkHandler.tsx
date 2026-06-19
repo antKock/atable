@@ -19,21 +19,6 @@ export default function DeepLinkHandler() {
     function routeTo(rawUrl: string) {
       try {
         const u = new URL(rawUrl);
-        // Custom scheme from the iOS Share Extension: when a URL is shared from
-        // another app (e.g. Instagram), the extension opens
-        // mijote://import?url=<encoded>. Route it to the URL-import flow, which
-        // auto-starts the import.
-        if (u.protocol === "mijote:") {
-          if (u.hostname === "import") {
-            const shared = u.searchParams.get("url");
-            if (shared) {
-              router.push(
-                `/recipes/new?import=url&url=${encodeURIComponent(shared)}`,
-              );
-            }
-          }
-          return;
-        }
         if (!u.hostname.includes("mijote.anthonykocken.fr")) return;
         const target = u.pathname + u.search;
         if (target && target !== "/") router.push(target);
