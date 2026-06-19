@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import ImportSelector from "./ImportSelector";
@@ -13,9 +13,27 @@ type View = "intent" | "form";
 
 export default function NewRecipeFlow() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [view, setView] = useState<View>("intent");
   const [importedData, setImportedData] = useState<ImportedRecipeData | null>(null);
   const [source, setSource] = useState<RecipeSource>("manual");
+
+  // Captured once at mount: a URL handed in by the iOS share sheet via
+  // /recipes/new?import=url&url=… (see DeepLinkHandler). Read eagerly so it
+  // survives the history cleanup below.
+  const [autoImportUrl] = useState<string | null>(() =>
+    searchParams.get("import") === "url" ? searchParams.get("url") : null,
+  );
+
+  // Strip the import params from the URL so a refresh doesn't re-trigger the
+  // import. Doesn't affect autoImportUrl (already captured above).
+  const cleaned = useRef(false);
+  useEffect(() => {
+    if (autoImportUrl && !cleaned.current) {
+      cleaned.current = true;
+      router.replace("/recipes/new");
+    }
+  }, [autoImportUrl, router]);
 
   function handleImportComplete(data: ImportedRecipeData, importSource: RecipeSource) {
     setImportedData(data);
@@ -72,6 +90,7 @@ export default function NewRecipeFlow() {
           <ImportSelector
             onImportComplete={handleImportComplete}
             onManual={handleManual}
+            autoImportUrl={autoImportUrl}
           />
         </>
       ) : (
