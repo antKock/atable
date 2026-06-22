@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Mic, Square, Loader2 } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import ImportCard from "./ImportCard";
@@ -9,7 +9,6 @@ import ImportCard from "./ImportCard";
 interface VoiceImporterProps {
   expanded: boolean;
   onToggle: () => void;
-  processing: boolean;
   error: string | null;
   onError: (message: string) => void;
   onBlobReady: (blob: Blob) => void;
@@ -25,7 +24,6 @@ function formatDuration(seconds: number): string {
 export default function VoiceImporter({
   expanded,
   onToggle,
-  processing,
   error,
   onError,
   onBlobReady,
@@ -50,15 +48,7 @@ export default function VoiceImporter({
       expanded={expanded}
       onToggle={onToggle}
     >
-      {processing ? (
-        /* Processing state */
-        <div className="flex flex-col items-center gap-3 py-6">
-          <Loader2 size={32} className="animate-spin text-accent" />
-          <p className="text-sm font-medium text-muted-foreground">
-            {t.import.voice.processing}
-          </p>
-        </div>
-      ) : voice.isRecording ? (
+      {voice.isRecording ? (
         /* Recording state */
         <div className="flex flex-col items-center gap-4 py-4">
           {/* Waveform visualizer */}

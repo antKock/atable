@@ -17,8 +17,8 @@ type ExpandedCard = "screenshot" | "voice" | "url" | null;
 interface ImportSelectorProps {
   onImportComplete: (data: ImportedRecipeData, source: RecipeSource) => void;
   onManual: () => void;
-  // When set (e.g. from the iOS share sheet via mijote://import), the URL
-  // import starts automatically on mount.
+  // When set (e.g. from the iOS share sheet, which loads this flow with
+  // ?import=url&url=…), the URL import starts automatically on mount.
   autoImportUrl?: string | null;
 }
 
@@ -158,7 +158,6 @@ export default function ImportSelector({
       <ScreenshotImporter
         expanded={expanded === "screenshot"}
         onToggle={() => toggleCard("screenshot")}
-        loading={loading}
         error={expanded === "screenshot" ? error : null}
         onSubmit={submitScreenshots}
       />
@@ -166,7 +165,6 @@ export default function ImportSelector({
       <VoiceImporter
         expanded={expanded === "voice"}
         onToggle={() => toggleCard("voice")}
-        processing={voiceProcessing}
         error={expanded === "voice" ? error : null}
         onError={setError}
         onBlobReady={submitVoiceBlob}
@@ -176,9 +174,9 @@ export default function ImportSelector({
       <UrlImporter
         expanded={expanded === "url"}
         onToggle={() => toggleCard("url")}
-        loading={loading}
         error={expanded === "url" ? error : null}
         onSubmit={submitUrl}
+        initialUrl={autoImportUrl ?? undefined}
       />
 
       {/* Divider */}

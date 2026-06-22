@@ -181,7 +181,6 @@ export const t = {
       description: "Dicte ta recette à voix haute",
       record: "Appuie pour dicter",
       recording: "Enregistrement en cours…",
-      processing: "Analyse de la recette…",
       stop: "Arrêter",
       maxDuration: "3 minutes max",
       error: "Impossible d'extraire la recette depuis l'audio",
@@ -198,7 +197,6 @@ export const t = {
       description: "Remplir le formulaire directement",
     },
     divider: "ou",
-    loading: "Extraction de la recette en cours…",
     error:
       "Impossible d'extraire la recette. Réessaie ou saisis-la manuellement.",
     errorSiteBlocked:
