@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { t } from "@/lib/i18n/fr";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { maybeRequestReview } from "@/lib/review";
+import { notifyShareExtensionDone } from "@/lib/share-extension";
 import PhotoManager from "./PhotoManager";
 import TagInput from "./TagInput";
 import ChipSelector from "./ChipSelector";
@@ -39,6 +40,9 @@ interface CreateProps {
   /** How the form was reached — recorded for the add-method analytics. */
   source?: RecipeSource;
   stickySubmit?: boolean;
+  /** When true, the form runs inside the iOS Share Extension's WebView: on save
+   *  we dismiss the extension sheet instead of navigating. */
+  shareExtension?: boolean;
 }
 
 interface EditProps {
@@ -47,6 +51,7 @@ interface EditProps {
   recipeId: string;
   source?: never;
   stickySubmit?: boolean;
+  shareExtension?: never;
 }
 
 type RecipeFormProps = CreateProps | EditProps;
@@ -211,7 +216,7 @@ function FieldLabel({
   );
 }
 
-export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit }: RecipeFormProps) {
+export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension }: RecipeFormProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const isEdit = mode === "edit";
@@ -296,7 +301,13 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         // Ask for an App Store rating once they've added their 3rd recipe
         // (native-only, once ever).
         void maybeRequestReview();
-        router.push("/home");
+        if (shareExtension) {
+          // Inside the iOS Share Extension: dismiss its sheet instead of
+          // navigating (the WebView is about to be torn down).
+          notifyShareExtensionDone();
+        } else {
+          router.push("/home");
+        }
 
         if (form.photoFile) {
           uploadPhoto(form.photoFile, created.id).then((result) => {

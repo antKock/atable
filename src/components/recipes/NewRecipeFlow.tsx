@@ -25,15 +25,20 @@ export default function NewRecipeFlow() {
     searchParams.get("import") === "url" ? searchParams.get("url") : null,
   );
 
+  // Running inside the iOS Share Extension's WebView (?ext=1): the native sheet
+  // provides its own header, so we hide the app chrome and dismiss-on-save.
+  const [isExt] = useState(() => searchParams.get("ext") === "1");
+
   // Strip the import params from the URL so a refresh doesn't re-trigger the
-  // import. Doesn't affect autoImportUrl (already captured above).
+  // import. Doesn't affect autoImportUrl (already captured above). Keep ext=1 so
+  // the extension chrome stays hidden across the cleanup.
   const cleaned = useRef(false);
   useEffect(() => {
     if (autoImportUrl && !cleaned.current) {
       cleaned.current = true;
-      router.replace("/recipes/new");
+      router.replace(isExt ? "/recipes/new?ext=1" : "/recipes/new");
     }
-  }, [autoImportUrl, router]);
+  }, [autoImportUrl, isExt, router]);
 
   function handleImportComplete(data: ImportedRecipeData, importSource: RecipeSource) {
     setImportedData(data);
@@ -58,35 +63,39 @@ export default function NewRecipeFlow() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
-      {/* Header */}
-      <div className="mb-8 flex items-center gap-3">
-        <button
-          onClick={handleBack}
-          aria-label={t.a11y.backButton}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft size={20} strokeWidth={1.75} />
-        </button>
-        <h1
-          style={{
-            fontFamily: "var(--font-fraunces)",
-            fontVariationSettings: '"opsz" 144',
-            fontStyle: "italic",
-            fontWeight: 500,
-            fontSize: 28,
-            letterSpacing: "-0.015em",
-            color: "var(--foreground)",
-          }}
-        >
-          {t.import.title}
-        </h1>
-      </div>
+      {/* Header — hidden in the Share Extension (the native sheet has its own). */}
+      {!isExt && (
+        <div className="mb-8 flex items-center gap-3">
+          <button
+            onClick={handleBack}
+            aria-label={t.a11y.backButton}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <ArrowLeft size={20} strokeWidth={1.75} />
+          </button>
+          <h1
+            style={{
+              fontFamily: "var(--font-fraunces)",
+              fontVariationSettings: '"opsz" 144',
+              fontStyle: "italic",
+              fontWeight: 500,
+              fontSize: 28,
+              letterSpacing: "-0.015em",
+              color: "var(--foreground)",
+            }}
+          >
+            {t.import.title}
+          </h1>
+        </div>
+      )}
 
       {view === "intent" ? (
         <>
-          <p className="mb-8 text-[15px] text-muted-foreground">
-            {t.import.subtitle}
-          </p>
+          {!autoImportUrl && (
+            <p className="mb-8 text-[15px] text-muted-foreground">
+              {t.import.subtitle}
+            </p>
+          )}
           <ImportSelector
             onImportComplete={handleImportComplete}
             onManual={handleManual}
@@ -99,6 +108,7 @@ export default function NewRecipeFlow() {
           initialData={importedData}
           source={source}
           stickySubmit
+          shareExtension={isExt}
         />
       )}
     </div>
