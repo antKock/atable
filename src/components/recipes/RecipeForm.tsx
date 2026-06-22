@@ -398,18 +398,22 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       {/* ===== ACT 2 — Les détails ===== */}
       <ActLabel hint="Mijote complète si tu laisses vide">Les détails</ActLabel>
 
-      {/* Photo */}
-      <div className="mb-6">
-        <PhotoManager
-          currentPhotoUrl={isEdit && !form.photoRemoved ? initialData.photoUrl : null}
-          currentGeneratedUrl={isEdit && !form.photoRemoved ? initialData.generatedImageUrl : null}
-          previewFile={form.photoFile}
-          regenerateRequested={form.regenerateRequested}
-          onRegenerate={() => dispatch({ type: "requestRegenerate" })}
-          onReplace={(file) => dispatch({ type: "replacePhoto", file })}
-          onRemove={() => dispatch({ type: "removePhoto" })}
-        />
-      </div>
+      {/* Photo — hidden inside the Share Extension: its WebView is torn down on
+          save (postMessage "done"), which would kill an in-flight photo upload.
+          The photo can be added later in-app; enrichment generates an AI image. */}
+      {!shareExtension && (
+        <div className="mb-6">
+          <PhotoManager
+            currentPhotoUrl={isEdit && !form.photoRemoved ? initialData.photoUrl : null}
+            currentGeneratedUrl={isEdit && !form.photoRemoved ? initialData.generatedImageUrl : null}
+            previewFile={form.photoFile}
+            regenerateRequested={form.regenerateRequested}
+            onRegenerate={() => dispatch({ type: "requestRegenerate" })}
+            onReplace={(file) => dispatch({ type: "replacePhoto", file })}
+            onRemove={() => dispatch({ type: "removePhoto" })}
+          />
+        </div>
+      )}
 
       {/* Prep time */}
       <div className="mb-6">
