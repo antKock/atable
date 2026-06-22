@@ -150,11 +150,7 @@ export default function ImportSelector({
   // Global loading screen: shown for any import in flight (URL typed or shared,
   // screenshot, voice transcription), replacing the cards for the duration.
   if (loading || voiceProcessing) {
-    return (
-      <ImportLoading
-        message={voiceProcessing ? t.import.voice.processing : t.import.loading}
-      />
-    );
+    return <ImportLoading />;
   }
 
   return (
