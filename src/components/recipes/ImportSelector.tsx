@@ -31,7 +31,10 @@ export default function ImportSelector({
   autoImportUrl,
 }: ImportSelectorProps) {
   const [expanded, setExpanded] = useState<ExpandedCard>(null);
-  const [loading, setLoading] = useState(false);
+  // Démarre déjà en loading si un auto-import est prévu (partage / deep link) :
+  // évite de peindre le sélecteur de cartes une fraction de seconde avant que
+  // l'effet n'enclenche l'import.
+  const [loading, setLoading] = useState(!!autoImportUrl);
   const [error, setError] = useState<string | null>(null);
   const [voiceProcessing, setVoiceProcessing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
