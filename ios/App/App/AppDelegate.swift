@@ -1,10 +1,33 @@
 import UIKit
 import Capacitor
+import WebKit
+
+// Partagé avec la Share Extension via l'App Group : l'app y miroite le cookie
+// de session, l'extension le réinjecte dans son propre WKWebView pour être
+// authentifiée. Le domaine est stocké aussi pour que l'extension sache quel
+// host charger (prod/staging) sans configuration en dur.
+private let appGroupID = "group.fr.anthonykocken.mijote"
+private let sessionCookieName = "atable_session"
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+
+    // Lit le cookie de session du WebView et l'écrit dans l'App Group.
+    // getAllCookies rend la main sur la main queue.
+    private func mirrorSessionCookieToAppGroup() {
+        WKWebsiteDataStore.default().httpCookieStore.getAllCookies { cookies in
+            guard
+                let cookie = cookies.first(where: { $0.name == sessionCookieName }),
+                let defaults = UserDefaults(suiteName: appGroupID)
+            else { return }
+            defaults.set(cookie.value, forKey: sessionCookieName)
+            defaults.set(cookie.domain, forKey: "\(sessionCookieName)_domain")
+            NSLog("[Mijote] cookie de session miroité (domain=%@, len=%d)",
+                  cookie.domain, cookie.value.count)
+        }
+    }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -19,6 +42,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+        mirrorSessionCookieToAppGroup()
     }
 
     func applicationWillEnterForeground(_ application: UIApplication) {
@@ -27,6 +51,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+        mirrorSessionCookieToAppGroup()
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

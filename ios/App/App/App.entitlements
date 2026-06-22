@@ -7,5 +7,9 @@
 		<string>applinks:mijote.anthonykocken.fr</string>
 		<string>applinks:staging.mijote.anthonykocken.fr</string>
 	</array>
+	<key>com.apple.security.application-groups</key>
+	<array>
+		<string>group.fr.anthonykocken.mijote</string>
+	</array>
 </dict>
 </plist>
