@@ -176,6 +176,131 @@ body {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* ── Import loading screen (animated cocotte) ──────────────────────────────
+   Used by src/components/recipes/import/ImportLoading.tsx + CocotteLoader.tsx. */
+.loading-screen {
+  min-height: 55vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+  padding: 0 28px 56px;
+  text-align: center;
+  /* animation tempo */
+  --bob-dur: 1.35s;
+  --steam-dur: 2.9s;
+  --breathe-dur: 3s;
+}
+.cocotte-stage {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+.loading-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  min-height: 64px; /* prevents layout jump as phrases change length */
+}
+.loading-phrase {
+  margin: 0;
+  font-family: var(--font-fraunces), Georgia, serif;
+  font-variation-settings: "opsz" 60;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 24px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--foreground);
+  text-wrap: balance;
+  animation: phraseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.loading-subline {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+/* Indeterminate simmer bar (accent @ 14% track — rgba kept for iOS 15) */
+.simmer-bar {
+  position: relative;
+  width: 168px;
+  height: 4px;
+  border-radius: 9999px;
+  background: rgba(110, 122, 56, 0.14);
+  overflow: hidden;
+}
+.simmer-fill {
+  position: absolute;
+  inset: 0;
+  width: 42%;
+  border-radius: 9999px;
+  background: var(--accent);
+  animation: simmerSlide 1.5s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+/* SVG transform setup */
+.cocotte-svg .cocotte-body,
+.cocotte-svg .cocotte-lid {
+  transform-box: fill-box;
+}
+.cocotte-svg .steam-wisp {
+  opacity: 0.42;
+}
+
+@keyframes phraseIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes simmerSlide {
+  0% { transform: translateX(-118%); }
+  100% { transform: translateX(338%); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .cocotte-body {
+    transform-origin: 50% 100%;
+    animation: potBreathe var(--breathe-dur) ease-in-out infinite;
+  }
+  .cocotte-lid {
+    transform-origin: 50% 92%;
+    animation: lidJiggle var(--bob-dur) ease-in-out infinite;
+  }
+  .cocotte-shadow {
+    transform-box: fill-box;
+    transform-origin: 50% 50%;
+    animation: shadowBreathe var(--breathe-dur) ease-in-out infinite;
+  }
+  .steam-wisp {
+    transform-box: fill-box;
+    transform-origin: 50% 100%;
+    opacity: 0;
+    animation: steamRise var(--steam-dur) ease-in-out infinite;
+    animation-delay: var(--d);
+  }
+
+  @keyframes potBreathe {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.022); }
+  }
+  @keyframes lidJiggle {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    22% { transform: translateY(-1.6px) rotate(-1.4deg); }
+    48% { transform: translateY(-0.5px) rotate(1deg); }
+    72% { transform: translateY(-1.1px) rotate(-0.5deg); }
+  }
+  @keyframes shadowBreathe {
+    0%, 100% { transform: scaleX(1); opacity: 0.10; }
+    50% { transform: scaleX(1.07); opacity: 0.16; }
+  }
+  @keyframes steamRise {
+    0% { opacity: 0; transform: translateY(7px) scaleY(0.7); }
+    22% { opacity: 0.55; }
+    70% { opacity: 0.32; }
+    100% { opacity: 0; transform: translateY(-13px) scaleY(1.18); }
+  }
+}
+
 /* Mijote brand — sage hero gradient (use on onboarding / brand-hero surfaces) */
 .bg-sage-radial {
   background: radial-gradient(80% 80% at 50% 38%,

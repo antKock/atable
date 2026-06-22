@@ -41,6 +41,12 @@ const config: CapacitorConfig = {
     // BOT_UA_PATTERN token (WhatsApp, Facebot, …) or it would bypass auth.
     appendUserAgent: "MijoteNative/1.0",
   },
+  android: {
+    // Same native-shell marker as iOS so layout.tsx / native.ts detect the
+    // Android WebView identically (substring "MijoteNative"). Without this the
+    // Android app would look like a plain browser to middleware.ts.
+    appendUserAgent: "MijoteNative/1.0",
+  },
   plugins: {
     SplashScreen: {
       launchShowDuration: 1500,

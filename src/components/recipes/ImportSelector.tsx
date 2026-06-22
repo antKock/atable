@@ -8,6 +8,7 @@ import { resizeImageToBase64 } from "@/lib/image-resize";
 import ScreenshotImporter from "./import/ScreenshotImporter";
 import VoiceImporter from "./import/VoiceImporter";
 import UrlImporter from "./import/UrlImporter";
+import ImportLoading from "./import/ImportLoading";
 import type { ImportedRecipeData } from "@/lib/import";
 import type { RecipeSource } from "@/lib/schemas/recipe";
 
@@ -16,14 +17,24 @@ type ExpandedCard = "screenshot" | "voice" | "url" | null;
 interface ImportSelectorProps {
   onImportComplete: (data: ImportedRecipeData, source: RecipeSource) => void;
   onManual: () => void;
+  // When set (e.g. from the iOS share sheet, which loads this flow with
+  // ?import=url&url=…), the URL import starts automatically on mount.
+  autoImportUrl?: string | null;
 }
 
 // Orchestrates the three import modes. Shared state (one request at a time,
 // one expanded card, per-card error display) lives here; each importer owns
 // its own UI and local state.
-export default function ImportSelector({ onImportComplete, onManual }: ImportSelectorProps) {
+export default function ImportSelector({
+  onImportComplete,
+  onManual,
+  autoImportUrl,
+}: ImportSelectorProps) {
   const [expanded, setExpanded] = useState<ExpandedCard>(null);
-  const [loading, setLoading] = useState(false);
+  // Démarre déjà en loading si un auto-import est prévu (partage / deep link) :
+  // évite de peindre le sélecteur de cartes une fraction de seconde avant que
+  // l'effet n'enclenche l'import.
+  const [loading, setLoading] = useState(!!autoImportUrl);
   const [error, setError] = useState<string | null>(null);
   const [voiceProcessing, setVoiceProcessing] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
@@ -34,6 +45,19 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
       abortRef.current?.abort();
     };
   }, []);
+
+  // Auto-start the URL import when arriving from the share sheet. Guarded so it
+  // only ever fires once, even if the prop re-renders.
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (autoImportUrl && !autoStarted.current) {
+      autoStarted.current = true;
+      setExpanded("url");
+      void submitUrl(autoImportUrl);
+    }
+    // submitUrl is stable enough for this one-shot effect; only react to the URL.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoImportUrl]);
 
   function toggleCard(card: ExpandedCard) {
     if (loading) return;
@@ -123,12 +147,17 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
     );
   }
 
+  // Global loading screen: shown for any import in flight (URL typed or shared,
+  // screenshot, voice transcription), replacing the cards for the duration.
+  if (loading || voiceProcessing) {
+    return <ImportLoading />;
+  }
+
   return (
     <div className="flex flex-col gap-3.5">
       <ScreenshotImporter
         expanded={expanded === "screenshot"}
         onToggle={() => toggleCard("screenshot")}
-        loading={loading}
         error={expanded === "screenshot" ? error : null}
         onSubmit={submitScreenshots}
       />
@@ -136,7 +165,6 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
       <VoiceImporter
         expanded={expanded === "voice"}
         onToggle={() => toggleCard("voice")}
-        processing={voiceProcessing}
         error={expanded === "voice" ? error : null}
         onError={setError}
         onBlobReady={submitVoiceBlob}
@@ -146,9 +174,9 @@ export default function ImportSelector({ onImportComplete, onManual }: ImportSel
       <UrlImporter
         expanded={expanded === "url"}
         onToggle={() => toggleCard("url")}
-        loading={loading}
         error={expanded === "url" ? error : null}
         onSubmit={submitUrl}
+        initialUrl={autoImportUrl ?? undefined}
       />
 
       {/* Divider */}

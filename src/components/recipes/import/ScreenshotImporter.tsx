@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import NextImage from "next/image";
-import { Image as ImageIcon, ChevronRight, Upload, Plus, X, Loader2 } from "lucide-react";
+import { Image as ImageIcon, ChevronRight, Upload, Plus, X } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import ImportCard from "./ImportCard";
 
@@ -17,7 +17,6 @@ interface FileWithKey {
 interface ScreenshotImporterProps {
   expanded: boolean;
   onToggle: () => void;
-  loading: boolean;
   error: string | null;
   onSubmit: (files: File[]) => void;
 }
@@ -25,7 +24,6 @@ interface ScreenshotImporterProps {
 export default function ScreenshotImporter({
   expanded,
   onToggle,
-  loading,
   error,
   onSubmit,
 }: ScreenshotImporterProps) {
@@ -72,7 +70,7 @@ export default function ScreenshotImporter({
   }
 
   function handleSubmit() {
-    if (fileEntries.length === 0 || loading) return;
+    if (fileEntries.length === 0) return;
     onSubmit(fileEntries.map((e) => e.file));
   }
 
@@ -160,20 +158,14 @@ export default function ScreenshotImporter({
             <span className="text-[13px] font-medium text-muted-foreground">
               {t.import.screenshot.count(fileEntries.length)}
             </span>
-            {loading ? (
-              <div className="flex h-10.5 w-10.5 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">
-                <Loader2 size={20} className="animate-spin" />
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSubmit}
-                className="flex h-10.5 items-center gap-1.5 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-85"
-              >
-                {t.import.screenshot.analyze}
-                <ChevronRight size={18} />
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              className="flex h-10.5 items-center gap-1.5 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-85"
+            >
+              {t.import.screenshot.analyze}
+              <ChevronRight size={18} />
+            </button>
           </div>
         </>
       )}
