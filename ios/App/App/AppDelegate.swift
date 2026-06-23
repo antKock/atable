@@ -14,18 +14,46 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    // Host que la WebView charge actuellement (prod vs staging), lu dans la
+    // config Capacitor embarquée. Le cookie store est persistant ET partagé
+    // entre les builds : un cookie d'un AUTRE environnement peut donc traîner.
+    // On s'en sert pour ne miroiter que le cookie du bon host.
+    private func currentServerHost() -> String? {
+        guard
+            let url = Bundle.main.url(forResource: "capacitor.config", withExtension: "json"),
+            let data = try? Data(contentsOf: url),
+            let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+            let server = json["server"] as? [String: Any],
+            let urlString = server["url"] as? String
+        else { return nil }
+        return URL(string: urlString)?.host
+    }
+
     // Lit le cookie de session du WebView et l'écrit dans l'App Group.
     // getAllCookies rend la main sur la main queue.
     private func mirrorSessionCookieToAppGroup() {
+        let host = currentServerHost()
         WKWebsiteDataStore.default().httpCookieStore.getAllCookies { cookies in
-            guard
-                let cookie = cookies.first(where: { $0.name == sessionCookieName }),
-                let defaults = UserDefaults(suiteName: appGroupID)
-            else { return }
-            defaults.set(cookie.value, forKey: sessionCookieName)
-            defaults.set(cookie.domain, forKey: "\(sessionCookieName)_domain")
-            NSLog("[Mijote] cookie de session miroité (domain=%@, len=%d)",
-                  cookie.domain, cookie.value.count)
+            guard let defaults = UserDefaults(suiteName: appGroupID) else { return }
+            // Le cookie du host COURANT (un cookie d'un autre env peut coexister
+            // dans le store persistant — d'où ce filtre par domaine).
+            let cookie = cookies.first { c in
+                c.name == sessionCookieName
+                    && (host == nil || c.domain == host || c.domain == ".\(host ?? "")")
+            }
+            if let cookie = cookie {
+                defaults.set(cookie.value, forKey: sessionCookieName)
+                defaults.set(cookie.domain, forKey: "\(sessionCookieName)_domain")
+                NSLog("[Mijote] cookie miroité (domain=%@, len=%d)",
+                      cookie.domain, cookie.value.count)
+            } else {
+                // Déconnecté (aucune session pour ce host) → on nettoie l'App
+                // Group pour que l'extension ne s'authentifie pas avec une
+                // session fantôme d'un autre env / d'une session précédente.
+                defaults.removeObject(forKey: sessionCookieName)
+                defaults.removeObject(forKey: "\(sessionCookieName)_domain")
+                NSLog("[Mijote] aucune session pour %@ — App Group nettoyé", host ?? "?")
+            }
         }
     }
 
