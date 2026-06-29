@@ -21,7 +21,7 @@ déclarer.)
 
 ### Étape 1 — Types de données à déclarer
 
-Apple présente une longue liste de catégories. **Cochez uniquement les 5
+Apple présente une longue liste de catégories. **Cochez uniquement les 6
 ci-dessous** ; tout le reste = **non collecté**.
 
 | Catégorie Apple | Sous-type | Pourquoi |
@@ -31,11 +31,12 @@ ci-dessous** ; tout le reste = **non collecté**.
 | **User Content** | **Other User Content** | Texte des recettes : titres, ingrédients, étapes |
 | **Identifiers** | **User ID** | Identifiants de foyer et de session (compte anonyme) |
 | **Usage Data** | **Product Interaction** | Nombre de consultations et date de dernière consultation des recettes |
+| **Diagnostics** | **Crash Data** | Rapports de plantage envoyés à Sentry (erreurs uniquement) |
 
 ### Étape 2 — Réponses pour CHAQUE type coché
 
-Pour chacun des 5 types ci-dessus, Apple pose 3 questions. Les réponses sont
-**identiques pour les 5** :
+Pour chacun des 6 types ci-dessus, Apple pose 3 questions. Les réponses sont
+**identiques pour les 6** :
 
 | Question Apple | Réponse | Justification |
 |---|---|---|
@@ -60,7 +61,7 @@ L'app n'utilisant pas de tracking, **aucune fenêtre App Tracking Transparency
 | Location | Aucune géolocalisation |
 | Financial Info / Purchases | Aucun paiement, aucun IAP |
 | Health & Fitness, Contacts, Browsing/Search History | Non collectés |
-| Diagnostics (Crash, Performance) | Aucun SDK de crash-reporting (pas de Sentry, etc.) |
+| Diagnostics — Performance Data | Sentry est configuré en **erreurs uniquement** (`tracesSampleRate: 0`) : pas de traçage de performance. Seul **Crash Data** est collecté (déclaré ci-dessus). |
 | Adresse IP | Utilisée seulement pour la limitation de débit (sécurité), conservée 1 h, jamais en base. N'est pas un type listé par Apple et l'usage sécurité seul ne requiert pas de déclaration |
 | Nom d'appareil (« iPhone 15 · Safari ») | Couvert par *User ID* ; pas besoin de déclarer *Device ID* en plus — le `device_token` est un identifiant technique first-party, non publicitaire |
 

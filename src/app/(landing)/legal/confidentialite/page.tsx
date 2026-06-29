@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   },
 };
 
-const updatedAt = "23 mai 2026";
+const updatedAt = "29 juin 2026";
 const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -100,7 +100,8 @@ export default function PrivacyPolicyPage() {
         <P>
           Mijote (« l&apos;Application », « le Service ») est une application
           de gestion de recettes de cuisine et de planification de menus,
-          accessible sur le Web et sur l&apos;App Store iOS.
+          accessible sur le Web, sur l&apos;App Store iOS et sur Google Play
+          (Android).
         </P>
         <P>Le responsable du traitement des données personnelles est :</P>
         <UL>
@@ -211,6 +212,18 @@ export default function PrivacyPolicyPage() {
             abus). Elle <strong>n&apos;est pas enregistrée</strong> dans notre
             base de données et n&apos;est pas associée à votre contenu.
           </li>
+          <li>
+            <strong>Rapports d&apos;erreur (plantages)</strong> : en cas
+            d&apos;erreur technique ou de plantage, un rapport est transmis à
+            notre prestataire <strong>Sentry</strong> (voir{" "}
+            <a href="#sous-traitants" className="underline underline-offset-2">
+              section 6
+            </a>
+            ). Il peut contenir le message d&apos;erreur, le type
+            d&apos;appareil, la version du système et un identifiant technique
+            de session, afin de diagnostiquer et corriger le problème. Il{" "}
+            <strong>ne contient pas le contenu de vos recettes</strong>.
+          </li>
         </UL>
 
         <H3>3.3 Données que nous ne collectons PAS</H3>
@@ -268,6 +281,14 @@ export default function PrivacyPolicyPage() {
               <Td>Limiter les tentatives de connexion abusives</Td>
               <Td>Intérêt légitime (sécurité du Service)</Td>
             </tr>
+            <tr>
+              <Td>Rapports d&apos;erreur (plantages)</Td>
+              <Td>
+                Diagnostiquer et corriger les dysfonctionnements, améliorer la
+                stabilité
+              </Td>
+              <Td>Intérêt légitime (qualité et sécurité du Service)</Td>
+            </tr>
           </tbody>
         </Table>
 
@@ -307,7 +328,14 @@ export default function PrivacyPolicyPage() {
           </li>
           <li>
             <strong>Import par lien URL</strong> : le contenu textuel de la
-            page web est récupéré puis transmis à OpenAI pour structuration.{" "}
+            page web est récupéré — directement, ou pour certaines sources
+            (Instagram, sites protégeant l&apos;accès automatisé) via notre
+            prestataire <strong>Apify</strong> (voir{" "}
+            <a href="#sous-traitants" className="underline underline-offset-2">
+              section 6
+            </a>
+            ) à qui l&apos;adresse est transmise — puis transmis à OpenAI pour
+            structuration.{" "}
             <strong>
               L&apos;adresse URL et le contenu brut de la page ne sont pas
               conservés.
@@ -383,6 +411,28 @@ export default function PrivacyPolicyPage() {
               </Td>
               <Td>États-Unis</Td>
             </tr>
+            <tr>
+              <Td>
+                <strong>Apify</strong>
+              </Td>
+              <Td>
+                Récupération du contenu de pages web lors de l&apos;import par
+                lien (Instagram, sites protégeant l&apos;accès automatisé)
+              </Td>
+              <Td>Adresse de la page à importer</Td>
+              <Td>États-Unis</Td>
+            </tr>
+            <tr>
+              <Td>
+                <strong>Sentry</strong>
+              </Td>
+              <Td>Journalisation des erreurs et rapports de plantage</Td>
+              <Td>
+                Messages d&apos;erreur, contexte technique (type
+                d&apos;appareil, système, identifiant de session)
+              </Td>
+              <Td>États-Unis</Td>
+            </tr>
           </tbody>
         </Table>
         <P>
@@ -402,13 +452,21 @@ export default function PrivacyPolicyPage() {
         <P>
           <strong>Vercel</strong> et <strong>Supabase</strong>, qui hébergent
           l&apos;essentiel de vos données, opèrent{" "}
-          <strong>au sein de l&apos;Union européenne</strong>. Deux
+          <strong>au sein de l&apos;Union européenne</strong>. Plusieurs
           sous-traitants traitent néanmoins des données en dehors de
           l&apos;UE :
         </P>
         <UL>
           <li>
             <strong>OpenAI</strong> (imports IA) opère aux{" "}
+            <strong>États-Unis</strong> ;
+          </li>
+          <li>
+            <strong>Apify</strong> (import par lien) opère aux{" "}
+            <strong>États-Unis</strong> ;
+          </li>
+          <li>
+            <strong>Sentry</strong> (rapports d&apos;erreur) opère aux{" "}
             <strong>États-Unis</strong> ;
           </li>
           <li>
@@ -419,9 +477,10 @@ export default function PrivacyPolicyPage() {
         <P>
           Ces transferts sont encadrés par des garanties appropriées au sens
           du RGPD : clauses contractuelles types de la Commission européenne,
-          décision d&apos;adéquation Royaume-Uni du 28 juin 2021, et adhésion
+          décision d&apos;adéquation Royaume-Uni du 28 juin 2021, et/ou adhésion
           au cadre de protection des données UE–États-Unis (
-          <em>EU–US Data Privacy Framework</em>) pour OpenAI.
+          <em>EU–US Data Privacy Framework</em>) pour les prestataires établis
+          aux États-Unis.
         </P>
 
         <H2 id="conservation">8. Durées de conservation</H2>
@@ -462,6 +521,13 @@ export default function PrivacyPolicyPage() {
             <tr>
               <Td>Contenu soumis aux imports, côté OpenAI</Td>
               <Td>Durée limitée fixée par OpenAI, puis suppression</Td>
+            </tr>
+            <tr>
+              <Td>Rapports d&apos;erreur (Sentry)</Td>
+              <Td>
+                Durée limitée fixée par Sentry (90 jours par défaut), puis
+                suppression
+              </Td>
             </tr>
             <tr>
               <Td>Journaux techniques (hébergeur)</Td>
