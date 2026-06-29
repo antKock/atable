@@ -14,7 +14,12 @@ import { readFileSync, writeFileSync } from "node:fs";
 const RES = "android/app/src/main/res";
 const SVG = "docs/icons/mijote-icon-1024.svg";
 const FULL_PNG = "docs/icons/mijote-icon-1024.png";
-const FG_SCALE = 0.92; // pot size inside the 108dp adaptive foreground
+// Pot size inside the 108dp adaptive foreground. The launcher only shows the
+// central ~66dp safe zone (outer ~18dp is cropped by the mask), so the pot's
+// widest points (the handles, ±40% from centre in the source) must land inside
+// that safe radius (~33% of the layer). 0.78 keeps them just inside → prominent
+// pot, no clipped handles. Higher (e.g. 0.92) clips the handles & lid.
+const FG_SCALE = 0.78;
 
 // density → [legacy 48dp px, adaptive 108dp px]
 const D = {
