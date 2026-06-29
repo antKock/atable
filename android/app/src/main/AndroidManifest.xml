@@ -13,6 +13,7 @@
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBarLaunch"
             android:launchMode="singleTask"
+            android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,4 +53,18 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Voice import: the web app calls getUserMedia({audio}) in the WebView
+         (src/hooks/useVoiceRecorder.ts). Android grants mic capture to the
+         WebView only if RECORD_AUDIO is declared. iOS parity: NSMicrophoneUsageDescription. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <!-- Photo import: <input type=file accept=image/*> can offer camera capture.
+         iOS parity: NSCameraUsageDescription. (Gallery selection needs no permission.) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <!-- Mic/camera are OPTIONAL: required=false so devices without them (and
+         tablets) can still install — the imports just degrade gracefully. -->
+    <uses-feature android:name="android.hardware.microphone" android:required="false" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 </manifest>

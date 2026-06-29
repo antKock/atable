@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Mic, Square } from "lucide-react";
+import { Mic, Square, Loader2 } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import ImportCard from "./ImportCard";
@@ -10,6 +10,10 @@ interface VoiceImporterProps {
   expanded: boolean;
   onToggle: () => void;
   error: string | null;
+  // True from the moment Stop is pressed until the import resolves. Drives the
+  // in-card "finalizing" indicator during the brief window while the recorder
+  // flushes its blob (this component must stay mounted for onstop to fire).
+  processing: boolean;
   onError: (message: string) => void;
   onBlobReady: (blob: Blob) => void;
   onStopRequested: () => void;
@@ -25,6 +29,7 @@ export default function VoiceImporter({
   expanded,
   onToggle,
   error,
+  processing,
   onError,
   onBlobReady,
   onStopRequested,
@@ -37,6 +42,13 @@ export default function VoiceImporter({
     onBlobReady(voice.audioBlob);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [voice.audioBlob]);
+
+  // Recording failed to yield a blob (recorder error / onstop never fired):
+  // surface it so the parent clears the spinner instead of hanging.
+  useEffect(() => {
+    if (voice.error) onError(t.import.voice.errorRecording);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [voice.error]);
 
   if (!voice.isSupported) return null;
 
@@ -76,6 +88,14 @@ export default function VoiceImporter({
           >
             <Square size={20} fill="currentColor" />
           </button>
+        </div>
+      ) : processing ? (
+        /* Finalizing state: recorder flushing its blob before upload */
+        <div className="flex flex-col items-center gap-3 py-4">
+          <Loader2 size={28} className="animate-spin text-accent" />
+          <p className="text-xs text-muted-foreground">
+            {t.import.voice.processing}
+          </p>
         </div>
       ) : (
         /* Idle state */

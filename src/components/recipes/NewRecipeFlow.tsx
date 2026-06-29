@@ -90,18 +90,11 @@ export default function NewRecipeFlow() {
       )}
 
       {view === "intent" ? (
-        <>
-          {!autoImportUrl && (
-            <p className="mb-8 text-[15px] text-muted-foreground">
-              {t.import.subtitle}
-            </p>
-          )}
-          <ImportSelector
-            onImportComplete={handleImportComplete}
-            onManual={handleManual}
-            autoImportUrl={autoImportUrl}
-          />
-        </>
+        <ImportSelector
+          onImportComplete={handleImportComplete}
+          onManual={handleManual}
+          autoImportUrl={autoImportUrl}
+        />
       ) : (
         <RecipeForm
           mode="create"
