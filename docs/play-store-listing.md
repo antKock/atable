@@ -13,21 +13,21 @@
 | Champ Play | Limite | Valeur |
 |---|---|---|
 | **Nom de l'app** | 30 car. | `Mijote - Tes Recettes` *(déjà saisi dans la console)* |
-| **Description courte** | 80 car. | `Toutes tes recettes réunies comme par magie : photo, voix, lien ou saisie.` (74 car.) |
+| **Description courte** | 80 car. | `Toutes tes recettes, rassemblées et enrichies : photo, voix, lien ou saisie.` (76 car.) |
 | **Description complète** | 4000 car. | voir bloc ci-dessous |
 
-> ℹ️ Google Play est **plus permissif qu'Apple** sur les caractères : les
-> `…`, `·`, emojis, séparateurs sont autorisés. On peut donc réutiliser le
-> texte iOS tel quel (il est déjà « safe »).
+> ℹ️ Textes alignés sur la fiche **Apple à jour (2026-06-29)**. Google Play n'a
+> **pas** de champ « texte promotionnel » distinct comme Apple — le promo iOS
+> ci-dessous sert juste à nourrir la description courte. Google est plus
+> permissif sur les caractères (`…`, emojis OK).
+>
+> Promo Apple (référence, pas de champ Google équivalent) : « Toutes tes
+> recettes, rassemblées et enrichies en quelques secondes : photo, voix, lien
+> ou saisie. Sans compte, sans pub, sans casse-tête. »
 
 ### Description complète (à coller)
 
 ```
-Toutes tes recettes, enfin réunies au même endroit. Celles que tu sauvegardes
-sur Instagram, le carnet jauni de ta grand-mère, le lien d'un blog que tu
-adores, ou ta recette à toi que tu peaufines au fil des essais — Mijote les
-rassemble en quelques secondes, prêtes à cuisiner.
-
 QUATRE FAÇONS D'AJOUTER UNE RECETTE
 
 • PHOTO — prends en photo le carnet de ta grand-mère ou un screenshot
@@ -40,7 +40,7 @@ QUATRE FAÇONS D'AJOUTER UNE RECETTE
   si tu veux la composer pas à pas. Tu restes en contrôle de A à Z.
 
 Chaque recette se complète toute seule : temps de préparation, coût estimé,
-saisons, étiquettes (végétarien, rapide, comfort food...). Une jolie
+saisons, étiquettes (végétarien, rapide, comfort food). Une jolie
 illustration est même générée pour reconnaître chaque plat d'un coup d'œil.
 Tu restes maître : modifie, complète, remplace l'image par tes propres
 photos.
@@ -52,15 +52,18 @@ SIMPLE À ADOPTER, À AIMER, À PARTAGER
 • PAS DE COMPTE — quand tu te lances, pas d'e-mail, pas de mot de passe,
   pas de publicité. On te respecte assez pour ne rien te demander
   d'inutile.
-• FOYER PARTAGÉ — quand tu veux partager, crée un foyer et passe le code
-  d'invitation à qui tu veux. Vos recettes sont les mêmes sur tous vos
-  téléphones. Ton ou ta partenaire ajoute la recette du dimanche midi,
-  tu la retrouves dans ta cuisine du mardi soir.
+• FOYER PARTAGÉ — crée un foyer et passe le code d'invitation à qui tu
+  veux. Vos recettes sont les mêmes sur tous vos téléphones. Ton ou ta
+  partenaire ajoute la recette du dimanche midi, tu la retrouves dans ta
+  cuisine du mardi soir.
+• PARTAGE PAR LIEN — envoie une recette à qui tu veux par un simple lien.
+  La personne l'ouvre direct, sans compte et sans rien installer, et la
+  garde dans son foyer en un geste.
 
 RETROUVER, SANS CHERCHER
 
 • Accueil par envies : Rapide, Végétarien, Comfort food, De saison,
-  Apéro, Desserts...
+  Apéro, Desserts.
 • Filtres précis : par ingrédient, durée, coût, régime, type de plat.
 • Mode « De saison » : ne voir que ce qui se cuisine maintenant.
 • Pendant que tu cuisines, l'écran reste allumé tout seul — pas besoin
@@ -76,7 +79,7 @@ TON FOYER, TES RÈGLES
 CONFIDENTIALITÉ
 
 • Pas de profilage publicitaire, pas de pixels de suivi, pas d'identifiant
-  publicitaire — jamais.
+  publicitaire.
 • Aucune vente de tes données à des tiers.
 • Politique de confidentialité : mijote.anthonykocken.fr/legal/confidentialite
 
@@ -99,6 +102,11 @@ Mijote est gratuit, sans publicité, sans achat intégré.
 |---|---|
 | **Catégorie d'application** | Cuisine et boissons (*Food & Drink*) |
 | **Tags** | recettes, cuisine, organisation, foyer (choisis dans la liste fermée Google) |
+
+> ℹ️ Google **n'a pas de champ mots-clés libre** (il indexe la description).
+> Les mots-clés Apple, pour mémoire : `recettes, cuisine, foyer, famille, IA,
+> vocal, photo, OCR, importer, partage, menu, saison, végétarien, rapide` —
+> assure-toi que les principaux apparaissent dans la description complète.
 | **E-mail de contact** | `kocken.anthony@gmail.com` |
 | **Site web** | `https://mijote.anthonykocken.fr` |
 | **Téléphone** | optionnel → laisser vide |
@@ -199,16 +207,40 @@ Pour **chaque** ligne : *Collectée = Oui*, *Partagée = Non*, *Liée à l'ident
 > Google a besoin de pouvoir tester l'app. Mijote n'a **pas de connexion**.
 
 ```
-Aucune connexion n'est nécessaire. À l'ouverture, appuie sur « Essayer la
-démo » (essai en un clic) pour accéder à une bibliothèque de recettes
-complète et tester toutes les fonctionnalités, sans compte ni e-mail.
+Aucun identifiant requis : l'application fonctionne entièrement sans compte
+ni connexion utilisateur.
 
-Pour tester le partage de foyer : crée un foyer depuis l'écran d'accueil,
-un code d'invitation est généré, aucune information personnelle requise.
+Deux manières de tester :
+
+1. Mode démo (recommandé) — bouton « Essayer l'app » sur la page d'accueil.
+Donne accès à un foyer de démonstration pré-rempli d'une quinzaine de
+recettes. Expérience strictement identique à celle d'un foyer créé par
+l'utilisateur (mêmes écrans, mêmes interactions).
+
+2. Création d'un foyer — bouton « Créer un foyer » sur la page d'accueil.
+Seul un nom de foyer est demandé. Aucun e-mail, mot de passe ou identifiant
+ne sera requis. L'authentification repose uniquement sur un code
+d'invitation (foyer-based, anonyme).
+
+Permissions Android demandées au moment où l'utilisateur déclenche la
+fonctionnalité correspondante (jamais au lancement) :
+- Micro (RECORD_AUDIO) : import de recette par dictée vocale.
+- Aucune permission pour l'import par photo/capture d'écran : il passe par
+  le sélecteur de fichiers du système (galerie), sans accès stockage requis.
+
+Les trois imports (photo, voix, lien web) nécessitent une connexion
+internet — le contenu est analysé côté serveur.
+
+Aucun achat intégré, aucune publicité, aucun contenu généré par
+l'utilisateur visible publiquement.
 ```
 
 ➡️ Champ « Toutes les fonctionnalités sont disponibles sans identifiants
 particuliers » → **coché**, avec les instructions ci-dessus en complément.
+
+> ⚠️ La permission **micro** n'est utile que si `RECORD_AUDIO` est déclaré
+> dans le manifeste **et** présent dans l'`.aab` uploadé (voir §13). Sinon
+> l'import vocal échoue sur Android.
 
 ---
 
@@ -265,4 +297,16 @@ Min. **2** captures téléphone (idéalement 4-6), ratio 9:16, ≥ 1080 px de la
 5. **Public cible** (§6) + **Annonces** (§7)
 6. **App access** (§8) + politique de confidentialité (§9)
 7. Puis promouvoir la release *Test interne* → *Production*.
-```
+
+---
+
+## 13. À corriger côté app Android (avant publication)
+
+- [ ] **`RECORD_AUDIO`** — l'import **vocal** (`getUserMedia` audio dans
+  `src/hooks/useVoiceRecorder.ts`) échoue dans la WebView Android tant que la
+  permission n'est pas déclarée dans `android/app/src/main/AndroidManifest.xml`
+  (qui ne contient aujourd'hui que `INTERNET`). À ajouter (+ `MODIFY_AUDIO_SETTINGS`),
+  puis **rebuild `.aab` (versionCode 3)** et re-upload. Capacitor accorde alors
+  l'accès micro à la WebView via son `WebChromeClient`.
+- Import **photo** (sélecteur de fichiers/galerie) et **lien** : aucune
+  permission requise. Pas besoin de `CAMERA` (pas de capture directe).
