@@ -8,15 +8,15 @@
 > ⚠️ Document de qualité production mais non relu par un juriste : une revue
 > RGPD/CNIL reste recommandée avant communication large.
 
-**Dernière mise à jour : 23 mai 2026**
+**Dernière mise à jour : 29 juin 2026**
 
 ---
 
 ## 1. Qui sommes-nous
 
 Mijote (« l'Application », « le Service ») est une application de gestion de
-recettes de cuisine et de planification de menus, accessible sur le Web et sur
-l'App Store iOS.
+recettes de cuisine et de planification de menus, accessible sur le Web, sur
+l'App Store iOS et sur Google Play (Android).
 
 Le responsable du traitement des données personnelles est :
 
@@ -75,6 +75,11 @@ Nous nous engageons sur les principes suivants :
   le nombre de tentatives de connexion à un foyer (protection contre les abus).
   Elle **n'est pas enregistrée dans notre base de données** et n'est pas
   associée à votre contenu.
+- **Rapports d'erreur (plantages)** : en cas d'erreur technique ou de plantage,
+  un rapport est transmis à notre prestataire **Sentry** (voir section 6). Il
+  peut contenir le message d'erreur, le type d'appareil, la version du système
+  et un identifiant technique de session, afin de diagnostiquer et corriger le
+  problème. Il **ne contient pas le contenu de vos recettes**.
 
 ### 3.3 Données que nous ne collectons PAS
 
@@ -92,6 +97,7 @@ identifiants publicitaires, contacts, historique de navigation.
 | Code d'invitation, identifiants de session, nom d'appareil | Vous authentifier de manière anonyme et gérer l'accès des appareils au foyer | Exécution du contrat |
 | Contenu soumis aux imports (audio, images, URL) | Réaliser l'import demandé et structurer la recette | Exécution du contrat (fonctionnalité que vous déclenchez explicitement) |
 | Adresse IP | Limiter les tentatives de connexion abusives | Intérêt légitime (sécurité du Service) |
+| Rapports d'erreur (plantages) | Diagnostiquer et corriger les dysfonctionnements, améliorer la stabilité | Intérêt légitime (qualité et sécurité du Service) |
 
 ---
 
@@ -109,9 +115,11 @@ structurée, l'Application fait appel au service **OpenAI** (voir section 6).
   conservées** par Mijote : seule la recette structurée résultante est
   enregistrée. (Les photos que vous **ajoutez délibérément** à une recette, à
   l'inverse, sont conservées — voir section 8.)
-- **Import par lien URL** : le contenu textuel de la page web est récupéré puis
-  transmis à OpenAI pour structuration. **L'adresse URL et le contenu brut de la
-  page ne sont pas conservés.**
+- **Import par lien URL** : le contenu textuel de la page web est récupéré —
+  directement, ou pour certaines sources (Instagram, sites protégeant l'accès
+  automatisé) via notre prestataire **Apify** (voir section 6) à qui l'adresse
+  est transmise — puis transmis à OpenAI pour structuration. **L'adresse URL et
+  le contenu brut de la page ne sont pas conservés.**
 
 Ces traitements ne sont déclenchés que **lorsque vous utilisez explicitement**
 la fonction d'import correspondante.
@@ -129,6 +137,8 @@ suivants, qui agissent en qualité de **sous-traitants** pour notre compte :
 | **Supabase** | Base de données et stockage des photos | Foyers, recettes, sessions, photos | Union européenne (Irlande, `eu-west-1`) |
 | **Upstash** | Limitation de débit (sécurité) | Adresse IP, identifiants de session | Royaume-Uni (Londres, `eu-west-2`) |
 | **OpenAI** | Transcription audio, lecture d'images, structuration de texte | Contenu soumis aux imports (section 5) | États-Unis |
+| **Apify** | Récupération du contenu de pages web lors de l'import par lien (Instagram, sites protégeant l'accès automatisé) | Adresse de la page à importer | États-Unis |
+| **Sentry** | Journalisation des erreurs et rapports de plantage | Messages d'erreur, contexte technique (type d'appareil, système, identifiant de session) | États-Unis |
 
 Concernant **OpenAI** : les données transmises via leur interface de
 programmation (API) **ne sont pas utilisées pour entraîner leurs modèles** et
@@ -145,13 +155,15 @@ Vercel et Supabase, qui hébergent l'essentiel de vos données, opèrent
 des données en dehors de l'UE :
 
 - **OpenAI** (imports IA) opère aux **États-Unis** ;
+- **Apify** (import par lien) opère aux **États-Unis** ;
+- **Sentry** (rapports d'erreur) opère aux **États-Unis** ;
 - **Upstash** (limitation de débit) opère au **Royaume-Uni**.
 
 Ces transferts sont encadrés par des garanties appropriées au sens du RGPD :
 clauses contractuelles types de la Commission européenne, décision
 d'adéquation Royaume-Uni du 28 juin 2021, et/ou adhésion au cadre de
-protection des données UE–États-Unis (*EU–US Data Privacy Framework*) pour
-OpenAI.
+protection des données UE–États-Unis (*EU–US Data Privacy Framework*) pour les
+prestataires établis aux États-Unis.
 
 ---
 
@@ -163,6 +175,7 @@ OpenAI.
 | Cookie de session (`atable_session`) | 1 an (renouvelable à chaque connexion) |
 | Adresse IP (limitation de débit) | 1 heure maximum |
 | Contenu soumis aux imports, côté OpenAI | Durée limitée fixée par OpenAI, puis suppression |
+| Rapports d'erreur (Sentry) | Durée limitée fixée par Sentry (90 jours par défaut), puis suppression |
 | Journaux techniques (hébergeur) | Durée limitée, à des fins de sécurité et de diagnostic |
 
 Aucune suppression automatique des foyers inactifs n'est appliquée à ce jour :

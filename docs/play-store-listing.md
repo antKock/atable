@@ -238,15 +238,21 @@ Min. **2** captures téléphone (idéalement 4-6), ratio 9:16, ≥ 1080 px de la
 
 ---
 
-## 11. Écarts à corriger (suivi)
+## 11. Écarts corrigés (suivi)
 
-- [ ] **Politique de confidentialité** : ajouter **Sentry** comme sous-traitant
-  (journaux de plantage / diagnostics) — actuellement absente de
-  `docs/politique-confidentialite.md` § sous-traitants.
-- [ ] **Privacy labels iOS** (`app-store-privacy-labels.md`) : ajouter
-  *Diagnostics → Crash Data* (Sentry) pour rester cohérent avec Android.
-- [ ] Vérifier si **Apify** (import Instagram/URL) doit figurer comme
-  sous-traitant dans la politique de confidentialité.
+- [x] **Politique de confidentialité** : **Sentry** ajouté comme sous-traitant
+  (§3.2, §4, §6, §7, §8) dans `docs/politique-confidentialite.md` **et** la page
+  publiée `src/app/(landing)/legal/confidentialite/page.tsx` — 2026-06-29.
+- [x] **Privacy labels iOS** (`app-store-privacy-labels.md`) : *Diagnostics →
+  Crash Data* (Sentry) ajouté ; la ligne « pas de Sentry » corrigée.
+- [x] **Apify** (import Instagram/URL) : ajouté comme sous-traitant
+  (reçoit l'URL à importer) — §5, §6, §7.
+
+> ⏳ **À confirmer par toi** : la **région du projet Sentry**. J'ai écrit
+> « États-Unis » (hypothèse prudente). Si ton projet Sentry est en région UE
+> (`de.sentry.io`), on peut déplacer Sentry hors de la section « transferts
+> hors UE ». Mention iOS « accessible sur le Web et l'App Store iOS » → mise à
+> jour en ajoutant Google Play.
 
 ---
 
