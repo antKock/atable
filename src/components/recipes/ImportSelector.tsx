@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import * as Sentry from "@sentry/nextjs";
 import { AlignLeft, ChevronRight } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import { haptics } from "@/lib/haptics";
@@ -13,6 +14,11 @@ import type { ImportedRecipeData } from "@/lib/import";
 import type { RecipeSource } from "@/lib/schemas/recipe";
 
 type ExpandedCard = "screenshot" | "voice" | "url" | null;
+
+// Client-side backstop so a stalled request can never spin forever. Generous:
+// voice transcription of a 3-min clip + extraction can legitimately take a
+// while; this only catches true network/server hangs.
+const REQUEST_TIMEOUT_MS = 60_000;
 
 interface ImportSelectorProps {
   onImportComplete: (data: ImportedRecipeData, source: RecipeSource) => void;
@@ -78,6 +84,12 @@ export default function ImportSelector({
     const controller = new AbortController();
     abortRef.current = controller;
 
+    let timedOut = false;
+    const timeoutId = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
+
     try {
       const res = await fetch(init.path, {
         method: "POST",
@@ -95,10 +107,16 @@ export default function ImportSelector({
       void haptics.success();
       onImportComplete(data, source);
     } catch (err) {
-      if ((err as Error).name !== "AbortError") {
+      if (timedOut) {
+        Sentry.captureException(new Error("Import request timed out"), {
+          tags: { feature: "import", source },
+        });
+        setError(t.import.error);
+      } else if ((err as Error).name !== "AbortError") {
         setError((err as Error).message || t.import.error);
       }
     } finally {
+      clearTimeout(timeoutId);
       setVoiceProcessing(false);
       setLoading(false);
     }
@@ -147,18 +165,29 @@ export default function ImportSelector({
     );
   }
 
-  // Global loading screen: shown for any import in flight (URL typed or shared,
-  // screenshot, voice transcription), replacing the cards for the duration.
-  if (loading || voiceProcessing) {
+  // Global loading screen: shown only once a request is actually in flight.
+  // NOT gated on voiceProcessing — that flag flips the instant Stop is pressed,
+  // and unmounting VoiceImporter then would destroy the recorder before its
+  // onstop fires, so the blob would never reach submitVoiceBlob (infinite
+  // spinner). voiceProcessing instead drives an in-card "finalizing" state
+  // while the blob is assembled; runImport sets `loading` for the real upload.
+  if (loading) {
     return <ImportLoading />;
   }
 
   return (
     <div className="flex flex-col gap-3.5">
+      {!autoImportUrl && (
+        <p className="mb-4 text-[15px] text-muted-foreground">
+          {t.import.subtitle}
+        </p>
+      )}
+
       <ScreenshotImporter
         expanded={expanded === "screenshot"}
         onToggle={() => toggleCard("screenshot")}
         error={expanded === "screenshot" ? error : null}
+        onError={setError}
         onSubmit={submitScreenshots}
       />
 
@@ -166,7 +195,11 @@ export default function ImportSelector({
         expanded={expanded === "voice"}
         onToggle={() => toggleCard("voice")}
         error={expanded === "voice" ? error : null}
-        onError={setError}
+        processing={voiceProcessing}
+        onError={(msg) => {
+          setVoiceProcessing(false); // recorder failed → release the spinner
+          setError(msg);
+        }}
         onBlobReady={submitVoiceBlob}
         onStopRequested={() => setVoiceProcessing(true)}
       />
