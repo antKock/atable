@@ -47,3 +47,6 @@ supabase/.temp/
 
 # local-only scratch / design handoffs (not shipped, not type-checked in CI)
 temp/
+
+# JetBrains IDE (Android Studio / IntelliJ / WebStorm) — machine-specific
+.idea/
