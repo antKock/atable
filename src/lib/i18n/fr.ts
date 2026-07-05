@@ -28,9 +28,11 @@ export const t = {
     titleLabel: "Titre",
     titlePlaceholder: "Nom de la recette",
     ingredientsLabel: "Ingrédients",
-    ingredientsPlaceholder: "Un ingrédient par ligne…",
+    ingredientsHint: "Un ingrédient par ligne, Mijote dresse la liste",
+    ingredientsPlaceholder: "250 g de farine…",
     stepsLabel: "Préparation",
-    stepsPlaceholder: "Une étape par ligne…",
+    stepsHint: "Une étape par ligne, Mijote les numérote",
+    stepsPlaceholder: "Émincer les oignons…",
     tagsLabel: "Tags",
   },
 

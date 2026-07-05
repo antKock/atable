@@ -324,6 +324,15 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
       color: METHOD_COLORS[key] ?? METHOD_COLORS.unknown,
     };
   });
+  // Every real method always appears in the legend, so an absent method reads
+  // as an explicit "0 %" rather than "not counted". 'unknown' stays data-driven.
+  if (methodTotal > 0) {
+    for (const key of Object.keys(METHOD_LABELS) as (keyof typeof METHOD_LABELS)[]) {
+      if (key !== "unknown" && !addMethods.some((m) => m.key === key)) {
+        addMethods.push({ name: METHOD_LABELS[key], key, value: 0, color: METHOD_COLORS[key] });
+      }
+    }
+  }
 
   // ---- method mix over time (stacked %) ----
   const monthMap = new Map<string, Record<string, number>>();

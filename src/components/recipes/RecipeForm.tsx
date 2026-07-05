@@ -183,11 +183,13 @@ function FieldLabel({
   children,
   required,
   optional,
+  hint,
   htmlFor,
 }: {
   children: React.ReactNode;
   required?: boolean;
   optional?: boolean;
+  hint?: string;
   htmlFor?: string;
 }) {
   const inner = (
@@ -205,14 +207,21 @@ function FieldLabel({
       )}
     </>
   );
-  const className = "mb-2 block text-sm font-medium text-foreground";
+  const className = `${hint ? "mb-0.5" : "mb-2"} block text-sm font-medium text-foreground`;
   // Render <label> only when bound to a real form control; otherwise <div>
   // to avoid orphan <label> elements above ChipSelector groups (which expose
   // their own role="group" + aria-label).
-  return htmlFor ? (
-    <label htmlFor={htmlFor} className={className}>{inner}</label>
-  ) : (
-    <div className={className}>{inner}</div>
+  return (
+    <>
+      {htmlFor ? (
+        <label htmlFor={htmlFor} className={className}>{inner}</label>
+      ) : (
+        <div className={className}>{inner}</div>
+      )}
+      {hint && (
+        <p className="mb-2 text-xs italic text-muted-foreground">{hint}</p>
+      )}
+    </>
   );
 }
 
@@ -367,7 +376,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
 
       {/* Ingredients */}
       <div className="mb-6">
-        <FieldLabel htmlFor="ingredients" optional>
+        <FieldLabel htmlFor="ingredients" optional hint={t.form.ingredientsHint}>
           {t.form.ingredientsLabel}
         </FieldLabel>
         <Textarea
@@ -382,7 +391,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
 
       {/* Steps */}
       <div className="mb-6">
-        <FieldLabel htmlFor="steps" optional>
+        <FieldLabel htmlFor="steps" optional hint={t.form.stepsHint}>
           {t.form.stepsLabel}
         </FieldLabel>
         <Textarea
