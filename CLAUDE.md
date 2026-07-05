@@ -14,6 +14,17 @@ est documenté dans le vault Obsidian d'Anthony :
 - Mettre à jour le champ `mis-à-jour:` du frontmatter des notes touchées.
 - Le vault a son propre `CLAUDE.md` (conventions : français, wikilinks, commits par palier).
 
+## Backlog — specs par ID
+
+Les specs backlog sont dans **`~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/`** :
+une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zone`, `type`,
+`origine`, `voix`, `prio`, `statut`).
+
+- Quand Anthony dit « la #N » ou « spec N », il désigne la note dont le frontmatter
+  contient `id: N`. La retrouver :
+  `grep -l "^id: N$" ~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/*.md`
+- Lire aussi `Stratégie.md` (dossier parent) quand la spec y renvoie.
+
 ## Repères rapides
 
 - Branche de travail : `staging` (déploiement auto). `main` = prod, **protégée** :
