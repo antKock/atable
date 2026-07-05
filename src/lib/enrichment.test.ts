@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import openai from "@/lib/openai";
 import { createServerClient } from "@/lib/supabase/server";
-import { enrichRecipe, regenerateImage } from "./enrichment";
+import { enrichRecipe, regenerateImage, sanitizeDietTags } from "./enrichment";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 import { chatCompletion, enrichmentResult, imageResponse } from "@/test/openai-mock";
 import { recipeDbRow } from "@/test/fixtures";
@@ -153,6 +153,83 @@ describe("enrichRecipe — full enrichment", () => {
     await enrichRecipe("missing-recipe");
     expect(updatePayloads("recipes")).toContainEqual({ enrichment_status: "failed" });
     expect(mockChat).not.toHaveBeenCalled();
+  });
+});
+
+describe("sanitizeDietTags", () => {
+  it("drops Végétarien when an animal-protein tag is present", () => {
+    expect(sanitizeDietTags(["Poisson", "Végétarien", "Plat principal"]))
+      .toEqual(["Poisson", "Plat principal"]);
+    expect(sanitizeDietTags(["Fruits de mer", "Végétarien"])).toEqual(["Fruits de mer"]);
+    expect(sanitizeDietTags(["Poulet", "Végétarien", "Végan"])).toEqual(["Poulet"]);
+  });
+
+  it("drops Végan (but not Végétarien) when Œufs is present", () => {
+    expect(sanitizeDietTags(["Œufs", "Végétarien", "Végan"])).toEqual(["Œufs", "Végétarien"]);
+  });
+
+  it("keeps diet tags on genuinely vegetarian recipes", () => {
+    expect(sanitizeDietTags(["Légumineuses", "Végétarien", "Végan", "Indienne"]))
+      .toEqual(["Légumineuses", "Végétarien", "Végan", "Indienne"]);
+  });
+});
+
+describe("enrichRecipe — tag semantics (besoin #1)", () => {
+  const sparse = () =>
+    recipeDbRow({
+      prep_time: null,
+      cook_time: null,
+      cost: null,
+      complexity: null,
+      seasons: [],
+      image_prompt: null,
+      photo_url: "https://x/p.jpg", // skip the image branch
+      enrichment_status: "pending",
+    });
+
+  it("injects tag definitions and attribution rules into the system prompt", async () => {
+    supa.queueResults([
+      { data: sparse() },
+      { count: 0 },
+      {
+        data: [
+          { name: "Végétarien", description: "STRICT : aucune viande, volaille, poisson…" },
+          { name: "Poisson", description: null },
+        ],
+      },
+      { error: null }, // metadata update
+      { data: [] }, // matching tags
+    ]);
+    mockChat.mockResolvedValue(chatCompletion(enrichmentResult()));
+
+    await enrichRecipe("recipe-1");
+
+    const systemPrompt = mockChat.mock.calls[0][0].messages[0].content as string;
+    expect(systemPrompt).toContain("- Végétarien : STRICT : aucune viande, volaille, poisson…");
+    expect(systemPrompt).toContain("- Poisson"); // definition-less tag still listed
+    expect(systemPrompt).toContain("Règles d'attribution des tags");
+  });
+
+  it("strips contradictory diet tags from the LLM response before insertion", async () => {
+    supa.queueResults([
+      { data: sparse() },
+      { count: 0 },
+      { data: [{ name: "Poisson" }, { name: "Végétarien" }] },
+      { error: null }, // metadata update
+      { data: [{ id: "t1", name: "Poisson" }] }, // matching tags
+      { error: null }, // recipe_tags insert
+    ]);
+    mockChat.mockResolvedValue(
+      chatCompletion(enrichmentResult({ tags: ["Poisson", "Végétarien"] })),
+    );
+
+    await enrichRecipe("recipe-1");
+
+    const tagLookup = supa.calls
+      .filter((c) => c.table === "tags")
+      .flatMap((c) => c.ops)
+      .find((op) => op.method === "in")!;
+    expect(tagLookup.args[1]).toEqual(["Poisson"]);
   });
 });
 

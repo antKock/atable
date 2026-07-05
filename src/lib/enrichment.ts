@@ -21,11 +21,21 @@ import {
 // them appear), so the constraint must be baked into the prompt text itself.
 const IMAGE_PROMPT_INSTRUCTION = `Décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. Si la recette liste des ingrédients, ne représente QUE les ingrédients, garnitures et accompagnements listés — n'ajoute aucun aliment, ingrédient, herbe, feuille verte, sauce ou décoration non mentionné, et ne suggère pas de garniture "pour la présentation". EXCEPTION : si aucun ingrédient n'est listé (par exemple seulement un titre), imagine librement une version classique et appétissante du plat d'après son nom.`;
 
-function buildSystemPrompt(predefinedTagNames: string[]): string {
+export type PredefinedTag = { name: string; description: string | null };
+
+function buildSystemPrompt(predefinedTags: PredefinedTag[]): string {
+  const tagLines = predefinedTags
+    .map((t) => (t.description ? `- ${t.name} : ${t.description}` : `- ${t.name}`))
+    .join("\n");
   return `Tu es un assistant culinaire expert. Analyse la recette et retourne un JSON structuré.
 
-TAGS — choisis uniquement parmi cette liste (max 10) :
-${predefinedTagNames.join(", ")}
+TAGS — choisis uniquement parmi cette liste, en respectant strictement la définition de chaque tag :
+${tagLines}
+
+Règles d'attribution des tags :
+- N'assigne un tag que s'il est factuellement vrai pour cette recette, d'après sa définition et les ingrédients listés.
+- Les tags de régime alimentaire (Végétarien, Végan, Sans gluten, Sans lactose) sont binaires : à poser uniquement si TOUS les ingrédients satisfont strictement la définition, jamais par défaut ni approximativement.
+- La plupart des recettes ont 3 à 5 tags (maximum 10). Si trop de tags s'appliquent, garde les plus informatifs — ne sacrifie jamais un tag de régime ou de protéine, réduis d'abord parmi Occasion et Caractéristiques.
 
 SEASONS — valeurs possibles : ${VALID_SEASONS.join(", ")}
 PREP TIME — valeurs possibles : ${VALID_PREP_TIMES.join(", ")}
@@ -36,6 +46,21 @@ COMPLEXITY — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 IMAGE PROMPT — ${IMAGE_PROMPT_INSTRUCTION}
 
 Réponds UNIQUEMENT avec le JSON structuré, sans texte supplémentaire.`;
+}
+
+const MEAT_FISH_TAGS = new Set(["Poulet", "Bœuf", "Porc", "Agneau", "Poisson", "Fruits de mer"]);
+
+// Safety net for the "Végétarien on a salmon recipe" bug: prompt definitions
+// reduce it but stay probabilistic. When the LLM's own output names an animal
+// protein, drop the contradictory diet tags instead of trusting it.
+export function sanitizeDietTags(tags: string[]): string[] {
+  const hasMeatOrFish = tags.some((t) => MEAT_FISH_TAGS.has(t));
+  const hasAnimalProduct = hasMeatOrFish || tags.includes("Œufs");
+  return tags.filter((t) => {
+    if (t === "Végétarien") return !hasMeatOrFish;
+    if (t === "Végan") return !hasAnimalProduct;
+    return true;
+  });
 }
 
 // Builds a recipe content block (title + ingredients + steps) for the prompt.
@@ -244,13 +269,11 @@ export async function enrichRecipe(
       return;
     }
 
-    // 3. Load predefined tag names from DB (single source of truth)
+    // 3. Load predefined tags (name + definition) from DB (single source of truth)
     const { data: predefinedTags } = await supabase
       .from("tags")
-      .select("name")
+      .select("name, description")
       .eq("is_predefined", true);
-
-    const predefinedTagNames = (predefinedTags ?? []).map((t) => t.name);
 
     // 4. Call GPT-4o-mini (only if metadata or tags are missing)
     let result: EnrichmentResponse | null = null;
@@ -285,7 +308,7 @@ export async function enrichRecipe(
               },
             },
             messages: [
-              { role: "system", content: buildSystemPrompt(predefinedTagNames) },
+              { role: "system", content: buildSystemPrompt(predefinedTags ?? []) },
               { role: "user", content: recipeUserContent(recipe) },
             ],
           });
@@ -330,12 +353,13 @@ export async function enrichRecipe(
       await supabase.from("recipes").update(updates).eq("id", recipeId);
 
       // 6. Tags — only fill if no existing relational tags
-      if (tagCount === 0 && result.tags.length > 0) {
+      const cleanTags = sanitizeDietTags(result.tags);
+      if (tagCount === 0 && cleanTags.length > 0) {
         const { data: matchingTags } = await supabase
           .from("tags")
           .select("id, name")
           .eq("is_predefined", true)
-          .in("name", result.tags);
+          .in("name", cleanTags);
 
         if (matchingTags && matchingTags.length > 0) {
           const junctionRows = matchingTags.map((tag) => ({
