@@ -5,7 +5,7 @@
 Le contexte projet complet (produit, architecture, environnements, mobile, ops, historique)
 est documenté dans le vault Obsidian d'Anthony :
 
-**`~/projects/anthony-os/Mijote/Contexte codebase (généré)/`** — point d'entrée : `Mijote.md`.
+**`~/projects/anthony-os/Conseil/Perso/Mijote/Contexte codebase (généré)/`** — point d'entrée : `Mijote.md`.
 
 - Ces notes sont **dérivées de cette codebase** et servent de base de connaissance PM.
 - **À mettre à jour à chaque jalon** (release, incident, décision structurante, changement
