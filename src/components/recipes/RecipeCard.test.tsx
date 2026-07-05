@@ -38,6 +38,26 @@ describe("RecipeCard", () => {
     expect(placeholderDiv).not.toBeNull();
   });
 
+  it("shows a skeleton instead of the placeholder while the AI image is generating", () => {
+    const recipe = { ...baseRecipe, imageStatus: "pending" };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+  });
+
+  it("prefers the actual image over the skeleton even if imageStatus is pending", () => {
+    // A user photo can coexist with a pending AI generation (skipImage flow)
+    const recipe = {
+      ...baseRecipe,
+      imageStatus: "pending",
+      photoUrl:
+        "https://example.supabase.co/storage/v1/object/public/recipe-photos/device/recipe/photo.webp",
+    };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).not.toBeNull();
+    expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
+  });
+
   it("renders an img element when photoUrl is provided", () => {
     const recipe = {
       ...baseRecipe,

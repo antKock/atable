@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import useSWR from "swr";
@@ -11,6 +11,19 @@ import CocotteIllustration from "./CocotteIllustration";
 import type { CarouselSection } from "@/lib/queries/carousels";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+// Poll while any recipe is still enriching (metadata or AI image) so the
+// generated image and the "time · cost" subtitle appear in place, without the
+// user having to leave and reopen the page. 0 disables SWR polling entirely.
+const ENRICHMENT_POLL_INTERVAL = 4000;
+
+function hasPendingEnrichment(sections?: CarouselSection[]): boolean {
+  return !!sections?.some((section) =>
+    section.recipes.some(
+      (r) => r.enrichmentStatus === "pending" || r.imageStatus === "pending",
+    ),
+  );
+}
 
 function shuffleArray<T>(arr: T[]): T[] {
   const shuffled = [...arr];
@@ -53,21 +66,49 @@ function CarouselSkeleton() {
 }
 
 export default function HomeContent() {
+  const [pollInterval, setPollInterval] = useState(0);
   const { data: sections, isLoading } = useSWR<CarouselSection[]>(
     "/api/carousels",
     fetcher,
-    { revalidateOnMount: true },
+    {
+      revalidateOnMount: true,
+      // A plain number (not the function form): SWR re-arms its polling timer
+      // whenever this value flips 0 ↔ 4000, which is exactly when a pending
+      // recipe appears in / disappears from the data.
+      refreshInterval: pollInterval,
+      // Must sit below refreshInterval, or the global 10s dedupingInterval
+      // (SWRProvider) swallows 2 polls out of 3 and the image takes ~12s
+      // instead of ~4s to show up.
+      dedupingInterval: 3000,
+      onSuccess: (data) =>
+        setPollInterval(hasPendingEnrichment(data) ? ENRICHMENT_POLL_INTERVAL : 0),
+    },
   );
 
   const hasRecipes = sections && sections.length > 0;
 
+  // Shuffle the section order once, when data first arrives, then keep it
+  // stable: while enrichment polling refreshes the data every few seconds,
+  // the carousels must not jump around underneath the user. State set during
+  // render (not an effect) so the shuffled order applies before first paint.
+  const [sectionOrder, setSectionOrder] = useState<string[] | null>(null);
+  if (sections && sectionOrder === null) {
+    const restKeys = sections
+      .filter((s) => s.key !== "nouvelles")
+      .map((s) => s.key);
+    setSectionOrder(["nouvelles", ...shuffleArray(restKeys)]);
+  }
+
   const orderedSections = useMemo(() => {
-    if (!sections) return [];
-    const nouvelles = sections.find((s) => s.key === "nouvelles");
-    const rest = sections.filter((s) => s.key !== "nouvelles");
-    const shuffled = shuffleArray(rest);
-    return nouvelles ? [nouvelles, ...shuffled] : shuffled;
-  }, [sections]);
+    if (!sections || !sectionOrder) return sections ?? [];
+    const rank = (key: string) => {
+      const i = sectionOrder.indexOf(key);
+      // Sections that appear after the initial shuffle (e.g. first recipe of a
+      // new category) go to the end, in server order.
+      return i === -1 ? sectionOrder.length : i;
+    };
+    return [...sections].sort((a, b) => rank(a.key) - rank(b.key));
+  }, [sections, sectionOrder]);
 
   return (
     <>

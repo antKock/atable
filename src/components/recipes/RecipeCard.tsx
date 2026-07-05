@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { t } from "@/lib/i18n/fr";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 import { parseDurationMax } from "@/lib/filters";
 
@@ -10,6 +11,7 @@ interface RecipeCardProps {
     title: string;
     photoUrl: string | null;
     generatedImageUrl: string | null;
+    imageStatus?: string;
     prepTime?: string | null;
     cookTime?: string | null;
     cost?: string | null;
@@ -70,6 +72,8 @@ export default function RecipeCard({
                 : "(max-width: 768px) 50vw, 33vw"
             }
           />
+        ) : recipe.imageStatus === "pending" ? (
+          <Skeleton className="absolute inset-0 rounded-none" />
         ) : (
           <div
             className="absolute inset-0"
