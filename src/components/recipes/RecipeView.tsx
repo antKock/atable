@@ -133,6 +133,20 @@ export default function RecipeView({ recipe, heroOverlay }: Props) {
           <section aria-labelledby="ingredients-heading" className="mt-8">
             <SectionLabel id="ingredients-heading">
               {t.detail.ingredients}
+              {recipe.servings !== null && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontVariationSettings: '"opsz" 60',
+                    fontStyle: "italic",
+                    fontWeight: 400,
+                    fontSize: 16,
+                    opacity: 0.85,
+                  }}
+                >
+                  {t.detail.servingsSuffix(recipe.servings)}
+                </span>
+              )}
             </SectionLabel>
             {ingredientSections.map((section, si) => (
               <div key={si} className={si > 0 ? "mt-5" : undefined}>

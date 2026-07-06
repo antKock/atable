@@ -85,6 +85,7 @@ export const PUT = withHouseholdAuth(
     if (result.data.cost !== undefined) updatePayload.cost = result.data.cost;
     if (result.data.complexity !== undefined) updatePayload.complexity = result.data.complexity;
     if (result.data.seasons !== undefined) updatePayload.seasons = result.data.seasons;
+    if (result.data.servings !== undefined) updatePayload.servings = result.data.servings;
 
     const { data, error } = await supabase
       .from("recipes")

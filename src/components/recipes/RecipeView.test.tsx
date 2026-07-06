@@ -27,7 +27,28 @@ const baseRecipe: Recipe = {
   imageStatus: "none",
   lastViewedAt: null,
   viewCount: 0,
+  servings: null,
 };
+
+describe("RecipeView — servings suffix (spec #12)", () => {
+  it("shows « pour N pers. » next to the Ingrédients heading", () => {
+    render(<RecipeView recipe={{ ...baseRecipe, servings: 4 }} />);
+    const heading = screen.getByRole("heading", { name: /Ingrédients/ });
+    expect(heading.textContent).toContain("— pour 4 pers.");
+  });
+
+  it("shows the singular form for 1 person", () => {
+    render(<RecipeView recipe={{ ...baseRecipe, servings: 1 }} />);
+    const heading = screen.getByRole("heading", { name: /Ingrédients/ });
+    expect(heading.textContent).toContain("— pour 1 pers.");
+  });
+
+  it("renders no suffix when servings is null", () => {
+    render(<RecipeView recipe={baseRecipe} />);
+    const heading = screen.getByRole("heading", { name: /Ingrédients/ });
+    expect(heading.textContent).not.toContain("pour");
+  });
+});
 
 describe("RecipeView — flat lists (no sections)", () => {
   it("renders each ingredient line as a list item", () => {

@@ -18,6 +18,13 @@ const textField = z
   .max(MAX_TEXT_LENGTH, "Texte trop long (10 000 caractères max)")
   .nullable()
   .optional();
+const servingsField = z
+  .number()
+  .int()
+  .min(1, "Nombre de personnes invalide")
+  .max(20, "Nombre de personnes invalide")
+  .nullable()
+  .optional();
 
 export const RecipeCreateSchema = z.object({
   title: titleField,
@@ -29,6 +36,7 @@ export const RecipeCreateSchema = z.object({
   cost: z.string().nullable().optional(),
   complexity: z.string().nullable().optional(),
   seasons: z.array(z.string()).optional().default([]),
+  servings: servingsField,
   tagIds: z.array(z.string()).optional().default([]),
   source: z.enum(RECIPE_SOURCES).optional().default("manual"),
   // Set by the create form when the user attached their own photo. The photo is
@@ -48,6 +56,7 @@ export const RecipeUpdateSchema = z.object({
   cost: z.string().nullable().optional(),
   complexity: z.string().nullable().optional(),
   seasons: z.array(z.string()).optional(),
+  servings: servingsField,
   tagIds: z.array(z.string()).optional(),
   regenerateImage: z.boolean().optional(),
 });

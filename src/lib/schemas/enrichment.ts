@@ -23,6 +23,19 @@ export const VALID_COST_LEVELS = ["€", "€€", "€€€"] as const;
 
 export const VALID_COMPLEXITY_LEVELS = ["facile", "moyen", "difficile"] as const;
 
+export const MIN_SERVINGS = 1;
+export const MAX_SERVINGS = 20;
+
+// Guessed servings: null when the LLM can't derive it — and null too when it
+// returns something out of bounds, rather than failing the whole response.
+export const servingsGuessField = z
+  .number()
+  .int()
+  .min(MIN_SERVINGS)
+  .max(MAX_SERVINGS)
+  .nullable()
+  .catch(null);
+
 export const EnrichmentResponseSchema = z.object({
   tags: z.array(z.string()).max(10),
   seasons: z.array(z.enum(VALID_SEASONS)),
@@ -30,6 +43,7 @@ export const EnrichmentResponseSchema = z.object({
   cookTime: z.enum(VALID_COOK_TIMES),
   cost: z.enum(VALID_COST_LEVELS),
   complexity: z.enum(VALID_COMPLEXITY_LEVELS),
+  servings: servingsGuessField,
   imagePrompt: z.string(),
 });
 

@@ -36,11 +36,16 @@ export const t = {
       "Une étape par ligne, Mijote les numérote. « // Nom » pour une section.",
     stepsPlaceholder: "Émincer les oignons…",
     tagsLabel: "Tags",
+    servingsQuestion: "Pour combien de personnes ?",
+    servingsDecrease: "Moins de personnes",
+    servingsIncrease: "Plus de personnes",
+    servingsInput: "Nombre de personnes",
   },
 
   // Recipe detail
   detail: {
     ingredients: "Ingrédients",
+    servingsSuffix: (n: number) => `— pour ${n} pers.`,
     steps: "Préparation",
     noIngredients: "Aucun ingrédient ajouté",
     noSteps: "Aucune étape ajoutée",

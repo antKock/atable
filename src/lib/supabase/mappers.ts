@@ -32,6 +32,7 @@ export function mapDbRowToRecipe(row: Record<string, any>): Recipe {
     cost: row.cost ?? null,
     complexity: row.complexity ?? null,
     seasons: row.seasons ?? [],
+    servings: row.servings ?? null,
     imagePrompt: row.image_prompt ?? null,
     generatedImageUrl: row.generated_image_url ?? null,
     enrichmentStatus: row.enrichment_status ?? "none",

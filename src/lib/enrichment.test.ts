@@ -74,6 +74,7 @@ describe("enrichRecipe — full enrichment", () => {
       cost: null,
       complexity: null,
       seasons: [],
+      servings: null,
       image_prompt: null,
       photo_url: null,
       generated_image_url: null,
@@ -99,6 +100,7 @@ describe("enrichRecipe — full enrichment", () => {
     const updates = updatePayloads("recipes");
     const metadataUpdate = updates.find((u) => "enrichment_status" in u)!;
     expect(metadataUpdate.prep_time).toBe("20-30 min");
+    expect(metadataUpdate.servings).toBe(4);
     expect(metadataUpdate.enrichment_status).toBe("enriched");
 
     expect(mockImages).toHaveBeenCalledTimes(1);
@@ -182,6 +184,7 @@ describe("enrichRecipe — tag semantics (besoin #1)", () => {
       cost: null,
       complexity: null,
       seasons: [],
+      servings: null,
       image_prompt: null,
       photo_url: "https://x/p.jpg", // skip the image branch
       enrichment_status: "pending",

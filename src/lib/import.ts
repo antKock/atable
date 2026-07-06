@@ -50,6 +50,7 @@ Champs à extraire :
 - cost (string | null) : coût estimé — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
 - complexity (string | null) : difficulté — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 - seasons (string[]) : saisons appropriées — valeurs possibles : ${VALID_SEASONS.join(", ")}
+- servings (integer | null) : nombre de personnes pour lequel la recette est prévue (1 à 20). Uniquement si la source l'indique explicitement (« pour 4 personnes », « 6 parts »…) ou si les quantités le rendent évident ; sinon null — n'invente jamais de nombre.
 
 Sections : si la source regroupe les ingrédients ou les étapes en parties nommées (« Pour la sauce », intertitres…), reproduis ces parties dans les deux champs en insérant une ligne « // Nom de la partie » avant les lignes de chaque partie. Exemple pour une recette en deux parties :
 ingredients : "// Pour le poulet\ncuisses de poulet\n// Pour la sauce\n250 g de champignons\n20 cl de crème"
@@ -80,6 +81,7 @@ const IMPORT_JSON_SCHEMA = {
         type: "array",
         items: { type: "string", enum: [...VALID_SEASONS] },
       },
+      servings: { type: ["integer", "null"] },
     },
     required: [
       "title",
@@ -90,6 +92,7 @@ const IMPORT_JSON_SCHEMA = {
       "cost",
       "complexity",
       "seasons",
+      "servings",
     ],
     additionalProperties: false,
   },
@@ -178,6 +181,7 @@ function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoU
     cost: result.cost ?? undefined,
     complexity: result.complexity ?? undefined,
     seasons: result.seasons,
+    servings: result.servings ?? undefined,
   };
 }
 

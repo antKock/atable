@@ -61,6 +61,72 @@ describe("RecipeForm (create mode)", () => {
   });
 });
 
+describe("RecipeForm — servings stepper (spec #12)", () => {
+  function getStepper() {
+    return {
+      input: screen.getByLabelText("Nombre de personnes") as HTMLInputElement,
+      minus: screen.getByLabelText("Moins de personnes") as HTMLButtonElement,
+      plus: screen.getByLabelText("Plus de personnes") as HTMLButtonElement,
+    };
+  }
+
+  it("starts empty and jumps to 2 on the first + click", () => {
+    render(<RecipeForm mode="create" />);
+    const { input, plus } = getStepper();
+    expect(input.value).toBe("");
+    fireEvent.click(plus);
+    expect(input.value).toBe("2");
+    fireEvent.click(plus);
+    expect(input.value).toBe("3");
+  });
+
+  it("jumps to 2 on the first − click too, then decrements down to 1", () => {
+    render(<RecipeForm mode="create" />);
+    const { input, minus } = getStepper();
+    fireEvent.click(minus);
+    expect(input.value).toBe("2");
+    fireEvent.click(minus);
+    expect(input.value).toBe("1");
+    expect(minus.disabled).toBe(true);
+  });
+
+  it("accepts direct numeric input, clamped to 20, and can be cleared", () => {
+    render(<RecipeForm mode="create" />);
+    const { input } = getStepper();
+    fireEvent.change(input, { target: { value: "12" } });
+    expect(input.value).toBe("12");
+    fireEvent.change(input, { target: { value: "42" } });
+    expect(input.value).toBe("20");
+    fireEvent.change(input, { target: { value: "" } });
+    expect(input.value).toBe("");
+  });
+
+  it("pre-fills servings from initialData in edit mode", () => {
+    render(
+      <RecipeForm
+        mode="edit"
+        recipeId="123"
+        initialData={{
+          title: "Poulet rôti",
+          ingredients: null,
+          steps: null,
+          tags: [],
+          photoUrl: null,
+          prepTime: null,
+          cookTime: null,
+          cost: null,
+          complexity: null,
+          seasons: [],
+          servings: 6,
+          generatedImageUrl: null,
+        }}
+      />
+    );
+    const { input } = getStepper();
+    expect(input.value).toBe("6");
+  });
+});
+
 describe("RecipeForm (edit mode)", () => {
   const initialData = {
     title: "Poulet rôti",
@@ -76,6 +142,7 @@ describe("RecipeForm (edit mode)", () => {
     cost: "€€",
     complexity: "moyen",
     seasons: ["automne", "hiver"],
+    servings: 3,
     generatedImageUrl: null,
   };
 

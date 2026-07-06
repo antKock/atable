@@ -5,6 +5,7 @@ import {
   VALID_COOK_TIMES,
   VALID_COST_LEVELS,
   VALID_COMPLEXITY_LEVELS,
+  servingsGuessField,
 } from "@/lib/schemas/enrichment";
 
 // 10 MB file ≈ ~14M base64 chars (with data URI prefix)
@@ -33,6 +34,7 @@ export const ImportResultSchema = z.object({
   cost: z.enum(VALID_COST_LEVELS).nullable(),
   complexity: z.enum(VALID_COMPLEXITY_LEVELS).nullable(),
   seasons: z.array(z.enum(VALID_SEASONS)),
+  servings: servingsGuessField,
 });
 
 export const MAX_VOICE_FILE_SIZE = 10 * 1024 * 1024; // 10 MB

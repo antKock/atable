@@ -49,7 +49,7 @@ export const POST = withHouseholdAuth(
     const { data: source, error: sourceError } = await supabase
       .from("recipes")
       .select(
-        "id, household_id, title, ingredients, steps, photo_url, generated_image_url, prep_time, cook_time, cost, complexity, seasons, image_prompt, recipe_tags(tag_id)"
+        "id, household_id, title, ingredients, steps, photo_url, generated_image_url, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, recipe_tags(tag_id)"
       )
       .eq("share_token", token)
       .single();
@@ -79,6 +79,7 @@ export const POST = withHouseholdAuth(
         cost: source.cost,
         complexity: source.complexity,
         seasons: source.seasons ?? [],
+        servings: source.servings,
         image_prompt: source.image_prompt,
         household_id: householdId,
         source: "shared",

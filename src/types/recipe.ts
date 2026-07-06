@@ -20,6 +20,7 @@ export type Recipe = {
   cost: string | null;
   complexity: string | null;
   seasons: string[];
+  servings: number | null;
   imagePrompt: string | null;
   generatedImageUrl: string | null;
   enrichmentStatus: string;
@@ -52,4 +53,5 @@ export type RecipeFormData = {
   cost?: string;
   complexity?: string;
   seasons?: string[];
+  servings?: number;
 };
