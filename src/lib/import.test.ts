@@ -126,6 +126,61 @@ describe("list-marker normalisation", () => {
     const result = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("Pommes\nSucre");
   });
+
+  it("keeps '// Nom' section markers untouched in ingredients and steps", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(
+        importResult({
+          ingredients: "// Pour la pâte\n- Farine\n// Pour la garniture\n- Pommes",
+          steps: "// Pour la pâte\n1. Pétrir\n// Pour la garniture\n2. Éplucher",
+        }),
+      ),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe(
+      "// Pour la pâte\nFarine\n// Pour la garniture\nPommes",
+    );
+    expect(result.steps).toBe(
+      "// Pour la pâte\nPétrir\n// Pour la garniture\nÉplucher",
+    );
+  });
+});
+
+// --------------------------------------------------------------------------
+// Ingredient deduplication (backstop for ingredients read from the steps)
+// --------------------------------------------------------------------------
+describe("ingredient deduplication", () => {
+  it("drops exact duplicates case- and whitespace-insensitively, keeping the first", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(
+        importResult({ ingredients: "Sel\n200 g de farine\nsel\n200 g  de farine" }),
+      ),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe("Sel\n200 g de farine");
+  });
+
+  it("keeps lines that differ by quantity", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(importResult({ ingredients: "200 g de farine\nFarine" })),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe("200 g de farine\nFarine");
+  });
+
+  it("never deduplicates section markers and does not dedupe steps", async () => {
+    mockChat.mockResolvedValue(
+      chatCompletion(
+        importResult({
+          ingredients: "// Pâte\nFarine\n// Pâte\nOeufs",
+          steps: "Mélanger\nMélanger",
+        }),
+      ),
+    );
+    const result = await extractRecipeFromImages(["x"]);
+    expect(result.ingredients).toBe("// Pâte\nFarine\n// Pâte\nOeufs");
+    expect(result.steps).toBe("Mélanger\nMélanger");
+  });
 });
 
 // --------------------------------------------------------------------------

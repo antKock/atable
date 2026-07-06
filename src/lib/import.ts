@@ -17,6 +17,7 @@ import {
   VALID_COST_LEVELS,
   VALID_COMPLEXITY_LEVELS,
 } from "@/lib/schemas/enrichment";
+import { isSectionLine } from "@/lib/recipe-sections";
 import type { RecipeFormData } from "@/types/recipe";
 
 export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
@@ -42,13 +43,18 @@ const EXTRACTION_SYSTEM_PROMPT = `Tu es un assistant culinaire expert. Extrais l
 
 Champs à extraire :
 - title (string, obligatoire) : le nom de la recette
-- ingredients (string | null) : liste des ingrédients, un par ligne. N'inclus AUCUN marqueur en début de ligne (pas de tiret, puce, point, astérisque ni numéro) — uniquement le texte de l'ingrédient.
-- steps (string | null) : étapes de préparation, une par ligne. N'inclus AUCUN numéro ni marqueur en début de ligne (pas de « 1. », « 2) », tiret, puce ni « Étape 1 ») — uniquement le texte de l'étape.
+- ingredients (string | null) : liste des ingrédients, un par ligne. TOUS les ingrédients utilisés dans la préparation doivent figurer dans la liste, y compris ceux qui n'apparaissent que dans le texte des étapes (viandes, légumes, assaisonnements…). Reprends toujours les quantités données par la source (« 250 g de champignons ») mais n'invente jamais une quantité qu'elle ne précise pas (écris juste « sel », pas « 1 pincée de sel »). Ne liste jamais deux fois le même ingrédient. N'inclus AUCUN marqueur en début de ligne (pas de tiret, puce, point, astérisque ni numéro) — uniquement le texte de l'ingrédient.
+- steps (string | null) : étapes de préparation, une par ligne. Si la source regroupe la préparation en parties nommées (« Pour la sauce », intertitres…), insère une ligne « // Nom de la partie » avant les étapes de chaque partie. Si la source ne présente pas de découpage explicite en étapes, découpe la préparation en étapes logiques courtes. N'inclus AUCUN numéro ni marqueur en début de ligne (pas de « 1. », « 2) », tiret, puce ni « Étape 1 ») — uniquement le texte de l'étape.
 - prepTime (string | null) : temps de préparation — valeurs possibles : ${VALID_PREP_TIMES.join(", ")}
 - cookTime (string | null) : temps de cuisson — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 - cost (string | null) : coût estimé — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
 - complexity (string | null) : difficulté — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
 - seasons (string[]) : saisons appropriées — valeurs possibles : ${VALID_SEASONS.join(", ")}
+
+Sections : si la source regroupe les ingrédients ou les étapes en parties nommées (« Pour la sauce », intertitres…), reproduis ces parties dans les deux champs en insérant une ligne « // Nom de la partie » avant les lignes de chaque partie. Exemple pour une recette en deux parties :
+ingredients : "// Pour le poulet\ncuisses de poulet\n// Pour la sauce\n250 g de champignons\n20 cl de crème"
+steps : "// Pour le poulet\nFaites dorer les cuisses.\n// Pour la sauce\nÉmincez les champignons et faites-les revenir à la crème."
+N'invente aucune section si la source n'en présente pas.
 
 Réponds UNIQUEMENT avec le JSON structuré, sans texte supplémentaire. Si un champ n'est pas trouvé, utilise null (ou [] pour seasons).`;
 
@@ -121,7 +127,10 @@ function stripStepMarker(line: string): string {
     .trim();
 }
 
-/** Apply `strip` to every non-empty line, dropping blank lines. */
+/**
+ * Apply `strip` to every non-empty line, dropping blank lines. "// Nom"
+ * section markers pass through untouched — they are structure, not list items.
+ */
 function normaliseList(
   text: string | null,
   strip: (line: string) => string,
@@ -129,8 +138,30 @@ function normaliseList(
   if (text == null) return text;
   const lines = text
     .split("\n")
-    .map((line) => strip(line.trim()))
+    .map((line) => {
+      const trimmed = line.trim();
+      return isSectionLine(trimmed) ? trimmed : strip(trimmed);
+    })
     .filter((line) => line.length > 0);
+  return lines.length > 0 ? lines.join("\n") : null;
+}
+
+/**
+ * Drop exact duplicate lines (case- and whitespace-insensitive), keeping the
+ * first occurrence. Backstop for the prompt's "ne liste jamais deux fois le
+ * même ingrédient" now that ingredients are also read from the steps. Section
+ * markers are never deduplicated.
+ */
+function dedupeLines(text: string | null): string | null {
+  if (text == null) return text;
+  const seen = new Set<string>();
+  const lines = text.split("\n").filter((line) => {
+    if (isSectionLine(line)) return true;
+    const key = line.toLowerCase().replace(/\s+/g, " ");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
   return lines.length > 0 ? lines.join("\n") : null;
 }
 
@@ -139,7 +170,8 @@ function normaliseList(
 function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoUrl"> {
   return {
     title: result.title.trim(),
-    ingredients: normaliseList(result.ingredients, stripIngredientMarker) ?? "",
+    ingredients:
+      dedupeLines(normaliseList(result.ingredients, stripIngredientMarker)) ?? "",
     steps: normaliseList(result.steps, stripStepMarker) ?? "",
     prepTime: result.prepTime ?? undefined,
     cookTime: result.cookTime ?? undefined,
@@ -364,14 +396,20 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
   }
 
   const html = await res.text();
+  // Block-level closing tags become newlines so the page's structure (headings,
+  // list items, paragraphs) survives tag-stripping — the LLM can't spot section
+  // intertitles (« Pour la sauce ») in a single flattened line.
   return html
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<nav[\s\S]*?<\/nav>/gi, "")
     .replace(/<header[\s\S]*?<\/header>/gi, "")
     .replace(/<footer[\s\S]*?<\/footer>/gi, "")
+    .replace(/<\/(?:p|div|li|tr|h[1-6])>|<br\s*\/?>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/[^\S\n]+/g, " ")
+    .replace(/ ?\n ?/g, "\n")
+    .replace(/\n{2,}/g, "\n")
     .trim()
     .slice(0, 50000); // ~12k tokens — generous enough for any recipe page
 }
