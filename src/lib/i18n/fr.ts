@@ -28,17 +28,24 @@ export const t = {
     titleLabel: "Titre",
     titlePlaceholder: "Nom de la recette",
     ingredientsLabel: "Ingrédients",
-    ingredientsHint: "Un ingrédient par ligne, Mijote dresse la liste",
+    ingredientsHint:
+      "Un ingrédient par ligne, Mijote dresse la liste. « // Nom » pour une section.",
     ingredientsPlaceholder: "250 g de farine…",
     stepsLabel: "Préparation",
-    stepsHint: "Une étape par ligne, Mijote les numérote",
+    stepsHint:
+      "Une étape par ligne, Mijote les numérote. « // Nom » pour une section.",
     stepsPlaceholder: "Émincer les oignons…",
     tagsLabel: "Tags",
+    servingsQuestion: "Pour combien de personnes ?",
+    servingsDecrease: "Moins de personnes",
+    servingsIncrease: "Plus de personnes",
+    servingsInput: "Nombre de personnes",
   },
 
   // Recipe detail
   detail: {
     ingredients: "Ingrédients",
+    servingsSuffix: (n: number) => `— pour ${n} pers.`,
     steps: "Préparation",
     noIngredients: "Aucun ingrédient ajouté",
     noSteps: "Aucune étape ajoutée",

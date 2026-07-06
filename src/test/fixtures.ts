@@ -19,6 +19,7 @@ export function recipeDbRow(overrides: Record<string, unknown> = {}) {
     cost: "€€",
     complexity: "moyen",
     seasons: ["automne", "hiver"],
+    servings: 4,
     image_prompt: "A beef bourguignon in a cast-iron pot",
     generated_image_url: null,
     enrichment_status: "enriched",

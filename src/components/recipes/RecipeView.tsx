@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import Chip from "@/components/recipes/Chip";
 import MetadataGrid from "@/components/recipes/MetadataGrid";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
+import { parseSections } from "@/lib/recipe-sections";
 import type { Recipe } from "@/types/recipe";
 
 function SectionLabel({
@@ -32,6 +33,26 @@ function SectionLabel({
   );
 }
 
+// Heading for a "// Nom" group inside ingredients or steps.
+function SubsectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <h3
+      style={{
+        fontFamily: "var(--font-fraunces)",
+        fontVariationSettings: '"opsz" 144',
+        fontStyle: "italic",
+        fontWeight: 500,
+        fontSize: 17,
+        color: "var(--foreground)",
+        letterSpacing: "-0.005em",
+        marginBottom: 6,
+      }}
+    >
+      {children}
+    </h3>
+  );
+}
+
 type Props = {
   recipe: Recipe;
   // Controls overlaid on the hero image (back button, edit/delete/share, brand
@@ -44,12 +65,8 @@ type Props = {
 // tags). Pure rendering — no data fetching, polling, or view tracking; the
 // caller wraps it with whatever behavior it needs.
 export default function RecipeView({ recipe, heroOverlay }: Props) {
-  const ingredientLines = recipe.ingredients
-    ? recipe.ingredients.split("\n").filter((l) => l.trim())
-    : [];
-  const stepLines = recipe.steps
-    ? recipe.steps.split("\n").filter((l) => l.trim())
-    : [];
+  const ingredientSections = parseSections(recipe.ingredients);
+  const stepSections = parseSections(recipe.steps);
 
   const isEnriching = recipe.enrichmentStatus === "pending";
   const isImageLoading = recipe.imageStatus === "pending";
@@ -112,51 +129,81 @@ export default function RecipeView({ recipe, heroOverlay }: Props) {
         </div>
 
         {/* Ingredients */}
-        {ingredientLines.length > 0 && (
+        {ingredientSections.length > 0 && (
           <section aria-labelledby="ingredients-heading" className="mt-8">
             <SectionLabel id="ingredients-heading">
               {t.detail.ingredients}
+              {recipe.servings !== null && (
+                <span
+                  style={{
+                    marginLeft: 8,
+                    fontVariationSettings: '"opsz" 60',
+                    fontStyle: "italic",
+                    fontWeight: 400,
+                    fontSize: 16,
+                    opacity: 0.85,
+                  }}
+                >
+                  {t.detail.servingsSuffix(recipe.servings)}
+                </span>
+              )}
             </SectionLabel>
-            <ul className="pl-4">
-              {ingredientLines.map((line, i) => (
-                <li key={i} className="py-2.5 text-base text-foreground">
-                  {line.trim()}
-                </li>
-              ))}
-            </ul>
+            {ingredientSections.map((section, si) => (
+              <div key={si} className={si > 0 ? "mt-5" : undefined}>
+                {section.title && (
+                  <SubsectionLabel>{section.title}</SubsectionLabel>
+                )}
+                <ul className="pl-4">
+                  {section.items.map((line, i) => (
+                    <li key={i} className="py-2.5 text-base text-foreground">
+                      {line}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </section>
         )}
 
-        {/* Steps */}
-        {stepLines.length > 0 && (
+        {/* Steps — numbering restarts at 1 inside each "//" section */}
+        {stepSections.length > 0 && (
           <section aria-labelledby="steps-heading" className="mt-8">
             <SectionLabel id="steps-heading">{t.detail.steps}</SectionLabel>
-            <ol className="flex flex-col gap-4">
-              {stepLines.map((line, i) => (
-                <li key={i} className="flex gap-3">
-                  <span
-                    className="flex-shrink-0"
-                    style={{
-                      minWidth: 28,
-                      fontFamily: "var(--font-fraunces)",
-                      fontVariationSettings: '"opsz" 144',
-                      fontStyle: "italic",
-                      fontWeight: 500,
-                      fontSize: 24,
-                      lineHeight: 1.05,
-                      color: "var(--accent)",
-                      textAlign: "right",
-                      transform: "translateY(2px)",
-                    }}
-                  >
-                    {i + 1}
-                  </span>
-                  <p className="flex-1 text-base leading-relaxed text-foreground">
-                    {line.trim()}
-                  </p>
-                </li>
+            <div className="flex flex-col gap-6">
+              {stepSections.map((section, si) => (
+                <div key={si}>
+                  {section.title && (
+                    <SubsectionLabel>{section.title}</SubsectionLabel>
+                  )}
+                  <ol className="flex flex-col gap-4">
+                    {section.items.map((line, i) => (
+                      <li key={i} className="flex gap-3">
+                        <span
+                          className="flex-shrink-0"
+                          style={{
+                            minWidth: 28,
+                            fontFamily: "var(--font-fraunces)",
+                            fontVariationSettings: '"opsz" 144',
+                            fontStyle: "italic",
+                            fontWeight: 500,
+                            fontSize: 24,
+                            lineHeight: 1.05,
+                            color: "var(--accent)",
+                            textAlign: "right",
+                            transform: "translateY(2px)",
+                          }}
+                        >
+                          {i + 1}
+                        </span>
+                        <p className="flex-1 text-base leading-relaxed text-foreground">
+                          {line}
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
               ))}
-            </ol>
+            </div>
           </section>
         )}
 

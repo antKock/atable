@@ -72,6 +72,14 @@ export const POST = withHouseholdAuth(
         ingredients: result.data.ingredients ?? null,
         steps: result.data.steps ?? null,
         photo_url: result.data.photoUrl ?? null,
+        // Metadata provided by the form (typed by the user or pre-filled by an
+        // import) is persisted here; enrichment only fills what is still null.
+        prep_time: result.data.prepTime ?? null,
+        cook_time: result.data.cookTime ?? null,
+        cost: result.data.cost ?? null,
+        complexity: result.data.complexity ?? null,
+        seasons: result.data.seasons ?? [],
+        servings: result.data.servings ?? null,
         household_id: householdId,
         source: result.data.source,
         created_by_device_id: sessionId,

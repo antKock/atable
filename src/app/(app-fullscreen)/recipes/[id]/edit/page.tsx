@@ -71,6 +71,7 @@ export default async function EditRecipePage({ params }: Props) {
           cost: recipe.cost,
           complexity: recipe.complexity,
           seasons: recipe.seasons,
+          servings: recipe.servings,
           generatedImageUrl: recipe.generatedImageUrl,
         }}
       />

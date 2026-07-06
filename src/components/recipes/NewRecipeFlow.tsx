@@ -14,9 +14,15 @@ type View = "intent" | "form";
 export default function NewRecipeFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [view, setView] = useState<View>("intent");
+  // The form step is a real history entry (?view=form, pushed in openForm) so
+  // the Android hardware back / browser back returns to the import chooser
+  // instead of leaving the page. Derived from the URL, not component state.
+  const view: View = searchParams.get("view") === "form" ? "form" : "intent";
   const [importedData, setImportedData] = useState<ImportedRecipeData | null>(null);
   const [source, setSource] = useState<RecipeSource>("manual");
+  // Whether WE pushed the ?view=form entry. False when the URL was loaded
+  // directly (fresh tab): there is nothing under it to pop back to.
+  const pushedForm = useRef(false);
 
   // Captured once at mount: a URL handed in by the iOS share sheet via
   // /recipes/new?import=url&url=… (see DeepLinkHandler). Read eagerly so it
@@ -40,22 +46,36 @@ export default function NewRecipeFlow() {
     }
   }, [autoImportUrl, isExt, router]);
 
+  // Shallow pushState (no server round-trip, component stays mounted so the
+  // imported data survives). Next syncs useSearchParams with it.
+  function openForm() {
+    pushedForm.current = true;
+    window.history.pushState(
+      null,
+      "",
+      isExt ? "/recipes/new?ext=1&view=form" : "/recipes/new?view=form",
+    );
+  }
+
   function handleImportComplete(data: ImportedRecipeData, importSource: RecipeSource) {
     setImportedData(data);
     setSource(importSource);
-    setView("form");
+    openForm();
   }
 
   function handleManual() {
     setImportedData(null);
     setSource("manual");
-    setView("form");
+    openForm();
   }
 
   function handleBack() {
     if (view === "form") {
-      setView("intent");
-      setImportedData(null);
+      if (pushedForm.current) {
+        window.history.back();
+      } else {
+        router.replace(isExt ? "/recipes/new?ext=1" : "/recipes/new");
+      }
     } else {
       router.back();
     }

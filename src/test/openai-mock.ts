@@ -18,6 +18,7 @@ export function importResult(overrides: Partial<ImportResult> = {}): ImportResul
     cost: "€",
     complexity: "facile",
     seasons: ["automne"],
+    servings: 4,
     ...overrides,
   };
 }
@@ -33,6 +34,7 @@ export function enrichmentResult(
     cookTime: "30 min - 1h",
     cost: "€",
     complexity: "facile",
+    servings: 4,
     imagePrompt: "An apple pie on a wooden table, overhead view",
     ...overrides,
   };

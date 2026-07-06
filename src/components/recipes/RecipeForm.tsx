@@ -33,9 +33,15 @@ const SEASON_OPTIONS = [
   { value: "hiver", label: "Hiver" },
 ];
 
+// Bornes alignées sur le CHECK de la colonne servings (migration 022). Champ
+// vide par défaut : le premier clic sur +/− démarre à 2 (spec #12).
+const SERVINGS_MIN = 1;
+const SERVINGS_MAX = 20;
+const SERVINGS_FIRST_CLICK = 2;
+
 interface CreateProps {
   mode: "create";
-  initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons">> | null;
+  initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings">> | null;
   recipeId?: never;
   /** How the form was reached — recorded for the add-method analytics. */
   source?: RecipeSource;
@@ -47,7 +53,7 @@ interface CreateProps {
 
 interface EditProps {
   mode: "edit";
-  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags" | "photoUrl" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "generatedImageUrl">;
+  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags" | "photoUrl" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings" | "generatedImageUrl">;
   recipeId: string;
   source?: never;
   stickySubmit?: boolean;
@@ -76,12 +82,14 @@ type FormState = {
   cost: string | null;
   complexity: string | null;
   seasons: string[];
+  servings: number | null;
 };
 
 type FormAction =
   | { type: "setText"; field: "title" | "ingredients" | "steps"; value: string }
   | { type: "setMetadata"; field: "prepTime" | "cookTime" | "cost" | "complexity"; value: string | null }
   | { type: "setSeasons"; seasons: string[] }
+  | { type: "setServings"; value: number | null }
   | { type: "addTag"; tag: Tag }
   | { type: "removeTag"; tagId: string }
   | { type: "replacePhoto"; file: File }
@@ -98,6 +106,8 @@ function formReducer(state: FormState, action: FormAction): FormState {
       return { ...state, [action.field]: action.value };
     case "setSeasons":
       return { ...state, seasons: action.seasons };
+    case "setServings":
+      return { ...state, servings: action.value };
     case "addTag":
       if (state.selectedTags.some((t) => t.id === action.tag.id)) return state;
       return { ...state, selectedTags: [...state.selectedTags, action.tag] };
@@ -147,6 +157,7 @@ function initFormState({ initialData, isEdit }: {
     cost: initialData?.cost ?? null,
     complexity: initialData?.complexity ?? null,
     seasons: initialData?.seasons ?? [],
+    servings: initialData?.servings ?? null,
   };
 }
 
@@ -225,6 +236,61 @@ function FieldLabel({
   );
 }
 
+// Qualificateur des ingrédients (spec #12) : saisi juste au-dessus du textarea
+// des ingrédients, affiché en lecture dans le titre de la section Ingrédients.
+function ServingsStepper({
+  value,
+  onChange,
+}: {
+  value: number | null;
+  onChange: (value: number | null) => void;
+}) {
+  const clamp = (v: number) => Math.min(SERVINGS_MAX, Math.max(SERVINGS_MIN, v));
+  const step = (delta: number) =>
+    onChange(value === null ? SERVINGS_FIRST_CLICK : clamp(value + delta));
+
+  return (
+    <div className="mb-2 flex items-center justify-between gap-3">
+      <span className="text-[13px] text-muted-foreground">
+        {t.form.servingsQuestion}
+      </span>
+      <div className="flex items-center overflow-hidden rounded-[10px] border border-input bg-surface">
+        <button
+          type="button"
+          aria-label={t.form.servingsDecrease}
+          disabled={value !== null && value <= SERVINGS_MIN}
+          onClick={() => step(-1)}
+          className="flex h-10 w-10 items-center justify-center text-xl font-medium text-accent transition-colors active:bg-accent/10 disabled:text-border"
+        >
+          −
+        </button>
+        <input
+          type="text"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          aria-label={t.form.servingsInput}
+          value={value === null ? "" : String(value)}
+          placeholder="—"
+          onChange={(e) => {
+            const digits = e.target.value.replace(/\D/g, "");
+            onChange(digits === "" ? null : clamp(parseInt(digits, 10)));
+          }}
+          className="h-10 w-11 border-x border-input bg-transparent text-center text-base font-medium text-foreground outline-none placeholder:text-muted-foreground/60"
+        />
+        <button
+          type="button"
+          aria-label={t.form.servingsIncrease}
+          disabled={value !== null && value >= SERVINGS_MAX}
+          onClick={() => step(1)}
+          className="flex h-10 w-10 items-center justify-center text-xl font-medium text-accent transition-colors active:bg-accent/10 disabled:text-border"
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension }: RecipeFormProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
@@ -251,6 +317,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         cost: form.cost || null,
         complexity: form.complexity || null,
         seasons: form.seasons,
+        servings: form.servings,
       };
 
       if (isEdit) {
@@ -315,7 +382,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
           // navigating (the WebView is about to be torn down).
           notifyShareExtensionDone();
         } else {
-          router.push("/home");
+          // replace: keep /recipes/new?view=form out of the back stack so
+          // back-from-home lands on the chooser, not a stale form.
+          router.replace("/home");
         }
 
         if (form.photoFile) {
@@ -379,6 +448,10 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <FieldLabel htmlFor="ingredients" optional hint={t.form.ingredientsHint}>
           {t.form.ingredientsLabel}
         </FieldLabel>
+        <ServingsStepper
+          value={form.servings}
+          onChange={(value) => dispatch({ type: "setServings", value })}
+        />
         <Textarea
           id="ingredients"
           value={form.ingredients}

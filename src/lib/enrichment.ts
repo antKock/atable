@@ -42,6 +42,7 @@ PREP TIME — valeurs possibles : ${VALID_PREP_TIMES.join(", ")}
 COOK TIME — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 COST — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
 COMPLEXITY — valeurs possibles : ${VALID_COMPLEXITY_LEVELS.join(", ")}
+SERVINGS — nombre de personnes pour lequel la recette est prévue (entier 1 à 20) : uniquement si la recette l'indique explicitement ou si les quantités le rendent évident ; sinon null — n'invente jamais de nombre.
 
 IMAGE PROMPT — ${IMAGE_PROMPT_INSTRUCTION}
 
@@ -218,7 +219,7 @@ export async function enrichRecipe(
     // 1. Read recipe data
     const { data: recipe, error: fetchError } = await supabase
       .from("recipes")
-      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, image_prompt, photo_url, generated_image_url, enrichment_status, household_id")
+      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, photo_url, generated_image_url, enrichment_status, household_id")
       .eq("id", recipeId)
       .single();
 
@@ -239,6 +240,7 @@ export async function enrichRecipe(
       recipe.complexity &&
       recipe.seasons &&
       recipe.seasons.length > 0 &&
+      recipe.servings &&
       recipe.image_prompt;
     const hasImage = !!(recipe.photo_url || recipe.generated_image_url);
 
@@ -300,9 +302,10 @@ export async function enrichRecipe(
                     cookTime: { type: "string", enum: [...VALID_COOK_TIMES] },
                     cost: { type: "string", enum: [...VALID_COST_LEVELS] },
                     complexity: { type: "string", enum: [...VALID_COMPLEXITY_LEVELS] },
+                    servings: { type: ["integer", "null"] },
                     imagePrompt: { type: "string" },
                   },
-                  required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "imagePrompt"],
+                  required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "servings", "imagePrompt"],
                   additionalProperties: false,
                 },
               },
@@ -345,6 +348,7 @@ export async function enrichRecipe(
       if (!recipe.complexity && result.complexity) updates.complexity = result.complexity;
       if ((!recipe.seasons || recipe.seasons.length === 0) && result.seasons.length > 0)
         updates.seasons = result.seasons;
+      if (!recipe.servings && result.servings) updates.servings = result.servings;
       if (!recipe.image_prompt && result.imagePrompt)
         updates.image_prompt = result.imagePrompt;
 
