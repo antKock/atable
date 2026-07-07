@@ -79,6 +79,10 @@ export const PUT = withHouseholdAuth(
     if (result.data.regenerateImage) {
       updatePayload.image_status = "pending";
     }
+    // Conditional like the metadata fields: the photo-upload-failure fallback
+    // PUT (RecipeForm) only sends title/ingredients/steps and must not wipe
+    // notes. Editing notes doesn't trigger re-enrichment (not in contentChanged).
+    if (result.data.notes !== undefined) updatePayload.notes = result.data.notes;
     // v3 metadata fields
     if (result.data.prepTime !== undefined) updatePayload.prep_time = result.data.prepTime;
     if (result.data.cookTime !== undefined) updatePayload.cook_time = result.data.cookTime;

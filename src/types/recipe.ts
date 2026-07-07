@@ -10,6 +10,7 @@ export type Recipe = {
   title: string;
   ingredients: string | null;
   steps: string | null;
+  notes: string | null;
   tags: Tag[];
   photoUrl: string | null;
   createdAt: string;
@@ -45,6 +46,7 @@ export type RecipeFormData = {
   title: string;
   ingredients: string;
   steps: string;
+  notes: string;
   tags: string[]; // tag IDs for form submission
   photoUrl: string | null;
   // v3 optional metadata

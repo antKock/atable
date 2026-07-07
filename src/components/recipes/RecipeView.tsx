@@ -207,6 +207,17 @@ export default function RecipeView({ recipe, heroOverlay }: Props) {
           </section>
         )}
 
+        {/* Notes — free text rendered exactly as recorded, line breaks kept
+            (spec #13: no list styling, unlike ingredients/steps) */}
+        {recipe.notes?.trim() && (
+          <section aria-labelledby="notes-heading" className="mt-8">
+            <SectionLabel id="notes-heading">{t.detail.notes}</SectionLabel>
+            <p className="whitespace-pre-line text-base leading-relaxed text-foreground">
+              {recipe.notes.trim()}
+            </p>
+          </section>
+        )}
+
         {/* Tags + Seasons */}
         {(recipe.tags.length > 0 ||
           (recipe.seasons && recipe.seasons.length > 0) ||

@@ -64,6 +64,7 @@ export default async function EditRecipePage({ params }: Props) {
           title: recipe.title,
           ingredients: recipe.ingredients,
           steps: recipe.steps,
+          notes: recipe.notes,
           tags: recipe.tags,
           photoUrl: recipe.photoUrl,
           prepTime: recipe.prepTime,

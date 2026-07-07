@@ -11,6 +11,7 @@ export function recipeDbRow(overrides: Record<string, unknown> = {}) {
     title: "Bœuf bourguignon",
     ingredients: "Bœuf\nVin rouge\nCarottes\nOignons",
     steps: "Faire revenir la viande\nAjouter le vin\nMijoter 3h",
+    notes: null,
     photo_url: null,
     created_at: "2026-01-01T10:00:00.000Z",
     updated_at: "2026-01-02T10:00:00.000Z",

@@ -71,6 +71,7 @@ export const POST = withHouseholdAuth(
         title: result.data.title,
         ingredients: result.data.ingredients ?? null,
         steps: result.data.steps ?? null,
+        notes: result.data.notes ?? null,
         photo_url: result.data.photoUrl ?? null,
         // Metadata provided by the form (typed by the user or pre-filled by an
         // import) is persisted here; enrichment only fills what is still null.

@@ -22,6 +22,7 @@ export function mapDbRowToRecipe(row: Record<string, any>): Recipe {
     title: row.title,
     ingredients: row.ingredients,
     steps: row.steps,
+    notes: row.notes ?? null,
     tags,
     photoUrl: row.photo_url,
     createdAt: row.created_at,

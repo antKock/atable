@@ -41,7 +41,7 @@ const SERVINGS_FIRST_CLICK = 2;
 
 interface CreateProps {
   mode: "create";
-  initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings">> | null;
+  initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "notes" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings">> | null;
   recipeId?: never;
   /** How the form was reached — recorded for the add-method analytics. */
   source?: RecipeSource;
@@ -53,7 +53,7 @@ interface CreateProps {
 
 interface EditProps {
   mode: "edit";
-  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "tags" | "photoUrl" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings" | "generatedImageUrl">;
+  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "notes" | "tags" | "photoUrl" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings" | "generatedImageUrl">;
   recipeId: string;
   source?: never;
   stickySubmit?: boolean;
@@ -72,6 +72,7 @@ type FormState = {
   title: string;
   ingredients: string;
   steps: string;
+  notes: string;
   selectedTags: Tag[];
   photoFile: File | null;
   photoRemoved: boolean;
@@ -86,7 +87,7 @@ type FormState = {
 };
 
 type FormAction =
-  | { type: "setText"; field: "title" | "ingredients" | "steps"; value: string }
+  | { type: "setText"; field: "title" | "ingredients" | "steps" | "notes"; value: string }
   | { type: "setMetadata"; field: "prepTime" | "cookTime" | "cost" | "complexity"; value: string | null }
   | { type: "setSeasons"; seasons: string[] }
   | { type: "setServings"; value: number | null }
@@ -147,6 +148,7 @@ function initFormState({ initialData, isEdit }: {
     title: initialData?.title ?? "",
     ingredients: initialData?.ingredients ?? "",
     steps: initialData?.steps ?? "",
+    notes: initialData?.notes ?? "",
     selectedTags: isEdit && initialData && "tags" in initialData ? initialData.tags : [],
     photoFile: null,
     photoRemoved: false,
@@ -311,6 +313,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         title: form.title.trim(),
         ingredients: form.ingredients.trim() || null,
         steps: form.steps.trim() || null,
+        notes: form.notes.trim() || null,
         tagIds: form.selectedTags.map((t) => t.id),
         prepTime: form.prepTime || null,
         cookTime: form.cookTime || null,
@@ -473,6 +476,21 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
           onChange={(e) => dispatch({ type: "setText", field: "steps", value: e.target.value })}
           placeholder={t.form.stepsPlaceholder}
           rows={5}
+          className="resize-none text-base"
+        />
+      </div>
+
+      {/* Notes — free text, displayed exactly as typed (spec #13) */}
+      <div className="mb-6">
+        <FieldLabel htmlFor="notes" optional hint={t.form.notesHint}>
+          {t.form.notesLabel}
+        </FieldLabel>
+        <Textarea
+          id="notes"
+          value={form.notes}
+          onChange={(e) => dispatch({ type: "setText", field: "notes", value: e.target.value })}
+          placeholder={t.form.notesPlaceholder}
+          rows={3}
           className="resize-none text-base"
         />
       </div>
