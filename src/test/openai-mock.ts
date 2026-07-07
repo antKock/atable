@@ -13,6 +13,7 @@ export function importResult(overrides: Partial<ImportResult> = {}): ImportResul
     title: "Tarte aux pommes",
     ingredients: "Pommes\nPâte brisée\nSucre",
     steps: "Éplucher les pommes\nGarnir la pâte\nEnfourner 30 min",
+    notes: null,
     prepTime: "20-30 min",
     cookTime: "30 min - 1h",
     cost: "€",

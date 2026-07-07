@@ -110,6 +110,7 @@ describe("RecipeForm — servings stepper (spec #12)", () => {
           title: "Poulet rôti",
           ingredients: null,
           steps: null,
+          notes: null,
           tags: [],
           photoUrl: null,
           prepTime: null,
@@ -132,6 +133,7 @@ describe("RecipeForm (edit mode)", () => {
     title: "Poulet rôti",
     ingredients: "1 poulet\nThym",
     steps: "Enfourner à 200°C",
+    notes: null,
     tags: [
       { id: "t1", name: "viande", category: null },
       { id: "t2", name: "four", category: null },

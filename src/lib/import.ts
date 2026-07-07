@@ -45,6 +45,7 @@ Champs à extraire :
 - title (string, obligatoire) : le nom de la recette
 - ingredients (string | null) : liste des ingrédients, un par ligne. TOUS les ingrédients utilisés dans la préparation doivent figurer dans la liste, y compris ceux qui n'apparaissent que dans le texte des étapes (viandes, légumes, assaisonnements…). Reprends toujours les quantités données par la source (« 250 g de champignons ») mais n'invente jamais une quantité qu'elle ne précise pas (écris juste « sel », pas « 1 pincée de sel »). Ne liste jamais deux fois le même ingrédient. N'inclus AUCUN marqueur en début de ligne (pas de tiret, puce, point, astérisque ni numéro) — uniquement le texte de l'ingrédient.
 - steps (string | null) : étapes de préparation, une par ligne. Si la source regroupe la préparation en parties nommées (« Pour la sauce », intertitres…), insère une ligne « // Nom de la partie » avant les étapes de chaque partie. Si la source ne présente pas de découpage explicite en étapes, découpe la préparation en étapes logiques courtes. N'inclus AUCUN numéro ni marqueur en début de ligne (pas de « 1. », « 2) », tiret, puce ni « Étape 1 ») — uniquement le texte de l'étape.
+- notes (string | null) : uniquement si la source contient explicitement une astuce, un conseil, une variante ou une précision de l'auteur (« se congèle très bien », « remplacer le beurre par de l'huile »…). Recopie-la fidèlement, sans la reformuler. N'y mets JAMAIS de métadonnées (origine, source, auteur, date, portions) ni rien que la source ne dit pas. null s'il n'y a aucune note claire — c'est le cas le plus fréquent.
 - prepTime (string | null) : temps de préparation — valeurs possibles : ${VALID_PREP_TIMES.join(", ")}
 - cookTime (string | null) : temps de cuisson — valeurs possibles : ${VALID_COOK_TIMES.join(", ")}
 - cost (string | null) : coût estimé — valeurs possibles : ${VALID_COST_LEVELS.join(", ")}
@@ -70,6 +71,7 @@ const IMPORT_JSON_SCHEMA = {
       title: { type: "string" },
       ingredients: { type: ["string", "null"] },
       steps: { type: ["string", "null"] },
+      notes: { type: ["string", "null"] },
       prepTime: { type: ["string", "null"], enum: [...VALID_PREP_TIMES, null] },
       cookTime: { type: ["string", "null"], enum: [...VALID_COOK_TIMES, null] },
       cost: { type: ["string", "null"], enum: [...VALID_COST_LEVELS, null] },
@@ -87,6 +89,7 @@ const IMPORT_JSON_SCHEMA = {
       "title",
       "ingredients",
       "steps",
+      "notes",
       "prepTime",
       "cookTime",
       "cost",
@@ -176,6 +179,8 @@ function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoU
     ingredients:
       dedupeLines(normaliseList(result.ingredients, stripIngredientMarker)) ?? "",
     steps: normaliseList(result.steps, stripStepMarker) ?? "",
+    // Notes are free text rendered as recorded — no list normalisation.
+    notes: result.notes?.trim() ?? "",
     prepTime: result.prepTime ?? undefined,
     cookTime: result.cookTime ?? undefined,
     cost: result.cost ?? undefined,

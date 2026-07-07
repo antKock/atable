@@ -29,6 +29,7 @@ export const ImportResultSchema = z.object({
   title: z.string(),
   ingredients: z.string().nullable(),
   steps: z.string().nullable(),
+  notes: z.string().nullable(),
   prepTime: z.enum(VALID_PREP_TIMES).nullable(),
   cookTime: z.enum(VALID_COOK_TIMES).nullable(),
   cost: z.enum(VALID_COST_LEVELS).nullable(),

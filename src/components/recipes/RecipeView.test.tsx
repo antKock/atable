@@ -12,6 +12,7 @@ const baseRecipe: Recipe = {
   title: "Poulet sauce forestière",
   ingredients: "1 poulet\nChampignons",
   steps: "Saisir le poulet\nAjouter les champignons",
+  notes: null,
   tags: [],
   photoUrl: null,
   createdAt: "2026-01-01T00:00:00Z",
@@ -115,5 +116,33 @@ describe("RecipeView — '//' sections", () => {
       (el) => el.textContent,
     );
     expect(numbers).toEqual(["1", "1"]);
+  });
+});
+
+describe("RecipeView — notes (spec #13)", () => {
+  it("renders the notes text as recorded, not as a list", () => {
+    const { container } = render(
+      <RecipeView
+        recipe={{ ...baseRecipe, notes: "Se congèle très bien.\nEncore meilleur le lendemain." }}
+      />
+    );
+    expect(
+      screen.getByRole("heading", { name: "Notes" })
+    ).not.toBeNull();
+    const notesSection = container.querySelector(
+      'section[aria-labelledby="notes-heading"]'
+    );
+    expect(notesSection?.querySelector("ul, ol")).toBeNull();
+    expect(notesSection?.textContent).toContain(
+      "Se congèle très bien.\nEncore meilleur le lendemain."
+    );
+  });
+
+  it("renders no Notes section when notes is null or blank", () => {
+    render(<RecipeView recipe={baseRecipe} />);
+    expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
+    cleanup();
+    render(<RecipeView recipe={{ ...baseRecipe, notes: "  \n " }} />);
+    expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
   });
 });
