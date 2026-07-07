@@ -32,7 +32,7 @@ export const t = {
     // The placeholder demonstrates the "// Nom" section syntax by example
     // rather than spelling it out in the always-on hint — it's an advanced,
     // low-key convention, so showing it in the empty field is enough.
-    ingredientsPlaceholder: "// Pour la pâte\n250 g de farine\n3 œufs",
+    ingredientsPlaceholder: "// Pour la pâte\n250 g de farine",
     stepsLabel: "Préparation",
     stepsHint: "Une étape par ligne, Mijote les numérote",
     stepsPlaceholder: "// Pour la garniture\nÉmincer les oignons…",
