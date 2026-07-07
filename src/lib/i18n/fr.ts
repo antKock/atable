@@ -28,13 +28,14 @@ export const t = {
     titleLabel: "Titre",
     titlePlaceholder: "Nom de la recette",
     ingredientsLabel: "Ingrédients",
-    ingredientsHint:
-      "Un ingrédient par ligne, Mijote dresse la liste. « // Nom » pour une section.",
-    ingredientsPlaceholder: "250 g de farine…",
+    ingredientsHint: "Un ingrédient par ligne, Mijote dresse la liste",
+    // The placeholder demonstrates the "// Nom" section syntax by example
+    // rather than spelling it out in the always-on hint — it's an advanced,
+    // low-key convention, so showing it in the empty field is enough.
+    ingredientsPlaceholder: "// Pour la pâte\n250 g de farine\n3 œufs",
     stepsLabel: "Préparation",
-    stepsHint:
-      "Une étape par ligne, Mijote les numérote. « // Nom » pour une section.",
-    stepsPlaceholder: "Émincer les oignons…",
+    stepsHint: "Une étape par ligne, Mijote les numérote",
+    stepsPlaceholder: "// Pour la garniture\nÉmincer les oignons…",
     tagsLabel: "Tags",
     servingsQuestion: "Pour combien de personnes ?",
     servingsDecrease: "Moins de personnes",
