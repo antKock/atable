@@ -55,13 +55,37 @@ export async function POST(request: NextRequest) {
     const ua = hdrs.get('user-agent') ?? ''
     const deviceName = getDeviceName(ua)
 
+    // Owner neuf + membership member + session (chantier foyer #14/#15).
+    // Un device qui « change de foyer » crée donc un owner neuf — comportement
+    // actuel conservé ; l'additivité arrive au Lot 4.
+    const { data: owner, error: ownerError } = await supabase
+      .from('owners')
+      .insert({})
+      .select('id')
+      .single()
+
+    if (ownerError || !owner) {
+      throw new Error(ownerError?.message ?? 'Failed to create owner')
+    }
+
+    const { error: membershipError } = await supabase
+      .from('memberships')
+      .insert({ owner_id: owner.id, household_id: household.id, role: 'member' })
+
+    if (membershipError) {
+      await supabase.from('owners').delete().eq('id', owner.id)
+      throw new Error(membershipError.message)
+    }
+
     const { data: session, error: sessionError } = await supabase
       .from('device_sessions')
-      .insert({ household_id: household.id, device_name: deviceName })
+      .insert({ household_id: household.id, device_name: deviceName, owner_id: owner.id })
       .select('id')
       .single()
 
     if (sessionError || !session) {
+      // Owner delete cascades the membership
+      await supabase.from('owners').delete().eq('id', owner.id)
       throw new Error(sessionError?.message ?? 'Failed to create session')
     }
 

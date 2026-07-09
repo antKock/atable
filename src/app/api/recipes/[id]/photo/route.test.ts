@@ -7,6 +7,11 @@ import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
+// L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
+vi.mock("@/lib/auth/owner-context", async () => {
+  const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
+  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+});
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const mockHeaders = headers as unknown as Mock;

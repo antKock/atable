@@ -23,7 +23,7 @@ qu'une **session** pointant vers cet owner ; l'appartenance est une ligne
 | # | Spec | Contenu | Statut |
 |---|---|---|---|
 | P | `01-pre-lot-harnais.md` | Harnais E2E Playwright + Supabase local + tests de caractérisation ; préparation Universal Links `/recover` | staging |
-| 0 | `02-lot0-data-session.md` | Migration `owners`/`memberships`, résolution owner par requête, invisible pour l'utilisateur | à faire |
+| 0 | `02-lot0-data-session.md` | Migration `owners`/`memberships`, résolution owner par requête, invisible pour l'utilisateur | staging |
 | 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | à faire |
 | 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | à faire |
 | 3 | `05-lot3-invite.md` | #15a : rôle invité, 2 liens d'invitation, membres + révocation, lecture seule | à faire |

@@ -5,6 +5,7 @@ import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
 import { revalidatePath } from 'next/cache'
 import { withHouseholdAuth } from '@/lib/api/with-household-auth'
+import { withOwnerAuth } from '@/lib/api/with-owner-auth'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -39,11 +40,16 @@ export const PUT = withHouseholdAuth(
   },
 )
 
-export const DELETE = withHouseholdAuth(
-  async (request: NextRequest, { params }: RouteContext, { householdId, sessionId }) => {
+export const DELETE = withOwnerAuth(
+  async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params
 
-    if (!sessionId || id !== householdId) {
+    // Invariant mono-foyer (vrai jusqu'au Lot 4) : le foyer de la session est
+    // l'unique membership de l'owner.
+    const householdId = owner.memberships[0]?.householdId
+    const { ownerId, sessionId } = owner
+
+    if (!householdId || id !== householdId) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -94,15 +100,9 @@ export const DELETE = withHouseholdAuth(
           await supabase.storage.from('recipe-photos').remove(paths)
         }
       }
-      // Explicitly delete all recipes first (recipes.household_id is ON DELETE SET NULL)
-      const { error: recipesError } = await supabase
-        .from('recipes')
-        .delete()
-        .eq('household_id', householdId)
-      if (recipesError) {
-        return NextResponse.json({ error: 'Failed to delete household data' }, { status: 500 })
-      }
-      // Delete household (CASCADE deletes device_sessions)
+      // Delete household — since migration 027 the CASCADE reaches recipes,
+      // memberships and device_sessions (owner rows of other devices remain:
+      // an owner is an identity, not an access).
       const { error: householdError } = await supabase
         .from('households')
         .delete()
@@ -111,7 +111,18 @@ export const DELETE = withHouseholdAuth(
         return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
       }
     } else {
-      // action === 'leave' — just remove this device's session
+      // action === 'leave' — drop the owner's membership, then this device's
+      // session. Membership first: if the session delete fails the user is
+      // still a member and can retry; the reverse would leave an unreachable
+      // membership behind.
+      const { error: membershipError } = await supabase
+        .from('memberships')
+        .delete()
+        .eq('owner_id', ownerId)
+        .eq('household_id', householdId)
+      if (membershipError) {
+        return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+      }
       const { error: sessionError } = await supabase
         .from('device_sessions')
         .delete()

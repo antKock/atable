@@ -18,15 +18,40 @@ export async function POST(request: NextRequest) {
     console.log(`[demo/session] deviceName=${deviceName}`)
 
     const supabase = createServerClient()
+
+    // Stratégie C (monde gelé) : un visiteur démo a un owner + membership
+    // normaux — c'est la surface foyer/membership/profil qui est coupée
+    // (assertNotDemoMutation). Purge des owners démo par le cron demo-reset.
+    const { data: owner, error: ownerError } = await supabase
+      .from('owners')
+      .insert({})
+      .select('id')
+      .single()
+
+    if (ownerError || !owner) {
+      throw new Error(ownerError?.message ?? 'Failed to create demo owner')
+    }
+
+    const { error: membershipError } = await supabase
+      .from('memberships')
+      .insert({ owner_id: owner.id, household_id: demoHouseholdId, role: 'member' })
+
+    if (membershipError) {
+      await supabase.from('owners').delete().eq('id', owner.id)
+      throw new Error(membershipError.message)
+    }
+
     const { data: session, error } = await supabase
       .from('device_sessions')
-      .insert({ household_id: demoHouseholdId, device_name: deviceName })
+      .insert({ household_id: demoHouseholdId, device_name: deviceName, owner_id: owner.id })
       .select('id')
       .single()
 
     console.log(`[demo/session] insert session: id=${session?.id} error=${error?.message ?? 'none'}`)
 
     if (error || !session) {
+      // Owner delete cascades the membership
+      await supabase.from('owners').delete().eq('id', owner.id)
       throw new Error(error?.message ?? 'Failed to create demo session')
     }
 

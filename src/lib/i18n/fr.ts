@@ -365,6 +365,12 @@ export const t = {
     leaveError: "Une erreur s'est produite. Réessaie.",
   },
 
+  // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est
+  // coupée pour les sessions démo (guard serveur central assertNotDemoMutation)
+  demo: {
+    frozen: "Cette action n'est pas disponible dans la démo.",
+  },
+
   // Recipe sharing
   share: {
     action: "Partager",
