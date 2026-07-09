@@ -222,9 +222,10 @@ export default function ImportSelector({
       </div>
 
       {/* Manual card */}
-      <div
+      <button
+        type="button"
         onClick={onManual}
-        className="flex cursor-pointer items-center gap-4 rounded-[18px] border-[1.5px] border-dashed border-border bg-transparent p-3.5 transition-all hover:border-muted-foreground active:scale-[0.985]"
+        className="flex w-full cursor-pointer items-center gap-4 rounded-[18px] border-[1.5px] border-dashed border-border bg-transparent p-3.5 text-left transition-all hover:border-muted-foreground active:scale-[0.985]"
       >
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary">
           <AlignLeft size={20} className="text-muted-foreground" />
@@ -241,7 +242,7 @@ export default function ImportSelector({
           size={16}
           className="shrink-0 text-muted-foreground opacity-50"
         />
-      </div>
+      </button>
     </div>
   );
 }

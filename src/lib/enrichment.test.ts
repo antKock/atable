@@ -111,6 +111,34 @@ describe("enrichRecipe — full enrichment", () => {
       c.ops.some((op) => op.method === "insert"))).toBe(true);
   });
 
+  it("marks the recipe enriched on the image-only path (metadata complete, no image)", async () => {
+    supa.queueResults([
+      {
+        data: recipeDbRow({
+          photo_url: null,
+          generated_image_url: null,
+          image_prompt: "Une tarte dorée",
+          enrichment_status: "pending",
+        }),
+      }, // 1. recipe select — metadata + tags complete, image missing
+      { count: 2 }, // 2. recipe_tags count
+      { data: [{ name: "Dessert" }] }, // 3. predefined tags
+      { error: null }, // 4. enrichment_status update (image-only branch)
+      { error: null }, // 5. recipes image update
+    ]);
+    mockImages.mockResolvedValue(imageResponse());
+
+    await enrichRecipe("recipe-1");
+
+    // GPT is skipped, but the status must still flip to "enriched" —
+    // regression guard: it used to stay "pending" forever on this path.
+    expect(mockChat).not.toHaveBeenCalled();
+    const updates = updatePayloads("recipes");
+    expect(updates.some((u) => u.enrichment_status === "enriched")).toBe(true);
+    expect(mockImages).toHaveBeenCalledTimes(1);
+    expect(updates.some((u) => u.image_status === "generated")).toBe(true);
+  });
+
   it("skips image generation when skipImage is set (user photo incoming)", async () => {
     supa.queueResults([
       { data: sparse() }, // 1. recipe select
