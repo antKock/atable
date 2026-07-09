@@ -16,10 +16,10 @@ profil en cas de collision. Plus les hints home qui y mènent.
   `src/lib/email/send.ts` : interface `sendRecoveryEmail(to, {magicLink, code})`,
   avec un transport **console/no-op quand `RESEND_API_KEY` absent** (c'est le mode
   des E2E : les tests lisent le code en DB, jamais d'email réel).
-- Pousser `RESEND_API_KEY` (+ `EMAIL_FROM`) dans Vercel staging + prod via CLI
-  (compte/scope : voir les pièges Vercel CLI dans la note vault
-  `Opérations & Pièges.md`). Adresse expéditrice : à confirmer avec Anthony selon le
-  domaine vérifié dans Resend.
+- **DÉJÀ FAIT (2026-07-09)** : `RESEND_API_KEY` + `EMAIL_FROM` sont dans `.env.local`
+  ET dans Vercel (Production + Preview scope branche staging). Domaine
+  `mijote.anthonykocken.fr` vérifié, expéditeur `Mijote <acces@mijote.anthonykocken.fr>`,
+  envoi réel testé et reçu en boîte de réception. Clé scopée envoi-seul (voulu).
 - **Templates : AVANT d'implémenter, produire 2 propositions HTML** (fichier
   autonome ouvrable en navigateur, style dérivé des tokens Mijote) et les faire
   arbitrer par Anthony. Contenu : objet, corps (lien magique bouton + code 6
