@@ -23,6 +23,11 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Design references (handoff mockups), not production code:
+    "docs/specs/**/handoff/**",
+    // Gitignored local-only paths (scratch space, Android build artifacts):
+    "temp/**",
+    "android/**/build/**",
   ]),
 ]);
 
