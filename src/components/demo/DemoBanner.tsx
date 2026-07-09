@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { dropSwrCache } from '@/lib/swr'
 
 export default function DemoBanner() {
   const [loading, setLoading] = useState(false)
@@ -13,6 +14,7 @@ export default function DemoBanner() {
         redirect: 'follow',
       })
       if (response.redirected) {
+        dropSwrCache() // demo data must not leak into the next session
         window.location.href = response.url
         return
       }

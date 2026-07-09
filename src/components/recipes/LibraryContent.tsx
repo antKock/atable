@@ -11,11 +11,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import FilterBar from "./FilterBar";
 import RecipeCard from "./RecipeCard";
 import CocotteIllustration from "./CocotteIllustration";
+import LoadErrorState from "./LoadErrorState";
+import { swrFetcher } from "@/lib/swr";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
 import { matchesFilters } from "@/lib/filters";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 interface LibraryContentProps {
   autoFocusSearch?: boolean;
@@ -51,9 +51,9 @@ export default function LibraryContent({
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: libraryData, isLoading } = useSWR<{ recipes: LibraryRecipeItem[]; tags: Tag[] }>(
+  const { data: libraryData, isLoading, error, mutate } = useSWR<{ recipes: LibraryRecipeItem[]; tags: Tag[] }>(
     "/api/library",
-    fetcher,
+    swrFetcher,
     { revalidateOnMount: true },
   );
 
@@ -138,6 +138,12 @@ export default function LibraryContent({
         </div>
       </>
     );
+  }
+
+  // Failed load with no cached data: offline/server error, NOT an empty
+  // library — with cached data, the stale list renders below instead.
+  if (error && !libraryData) {
+    return <LoadErrorState onRetry={() => mutate()} />;
   }
 
   return (

@@ -8,10 +8,10 @@ import { t } from "@/lib/i18n/fr";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
 import CocotteIllustration from "./CocotteIllustration";
+import LoadErrorState from "./LoadErrorState";
 import { prepareForDisplay } from "@/lib/carousels/display";
+import { swrFetcher } from "@/lib/swr";
 import type { CarouselSection } from "@/lib/carousels/types";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 // Poll while any recipe is still enriching (metadata or AI image) so the
 // generated image and the "time · cost" subtitle appear in place, without the
@@ -59,9 +59,9 @@ function CarouselSkeleton() {
 
 export default function HomeContent() {
   const [pollInterval, setPollInterval] = useState(0);
-  const { data: sections, isLoading } = useSWR<CarouselSection[]>(
+  const { data: sections, isLoading, error, mutate } = useSWR<CarouselSection[]>(
     "/api/carousels",
-    fetcher,
+    swrFetcher,
     {
       revalidateOnMount: true,
       // A plain number (not the function form): SWR re-arms its polling timer
@@ -114,6 +114,10 @@ export default function HomeContent() {
           <CarouselSkeleton />
           <CarouselSkeleton />
         </div>
+      ) : error && !sections ? (
+        // Failed load with no cached data: offline/server error, NOT an empty
+        // library — with cached data, the stale sections render below instead.
+        <LoadErrorState onRetry={() => mutate()} />
       ) : !hasRecipes ? (
         <div className="mx-auto mt-16 max-w-xs px-4 text-center">
           <div className="mb-5 flex justify-center">

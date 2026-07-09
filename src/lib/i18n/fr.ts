@@ -193,6 +193,14 @@ export const t = {
     searchBody: "Essaie avec un autre titre, ingrédient ou tag.",
   },
 
+  // Failed data load (offline, server error) — distinct from the empty state:
+  // a user with 50 recipes must never see "add your first recipe" on a 500.
+  loadError: {
+    title: "Impossible de charger tes recettes",
+    body: "Vérifie ta connexion et réessaie.",
+    retry: "Réessayer",
+  },
+
   // Delete confirmation
   deleteDialog: {
     trigger: "Supprimer cette recette",
