@@ -22,7 +22,7 @@ qu'une **session** pointant vers cet owner ; l'appartenance est une ligne
 
 | # | Spec | Contenu | Statut |
 |---|---|---|---|
-| P | `01-pre-lot-harnais.md` | Harnais E2E Playwright + Supabase local + tests de caractérisation ; préparation Universal Links `/recover` | à faire |
+| P | `01-pre-lot-harnais.md` | Harnais E2E Playwright + Supabase local + tests de caractérisation ; préparation Universal Links `/recover` | staging |
 | 0 | `02-lot0-data-session.md` | Migration `owners`/`memberships`, résolution owner par requête, invisible pour l'utilisateur | à faire |
 | 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | à faire |
 | 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | à faire |
@@ -34,7 +34,7 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 
 ## Architecture ACTUELLE (cartographiée le 2026-07-09)
 
-### Données (`supabase/migrations/`, dernière = `025`)
+### Données (`supabase/migrations/`, dernière = `026`)
 
 - `households(id, name, join_code UNIQUE, is_demo, created_at)` — migration `002`.
 - `device_sessions(id, household_id FK CASCADE, device_name, platform, last_seen_at, is_revoked, created_at)` — un « membre » actuel = un appareil.

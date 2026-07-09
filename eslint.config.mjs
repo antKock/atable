@@ -20,9 +20,13 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
+    ".next-e2e/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Playwright artifacts:
+    "test-results/**",
+    "playwright-report/**",
     // Design references (handoff mockups), not production code:
     "docs/specs/**/handoff/**",
     // Gitignored local-only paths (scratch space, Android build artifacts):

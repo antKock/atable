@@ -1,4 +1,4 @@
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
 
@@ -6,6 +6,8 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "node",
+    // Les specs Playwright (e2e/) ne sont pas des tests vitest
+    exclude: [...configDefaults.exclude, "e2e/**"],
     // Dummy values so modules that read env at import time (redis.ts,
     // openai.ts, supabase) don't throw. Real calls are always vi.mock'd.
     env: {

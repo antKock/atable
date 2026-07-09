@@ -32,11 +32,17 @@
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="mijote.anthonykocken.fr" android:pathPrefix="/r/" />
                 <data android:scheme="https" android:host="mijote.anthonykocken.fr" android:pathPrefix="/join/" />
+                <data android:scheme="https" android:host="mijote.anthonykocken.fr" android:pathPrefix="/recover/" />
                 <data android:scheme="https" android:host="staging.mijote.anthonykocken.fr" android:pathPrefix="/r/" />
                 <data
                     android:scheme="https"
                     android:host="staging.mijote.anthonykocken.fr"
                     android:pathPrefix="/join/"
+                />
+                <data
+                    android:scheme="https"
+                    android:host="staging.mijote.anthonykocken.fr"
+                    android:pathPrefix="/recover/"
                 />
             </intent-filter>
         </activity>
