@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { t } from '@/lib/i18n/fr'
+import { dropSwrCache } from '@/lib/swr'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
 
@@ -21,6 +22,7 @@ export default function LandingScreen() {
       if (!response.ok) {
         throw new Error((data as { error?: string }).error ?? 'Erreur serveur')
       }
+      dropSwrCache() // entering the demo: previous session's cache is stale
       window.location.href = (data as { redirect?: string }).redirect ?? '/home'
     } catch (err) {
       setDemoError(err instanceof Error ? err.message : 'Erreur serveur')

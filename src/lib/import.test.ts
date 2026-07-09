@@ -16,6 +16,12 @@ vi.mock("@/lib/openai", () => ({
   },
 }));
 
+// The SSRF guard resolves hostnames via DNS; keep tests hermetic by always
+// resolving to a public address (private-IP cases are covered in url-guard.test.ts).
+vi.mock("node:dns/promises", () => ({
+  lookup: vi.fn().mockResolvedValue([{ address: "93.184.216.34", family: 4 }]),
+}));
+
 const mockChat = openai.chat.completions.create as unknown as Mock;
 const mockTranscribe = openai.audio.transcriptions.create as unknown as Mock;
 
@@ -278,6 +284,48 @@ describe("extractRecipeFromUrl", () => {
 
   it("throws SITE_UNREACHABLE on a 500 response", async () => {
     mockFetch().mockResolvedValue(new Response("", { status: 500 }));
+    const err = await extractRecipeFromUrl("https://x.com/r").catch(
+      (e: unknown) => e,
+    );
+    expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
+  });
+
+  it("blocks a private-IP target before any fetch (SSRF)", async () => {
+    const err = await extractRecipeFromUrl("https://169.254.169.254/meta").catch(
+      (e: unknown) => e,
+    );
+    expect(err).toBeInstanceOf(ImportError);
+    expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
+    expect(mockFetch()).not.toHaveBeenCalled();
+  });
+
+  it("follows a redirect and re-checks the target host", async () => {
+    mockFetch()
+      .mockResolvedValueOnce(
+        new Response(null, { status: 301, headers: { location: "https://x.com/final" } }),
+      )
+      .mockResolvedValueOnce(new Response("<h1>Ma Recette</h1>", { status: 200 }));
+    mockChat.mockResolvedValue(chatCompletion(importResult()));
+    const result = await extractRecipeFromUrl("https://x.com/r");
+    expect(result.title).toBe("Tarte aux pommes");
+    expect(mockFetch().mock.calls[1][0]).toBe("https://x.com/final");
+  });
+
+  it("blocks a redirect onto a private address (SSRF via redirect)", async () => {
+    mockFetch().mockResolvedValue(
+      new Response(null, { status: 302, headers: { location: "https://10.0.0.5/internal" } }),
+    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch(
+      (e: unknown) => e,
+    );
+    expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
+    expect(mockFetch()).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives up after too many redirects", async () => {
+    mockFetch().mockResolvedValue(
+      new Response(null, { status: 301, headers: { location: "https://x.com/loop" } }),
+    );
     const err = await extractRecipeFromUrl("https://x.com/r").catch(
       (e: unknown) => e,
     );

@@ -56,6 +56,10 @@ export function useVoiceRecorder(): VoiceRecorderState {
   const startTimeRef = useRef<number>(0);
   const stopWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mimeTypeRef = useRef<string>("");
+  // Guards the async gap in start(): if the component unmounts while the
+  // permission prompt is up, the resolved stream must be released immediately,
+  // not wired into a recorder nobody will ever stop (mic stays on otherwise).
+  const unmountedRef = useRef(false);
 
   // Cleared by the success (onstop) and explicit-error (onerror) paths; left
   // running only when neither fires — which is exactly the hang we guard.
@@ -83,7 +87,9 @@ export function useVoiceRecorder(): VoiceRecorderState {
 
   // Cleanup on unmount
   useEffect(() => {
+    unmountedRef.current = false; // reset on remount (StrictMode double-mount)
     return () => {
+      unmountedRef.current = true;
       clearWatchdog();
       cleanup();
     };
@@ -143,6 +149,12 @@ export function useVoiceRecorder(): VoiceRecorderState {
     clearWatchdog();
 
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    if (unmountedRef.current) {
+      // Unmounted while the permission prompt was up: the unmount cleanup has
+      // already run (streamRef was still null), so release the stream here.
+      stream.getTracks().forEach((t) => t.stop());
+      return;
+    }
     streamRef.current = stream;
 
     // Set up Web Audio API for waveform

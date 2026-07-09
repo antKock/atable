@@ -373,6 +373,14 @@ export async function enrichRecipe(
           await supabase.from("recipe_tags").insert(junctionRows);
         }
       }
+    } else if (recipe.enrichment_status !== "enriched") {
+      // Image-only path: metadata is already complete, so GPT is skipped —
+      // but the status must still flip to "enriched", otherwise the recipe
+      // stays "pending" forever and skews the AI-coverage KPI.
+      await supabase
+        .from("recipes")
+        .update({ enrichment_status: "enriched" })
+        .eq("id", recipeId);
     }
 
     // 7. Image generation (only if recipe has no photo at all)

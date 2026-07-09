@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { t } from '@/lib/i18n/fr'
+import { dropSwrCache } from '@/lib/swr'
 
 type Props = {
   onCancel: () => void
@@ -38,6 +39,8 @@ export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props
         setSubmitting(false)
         return
       }
+      // Joined a household: drop any cached data from a previous session
+      dropSwrCache()
       if (onSuccess) {
         await onSuccess(data as { redirect?: string })
         return

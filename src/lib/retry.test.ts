@@ -26,7 +26,7 @@ describe("withRetry", () => {
     expect(fn).toHaveBeenCalledTimes(2);
   });
 
-  it.each([429, 500, 503])("treats status %i as retryable", async (status) => {
+  it.each([429, 500, 502, 503, 504])("treats status %i as retryable", async (status) => {
     vi.useFakeTimers();
     const fn = vi
       .fn()
@@ -54,9 +54,50 @@ describe("withRetry", () => {
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
-  it("does not retry an error without a status", async () => {
+  it("does not retry a plain error without a status (ZodError, ImportError…)", async () => {
     const fn = vi.fn().mockRejectedValue(new Error("boom"));
     await expect(withRetry(fn)).rejects.toThrow("boom");
+    expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(["APIConnectionError", "APIConnectionTimeoutError", "AbortError", "TimeoutError"])(
+    "retries a network-level %s (no status)",
+    async (name) => {
+      vi.useFakeTimers();
+      const err = new Error("network");
+      err.name = name;
+      const fn = vi.fn().mockRejectedValueOnce(err).mockResolvedValueOnce("recovered");
+      const p = withRetry(fn);
+      await vi.runAllTimersAsync();
+      await expect(p).resolves.toBe("recovered");
+      expect(fn).toHaveBeenCalledTimes(2);
+    },
+  );
+
+  it("retries a socket error code (ECONNRESET)", async () => {
+    vi.useFakeTimers();
+    const err = Object.assign(new Error("socket hang up"), { code: "ECONNRESET" });
+    const fn = vi.fn().mockRejectedValueOnce(err).mockResolvedValueOnce("recovered");
+    const p = withRetry(fn);
+    await vi.runAllTimersAsync();
+    await expect(p).resolves.toBe("recovered");
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("retries an undici 'fetch failed' TypeError with a cause", async () => {
+    vi.useFakeTimers();
+    const err = new TypeError("fetch failed", { cause: new Error("ECONNREFUSED") });
+    const fn = vi.fn().mockRejectedValueOnce(err).mockResolvedValueOnce("recovered");
+    const p = withRetry(fn);
+    await vi.runAllTimersAsync();
+    await expect(p).resolves.toBe("recovered");
+    expect(fn).toHaveBeenCalledTimes(2);
+  });
+
+  it("does not retry a 400 even when a cause is present", async () => {
+    const err = Object.assign(new Error("bad request"), { status: 400, cause: new Error("x") });
+    const fn = vi.fn().mockRejectedValue(err);
+    await expect(withRetry(fn)).rejects.toThrow("bad request");
     expect(fn).toHaveBeenCalledTimes(1);
   });
 });

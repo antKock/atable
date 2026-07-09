@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { t } from '@/lib/i18n/fr'
 import { haptics } from '@/lib/haptics'
+import { dropSwrCache } from '@/lib/swr'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -41,6 +42,7 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
       if (!res.ok) {
         throw new Error((data as { error?: string }).error ?? t.household.leaveError)
       }
+      dropSwrCache() // left the household: its recipes must not survive in cache
       window.location.href = (data as { redirect?: string }).redirect ?? '/'
     } catch (err) {
       setStep(null)

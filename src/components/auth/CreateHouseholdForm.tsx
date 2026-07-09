@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { t } from '@/lib/i18n/fr'
+import { dropSwrCache } from '@/lib/swr'
 
 type Props = {
   onCancel: () => void
@@ -40,6 +41,8 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
         setSubmitting(false)
         return
       }
+      // New household: whatever the SWR cache holds belongs to a previous session
+      dropSwrCache()
       if (onSuccess) {
         await onSuccess(data as { redirect?: string })
         return

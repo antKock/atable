@@ -78,12 +78,15 @@ export default function ScreenshotImporter({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMoreInputRef = useRef<HTMLInputElement>(null);
 
-  // F4: Revoke object URLs on cleanup
+  // F4: Revoke object URLs on unmount. Mirror the entries in a ref: a []-deps
+  // cleanup closes over the first render's (empty) array and would revoke
+  // nothing — full-resolution previews would leak on every visit.
+  const entriesRef = useRef<FileWithKey[]>([]);
+  entriesRef.current = fileEntries;
   useEffect(() => {
     return () => {
-      fileEntries.forEach((e) => URL.revokeObjectURL(e.previewUrl));
+      entriesRef.current.forEach((e) => URL.revokeObjectURL(e.previewUrl));
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function addFiles(newFiles: FileList | File[] | null) {
@@ -219,8 +222,9 @@ export default function ScreenshotImporter({
       />
 
       {fileEntries.length === 0 ? (
-        <div
-          className="cursor-pointer rounded-[14px] border-2 border-dashed border-border bg-background p-6 text-center transition-all hover:border-accent hover:bg-[rgba(110,122,56,0.12)]"
+        <button
+          type="button"
+          className="w-full cursor-pointer rounded-[14px] border-2 border-dashed border-border bg-background p-6 text-center transition-all hover:border-accent hover:bg-[rgba(110,122,56,0.12)]"
           onClick={() => handleAddClick(fileInputRef)}
         >
           <Upload size={32} className="mx-auto mb-2 text-accent" />
@@ -228,7 +232,7 @@ export default function ScreenshotImporter({
           <span className="mt-1 block text-xs text-muted-foreground">
             {t.import.screenshot.uploadHint}
           </span>
-        </div>
+        </button>
       ) : (
         <>
           {/* Preview grid */}

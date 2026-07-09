@@ -32,6 +32,23 @@ export const joinCodeRateLimit = new Ratelimit({
   prefix: 'rl:code:',
 })
 
+// Recipe creation triggers AI enrichment + image generation, none of which
+// passes the import quota — without this cap a scripted POST loop means
+// unbounded OpenAI spend. 100/h is far above any legitimate usage.
+export const recipeCreateRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(100, '1 h'),
+  prefix: 'rl:recipe:',
+})
+
+// Household creation is unauthenticated and every new household gets a fresh
+// daily import quota — cap per IP so disposable households can't multiply it.
+export const householdCreateRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 h'),
+  prefix: 'rl:hh:',
+})
+
 // Per-IP limit on public share-link lookups (/r/[token]): makes token
 // enumeration impractical without slowing legitimate readers.
 export const shareRateLimit = new Ratelimit({

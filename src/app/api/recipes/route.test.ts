@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
-import { NextRequest, after } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import { headers } from "next/headers";
 import { GET, POST } from "./route";
 import { enrichRecipe } from "@/lib/enrichment";
@@ -17,6 +17,9 @@ vi.mock("next/server", async (importOriginal) => ({
 vi.mock("@/lib/enrichment", () => ({
   enrichRecipe: vi.fn(),
   regenerateImage: vi.fn(),
+}));
+vi.mock("@/lib/import-quota", () => ({
+  enforceRecipeCreateQuota: vi.fn().mockResolvedValue(null),
 }));
 
 const mockHeaders = headers as unknown as Mock;
@@ -128,6 +131,16 @@ describe("POST /api/recipes", () => {
     mockHeaders.mockResolvedValue(new Headers());
     const res = await POST(postRequest({ title: "Tarte" }));
     expect(res.status).toBe(401);
+  });
+
+  it("returns 429 when the recipe-creation quota is exhausted", async () => {
+    const { enforceRecipeCreateQuota } = await import("@/lib/import-quota");
+    vi.mocked(enforceRecipeCreateQuota).mockResolvedValueOnce(
+      NextResponse.json({ error: "quota" }, { status: 429 }),
+    );
+    const res = await POST(postRequest({ title: "Tarte" }));
+    expect(res.status).toBe(429);
+    expect(findCall(supa, "recipes")).toBeUndefined();
   });
 });
 

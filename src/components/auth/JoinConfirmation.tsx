@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { t } from '@/lib/i18n/fr'
+import { dropSwrCache } from '@/lib/swr'
 
 type Props = {
   householdName: string
@@ -30,6 +31,7 @@ export default function JoinConfirmation({ householdName, joinCode }: Props) {
         setLoading(false)
         return
       }
+      dropSwrCache() // joined a household: previous session's cache is stale
       window.location.href = data.redirect
     } catch {
       setError(t.joinLink.notFound)

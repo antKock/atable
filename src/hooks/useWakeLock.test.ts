@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook } from "@testing-library/react";
+import { cleanup, renderHook } from "@testing-library/react";
 import { useWakeLock } from "./useWakeLock";
 
 describe("useWakeLock", () => {
@@ -18,6 +18,9 @@ describe("useWakeLock", () => {
   });
 
   afterEach(() => {
+    // Unmount hooks between tests: the visibilitychange listener is attached
+    // to the shared document and would otherwise leak across tests.
+    cleanup();
     vi.restoreAllMocks();
   });
 
@@ -36,6 +39,43 @@ describe("useWakeLock", () => {
     });
     unmount();
     expect(mockRelease).toHaveBeenCalledOnce();
+  });
+
+  it("re-acquires the wake lock when the page returns to foreground", async () => {
+    renderHook(() => useWakeLock());
+    await vi.waitFor(() => {
+      expect(mockRequest).toHaveBeenCalledOnce();
+    });
+
+    // The OS silently released the sentinel while backgrounded; coming back
+    // to the foreground must request a fresh one.
+    Object.defineProperty(document, "visibilityState", {
+      value: "visible",
+      writable: true,
+      configurable: true,
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    await vi.waitFor(() => {
+      expect(mockRequest).toHaveBeenCalledTimes(2);
+    });
+  });
+
+  it("does not re-acquire when going to background", async () => {
+    const { unmount } = renderHook(() => useWakeLock());
+    await vi.waitFor(() => {
+      expect(mockRequest).toHaveBeenCalledOnce();
+    });
+
+    Object.defineProperty(document, "visibilityState", {
+      value: "hidden",
+      writable: true,
+      configurable: true,
+    });
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    expect(mockRequest).toHaveBeenCalledOnce();
+    unmount();
   });
 
   it("does not throw when Wake Lock API is unavailable (silent fallback)", async () => {
