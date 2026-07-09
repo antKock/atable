@@ -26,7 +26,8 @@ export type Recipe = {
   generatedImageUrl: string | null;
   enrichmentStatus: string;
   imageStatus: string;
-  lastViewedAt: string | null;
+  // « créée ou ouverte » — NOT NULL en base (migration 024)
+  lastActivityAt: string;
   viewCount: number;
 };
 

@@ -8,7 +8,8 @@ import { t } from "@/lib/i18n/fr";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
 import CocotteIllustration from "./CocotteIllustration";
-import type { CarouselSection } from "@/lib/queries/carousels";
+import { prepareForDisplay } from "@/lib/carousels/display";
+import type { CarouselSection } from "@/lib/carousels/types";
 
 const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
@@ -23,15 +24,6 @@ function hasPendingEnrichment(sections?: CarouselSection[]): boolean {
       (r) => r.enrichmentStatus === "pending" || r.imageStatus === "pending",
     ),
   );
-}
-
-function shuffleArray<T>(arr: T[]): T[] {
-  const shuffled = [...arr];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
 }
 
 function CarouselCardSkeleton() {
@@ -87,28 +79,17 @@ export default function HomeContent() {
 
   const hasRecipes = sections && sections.length > 0;
 
-  // Shuffle the section order once, when data first arrives, then keep it
-  // stable: while enrichment polling refreshes the data every few seconds,
-  // the carousels must not jump around underneath the user. State set during
-  // render (not an effect) so the shuffled order applies before first paint.
-  const [sectionOrder, setSectionOrder] = useState<string[] | null>(null);
-  if (sections && sectionOrder === null) {
-    const restKeys = sections
-      .filter((s) => s.key !== "nouvelles")
-      .map((s) => s.key);
-    setSectionOrder(["nouvelles", ...shuffleArray(restKeys)]);
-  }
+  // One seed per mount: the order is re-randomized on every visit, but stays
+  // stable while enrichment polling refreshes the data every few seconds —
+  // prepareForDisplay is deterministic for a given seed, and each section's
+  // rank is independent, so a section appearing mid-poll (e.g. first recipe
+  // of a new category) doesn't reshuffle the others.
+  const [seed] = useState(() => Math.floor(Math.random() * 0xffffffff));
 
-  const orderedSections = useMemo(() => {
-    if (!sections || !sectionOrder) return sections ?? [];
-    const rank = (key: string) => {
-      const i = sectionOrder.indexOf(key);
-      // Sections that appear after the initial shuffle (e.g. first recipe of a
-      // new category) go to the end, in server order.
-      return i === -1 ? sectionOrder.length : i;
-    };
-    return [...sections].sort((a, b) => rank(a.key) - rank(b.key));
-  }, [sections, sectionOrder]);
+  const orderedSections = useMemo(
+    () => (sections ? prepareForDisplay(sections, seed) : []),
+    [sections, seed],
+  );
 
   return (
     <>

@@ -40,7 +40,7 @@ function trackView(id: string, currentViewCount: number) {
   supabase
     .from("recipes")
     .update({
-      last_viewed_at: new Date().toISOString(),
+      last_activity_at: new Date().toISOString(),
       view_count: currentViewCount + 1,
     })
     .eq("id", id)

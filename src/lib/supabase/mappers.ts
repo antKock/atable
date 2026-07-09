@@ -38,7 +38,7 @@ export function mapDbRowToRecipe(row: Record<string, any>): Recipe {
     generatedImageUrl: row.generated_image_url ?? null,
     enrichmentStatus: row.enrichment_status ?? "none",
     imageStatus: row.image_status ?? "none",
-    lastViewedAt: row.last_viewed_at ?? null,
+    lastActivityAt: row.last_activity_at ?? row.created_at,
     viewCount: row.view_count ?? 0,
   };
 }
