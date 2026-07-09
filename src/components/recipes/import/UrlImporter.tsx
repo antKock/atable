@@ -53,7 +53,7 @@ export default function UrlImporter({
           onChange={(e) => setUrlValue(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           placeholder={t.import.url.placeholder}
-          className="h-11 flex-1 rounded-xl border-[1.5px] border-border bg-background px-3.5 text-[15px] text-foreground outline-none placeholder:text-muted-foreground focus:border-accent focus:shadow-[0_0_0_3px_rgba(110,122,56,0.15)]"
+          className="h-11 flex-1 rounded-xl border-[1.5px] border-border bg-background px-3.5 text-base text-foreground outline-none placeholder:text-muted-foreground focus:border-accent focus:shadow-[0_0_0_3px_rgba(110,122,56,0.15)]"
         />
         <button
           type="button"
