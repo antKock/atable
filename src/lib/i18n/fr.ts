@@ -128,19 +128,47 @@ export const t = {
 
   // Carousels
   carousels: {
-    nouvelles: "Nouvelles",
+    // Groupe A — algorithmiques
     recentes: "Récentes",
+    plusVues: "Les plus vues",
     redecouvrir: "Redécouvrir",
-    rapide: "Rapide",
-    vegetarien: "Végétarien",
-    comfortFood: "Comfort food",
-    pasCher: "Pas cher",
+    // Groupe B — type de plat
     apero: "Apéro",
     desserts: "Desserts",
-    cuisineItalienne: "Cuisine italienne",
-    cuisineDuMonde: "Cuisine du monde",
     petitDejeuner: "Petit-déjeuner",
     boissons: "Boissons",
+    soupes: "Soupes",
+    salades: "Salades",
+    gouter: "Goûter",
+    // Groupe B — régime
+    vegetarien: "Végétarien",
+    comfortFood: "Comfort food",
+    vegan: "Végan",
+    leger: "Léger",
+    // Groupe B — protéine principale
+    poulet: "Poulet",
+    boeuf: "Bœuf",
+    porc: "Porc",
+    agneau: "Agneau",
+    poisson: "Poisson",
+    fruitsDeMer: "Fruits de mer",
+    oeufs: "Œufs",
+    proteinesVegetales: "Protéines végétales",
+    legumineuses: "Légumineuses",
+    // Groupe B — cuisine
+    cuisineDuMonde: "Cuisine du monde",
+    // Groupe B — occasion
+    rapide: "Rapide",
+    repasDeFete: "Repas de fête",
+    enBatch: "En batch",
+    lunchbox: "Lunchbox",
+    piqueNique: "Pique-nique",
+    // Groupe B — caractéristiques
+    pasCher: "Pas cher",
+    pourLesEnfants: "Pour les enfants",
+    onePot: "One-pot",
+    sansCuisson: "Sans cuisson",
+    aCongeler: "À congeler",
   },
 
   // Filters

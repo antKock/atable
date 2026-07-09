@@ -1,102 +1,116 @@
 import { describe, it, expect } from "vitest";
 import { fetchCarouselSections } from "./carousels";
 
-function mockSupabase(responses: Record<string, unknown[]>) {
-  function createBuilder(table: string) {
-    const builder: Record<string, unknown> = {};
-    const chainMethods = [
-      "select",
-      "eq",
-      "not",
-      "gt",
-      "in",
-      "order",
-    ];
+// The whole fetch is ONE query: from("recipes").select().eq().order() → rows.
+function mockSupabase(rows: unknown[], onQuery?: () => void) {
+  const builder = {
+    select: () => builder,
+    eq: () => builder,
+    order: () => {
+      onQuery?.();
+      return { data: rows, error: null };
+    },
+  };
+  return { from: () => builder };
+}
 
-    for (const method of chainMethods) {
-      builder[method] = () => builder;
-    }
-
-    builder.limit = () => {
-      const data = responses[table] ?? [];
-      return { data, error: null };
-    };
-
-    return builder;
-  }
-
+let idCounter = 0;
+function mockRecipeRow(overrides: Record<string, unknown> = {}) {
+  idCounter += 1;
   return {
-    from: (table: string) => createBuilder(table),
+    id: `recipe-${idCounter}`,
+    title: "Test Recipe",
+    photo_url: null,
+    created_at: "2026-01-01T10:00:00.000Z",
+    generated_image_url: null,
+    enrichment_status: "done",
+    image_status: "none",
+    prep_time: "10-20 min",
+    cook_time: "15-30 min",
+    cost: "€€",
+    last_activity_at: "2026-01-01T10:00:00.000Z",
+    view_count: 0,
+    recipe_tags: [],
+    ...overrides,
   };
 }
 
-const mockRecipeRow = (overrides: Record<string, unknown> = {}) => ({
-  id: "recipe-1",
-  title: "Test Recipe",
-  ingredients: "flour, sugar",
-  photo_url: null,
-  created_at: "2026-01-01",
-  generated_image_url: null,
-  enrichment_status: "done",
-  image_status: "none",
-  prep_time: "10-20 min",
-  cook_time: "15-30 min",
-  cost: "€",
-  recipe_tags: [],
-  ...overrides,
-});
+function taggedWith(...names: string[]) {
+  return names.map((name, i) => ({
+    tag_id: `t-${name}-${i}`,
+    tags: { id: `t-${name}-${i}`, name, category: null },
+  }));
+}
 
 describe("fetchCarouselSections", () => {
   it("returns empty array when no recipes exist", async () => {
-    const supabase = mockSupabase({ recipes: [] });
+    const supabase = mockSupabase([]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = await fetchCarouselSections(supabase as any, "hh-1");
     expect(sections).toEqual([]);
   });
 
-  it("filters out sections with 0 results", async () => {
-    const row = mockRecipeRow();
-    const supabase = mockSupabase({ recipes: [row] });
+  it("executes a single query", async () => {
+    let queryCount = 0;
+    const supabase = mockSupabase([mockRecipeRow()], () => queryCount++);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sections = await fetchCarouselSections(supabase as any, "hh-1");
-    expect(sections.length).toBe(13);
-    expect(sections.every((s) => s.recipes.length === 1)).toBe(true);
+    await fetchCarouselSections(supabase as any, "hh-1");
+    expect(queryCount).toBe(1);
   });
 
-  it("uses correct keys for all 13 sections", async () => {
-    const row = mockRecipeRow();
-    const supabase = mockSupabase({ recipes: [row] });
+  it("always includes a pinned Récentes section when the household has recipes", async () => {
+    const supabase = mockSupabase([mockRecipeRow()]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sections = await fetchCarouselSections(supabase as any, "hh-1");
+    const recentes = sections.find((s) => s.key === "recentes");
+    expect(recentes).toBeDefined();
+    expect(recentes?.pinned).toBe(true);
+    expect(recentes?.title).toBe("Récentes");
+  });
+
+  it("buckets recipes into eligible category sections (tier 1 = 3+ recipes)", async () => {
+    const rows = [
+      mockRecipeRow({ recipe_tags: taggedWith("Dessert") }),
+      mockRecipeRow({ recipe_tags: taggedWith("Dessert") }),
+      mockRecipeRow({ recipe_tags: taggedWith("Dessert", "Rapide") }),
+      mockRecipeRow({ recipe_tags: taggedWith("Soupe") }),
+      mockRecipeRow({ recipe_tags: taggedWith("Soupe") }),
+      mockRecipeRow({ recipe_tags: taggedWith("Soupe") }),
+    ];
+    const supabase = mockSupabase(rows);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = await fetchCarouselSections(supabase as any, "hh-1");
     const keys = sections.map((s) => s.key);
-    expect(keys).toEqual([
-      "nouvelles",
-      "recentes",
-      "redecouvrir",
-      "rapide",
-      "vegetarien",
-      "comfortFood",
-      "pasCher",
-      "apero",
-      "desserts",
-      "cuisineItalienne",
-      "cuisineDuMonde",
-      "petitDejeuner",
-      "boissons",
-    ]);
+    expect(keys).toContain("desserts");
+    expect(keys).toContain("soupes");
+    const desserts = sections.find((s) => s.key === "desserts");
+    expect(desserts?.recipes.length).toBe(3);
+    expect(desserts?.reorderable).toBe(true);
   });
 
-  it("uses French titles from i18n", async () => {
-    const row = mockRecipeRow();
-    const supabase = mockSupabase({ recipes: [row] });
+  it("excludes never-opened recipes from Les plus vues", async () => {
+    const rows = [
+      mockRecipeRow({ view_count: 0 }),
+      mockRecipeRow({ view_count: 3 }),
+    ];
+    const supabase = mockSupabase(rows);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = await fetchCarouselSections(supabase as any, "hh-1");
-    expect(sections[0].title).toBe("Nouvelles");
-    expect(sections[1].title).toBe("Récentes");
-    expect(sections[3].title).toBe("Rapide");
+    const plusVues = sections.find((s) => s.key === "plusVues");
+    expect(plusVues?.recipes.length).toBe(1);
   });
 
-  it("maps recipe rows to CarouselRecipeItem format with metadata", async () => {
+  it("caps each carousel to 10 recipes", async () => {
+    const rows = Array.from({ length: 15 }, () => mockRecipeRow());
+    const supabase = mockSupabase(rows);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sections = await fetchCarouselSections(supabase as any, "hh-1");
+    for (const s of sections) {
+      expect(s.recipes.length).toBeLessThanOrEqual(10);
+    }
+  });
+
+  it("maps rows to CarouselRecipeItem, without ingredients in the payload", async () => {
     const row = mockRecipeRow({
       id: "r-42",
       title: "Tarte aux pommes",
@@ -104,11 +118,9 @@ describe("fetchCarouselSections", () => {
       prep_time: "20-30 min",
       cook_time: "30-60 min",
       cost: "€€",
-      recipe_tags: [
-        { tag_id: "t-1", tags: { id: "t-1", name: "Dessert", category: "dishType" } },
-      ],
+      recipe_tags: taggedWith("Dessert"),
     });
-    const supabase = mockSupabase({ recipes: [row] });
+    const supabase = mockSupabase([row]);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = await fetchCarouselSections(supabase as any, "hh-1");
     const recipe = sections[0].recipes[0];
@@ -119,27 +131,6 @@ describe("fetchCarouselSections", () => {
     expect(recipe.prepTime).toBe("20-30 min");
     expect(recipe.cookTime).toBe("30-60 min");
     expect(recipe.cost).toBe("€€");
-  });
-
-  it("executes all 13 queries in parallel", async () => {
-    let callCount = 0;
-
-    const createBuilder = () => {
-      const builder: Record<string, unknown> = {};
-      const chainMethods = ["select", "eq", "not", "gt", "in", "order"];
-      for (const method of chainMethods) {
-        builder[method] = () => builder;
-      }
-      builder.limit = () => {
-        callCount++;
-        return { data: [], error: null };
-      };
-      return builder;
-    };
-
-    const supabase = { from: () => createBuilder() };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await fetchCarouselSections(supabase as any, "hh-1");
-    expect(callCount).toBe(13);
+    expect("ingredients" in recipe).toBe(false);
   });
 });

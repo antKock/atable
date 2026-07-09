@@ -26,7 +26,7 @@ const baseRecipe: Recipe = {
   generatedImageUrl: null,
   enrichmentStatus: "none",
   imageStatus: "none",
-  lastViewedAt: null,
+  lastActivityAt: "2026-01-01T00:00:00Z",
   viewCount: 0,
   servings: null,
 };
