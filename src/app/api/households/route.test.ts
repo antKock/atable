@@ -5,6 +5,9 @@ import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
+vi.mock("@/lib/import-quota", () => ({
+  enforceHouseholdCreateQuota: vi.fn().mockResolvedValue(null),
+}));
 
 let supa: SupabaseMock;
 
@@ -34,6 +37,17 @@ function queueSuccess() {
 }
 
 describe("POST /api/households (Fix 1.2)", () => {
+  it("returns 429 when the per-IP creation quota is exhausted", async () => {
+    const { enforceHouseholdCreateQuota } = await import("@/lib/import-quota");
+    const { NextResponse } = await import("next/server");
+    vi.mocked(enforceHouseholdCreateQuota).mockResolvedValueOnce(
+      NextResponse.json({ error: "quota" }, { status: 429 }),
+    );
+    const res = await POST(request({ name: "Chez nous" }));
+    expect(res.status).toBe(429);
+    expect(supa.calls).toHaveLength(0);
+  });
+
   it("creates a household and returns 200 JSON with a redirect", async () => {
     queueSuccess();
     const res = await POST(request({ name: "Chez nous" }));

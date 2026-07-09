@@ -1,12 +1,20 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { createServerClient } from '@/lib/supabase/server'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { generateJoinCode } from '@/lib/auth/join-code'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
+import { enforceHouseholdCreateQuota } from '@/lib/import-quota'
 
 export async function POST(request: NextRequest) {
   try {
+    // Unauthenticated route, and every new household gets a fresh daily
+    // import quota — rate limit per IP to keep both bounded.
+    const ip = (request.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const quotaResponse = await enforceHouseholdCreateQuota(ip)
+    if (quotaResponse) return quotaResponse
+
     const body = await request.json()
     const result = HouseholdCreateSchema.safeParse(body.name)
     if (!result.success) {
@@ -71,9 +79,10 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 }
-    )
+    // Generic message only: raw Supabase/Postgres errors would leak schema
+    // details (constraint and column names) to the client.
+    Sentry.captureException(err)
+    console.error('[households] caught error:', err)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

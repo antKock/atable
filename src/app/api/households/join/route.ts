@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
@@ -73,9 +74,10 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Erreur serveur' },
-      { status: 500 }
-    )
+    // Generic message only: raw Supabase/Postgres errors would leak schema
+    // details (constraint and column names) to the client.
+    Sentry.captureException(err)
+    console.error('[households/join] caught error:', err)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

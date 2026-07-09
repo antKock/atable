@@ -5,8 +5,13 @@ import { enrichRecipe } from "@/lib/enrichment";
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
+  // Dedicated secret, NOT the Vercel CRON_SECRET: this endpoint can rewrite
+  // every household's recipes, so it must not share credentials with the
+  // low-stakes cron. Fails closed when the env var is missing — otherwise
+  // `Bearer undefined` would authenticate.
+  const secret = process.env.BATCH_ENRICH_SECRET;
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!secret || authHeader !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -18,6 +23,11 @@ export async function POST(request: NextRequest) {
 
   // --- RESET MODE: clear everything first ---
   if (reset) {
+    // Destructive across ALL households: requires an explicit opt-in env var
+    // on top of the secret, so a leaked secret alone can't wipe production.
+    if (process.env.ALLOW_BATCH_RESET !== "true") {
+      return NextResponse.json({ error: "Reset mode disabled" }, { status: 403 });
+    }
     console.log("[batch-enrich] RESET: clearing all photos, metadata, tags...");
 
     // Delete files from storage

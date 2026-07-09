@@ -5,6 +5,7 @@ import { RecipeCreateSchema } from "@/lib/schemas/recipe";
 import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import { enrichRecipe } from "@/lib/enrichment";
 import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { enforceRecipeCreateQuota } from "@/lib/import-quota";
 
 export const maxDuration = 60;
 
@@ -54,6 +55,11 @@ export const GET = withHouseholdAuth(async (request: NextRequest, _ctx, { househ
 
 export const POST = withHouseholdAuth(
   async (request: NextRequest, _ctx, { householdId, sessionId }) => {
+    // Each create triggers AI enrichment (+ image generation), which the
+    // import quota doesn't cover — cap it here.
+    const quotaResponse = await enforceRecipeCreateQuota(householdId);
+    if (quotaResponse) return quotaResponse;
+
     const body = await request.json();
     const result = RecipeCreateSchema.safeParse(body);
 

@@ -18,6 +18,7 @@ import {
   VALID_COMPLEXITY_LEVELS,
 } from "@/lib/schemas/enrichment";
 import { isSectionLine } from "@/lib/recipe-sections";
+import { assertPublicUrl } from "@/lib/url-guard";
 import type { RecipeFormData } from "@/types/recipe";
 
 export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
@@ -382,19 +383,43 @@ function isInstagramUrl(url: string): boolean {
   }
 }
 
+// Redirects are followed manually so the SSRF guard runs on every hop — a
+// public page must not be able to bounce the fetch onto a private address.
+const MAX_REDIRECTS = 3;
+
 /** Direct server-side fetch + HTML cleanup. Throws ImportError on block/error. */
 async function fetchAndCleanHtml(url: string): Promise<string> {
   let res: Response;
-  try {
-    res = await fetch(url, {
-      headers: {
-        "User-Agent":
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-      },
-      signal: AbortSignal.timeout(10000),
-    });
-  } catch {
-    throw new ImportError("Site unreachable", "SITE_UNREACHABLE");
+  let current = url;
+  for (let hop = 0; ; hop++) {
+    try {
+      await assertPublicUrl(new URL(current));
+    } catch {
+      throw new ImportError("Blocked or unresolvable host", "SITE_UNREACHABLE");
+    }
+
+    try {
+      res = await fetch(current, {
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        },
+        signal: AbortSignal.timeout(10000),
+        redirect: "manual",
+      });
+    } catch {
+      throw new ImportError("Site unreachable", "SITE_UNREACHABLE");
+    }
+
+    if (res.status >= 300 && res.status < 400) {
+      const location = res.headers.get("location");
+      if (!location || hop >= MAX_REDIRECTS) {
+        throw new ImportError("Too many redirects", "SITE_UNREACHABLE");
+      }
+      current = new URL(location, current).toString();
+      continue;
+    }
+    break;
   }
 
   if (res.status === 403 || res.status === 429) {
