@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Mijote — Le foyer (récup. d'accès + multi-foyer)</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=DM+Mono:wght@400;500&display=swap" />
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<style>
+:root {
+  --foreground: #1A1A18;
+  --muted-foreground: #6B6E68;
+  --accent: #6E7A38;
+  --border: #E5DED6;
+  --doc-bg: #ECE7DA;
+  --doc-surface: #FBF8F1;
+  --doc-rule: #DCD2BE;
+  --doc-rule-soft: #E8E0CC;
+  --tone-before: #B85C3D;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-mono: 'DM Mono', ui-monospace, monospace;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; padding: 0;
+  font-family: var(--font-sans); color: var(--foreground);
+  background: var(--doc-bg);
+  background-image:
+    radial-gradient(ellipse at 15% -5%, rgba(168,180,144,0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 105%, rgba(229,222,214,0.22) 0%, transparent 50%);
+  -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility;
+}
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.doc { max-width: 1320px; margin: 0 auto; padding: 76px 36px 140px; }
+@media (max-width: 700px) { .doc { padding: 44px 18px 90px; } }
+
+.kicker { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 22px; }
+.kicker::before { content: ''; width: 24px; height: 1px; background: currentColor; }
+.doc-title { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-weight: 600; font-size: clamp(42px, 6vw, 68px); line-height: 0.98; letter-spacing: -0.02em; margin: 0 0 24px; text-wrap: balance; }
+.doc-title em { font-style: italic; color: var(--accent); font-weight: 500; }
+.doc-lead { font-size: 17px; line-height: 1.6; color: var(--muted-foreground); max-width: 760px; margin: 0; text-wrap: pretty; }
+.doc-lead strong { color: var(--foreground); font-weight: 600; }
+
+.reasoning { margin-top: 30px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+@media (max-width: 900px) { .reasoning { grid-template-columns: repeat(2, 1fr); } }
+.reason-card { background: var(--doc-surface); border: 1px solid var(--doc-rule-soft); border-radius: 12px; padding: 16px 18px; }
+.reason-card .rk { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px; }
+.reason-card p { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--muted-foreground); }
+.reason-card strong { color: var(--foreground); font-weight: 600; }
+
+.act { margin-top: 104px; }
+.act-head { border-top: 2px solid var(--foreground); padding-top: 18px; margin-bottom: 8px; }
+.act-tag { display: inline-flex; align-items: center; gap: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+.act-tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+.act h2 { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-weight: 600; font-size: clamp(30px, 4.4vw, 46px); line-height: 1.02; letter-spacing: -0.02em; margin: 10px 0 14px; text-wrap: balance; }
+.act h2 em { font-style: italic; color: var(--accent); font-weight: 500; }
+.act-lead { font-size: 15.5px; line-height: 1.62; color: var(--muted-foreground); max-width: 720px; margin: 0; }
+.act-lead strong { color: var(--foreground); font-weight: 600; }
+
+.section { margin-top: 64px; }
+.section-num { display: inline-flex; align-items: baseline; gap: 12px; margin-bottom: 14px; }
+.section-num .n { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-style: italic; font-weight: 400; font-size: 30px; color: var(--accent); letter-spacing: -0.02em; }
+.section-num .label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted-foreground); }
+.section h3 { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-weight: 600; font-size: clamp(23px, 3vw, 30px); line-height: 1.06; letter-spacing: -0.015em; margin: 0 0 10px; text-wrap: balance; }
+.section h3 em { font-style: italic; color: var(--accent); font-weight: 500; }
+.section-lead { font-size: 14.5px; line-height: 1.6; color: var(--muted-foreground); max-width: 700px; margin: 0 0 4px; }
+.section-lead strong { color: var(--foreground); font-weight: 600; }
+.section-lead code, .cap .desc code, .note code, .caveats code { font-family: var(--font-mono); font-size: 0.86em; background: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 3px; }
+
+.row { display: flex; flex-wrap: wrap; gap: 40px 30px; align-items: flex-start; padding-top: 22px; }
+.frame { display: flex; flex-direction: column; gap: 16px; flex: none; }
+.cap { max-width: 334px; }
+.cap-tagrow { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
+.tag { font-size: 9.5px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; padding: 3px 9px; border-radius: 5px; }
+.tag.keep { color: #fff; background: var(--accent); }
+.tag.alt { color: var(--accent); background: rgba(110,122,56,0.12); }
+.tag.idx { color: var(--muted-foreground); background: rgba(0,0,0,0.05); }
+.tag.fix { color: #fff; background: var(--tone-before); }
+.cap .name { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-style: italic; font-weight: 500; font-size: 17px; color: var(--foreground); }
+.cap .desc { font-size: 12.5px; line-height: 1.5; color: var(--muted-foreground); margin-top: 5px; }
+
+.notecard { margin-top: 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+@media (max-width: 900px) { .notecard { grid-template-columns: 1fr; } }
+.note { background: var(--doc-surface); border: 1px solid var(--doc-rule-soft); border-radius: 12px; padding: 20px 22px; }
+.note .badge { font-family: var(--font-display); font-variation-settings: 'opsz' 144; font-style: italic; font-weight: 500; font-size: 20px; color: var(--accent); margin-bottom: 10px; }
+.note h4 { font-size: 13.5px; font-weight: 600; margin: 0 0 7px; }
+.note p { margin: 0; font-size: 12.5px; line-height: 1.55; color: var(--muted-foreground); }
+.note p strong { color: var(--foreground); font-weight: 600; }
+
+.subhead { margin: 46px 0 4px; font-size: 12px; font-weight: 700; letter-spacing: 0.10em; text-transform: uppercase; color: var(--foreground); }
+.subhead-note { font-size: 13px; line-height: 1.55; color: var(--muted-foreground); margin: 0 0 8px; max-width: 680px; }
+
+.caveats { margin-top: 44px; padding: 24px 28px; background: linear-gradient(155deg, rgba(110,122,56,0.07), rgba(110,122,56,0.02)); border-left: 2px solid var(--accent); border-radius: 0 12px 12px 0; }
+.caveats h4 { font-size: 10px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); margin: 0 0 12px; }
+.caveats ul { margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.65; color: var(--muted-foreground); }
+.caveats li { margin-bottom: 7px; }
+.caveats strong { color: var(--foreground); font-weight: 600; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="foyer-kit.jsx" data-presets="env,react"></script>
+<script type="text/babel" src="foyer-common.jsx" data-presets="env,react"></script>
+<script type="text/babel" src="foyer-14.jsx" data-presets="env,react"></script>
+<script type="text/babel" src="foyer-15.jsx" data-presets="env,react"></script>
+<script type="text/babel" data-presets="env,react">
+
+const {
+  PhoneFrame,
+  HomeAccessScreen, FoyerHubScreen, FoyerDetailScreen, ProfilScreen, ChoixFoyerSheetScreen,
+  HintEmailScreen, OnboardingForkScreen, RecoverScreen, VerifyScreen,
+  InviteScreen, MembersScreen, MemberActionScreen, LibraryMultiScreen, MoveRecipeScreen, DesktopSheetDialog
+} = window;
+
+function Cap({ tag, tagType = 'idx', name, desc }) {
+  return (
+    <div className="cap">
+      <div className="cap-tagrow"><span className={`tag ${tagType}`}>{tag}</span></div>
+      <div className="name">{name}</div>
+      <div className="desc">{desc}</div>
+    </div>);
+
+}
+function Frame({ children, cap, h = 664 }) {
+  return <div className="frame"><PhoneFrame height={h}>{children}</PhoneFrame><Cap {...cap} /></div>;
+}
+
+function App() {
+  return (
+    <div className="doc">
+      <header>
+        <div className="kicker">Mijote · features #14 &amp; #15 — zone partage · v4</div>
+        <h1 className="doc-title">Le <em>foyer</em>, refondé</h1>
+        <p className="doc-lead">
+          Deux besoins convergent sur un même écran. <strong>#14 — récupération d'accès</strong> : faire survivre son foyer
+          à la perte d'un téléphone, via un email de secours 100&nbsp;% optionnel. <strong>#15 — multi-foyer à rôles</strong> :
+          appartenir à plusieurs foyers, en <strong>membre</strong> (consulte + modifie) ou en <strong>invité</strong> (lecture seule).
+          Les deux reposent sur le même primitif <code>owner_id</code> et rechargent le même écran « Foyer ».
+          Ce doc part du <strong>tronc commun</strong>, puis décline le spécifique 14, puis 15.
+        </p>
+        <div className="reasoning">
+          <div className="reason-card"><div className="rk">Un seul hub</div><p>L'écran <code>/household</code> passe d'une liste plate à deux sections : <strong>Toi</strong> · <strong>Tes foyers</strong>. On ouvre un foyer en tapant dessus.</p></div>
+          <div className="reason-card"><div className="rk">Accès clair</div><p>Point d'entrée = une <strong>icône Réglages</strong> en haut de la home (à la place de l'ancien glyphe discret). Pas d'avatar, pas de 4ᵉ item de nav.</p></div>
+          <div className="reason-card"><div className="rk">Jamais bloquant</div><p>L'email se saisit dans le <strong>profil</strong>, sans rien envoyer. Proposé par un hint dismissible (nouveau style, à généraliser). Nom vide → alias auto.</p></div>
+          <div className="reason-card"><div className="rk">Rôles clairs</div><p><strong>Membre</strong> / <strong>invité</strong>. Le foyer d'origine est marqué par un <strong>label texte</strong> (pas une couleur), lecture-seule signalée en vue complète seulement.</p></div>
+        </div>
+      </header>
+
+      {/* ==================== ACTE 0 — TRONC COMMUN ==================== */}
+      <section className="act">
+        <div className="act-head"><span className="act-tag"><span className="dot"></span>Acte 0 · Tronc commun</span></div>
+        <h2>Le socle : rendre le foyer <em>accessible</em> et <em>habitable</em></h2>
+        <p className="act-lead">
+          Avant 14 et 15, deux corrections : l'écran foyer est aujourd'hui <strong>peu accessible</strong> et <strong>plat</strong>.
+          On lui donne une porte d'entrée évidente (icône Réglages) et une architecture <strong>Toi + Tes foyers</strong> où 14 et 15 se branchent.
+        </p>
+
+        <div className="section">
+          <div className="section-num"><span className="n">0.1</span><span className="label">Accès depuis la home</span></div>
+          <h3>Une <em>icône Réglages</em>, pas un avatar</h3>
+          <p className="section-lead">
+            La home a déjà une icône en haut à droite (aujourd'hui un glyphe « membres » discret) — on la remplace par une
+            <strong> icône Réglages</strong>, plus lisible comme accès à « toi + tes foyers ». La pill nav reste à 3 actions.
+            <strong> Pas de filtre par foyer sur la home</strong> : elle reste une vue magazine, lean — le filtrage foyer vit uniquement en bibliothèque (2.3).
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Home · icône Réglages', desc: <>Le vrai header <code>/home</code> : grand « Mijote » Fraunces + engrenage à droite → écran foyer. Carrousels horizontaux (3:2), aucun marqueur de foyer.</> }}><HomeAccessScreen /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">0.2</span><span className="label">L'écran foyer refondé — le hub</span></div>
+          <h3>Deux sections : <em>Toi</em> et <em>Tes foyers</em></h3>
+          <p className="section-lead">
+            Plus de section « ce foyer » : tous les foyers sont égaux et <strong>s'ouvrent en tapant dessus</strong> (détail à droite),
+            où vivent la <strong>liste des membres</strong>, inviter et quitter. Le hub ne garde que <strong>Toi</strong> (nom + sauvegarde d'accès → profil) et <strong>Tes foyers</strong>.
+            « Créer ou rejoindre un foyer » ouvre le <strong>même fork que l'onboarding</strong> (créer un foyer / saisir un code d'invitation).
+          </p>
+          <div className="row">
+            <Frame h={696} cap={{ tag: 'Retenu', tagType: 'keep', name: 'Hub — Toi + Tes foyers', desc: <>Remplace <code>HouseholdMenuContent</code>. « Toi » ouvre le profil ; chaque foyer (même l'originel) s'ouvre en tapant. Le rôle invité est marqué dans la liste.</> }}><FoyerHubScreen /></Frame>
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Détail d\u2019un foyer', desc: <>Atteint en tapant un foyer : nom éditable, <strong>membres listés directement</strong> (pas de clic en plus), <strong>Inviter</strong>, <strong>Quitter</strong>.</> }}><FoyerDetailScreen /></Frame>
+            <Frame cap={{ tag: 'Variante', tagType: 'idx', name: 'Détail — foyer invité', desc: <>Foyer où je suis invité : nb de personnes en sous-titre, bandeau lecture-seule, pas d'inviter, pas d'édition du nom.</> }}><FoyerDetailScreen guest /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">0.3</span><span className="label">Profil (« Toi »)</span></div>
+          <h3>Un nom — et c'est <em>ici</em> qu'on sauvegarde l'accès</h3>
+          <p className="section-lead">
+            Le profil porte le <strong>nom</strong> (nom vide → alias auto, sans avatar) et l'<strong>email de secours</strong>.
+            Point important : <strong>saisir l'email n'envoie rien</strong> — on stocke juste l'adresse. Le lien partira
+            seulement quand on récupérera l'accès sur un nouvel appareil (Acte 1).
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Profil — nom + email', desc: <>Champ nom + champ « Retrouver ton accès » (email). Copy explicite : sert seulement à retrouver l'accès, pas de compte, pas de mot de passe.</> }}><ProfilScreen /></Frame>
+            <Frame cap={{ tag: 'Empty-state', tagType: 'idx', name: 'Profil — aucun email', desc: <>Déclinaison sans email posé (placeholder « ton@email.com ») : l'état de départ que le dev branche derrière le hint et la ligne « Toi » du hub.</> }}><ProfilScreen empty /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">0.4</span><span className="label">Composant « choix de foyer »</span></div>
+          <h3>On choisit le foyer <em>à chaque enregistrement</em></h3>
+          <p className="section-lead">
+            Retenu : un bottom sheet au moment d'enregistrer (import <em>et</em> saisie manuelle). <strong>Pas de « foyer par défaut »</strong> —
+            on choisit à chaque fois, juste après « Enregistrer ». Une recette vit dans <strong>un seul foyer</strong> ; la déplacer plus tard = le flow 2.4.
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Sheet « Enregistrer dans »', desc: <>Le sheet s'ouvre après « Enregistrer » : <strong>taper un foyer confirme ET enregistre</strong> (pas de bouton). Foyers invités grisés. Même composant que « déplacer » (2.4).</> }}><ChoixFoyerSheetScreen /></Frame>
+            <div style={{ maxWidth: 340 }}>
+              <div className="notecard" style={{ gridTemplateColumns: '1fr', marginTop: 0 }}>
+                <div className="note"><div className="badge">Pas de défaut</div><h4>Un choix, à chaque fois</h4><p>Comme tu l'as noté : avec le sheet à l'ajout, le « par défaut » n'a plus de sens. On choisit après « Enregistrer », rapide et sans ambiguïté.</p></div>
+                <div className="note"><div className="badge">1 foyer</div><h4>Une recette = un foyer</h4><p>Pas de recette multi-foyer (au moins au début). Changer le foyer d'une recette existante → le flow « Déplacer » (2.4).</p></div>
+                <div className="note"><div className="badge">Mono</div><h4>Zéro friction si 1 foyer</h4><p>Le sheet n'apparaît jamais tant qu'il n'y a qu'un foyer. Il ne surgit qu'à partir de 2.</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== ACTE 1 — FEATURE 14 ==================== */}
+      <section className="act">
+        <div className="act-head"><span className="act-tag"><span className="dot"></span>Acte 1 · Feature #14</span></div>
+        <h2>Récupération d'accès — <em>un casier de secours, pas un compte</em></h2>
+        <p className="act-lead">
+          L'email est saisi tranquillement dans le profil ; <strong>rien n'est envoyé à ce moment</strong>. C'est seulement à la
+          <strong> connexion sur un nouveau device</strong> qu'on envoie un magic-link (+ code de repli) pour retrouver son foyer.
+        </p>
+
+        <div className="section">
+          <div className="section-num"><span className="n">1.1</span><span className="label">Le hint (jamais forcé)</span></div>
+          <h3>Proposé sur la home, <em>dismissible</em></h3>
+          <p className="section-lead">
+            Ce hint définit le <strong>style</strong> à généraliser (icône + titre + corps + CTA). Trois hints cohabitent : <strong>install</strong> (mini-bandeau toujours en haut),
+            et <strong>un seul</strong> hint principal à la fois — <strong>partage</strong> ou <strong>email</strong>. Tous dismissables, et ne reviennent plus une fois fermés.
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Hints — install + email', desc: <>Mini-bandeau <strong>install</strong> (une ligne, dismissable) au-dessus du hint principal <strong>email</strong> (icône + CTA → profil 0.3).</> }}><HintEmailScreen main="email" /></Frame>
+            <Frame cap={{ tag: 'Déclinaison', tagType: 'idx', name: 'Hints — install + partage', desc: <>Même gabarit, hint principal <strong>partage</strong> (« cuisinez à plusieurs »). Référence dev : install et partage reprennent le style du hint email.</> }}><HintEmailScreen main="partage" /></Frame>
+            <div style={{ maxWidth: 340 }}>
+              <div className="notecard" style={{ gridTemplateColumns: '1fr', marginTop: 0 }}>
+                <div className="note"><div className="badge">Install</div><h4>iOS uniquement, minimal</h4><p>Le nudge d'install (« Installe l'app Mijote ») reste un <strong>mini-bandeau</strong> une ligne, <strong>affiché sur iOS</strong> à ce jour, au-dessus du hint principal. Dismissable ; une fois fermé, ne revient plus.</p></div>
+                <div className="note"><div className="badge">Un seul principal</div><h4>Partage, puis email</h4><p><strong>« partage » jusqu'à ~3 recettes</strong>, puis <strong>« email »</strong> ensuite — si aucun email posé. Jamais les deux principaux en même temps.</p></div>
+                <div className="note"><div className="badge">Après dismiss</div><h4>Ne revient plus</h4><p>Chaque hint fermé reste fermé. L'action email reste retrouvable dans le profil (toast « Tu retrouveras ça dans ton profil »).</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">1.2</span><span className="label">Fork d'onboarding · device neuf</span></div>
+          <h3>La clé anti-doublon : <em>« créer » vs « j'ai déjà un foyer »</em></h3>
+          <p className="section-lead">
+            Sans ce fork, un appareil neuf rejoint son <em>propre</em> foyer via le lien de partage → crée un 2ᵉ owner → fusion nécessaire.
+            Le landing (haute-fidélité, fidèle à l'app) propose <strong>Créer un foyer</strong> ou <strong>Rejoindre un foyer</strong>.
+            Sur l'écran « rejoindre », le <strong>code d'invitation est le CTA principal</strong> ; la récup par email est secondaire.
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Landing — fork', desc: <>Le vrai landing sage (cocotte + wordmark), avec « Rejoindre un foyer » ajouté sous « Créer un foyer ».</> }}><OnboardingForkScreen view="menu" /></Frame>
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: '« J\u2019ai déjà un foyer »', desc: <>Copy générique (rejoindre le foyer d'un proche <em>ou</em> retrouver le sien). CTA principal = <strong>code d'invitation</strong> ; secondaire = récup email.</> }}><OnboardingForkScreen view="have" /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">1.3</span><span className="label">Récupérer par email</span></div>
+          <h3>C'est <em>ici</em> qu'on envoie le lien</h3>
+          <p className="section-lead">
+            L'user saisit l'email sauvegardé → on envoie un <strong>magic-link</strong> et un <strong>code</strong> (repli si les mails sont lus
+            sur un autre appareil — la WebView Capacitor ne partage pas le cookie jar Safari). <strong>Email inconnu → exactement le même écran</strong> (anti-énumération : on ne révèle jamais si une adresse existe).
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Saisie de l\u2019email', desc: <>« Récupérer mon accès » — l'email est saisi ; le lien part à la validation. <strong>Connu ou inconnu, même écran de confirmation</strong> ensuite (pas de fuite d'emails).</> }}><RecoverScreen /></Frame>
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Lien envoyé + repli code', desc: <>« Vérifie tes mails » : l'email sur sa propre ligne, magic-link en principal, encart code à 6 chiffres pour les mails lus ailleurs, renvoi avec compte à rebours.</> }}><VerifyScreen /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">1.4</span><span className="label">Collision d'email → fusion</span></div>
+          <h3>Quand l'email <em>appartient déjà à quelqu'un</em></h3>
+          <p className="section-lead">
+            Cas unique : depuis le <strong>profil</strong>, on saisit un email <strong>déjà utilisé par un autre profil</strong> → lien + code → <strong>fusion</strong> des deux identités (union des foyers).
+            À la récup sur un nouvel appareil, <strong>pas de fusion</strong> : on se reconnecte simplement à ce profil.
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'État', tagType: 'alt', name: 'Fusion — depuis le profil', desc: <>Déclenchée uniquement quand l'email saisi <strong>au profil</strong> est déjà pris. Message adapté, back dispo. Rien de destructif — une union, gated par la vérif.</> }}><VerifyScreen merge /></Frame>
+          </div>
+        </div>
+      </section>
+
+      {/* ==================== ACTE 2 — FEATURE 15 ==================== */}
+      <section className="act">
+        <div className="act-head"><span className="act-tag"><span className="dot"></span>Acte 2 · Feature #15</span></div>
+        <h2>Multi-foyer à rôles — <em>membre</em> ou <em>invité</em></h2>
+        <p className="act-lead">
+          Un device appartient à plusieurs foyers, chacun avec un rôle. <strong>Membre</strong> consulte et modifie ;
+          <strong> invité</strong> consulte en lecture seule, en direct. Deux liens stables par rôle ; vue mélangée + filtre ; foyer d'origine en label.
+        </p>
+
+        <div className="section">
+          <div className="section-num"><span className="n">2.1</span><span className="label">Inviter dans un foyer</span></div>
+          <h3>Un lien qui <em>consulte</em>, un lien qui <em>modifie</em></h3>
+          <p className="section-lead">
+            Atteint depuis le <strong>détail du foyer → « Inviter quelqu'un »</strong>. Décision actée : 2 liens stables distincts,
+            un par rôle. On partage celui qui convient via son propre canal (WhatsApp, SMS…).
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Inviter — 2 liens par rôle', desc: <>écran plein (pas une sheet). Bloc <strong>Membre</strong> (modifie) et bloc <strong>Invité</strong> (lecture seule), chacun son lien. Révocation via Membres, indépendante du lien.</> }}><InviteScreen /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">2.2</span><span className="label">Membres &amp; révocation</span></div>
+          <h3>Qui a accès, <em>et à quel titre</em></h3>
+          <p className="section-lead">
+            La <strong>liste des membres vit sur la fiche foyer</strong> (0.2) — pas d'écran « Membres » séparé. Chaque ligne porte un <strong>chevron</strong> ;
+            toucher une personne ouvre un sheet <strong>rôle-aware</strong> pour changer son rôle ou la retirer (supprime le <code>membership</code> → accès coupé).
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Membres = sur la fiche foyer', desc: <>Les membres et invités sont listés directement dans le détail du foyer, avec leur <strong>RolePill</strong> et un chevron. Tap → sheet d'action.</> }}><FoyerDetailScreen /></Frame>
+            <Frame cap={{ tag: 'Action · membre', tagType: 'alt', name: 'Membre → passer en invité', desc: <>Sheet sur un <strong>membre</strong> : rétrograder en invité (lecture seule) ou retirer.</> }}><MemberActionScreen role="membre" /></Frame>
+            <Frame cap={{ tag: 'Action · invité', tagType: 'idx', name: 'Invité → passer en membre', desc: <>Symétrique : sheet sur un <strong>invité</strong> → le promouvoir en membre (peut modifier) ou retirer. Oui, l'action s'inverse selon le rôle.</> }}><MemberActionScreen role="invité" /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">2.3</span><span className="label">Bibliothèque multi-foyer</span></div>
+          <h3>Mélangée, filtrée <em>comme le reste de l'app</em>, tracée par label</h3>
+          <p className="section-lead">
+            Le filtre foyer <strong>rejoint la barre de filtres existante</strong> (pills + popover, comme Type / Cuisine), en <strong>multi-select</strong> :
+            « Tous les foyers » n'est pas une option, c'est l'état non filtré (rien de coché). Le foyer d'origine est marqué par un
+            <strong> label texte discret</strong> — pas de couleur, pas d'œil. Filtre et label vivent <strong>uniquement ici</strong>, jamais sur la home.
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Biblio + filtre foyer', desc: <>Pill « Foyer » dans la <code>FilterBar</code> existante (badge = nb de foyers cochés). Chaque card porte le <strong>nom du foyer</strong> en chip discret.</> }}><LibraryMultiScreen /></Frame>
+            <Frame cap={{ tag: 'Au tap', tagType: 'idx', name: 'Popover multi-select', desc: <>Même pattern <code>Popover</code> que les autres filtres : un item par foyer, cases à cocher. Rien de coché = tous.</> }}><LibraryMultiScreen popover /></Frame>
+          </div>
+          <div className="subhead">Décision — marqueur = label, pas couleur</div>
+          <p className="subhead-note">Une pastille de couleur seule n'est pas explicite (« d'où vient cette couleur ? »). On met le <strong>nom du foyer</strong> en chip discret sur la photo — assez présent pour situer, assez léger pour ne pas dominer. Pas d'icône œil sur les cards. Sur la home, une recette est juste une recette.</p>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">2.4</span><span className="label">Déplacer une recette</span></div>
+          <h3>Ranger une recette dans le <em>bon foyer</em></h3>
+          <p className="section-lead">
+            Depuis la <strong>pill d'actions de la fiche</strong> (Partager · Éditer · <strong>Déplacer</strong> · Supprimer — l'icône « déplacer » est ajoutée à la pill existante),
+            « Déplacer vers » réutilise le composant « choix de foyer » (0.4). Impossible vers un foyer où je suis invité (lecture seule).
+          </p>
+          <div className="row">
+            <Frame cap={{ tag: 'Retenu', tagType: 'keep', name: 'Déplacer vers un foyer', desc: <>La vraie pill de la fiche gagne une 4ᵉ icône (dossier). Sheet identique au « choix de foyer » ; copy de lecture-seule <strong>générique</strong> (aucun nom de foyer cité).</> }}><MoveRecipeScreen /></Frame>
+          </div>
+        </div>
+
+        <div className="section">
+          <div className="section-num"><span className="n">2.5</span><span className="label">Desktop / tablette</span></div>
+          <h3>La bottom-sheet <em>devient un dialog</em></h3>
+          <p className="section-lead">
+            Sur grand écran, les bottom-sheets n'ont pas de sens : le contenu d'une sheet (choix de foyer, déplacer, action membre)
+            s'affiche en <strong>dialog centré</strong>. Exemple avec le « choix de foyer » (qui, lui, <em>est</em> une sheet sur mobile). À noter : l'écran « Inviter » (2.1) est déjà un écran plein — il ne change pas.
+          </p>
+          <div className="row">
+            <div className="frame">
+              <DesktopSheetDialog />
+              <Cap tag="Desktop / tablette" tagType="alt" name="Choix de foyer — en dialog" desc={<>La sheet « Enregistrer dans » devient un dialog centré. Règle responsive unique : <code>&lt; md</code> = bottom-sheet, <code>&ge; md</code> = dialog (Radix Dialog, déjà dans le DS).</>} />
+            </div>
+          </div>
+        </div>
+
+        <div className="caveats">
+          <h4>À anticiper (côté produit &amp; implémentation)</h4>
+          <ul>
+            <li><strong>Un seul primitif jour 1 : <code>owner_id</code></strong> (device = session pointant vers un owner, mappé 1:1 au départ → onboarding inchangé) + <strong><code>membership(owner_id, foyer_id, rôle)</code></strong> même à 1 ligne.</li>
+            <li><strong>L'email ne déclenche aucun envoi à la saisie.</strong> Il est stocké dans le profil. Le magic-link (+ code) part uniquement à la récup sur un nouveau device.</li>
+            <li><strong>Fusion = uniquement depuis le profil.</strong> Email déjà pris saisi <strong>au profil</strong> → lien+code → union des foyers. À la récup sur un nouvel appareil : pas de fusion, simple reconnexion. Email inconnu → même écran de confirmation (anti-énumération).</li>
+            <li><strong>Fork d'onboarding = anti-doublon.</strong> Sans « J'ai déjà un foyer », le device neuf recrée un owner et force une fusion. Sur cet écran, le code d'invitation est le CTA principal.</li>
+            <li><strong>Repli code obligatoire.</strong> Le magic-link seul ne suffit pas (WebView Capacitor ≠ cookie jar Safari, déjà géré pour <code>InstallAppBanner</code>).</li>
+            <li><strong>Suppression du foyer = obligation App Store.</strong> Le détail d'un foyer (membre) garde <strong>Quitter</strong> ET <strong>Supprimer le foyer</strong> (double confirmation, cf. <code>LeaveHouseholdDialog</code>). Un invité ne voit que « Quitter ».</li>
+            <li><strong>Action membre rôle-aware.</strong> Sur un membre → « passer en invité » ; sur un invité → « passer en membre ». Chaque ligne membre porte un chevron (tappable).</li>
+            <li><strong>Fiche recette : pas de menu ⋯.</strong> Les actions vivent dans la <strong>pill blanche</strong> du hero (Partager · Éditer · Supprimer) ; « Déplacer » s'y ajoute comme 4ᵉ icône. Copy lecture-seule générique (jamais de nom de foyer).</li>
+            <li><strong>Une recette = un foyer, pas de « par défaut ».</strong> Choix à chaque enregistrement (sheet), changement ultérieur via « Déplacer ». Invité = jamais une cible d'écriture.</li>
+            <li><strong>Filtre foyer = multi-select dans la <code>FilterBar</code></strong> (pas de « Tous les foyers » ; non filtré = rien de coché). Marqueur = label texte discret, sans œil. Filtre et label <strong>en bibliothèque uniquement</strong> — la home reste lean.</li>
+            <li><strong>Responsive : sheet → dialog.</strong> Prévoir le bascule <code>&lt; md</code> / <code>&ge; md</code> pour choix de foyer, déplacer, action membre. « Inviter » est déjà un écran plein.</li>
+          </ul>
+        </div>
+      </section>
+    </div>);
+
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
