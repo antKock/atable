@@ -9,7 +9,6 @@ afterEach(() => cleanup());
 const recipe: CarouselRecipeItem = {
   id: "1",
   title: "Tarte aux pommes",
-  ingredients: null,
   tags: [{ id: "t1", name: "dessert", category: null }],
   photoUrl: null,
   createdAt: "2024-01-01T00:00:00Z",
@@ -19,6 +18,8 @@ const recipe: CarouselRecipeItem = {
   prepTime: "10-20 min",
   cookTime: "30-60 min",
   cost: "€",
+  lastActivityAt: "2024-01-01T00:00:00Z",
+  viewCount: 0,
 };
 
 describe("RecipeCarousel", () => {
