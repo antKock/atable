@@ -9,6 +9,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA || `t${Date.now()}`;
 
 const nextConfig: NextConfig = {
+  // Répertoire de build alternatif pour le serveur E2E (playwright.config.ts) :
+  // deux `next dev` ne peuvent pas partager le lock de .next. Défaut inchangé.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   env: {
     NEXT_PUBLIC_BUILD_ID: BUILD_ID,
   },

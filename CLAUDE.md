@@ -25,6 +25,12 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
   `grep -l "^id: N$" ~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/*.md`
 - Lire aussi `Stratégie.md` (dossier parent) quand la spec y renvoie.
 
+## Chantier en cours — Foyer (#14 + #15)
+
+Specs d'implémentation par lot dans **`docs/specs/foyer/`** : lire `00-socle.md`
+d'abord (contexte, décisions actées, ordre des lots, statuts), puis la spec du lot
+demandé. Les maquettes hi-fi sont dans `docs/specs/foyer/handoff/`.
+
 ## Repères rapides
 
 - Branche de travail : `staging` (déploiement auto). `main` = prod, **protégée** :

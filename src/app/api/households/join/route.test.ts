@@ -39,30 +39,48 @@ function request(body: unknown): NextRequest {
 }
 
 describe("POST /api/households/join (Fix 1.2)", () => {
-  it("joins a household and returns 200 JSON with a redirect", async () => {
+  /** Queue the 4 results a successful join consumes (Lot 0 foyer). */
+  function queueSuccess(name = "Famille Dupont") {
     supa.queueResults([
-      { data: { id: "household-1", name: "Famille Dupont" }, error: null },
-      { data: { id: "session-1" }, error: null },
+      { data: { id: "household-1", name }, error: null }, // lookup by code
+      { data: { id: "owner-1" }, error: null }, // insert owner
+      { error: null }, // insert membership
+      { data: { id: "session-1" }, error: null }, // insert device_session
     ]);
+  }
+
+  it("joins a household and returns 200 JSON with a redirect", async () => {
+    queueSuccess();
     const res = await POST(request({ code: "OLIVE-4821" }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, redirect: "/home" });
   });
 
+  it("creates owner + membership member, session pointing at the owner (Lot 0)", async () => {
+    queueSuccess();
+    await POST(request({ code: "OLIVE-4821" }));
+    const membership = supa.calls.find((c) => c.table === "memberships")!;
+    expect(
+      membership.ops.some(
+        (op) =>
+          op.method === "insert" &&
+          JSON.stringify(op.args[0]) ===
+            JSON.stringify({ owner_id: "owner-1", household_id: "household-1", role: "member" }),
+      ),
+    ).toBe(true);
+    const session = supa.calls.find((c) => c.table === "device_sessions")!;
+    const insert = session.ops.find((op) => op.method === "insert");
+    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe("owner-1");
+  });
+
   it("sets the atable_session cookie", async () => {
-    supa.queueResults([
-      { data: { id: "household-1", name: "Famille" }, error: null },
-      { data: { id: "session-1" }, error: null },
-    ]);
+    queueSuccess("Famille");
     const res = await POST(request({ code: "OLIVE-4821" }));
     expect(res.cookies.get("atable_session")?.value).toBeTruthy();
   });
 
   it("does NOT issue a 303 redirect (regression guard)", async () => {
-    supa.queueResults([
-      { data: { id: "household-1", name: "Famille" }, error: null },
-      { data: { id: "session-1" }, error: null },
-    ]);
+    queueSuccess("Famille");
     const res = await POST(request({ code: "OLIVE-4821" }));
     expect(res.status).not.toBe(303);
   });

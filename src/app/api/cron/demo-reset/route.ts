@@ -37,10 +37,68 @@ export async function GET(request: NextRequest) {
     // Seed recipes already exist with is_seed=true; nothing to restore unless deleted.
     // In this implementation, seed recipes are preserved (only non-seed are deleted).
 
+    // Step 3 (stratégie C, part data — Lot 0 foyer) : purger les owners démo
+    // plus vieux que N jours. La suppression d'un owner cascade memberships et
+    // device_sessions ; daily_activity garde ses lignes (owner_id/device_id
+    // SET NULL — la démo est de toute façon exclue des analytics).
+    // Aucune rétention n'existait avant ce lot : N=30 j, marge large sur une
+    // visite démo réelle sans laisser les identités jetables s'accumuler.
+    const DEMO_OWNER_RETENTION_DAYS = 30
+    const cutoff = new Date(
+      Date.now() - DEMO_OWNER_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    ).toISOString()
+
+    let purgedOwners = 0
+    const { data: demoMembers, error: demoMembersError } = await supabase
+      .from('memberships')
+      .select('owner_id, owners!inner(created_at)')
+      .eq('household_id', demoHouseholdId)
+      .lt('owners.created_at', cutoff)
+
+    if (demoMembersError) {
+      Sentry.captureException(
+        new Error(`[cron/demo-reset] demo owners lookup failed: ${demoMembersError.message}`)
+      )
+    } else if (demoMembers && demoMembers.length > 0) {
+      const candidateIds = demoMembers.map((m) => m.owner_id)
+
+      // Garde-fou : ne JAMAIS toucher un owner ayant un membership hors démo.
+      // Impossible en théorie avant le Lot 4 (multi-appartenance), mais un
+      // faux positif ici détruirait le foyer réel d'un utilisateur.
+      const { data: outside, error: outsideError } = await supabase
+        .from('memberships')
+        .select('owner_id')
+        .in('owner_id', candidateIds)
+        .neq('household_id', demoHouseholdId)
+
+      if (outsideError) {
+        Sentry.captureException(
+          new Error(`[cron/demo-reset] non-demo membership check failed: ${outsideError.message}`)
+        )
+      } else {
+        const protectedIds = new Set((outside ?? []).map((m) => m.owner_id))
+        const toDelete = candidateIds.filter((id) => !protectedIds.has(id))
+        if (toDelete.length > 0) {
+          const { count, error: purgeError } = await supabase
+            .from('owners')
+            .delete({ count: 'exact' })
+            .in('id', toDelete)
+          if (purgeError) {
+            Sentry.captureException(
+              new Error(`[cron/demo-reset] owners purge failed: ${purgeError.message}`)
+            )
+          } else {
+            purgedOwners = count ?? 0
+          }
+        }
+      }
+    }
+
     return NextResponse.json({
       reset: true,
       deleted: deleted ?? 0,
       restored: 0,
+      purgedOwners,
     })
   } catch (err) {
     Sentry.captureException(err)

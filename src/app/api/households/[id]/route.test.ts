@@ -7,6 +7,11 @@ import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
+// L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
+vi.mock("@/lib/auth/owner-context", async () => {
+  const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
+  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+});
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
 const mockHeaders = headers as unknown as Mock;
@@ -39,20 +44,31 @@ function putRequest(body: unknown): NextRequest {
 }
 
 describe("DELETE /api/households/[id] (Fix 1.4)", () => {
-  it("action=leave removes only the device session", async () => {
-    supa.queueResult({ error: null });
+  it("action=leave removes the membership and the device session", async () => {
+    supa.queueResults([
+      { error: null }, // delete membership
+      { error: null }, // delete session
+    ]);
     const res = await DELETE(deleteRequest("leave"), ctx());
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, redirect: "/" });
+    expect(
+      supa.calls.some(
+        (c) =>
+          c.table === "memberships" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(true);
     expect(supa.calls.some((c) => c.table === "device_sessions")).toBe(true);
     expect(supa.calls.some((c) => c.table === "households")).toBe(false);
   });
 
-  it("action=delete removes recipes and the household", async () => {
-    // 1st result = the is_demo guard SELECT (non-demo), then recipes + household.
+  it("action=delete purges Storage then deletes the household (recipes par cascade)", async () => {
+    // 1st result = the is_demo guard SELECT (non-demo), then the Storage
+    // lookup SELECT on recipes, then the household delete (DB cascade covers
+    // recipes/memberships/sessions since migration 027).
     supa.queueResults([
       { data: { is_demo: false }, error: null },
-      { error: null },
+      { data: [], error: null },
       { error: null },
     ]);
     const res = await DELETE(deleteRequest("delete"), ctx());

@@ -8,6 +8,11 @@ import { recipeDbRow } from "@/test/fixtures";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
+// L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
+vi.mock("@/lib/auth/owner-context", async () => {
+  const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
+  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+});
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/server", async (importOriginal) => ({
   ...(await importOriginal<typeof import("next/server")>()),

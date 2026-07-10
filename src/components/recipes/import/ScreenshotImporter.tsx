@@ -5,6 +5,13 @@ import NextImage from "next/image";
 import { Image as ImageIcon, ChevronRight, Upload, Plus, X } from "lucide-react";
 import * as Sentry from "@sentry/nextjs";
 import { Capacitor } from "@capacitor/core";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { t } from "@/lib/i18n/fr";
 import ImportCard from "./ImportCard";
 
@@ -12,8 +19,9 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_FILES = 5;
 
 // Android only: the WebView's <input type=file> can't offer a camera/gallery
-// choice (it's gallery-only without `capture`, camera-only with it). iOS/Web
-// keep the native <input> below — its picker already offers both.
+// choice (it's gallery-only without `capture`, camera-only with it), so a
+// dialog asks first. iOS/Web keep the native <input> below — its picker
+// already offers both.
 const IS_ANDROID = Capacitor.getPlatform() === "android";
 
 // @capacitor/camera reject codes that mean "the user backed out", not a real
@@ -75,6 +83,7 @@ export default function ScreenshotImporter({
   onSubmit,
 }: ScreenshotImporterProps) {
   const [fileEntries, setFileEntries] = useState<FileWithKey[]>([]);
+  const [sourceDialogOpen, setSourceDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const addMoreInputRef = useRef<HTMLInputElement>(null);
 
@@ -124,67 +133,58 @@ export default function ScreenshotImporter({
     onSubmit(fileEntries.map((e) => e.file));
   }
 
-  // Android: prompt camera-vs-gallery (plugins lazy-loaded so iOS/Web never
-  // touch them), then funnel the result through addFiles() like the <input>.
-  async function openAndroidPicker() {
+  function handlePickerError(e: unknown) {
+    if (isPickerCancellation(e)) return; // user backed out — stay silent
+    Sentry.captureException(e instanceof Error ? e : new Error(String(e)), {
+      tags: { feature: "import", source: "photo", platform: "android" },
+    });
+    onError(t.import.error);
+  }
+
+  // Android: a DS dialog asks camera-vs-gallery first (the Camera plugin is
+  // lazy-loaded so iOS/Web never touch it), then the result funnels through
+  // addFiles() like the <input>.
+  async function pickFromCamera() {
+    setSourceDialogOpen(false);
+    const { Camera } = await import("@capacitor/camera");
+    try {
+      const photo = await Camera.takePhoto({});
+      const file = await mediaResultToFile(photo, `photo-${Date.now()}`);
+      if (!file) throw new Error("camera photo could not be read");
+      addFiles([file]);
+    } catch (e) {
+      handlePickerError(e);
+    }
+  }
+
+  async function pickFromGallery() {
+    setSourceDialogOpen(false);
     const remaining = MAX_FILES - fileEntries.length;
     if (remaining <= 0) return;
 
-    const { ActionSheet, ActionSheetButtonStyle } = await import(
-      "@capacitor/action-sheet"
-    );
     const { Camera } = await import("@capacitor/camera");
-
-    let choice;
-    try {
-      choice = await ActionSheet.showActions({
-        title: t.import.screenshot.sourceTitle,
-        options: [
-          { title: t.import.screenshot.takePhoto },
-          { title: t.import.screenshot.fromGallery },
-          {
-            title: t.import.screenshot.cancel,
-            style: ActionSheetButtonStyle.Cancel,
-          },
-        ],
-      });
-    } catch {
-      return; // sheet dismissed
-    }
-
     const stamp = Date.now();
     try {
-      if (choice.index === 0) {
-        const photo = await Camera.takePhoto({});
-        const file = await mediaResultToFile(photo, `photo-${stamp}`);
-        if (!file) throw new Error("camera photo could not be read");
-        addFiles([file]);
-      } else if (choice.index === 1) {
-        const { results } = await Camera.chooseFromGallery({
-          allowMultipleSelection: true,
-          limit: remaining,
-        });
-        if (results.length === 0) return; // nothing selected
-        const files = (
-          await Promise.all(
-            results.map((r, i) => mediaResultToFile(r, `photo-${stamp}-${i}`)),
-          )
-        ).filter((f): f is File => f !== null);
-        if (files.length === 0) throw new Error("gallery images could not be read");
-        addFiles(files);
-      }
-    } catch (e) {
-      if (isPickerCancellation(e)) return; // user backed out — stay silent
-      Sentry.captureException(e instanceof Error ? e : new Error(String(e)), {
-        tags: { feature: "import", source: "photo", platform: "android" },
+      const { results } = await Camera.chooseFromGallery({
+        allowMultipleSelection: true,
+        limit: remaining,
       });
-      onError(t.import.error);
+      if (results.length === 0) return; // nothing selected
+      const files = (
+        await Promise.all(
+          results.map((r, i) => mediaResultToFile(r, `photo-${stamp}-${i}`)),
+        )
+      ).filter((f): f is File => f !== null);
+      if (files.length === 0) throw new Error("gallery images could not be read");
+      addFiles(files);
+    } catch (e) {
+      handlePickerError(e);
     }
   }
 
   function handleAddClick(inputRef: React.RefObject<HTMLInputElement | null>) {
     if (IS_ANDROID) {
-      void openAndroidPicker();
+      setSourceDialogOpen(true);
     } else {
       inputRef.current?.click();
     }
@@ -288,6 +288,39 @@ export default function ScreenshotImporter({
       )}
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+
+      {IS_ANDROID && (
+        <Dialog open={sourceDialogOpen} onOpenChange={setSourceDialogOpen}>
+          <DialogContent showCloseButton={false} aria-describedby={undefined}>
+            <DialogHeader>
+              <DialogTitle>{t.import.screenshot.sourceTitle}</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="outline"
+                className="min-h-11"
+                onClick={() => void pickFromCamera()}
+              >
+                {t.import.screenshot.takePhoto}
+              </Button>
+              <Button
+                variant="outline"
+                className="min-h-11"
+                onClick={() => void pickFromGallery()}
+              >
+                {t.import.screenshot.fromGallery}
+              </Button>
+              <Button
+                variant="ghost"
+                className="min-h-11"
+                onClick={() => setSourceDialogOpen(false)}
+              >
+                {t.import.screenshot.cancel}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </ImportCard>
   );
 }

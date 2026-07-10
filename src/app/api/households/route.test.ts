@@ -27,10 +27,12 @@ function request(body: unknown): NextRequest {
   });
 }
 
-/** Queue the 3 results a successful create consumes. */
+/** Queue the 5 results a successful create consumes (Lot 0 foyer). */
 function queueSuccess() {
   supa.queueResults([
+    { data: { id: "owner-1" }, error: null }, // insert owner
     { data: { id: "household-1" }, error: null }, // insert household
+    { error: null }, // insert membership
     { data: { id: "session-1" }, error: null }, // insert device_session
     { error: null }, // migrate legacy recipes
   ]);
@@ -75,8 +77,48 @@ describe("POST /api/households (Fix 1.2)", () => {
   });
 
   it("returns 500 when the household insert fails", async () => {
-    supa.queueResult({ data: null, error: { message: "insert failed" } });
+    supa.queueResults([
+      { data: { id: "owner-1" }, error: null },
+      { data: null, error: { message: "insert failed" } },
+    ]);
     const res = await POST(request({ name: "Chez nous" }));
     expect(res.status).toBe(500);
+  });
+
+  it("creates owner + membership, and the session points at the owner (Lot 0)", async () => {
+    queueSuccess();
+    await POST(request({ name: "Chez nous" }));
+
+    expect(supa.calls.some((c) => c.table === "owners")).toBe(true);
+    const membership = supa.calls.find((c) => c.table === "memberships")!;
+    expect(
+      membership.ops.some(
+        (op) =>
+          op.method === "insert" &&
+          JSON.stringify(op.args[0]) ===
+            JSON.stringify({ owner_id: "owner-1", household_id: "household-1", role: "member" }),
+      ),
+    ).toBe(true);
+
+    const session = supa.calls.find((c) => c.table === "device_sessions")!;
+    const insert = session.ops.find((op) => op.method === "insert");
+    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe("owner-1");
+  });
+
+  it("compensates (household + owner deleted) when the session insert fails", async () => {
+    supa.queueResults([
+      { data: { id: "owner-1" }, error: null },
+      { data: { id: "household-1" }, error: null },
+      { error: null }, // membership
+      { data: null, error: { message: "session insert failed" } },
+    ]);
+    const res = await POST(request({ name: "Chez nous" }));
+    expect(res.status).toBe(500);
+    const deleted = (table: string) =>
+      supa.calls.some(
+        (c) => c.table === table && c.ops.some((op) => op.method === "delete"),
+      );
+    expect(deleted("households")).toBe(true);
+    expect(deleted("owners")).toBe(true);
   });
 });

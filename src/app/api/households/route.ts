@@ -31,7 +31,20 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerClient()
 
-    // Step 1: Insert household
+    // Step 1: Insert owner — the abstract identity the household belongs to
+    // (chantier foyer #14/#15); the device session below just points at it.
+    const { data: owner, error: ownerError } = await supabase
+      .from('owners')
+      .insert({})
+      .select('id')
+      .single()
+
+    if (ownerError || !owner) {
+      throw new Error(ownerError?.message ?? 'Failed to create owner')
+    }
+    const ownerId = owner.id
+
+    // Step 2: Insert household
     const { data: household, error: householdError } = await supabase
       .from('households')
       .insert({ name, join_code: joinCode })
@@ -39,33 +52,49 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (householdError || !household) {
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(householdError?.message ?? 'Failed to create household')
     }
     const hid = household.id
 
-    // Step 2: Insert device_session
+    // Step 3: Insert membership (member = lecture + écriture)
+    const { error: membershipError } = await supabase
+      .from('memberships')
+      .insert({ owner_id: ownerId, household_id: hid, role: 'member' })
+
+    if (membershipError) {
+      // Compensating deletes — owner delete cascades memberships/sessions
+      await supabase.from('households').delete().eq('id', hid)
+      await supabase.from('owners').delete().eq('id', ownerId)
+      throw new Error(membershipError.message)
+    }
+
+    // Step 4: Insert device_session pointing at the owner
     const { data: session, error: sessionError } = await supabase
       .from('device_sessions')
-      .insert({ household_id: hid, device_name: deviceName })
+      .insert({ household_id: hid, device_name: deviceName, owner_id: ownerId })
       .select('id')
       .single()
 
     if (sessionError || !session) {
-      // Compensating delete — CASCADE handles device_sessions
       await supabase.from('households').delete().eq('id', hid)
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(sessionError?.message ?? 'Failed to create session')
     }
     const sid = session.id
 
-    // Step 3: Migrate existing V1 recipes (household_id IS NULL) to this household
+    // Step 5: Migrate existing V1 recipes (household_id IS NULL) to this
+    // household. No-op since migration 027 (household_id NOT NULL) — kept for
+    // rollback, decommissioned at the end of the chantier foyer.
     const { error: migrateError } = await supabase
       .from('recipes')
       .update({ household_id: hid })
       .is('household_id', null)
 
     if (migrateError) {
-      // Compensating delete
+      // Compensating deletes
       await supabase.from('households').delete().eq('id', hid)
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(migrateError.message)
     }
 

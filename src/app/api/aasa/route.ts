@@ -22,6 +22,7 @@ export function GET() {
           components: [
             { "/": "/r/*", comment: "Shared recipe links" },
             { "/": "/join/*", comment: "Foyer invitation links" },
+            { "/": "/recover/*", comment: "Access recovery magic links" },
           ],
         },
       ],

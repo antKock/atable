@@ -38,7 +38,47 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResult({ count: 3, error: null });
     const res = await GET(request("Bearer test-cron-secret"));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ reset: true, deleted: 3, restored: 0 });
+    expect(await res.json()).toEqual({
+      reset: true,
+      deleted: 3,
+      restored: 0,
+      purgedOwners: 0,
+    });
+  });
+
+  it("purge les owners démo périmés, sauf ceux ayant un membership hors démo", async () => {
+    supa.queueResults([
+      { count: 0, error: null }, // delete recettes non-seed
+      { data: [{ owner_id: "owner-old" }, { owner_id: "owner-multi" }], error: null }, // candidats périmés
+      { data: [{ owner_id: "owner-multi" }], error: null }, // garde-fou : membership hors démo
+      { count: 1, error: null }, // delete owners
+    ]);
+    const res = await GET(request("Bearer test-cron-secret"));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ purgedOwners: 1 });
+
+    const ownersDelete = supa.calls.find(
+      (c) => c.table === "owners" && c.ops.some((op) => op.method === "delete"),
+    )!;
+    expect(
+      ownersDelete.ops.some(
+        (op) =>
+          op.method === "in" &&
+          op.args[0] === "id" &&
+          JSON.stringify(op.args[1]) === JSON.stringify(["owner-old"]),
+      ),
+    ).toBe(true);
+  });
+
+  it("ne touche pas aux owners quand aucun candidat n'est périmé", async () => {
+    supa.queueResults([
+      { count: 0, error: null },
+      { data: [], error: null },
+    ]);
+    const res = await GET(request("Bearer test-cron-secret"));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ purgedOwners: 0 });
+    expect(supa.calls.some((c) => c.table === "owners")).toBe(false);
   });
 
   it("deletes only is_seed=false rows", async () => {

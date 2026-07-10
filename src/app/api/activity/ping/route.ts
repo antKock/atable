@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 
 // Accepted platform values; anything else is recorded as 'unknown'.
 const VALID_PLATFORMS = ["ios", "android", "web"] as const;
@@ -11,9 +11,11 @@ const VALID_PLATFORMS = ["ios", "android", "web"] as const;
  * refreshes the session's last_seen_at + platform. Feeds DAU/MAU and the
  * dormant-foyer signal in the usage dashboard.
  */
-export const POST = withHouseholdAuth(
-  async (request: NextRequest, _ctx, { householdId, sessionId }) => {
-    if (!sessionId) {
+export const POST = withOwnerAuth(
+  async (request: NextRequest, _ctx, { ownerId, sessionId, memberships }) => {
+    // Invariant mono-foyer (vrai jusqu'au Lot 4)
+    const householdId = memberships[0]?.householdId;
+    if (!householdId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -44,6 +46,7 @@ export const POST = withHouseholdAuth(
       {
         household_id: householdId,
         device_id: sessionId,
+        owner_id: ownerId,
         platform,
         app_version: appVersion,
         day: today,
