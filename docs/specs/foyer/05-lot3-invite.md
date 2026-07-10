@@ -104,6 +104,16 @@ régénération de lien au lancement (backlog).
 - Ne pas oublier les routes de mutation non évidentes : enrichissement, upload,
   activity ping (le ping n'écrit pas sur le foyer → reste autorisé).
 - `LeaveHouseholdDialog` : « Supprimer le foyer » réservé aux membres.
+- **Le Lot 1 attend ce lot pour partir en prod** (membres fantômes du backfill 027 :
+  voir « Constats terrain » du socle). Le retrait de membre livré ici est donc le
+  seul outil de ménage — le tri sera manuel, c'est assumé.
+- **Défaut ouvert, non décidé** : `join` n'est pas idempotent. `/join/[code]` et
+  `POST /api/households/join` sont publics, ne lisent jamais le cookie, et créent
+  owner + membership + session même si le visiteur est **déjà membre** du foyer —
+  chaque test de son propre lien d'invitation fabrique un fantôme. Correctif possible
+  ici (~30 lignes) : si la session courante résout vers un owner déjà membre du foyer
+  visé, ne rien créer et rediriger `/home`. **Re-poser la question à Anthony** avant
+  de l'implémenter (arbitrage 2026-07-10 : « on verra plus tard »).
 
 ## Definition of Done
 

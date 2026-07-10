@@ -32,6 +32,12 @@ qu'une **session** pointant vers cet owner ; l'appartenance est une ligne
 **À la fin de chaque lot : mettre à jour la colonne Statut ici** (`staging` quand
 déployé sur staging, `done` quand promu en prod — même convention que le backlog).
 
+> ⚠️ **Le Lot 1 reste sur staging jusqu'à la livraison du Lot 3** (décision Anthony,
+> 2026-07-10). Il rend visibles les « membres fantômes » du backfill 027 alors qu'il
+> supprime la liste d'appareils et sa révocation (décision n°5) : l'utilisateur verrait
+> des inconnus dans son foyer sans aucun moyen de les retirer. Le Lot 3 réintroduit le
+> retrait de membre. Lots 1→3 promus ensemble. Voir « Constats terrain » ci-dessous.
+
 ## Architecture ACTUELLE (cartographiée le 2026-07-09)
 
 ### Données (`supabase/migrations/`, dernière = `026`)
@@ -138,6 +144,53 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 12. **Magic link ouvre le web** ET l'app via Universal Link ; repli code 6 chiffres
     obligatoire. Emails : deux propositions HTML visualisables en navigateur avant
     implémentation (Anthony arbitre).
+
+## Constats terrain — « membres fantômes » (mesuré en prod le 2026-07-10)
+
+> Constat, pas décision. Documenté pour ne pas être re-découvert lot après lot.
+> **Aucune action pour l'instant** (arbitrage Anthony) : on verra plus tard si
+> c'est un vrai problème. Ne pas « corriger » sans re-poser la question.
+
+**Le fait.** Le backfill de la 027 (Lot 0) a créé **un owner par `device_session`**.
+Or une même personne possède plusieurs sessions. En prod, 74 owners, **aucun nommé** :
+
+| Foyer | memberships | réalité probable |
+|---|---|---|
+| Los Kockenos | 11 | 2 humains |
+| Bruno (106 recettes) | 6 | **1 humain** — 6 sessions créées en 5 jours d'onboarding, 1 seule porte les 106 recettes, les 5 autres n'ont **rien écrit** |
+| Jojo & Toto | 4 | 2 humains |
+| Chez Jojo & Toto | 3 | 1 humain (aucune session vue depuis 116 j) |
+| Maison de Pauline & Ugo | 3 | 2 humains |
+| Démo Mijote | 27 | 1 owner par visiteur (traité : vue solo au Lot 1) |
+
+Invisible jusqu'au Lot 0 ; **rendu visible par le Lot 1** (liste des membres +
+compteur « N personnes »). D'où la décision de **ne pas promouvoir le Lot 1 en prod
+avant le Lot 3** (qui réintroduit le retrait de membre) — cf. tableau des lots.
+La note « doublon de membre inoffensif » du Lot 1 est **invalidée** : le doublon est
+la norme sur les foyers réellement utilisés, pas l'exception.
+
+**La cause.** Une `device_session` ne naît QUE de trois inserts explicites
+(`POST /api/households`, `POST /api/households/join`, `POST /api/demo/session`) —
+relancer l'app n'en crée jamais (cookie `HttpOnly`, 180 j glissants, jar WKWebView
+persistant). Mais **une session = un cookie jar + un join**, pas un téléphone : sur
+un seul iPhone, Safari, Safari privé, Chrome iOS, la WebView de l'app, celle de la
+Share Extension et chaque navigateur intégré (Instagram, WhatsApp…) sont des jars
+distincts. `device_name` ne distingue d'ailleurs pas l'app native de Safari (Bowser
+lit un UA Safari-like ; `MijoteNative/1.0` n'est pas enregistré).
+
+**Le multiplicateur (défaut ouvert).** `/join/[code]` et `POST /api/households/join`
+sont des routes **publiques** : la page ne lit jamais le cookie et la route crée
+inconditionnellement owner + membership + session, puis écrase le cookie. Un
+utilisateur **déjà membre** qui tape son propre lien d'invitation se fabrique donc
+une identité neuve, l'ancienne gardant son membership. La bannière d'install
+*demande explicitement* de rejoindre avec le code depuis l'app. C'est la fabrique à
+fantômes. Correctif possible (~30 lignes, non décidé) : si la session courante
+résout vers un owner déjà membre du foyer visé, ne rien créer et rediriger `/home`.
+
+**Ce que la fusion du Lot 2 ne réglera pas.** Elle se déclenche à la saisie d'un
+email déjà pris depuis le profil : il faudrait reposer le même email depuis chaque
+jar encore vivant. Les sessions dormantes (Chez Jojo & Toto, 116 j) ne fusionneront
+jamais. Le tri restera manuel, via le retrait de membre du Lot 3.
 
 ## Conventions de développement (rappel)
 
