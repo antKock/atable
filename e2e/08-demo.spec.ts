@@ -19,8 +19,15 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   // Recettes seed du foyer démo visibles
   await expect(page.getByText("Mousse au chocolat").first()).toBeVisible();
 
-  // Écran foyer : badge Démo, pas de crayon de rename
+  // Hub foyer : badge Démo sur la ligne du foyer (sélecteurs adaptés au
+  // Lot 1 : hub + détail) ; le détail est en lecture seule (pas de rename)
   await page.goto("/household");
+  await expect(page.getByText("Démo", { exact: true })).toBeVisible();
+  await page
+    .locator('a[href^="/household/"]:not([href$="/profile"]):not([href$="/switch"])')
+    .first()
+    .click();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
   await expect(page.getByText("Démo", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Renommer" })).toHaveCount(0);
 

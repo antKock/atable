@@ -333,26 +333,19 @@ export const t = {
     inviteLinkCopied: "Lien d'invitation copié !",
     shareTitle: (name: string) => `Rejoindre mon foyer « ${name} » sur Mijote`,
     createError: "Impossible de créer le foyer. Réessaie.",
-    menu: "Mon foyer",
-    menuButton: "Menu du foyer",
+    menu: "Foyer & profil",
+    menuButton: "Foyer & profil",
     shareCode: "Code du foyer",
     inviteLink: "Lien d'invitation",
-    devices: "Appareils connectés",
-    leaveHousehold: "Quitter le foyer",
+    leaveHousehold: "Quitter ce foyer",
     rename: "Renommer",
     renameTitle: "Renommer le foyer",
     renameSuccess: "Foyer renommé",
     renameError: "Impossible de renommer le foyer",
-    revokeDevice: "Révoquer",
-    revokeDeviceConfirm: "Révoquer cet appareil ?",
-    deviceRevoked: "Appareil révoqué",
     leaveConfirm: "Quitter le foyer ?",
     leaveBody: "Tu devras rejoindre avec un code ou un lien pour accéder à nouveau aux recettes.",
     leaveAction: "Quitter",
     demoLabel: "Démo",
-    currentDevice: "cet appareil",
-    revokeBody: "Cette action est irréversible.",
-    revokeError: "Impossible de révoquer l'appareil",
     deleteHousehold: "Supprimer le foyer",
     deleteConfirmTitle: "Supprimer le foyer ?",
     deleteConfirmBody:
@@ -363,6 +356,41 @@ export const t = {
       "Cette action est irréversible. Le foyer et toutes ses recettes seront définitivement perdus.",
     deleteFinalAction: "Supprimer définitivement",
     leaveError: "Une erreur s'est produite. Réessaie.",
+    // Hub « Toi + Tes foyers » (chantier foyer, Lot 1)
+    sectionYou: "Toi",
+    sectionHouseholds: "Tes foyers",
+    profileSubtitle: "Nom & sauvegarde d'accès",
+    createOrJoin: "Créer ou rejoindre un foyer",
+    membersSection: "Membres",
+    youSuffix: "(toi)",
+    roles: {
+      member: "membre",
+      guest: "invité",
+    } as Record<"member" | "guest", string>,
+    rolesCap: {
+      member: "Membre",
+      guest: "Invité",
+    } as Record<"member" | "guest", string>,
+    peopleCount: (n: number) => `${n} personne${n > 1 ? "s" : ""}`,
+    recipeCount: (n: number) => `${n} recette${n > 1 ? "s" : ""}`,
+  },
+
+  // Écran « Créer ou rejoindre » (depuis le hub — sémantique : changer de foyer)
+  switchHousehold: {
+    title: "Créer ou rejoindre",
+    body: "Ton appareil changera de foyer. Tu pourras retrouver celui-ci en le rejoignant à nouveau avec son code d'invitation.",
+    create: "Créer un foyer",
+    join: "Rejoindre un foyer",
+  },
+
+  // Profil (« Toi »)
+  profile: {
+    title: "Ton profil",
+    nameLabel: "Ton nom",
+    nameHint:
+      "Ton nom apparaît auprès des autres membres de tes foyers. Laisse vide et on te donne un alias par défaut.",
+    saved: "Profil mis à jour",
+    saveError: "Impossible d'enregistrer ton profil. Réessaie.",
   },
 
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est

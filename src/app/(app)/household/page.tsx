@@ -1,48 +1,52 @@
-import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
+import { getOwnerContext, type MembershipRole } from '@/lib/auth/owner-context'
+import { aliasForOwner } from '@/lib/alias'
 import HouseholdMenuContent from '@/components/household/HouseholdMenuContent'
 
+// Ligne PostgREST : households + compteurs embarqués (une seule requête
+// groupée pour N foyers — pas de N+1). personnes = memberships du foyer.
+type HouseholdRow = {
+  id: string
+  name: string
+  memberships: { count: number }[]
+  recipes: { count: number }[]
+}
+
 export default async function HouseholdPage() {
-  const hdrs = await headers()
-  const householdId = hdrs.get('x-household-id')
-  const sessionId = hdrs.get('x-session-id')
-  if (!householdId || !sessionId) redirect('/')
+  const owner = await getOwnerContext()
+  if (!owner || owner.memberships.length === 0) redirect('/')
 
   const supabase = createServerClient()
+  const { data } = await supabase
+    .from('households')
+    .select('id, name, memberships(count), recipes(count)')
+    .in('id', owner.memberships.map((m) => m.householdId))
 
-  const [{ data: household }, { data: deviceRows }] = await Promise.all([
-    supabase
-      .from('households')
-      .select('id, name, join_code, is_demo')
-      .eq('id', householdId)
-      .single(),
-    supabase
-      .from('device_sessions')
-      .select('id, device_name, last_seen_at')
-      .eq('household_id', householdId)
-      .eq('is_revoked', false)
-      .order('last_seen_at', { ascending: false }),
-  ])
+  const rows = (data ?? []) as unknown as HouseholdRow[]
+  const byId = new Map(rows.map((row) => [row.id, row]))
 
-  if (!household) redirect('/')
+  // L'ordre des memberships (contexte owner) fait foi, pas celui de la requête.
+  const households = owner.memberships.flatMap((membership) => {
+    const row = byId.get(membership.householdId)
+    if (!row) return []
+    return [{
+      id: row.id,
+      name: row.name,
+      role: membership.role as MembershipRole,
+      isDemo: membership.isDemo,
+      people: row.memberships[0]?.count ?? 0,
+      recipes: row.recipes[0]?.count ?? 0,
+    }]
+  })
 
-  const devices = (deviceRows ?? []).map((row) => ({
-    id: row.id,
-    deviceName: row.device_name,
-    lastSeenAt: row.last_seen_at,
-  }))
+  const isDemo = owner.memberships.some((m) => m.isDemo)
 
   return (
     <HouseholdMenuContent
-      household={{
-        id: household.id,
-        name: household.name,
-        joinCode: household.join_code,
-        isDemo: household.is_demo,
-      }}
-      sessionId={sessionId}
-      devices={devices}
+      ownerDisplayName={owner.ownerName ?? aliasForOwner(owner.ownerId)}
+      households={households}
+      isDemo={isDemo}
     />
   )
 }

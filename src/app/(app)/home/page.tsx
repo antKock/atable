@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Users } from "lucide-react";
+import { Settings } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
@@ -39,7 +39,7 @@ export default async function HomePage({ searchParams }: Props) {
           aria-label={t.household.menuButton}
           className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
-          <Users size={20} />
+          <Settings size={20} />
         </Link>
       </header>
       {code && householdName && (

@@ -41,6 +41,19 @@ export async function createHouseholdViaUI(page: Page, name: string): Promise<st
   return code as string;
 }
 
+/**
+ * Depuis le hub « Foyer & profil », ouvre le détail du (premier) foyer.
+ * Exclut les lignes « Toi » (/profile) et « Créer ou rejoindre » (/switch).
+ */
+export async function openHouseholdDetail(page: Page): Promise<void> {
+  await page.goto("/household");
+  await page
+    .locator('a[href^="/household/"]:not([href$="/profile"]):not([href$="/switch"])')
+    .first()
+    .click();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
+}
+
 /** Onboarding « Rejoindre un foyer » via le formulaire de saisie de code. */
 export async function joinViaCode(page: Page, code: string): Promise<void> {
   await page.goto("/");

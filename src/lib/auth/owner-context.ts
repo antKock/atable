@@ -16,6 +16,8 @@ export type OwnerMembership = {
 
 export type OwnerContext = {
   ownerId: string
+  /** NULL → alias auto dérivé de l'id (src/lib/alias.ts), jamais stocké. */
+  ownerName: string | null
   sessionId: string
   memberships: OwnerMembership[]
 }
@@ -26,6 +28,7 @@ type SessionRow = {
   owner_id: string | null
   is_revoked: boolean
   owners: {
+    name: string | null
     memberships: {
       household_id: string
       role: string
@@ -50,7 +53,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('device_sessions')
-    .select('owner_id, is_revoked, owners(memberships(household_id, role, households(is_demo)))')
+    .select('owner_id, is_revoked, owners(name, memberships(household_id, role, households(is_demo)))')
     .eq('id', sessionId)
     .maybeSingle()
 
@@ -67,7 +70,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     isDemo: m.households?.is_demo ?? false,
   }))
 
-  return { ownerId: row.owner_id, sessionId, memberships }
+  return { ownerId: row.owner_id, ownerName: row.owners.name, sessionId, memberships }
 }
 
 /**

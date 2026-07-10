@@ -22,6 +22,7 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     owner_id: "owner-1",
     is_revoked: false,
     owners: {
+      name: null,
       memberships: [
         { household_id: "household-1", role: "member", households: { is_demo: false } },
       ],
@@ -36,9 +37,21 @@ describe("resolveOwnerContext", () => {
     const ctx = await resolveOwnerContext("session-1");
     expect(ctx).toEqual({
       ownerId: "owner-1",
+      ownerName: null,
       sessionId: "session-1",
       memberships: [{ householdId: "household-1", role: "member", isDemo: false }],
     });
+  });
+
+  it("remonte le nom de l'owner quand il en a un", async () => {
+    supa.queueResult({
+      data: sessionRow({
+        owners: { name: "Anthony", memberships: [] },
+      }),
+      error: null,
+    });
+    const ctx = await resolveOwnerContext("session-1");
+    expect(ctx?.ownerName).toBe("Anthony");
   });
 
   it("mappe rôle guest et foyer démo", async () => {

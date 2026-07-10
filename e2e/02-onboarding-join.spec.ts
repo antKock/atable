@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
+import {
+  newVisitor,
+  createHouseholdViaUI,
+  openHouseholdDetail,
+  uniqueName,
+} from "./helpers/onboarding";
 
 // Caractérisation : un second appareil rejoint avec le code du foyer créé par
 // le premier. Saisie tolérante : minuscules + espaces au lieu du tiret.
@@ -19,8 +24,9 @@ test("onboarding rejoindre : le code (saisie tolérante) mène au même foyer", 
   await b.page.getByRole("button", { name: "Rejoindre", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 
-  // Même foyer : l'écran foyer de B affiche le code de A
-  await b.page.goto("/household");
+  // Même foyer : le détail du foyer de B affiche le code de A
+  // (sélecteur adapté au Lot 1 : le code vit dans le détail, plus dans le hub)
+  await openHouseholdDetail(b.page);
   await expect(b.page.getByText(code, { exact: true })).toBeVisible();
 
   await a.context.close();

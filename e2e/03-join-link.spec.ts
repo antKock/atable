@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
+import {
+  newVisitor,
+  createHouseholdViaUI,
+  openHouseholdDetail,
+  uniqueName,
+} from "./helpers/onboarding";
 
 // Caractérisation : /join/[code] → écran de confirmation → membre du foyer.
 test("rejoindre par lien : /join/[code] → confirmation → même foyer", async ({ browser }) => {
@@ -13,7 +18,8 @@ test("rejoindre par lien : /join/[code] → confirmation → même foyer", async
   await b.page.getByRole("button", { name: "Rejoindre", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 
-  await b.page.goto("/household");
+  // Sélecteur adapté au Lot 1 : le code vit dans le détail, plus dans le hub
+  await openHouseholdDetail(b.page);
   await expect(b.page.getByText(code, { exact: true })).toBeVisible();
 
   await a.context.close();

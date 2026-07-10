@@ -2,19 +2,25 @@ import { test, expect } from "@playwright/test";
 import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
 import { getHouseholdByJoinCode } from "./helpers/db";
 
-// Caractérisation écran foyer : rename inline, code + lien affichés,
-// quitter le foyer (session invalidée), supprimer (double confirmation).
-test("écran foyer : rename inline, code + lien, quitter → session invalidée", async ({
+// Caractérisation écran foyer — RÉÉCRITE au Lot 1 (hub « Toi + Tes foyers »
+// + détail de foyer) : le hub liste le foyer, le détail porte le rename
+// inline, le code + lien d'invitation, quitter et supprimer.
+
+test("hub → détail : rename inline, code + lien, quitter → session invalidée", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser);
-  const code = await createHouseholdViaUI(page, uniqueName("Foyer Avant"));
+  const name = uniqueName("Foyer Avant");
+  const code = await createHouseholdViaUI(page, name);
   const renamed = uniqueName("Foyer Renommé");
 
+  // Hub : titre + ligne du foyer → détail
   await page.goto("/household");
-  await expect(page.getByRole("heading", { name: "Mon foyer" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Foyer & profil" })).toBeVisible();
+  await page.getByRole("link", { name }).click();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
 
-  // Code + lien d'invitation affichés
+  // Code + lien d'invitation affichés (détail)
   await expect(page.getByText("Code du foyer")).toBeVisible();
   await expect(page.getByText(code, { exact: true })).toBeVisible();
   await expect(page.getByText("Lien d'invitation")).toBeVisible();
@@ -29,8 +35,8 @@ test("écran foyer : rename inline, code + lien, quitter → session invalidée"
   await page.reload();
   await expect(page.getByText(renamed)).toBeVisible();
 
-  // Quitter le foyer → retour landing, session invalidée (accès /home refusé)
-  await page.getByRole("button", { name: "Quitter le foyer" }).click();
+  // Quitter ce foyer → retour landing, session invalidée (accès /home refusé)
+  await page.getByRole("button", { name: "Quitter ce foyer" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Quitter le foyer ?")).toBeVisible();
   await dialog.getByRole("button", { name: "Quitter", exact: true }).click();
@@ -42,13 +48,17 @@ test("écran foyer : rename inline, code + lien, quitter → session invalidée"
   await context.close();
 });
 
-test("écran foyer : suppression avec double confirmation → foyer effacé", async ({
+test("détail : suppression avec double confirmation → foyer effacé", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser);
-  const code = await createHouseholdViaUI(page, uniqueName("Foyer À Supprimer"));
+  const name = uniqueName("Foyer À Supprimer");
+  const code = await createHouseholdViaUI(page, name);
 
   await page.goto("/household");
+  await page.getByRole("link", { name }).click();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
+
   await page.getByRole("button", { name: "Supprimer le foyer" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Supprimer le foyer ?")).toBeVisible();

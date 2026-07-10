@@ -2,6 +2,10 @@ import { z } from 'zod'
 
 export const HouseholdCreateSchema = z.string().min(1).max(50)
 
+// Nom d'owner (profil) : vide autorisé — il devient NULL en DB et l'affichage
+// retombe sur l'alias auto (src/lib/alias.ts).
+export const OwnerNameSchema = z.string().max(50)
+
 // Join codes display as WORD-NNNN but are entered forgivingly: any case, with
 // or without the dash, with stray spaces. Normalize to the canonical form
 // (UPPERCASE, single dash before the 4 digits) before validating — so the dash

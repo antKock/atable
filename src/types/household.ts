@@ -6,15 +6,6 @@ export type Household = {
   createdAt: string
 }
 
-export type DeviceSession = {
-  id: string
-  householdId: string
-  deviceName: string
-  lastSeenAt: string
-  createdAt: string
-  isRevoked: boolean
-}
-
 export type SessionPayload = {
   hid: string
   sid: string

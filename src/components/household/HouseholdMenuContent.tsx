@@ -1,105 +1,112 @@
-'use client'
-
-import { useState } from 'react'
+import Link from 'next/link'
+import { ChevronRight, Plus, ShieldCheck } from 'lucide-react'
 import { t } from '@/lib/i18n/fr'
-import CodeDisplay from './CodeDisplay'
-import InviteLinkDisplay from './InviteLinkDisplay'
-import InlineEditableField from './InlineEditableField'
-import DeviceList from './DeviceList'
-import LeaveHouseholdDialog from './LeaveHouseholdDialog'
+import type { MembershipRole } from '@/lib/auth/owner-context'
+import RolePill from './RolePill'
 
-type DeviceSummary = {
-  id: string
-  deviceName: string
-  lastSeenAt: string
-}
-
-type Household = {
+type HubHousehold = {
   id: string
   name: string
-  joinCode: string
+  role: MembershipRole
   isDemo: boolean
+  people: number
+  recipes: number
 }
 
 type Props = {
-  household: Household
-  sessionId: string
-  devices: DeviceSummary[]
+  ownerDisplayName: string
+  households: HubHousehold[]
+  isDemo: boolean
 }
 
-export default function HouseholdMenuContent({ household, sessionId, devices }: Props) {
-  const [name, setName] = useState(household.name)
-
-  const handleRenameSave = async (newName: string) => {
-    const previousName = name
-    setName(newName) // optimistic update
-    try {
-      const res = await fetch(`/api/households/${household.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
-      })
-      if (!res.ok) throw new Error(t.household.renameError)
-    } catch (err) {
-      setName(previousName) // revert on any failure
-      throw err instanceof Error ? err : new Error(t.household.renameError)
-    }
-  }
-
+// Hub « Toi + Tes foyers » (maquette 0.2). Mono-foyer à ce lot, mais l'UI est
+// construite pour N foyers et les rôles. En démo (stratégie C) : vue gelée —
+// pas de ligne « Toi », pas de « Créer ou rejoindre » ; la bannière démo reste
+// le chemin de conversion.
+export default function HouseholdMenuContent({ ownerDisplayName, households, isDemo }: Props) {
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <h1
         className="mb-6 text-foreground"
         style={{
-          fontFamily: "var(--font-fraunces)",
+          fontFamily: 'var(--font-fraunces)',
           fontVariationSettings: '"opsz" 144',
           fontSize: 32,
           fontWeight: 600,
-          letterSpacing: "-0.02em",
+          letterSpacing: '-0.02em',
         }}
       >
         {t.household.menu}
       </h1>
 
-      {/* Household name with inline rename */}
-      <div className="mb-6">
-        <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {t.household.nameLabel}
+      {!isDemo && (
+        <section className="mb-6">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t.household.sectionYou}
+          </p>
+          <div className="rounded-xl border border-border bg-surface">
+            <Link
+              href="/household/profile"
+              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+            >
+              <ShieldCheck size={18} className="shrink-0 text-accent" aria-hidden="true" />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[15px] font-medium text-foreground">
+                  {ownerDisplayName}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {t.household.profileSubtitle}
+                </span>
+              </span>
+              <ChevronRight size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+      )}
+
+      <section>
+        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          {t.household.sectionHouseholds}
         </p>
-        <div className="mt-1 flex items-center gap-2">
-          <InlineEditableField
-            value={name}
-            onSave={handleRenameSave}
-            readOnly={household.isDemo}
-          />
-          {household.isDemo && (
-            <span className="rounded-full bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">
-              {t.household.demoLabel}
-            </span>
+        <div className="divide-y divide-border rounded-xl border border-border bg-surface">
+          {households.map((household) => (
+            <Link
+              key={household.id}
+              href={`/household/${household.id}`}
+              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+            >
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-2">
+                  <span className="truncate text-[15px] font-medium text-foreground">
+                    {household.name}
+                  </span>
+                  {household.isDemo && (
+                    <span className="shrink-0 rounded-full bg-accent/10 px-2 py-0.5 text-xs font-medium text-accent">
+                      {t.household.demoLabel}
+                    </span>
+                  )}
+                </span>
+                <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <RolePill role={household.role} />
+                  {t.household.peopleCount(household.people)} · {t.household.recipeCount(household.recipes)}
+                </span>
+              </span>
+              <ChevronRight size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+            </Link>
+          ))}
+          {!isDemo && (
+            <Link
+              href="/household/switch"
+              className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
+            >
+              <Plus size={18} className="shrink-0 text-accent" aria-hidden="true" />
+              <span className="flex-1 text-[15px] font-semibold text-accent">
+                {t.household.createOrJoin}
+              </span>
+            </Link>
           )}
         </div>
-      </div>
-
-      {/* Join code */}
-      <div className="mb-3">
-        <CodeDisplay code={household.joinCode} />
-      </div>
-
-      {/* Invite link */}
-      <div className="mb-6">
-        <InviteLinkDisplay joinCode={household.joinCode} />
-      </div>
-
-      {/* Device list */}
-      <div className="mb-6">
-        <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {t.household.devices}
-        </p>
-        <DeviceList devices={devices} currentSessionId={sessionId} />
-      </div>
-
-      {/* Leave household */}
-      <LeaveHouseholdDialog householdId={household.id} />
+      </section>
     </div>
   )
 }
