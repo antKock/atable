@@ -17,13 +17,20 @@ type Props = {
   ownerDisplayName: string
   households: HubHousehold[]
   isDemo: boolean
+  // Sous-titre de la ligne « Toi » (#14) : accès sauvegardé ou à sauvegarder
+  hasRecoveryEmail: boolean
 }
 
 // Hub « Toi + Tes foyers » (maquette 0.2). Mono-foyer à ce lot, mais l'UI est
 // construite pour N foyers et les rôles. En démo (stratégie C) : vue gelée —
 // pas de ligne « Toi », pas de « Créer ou rejoindre » ; la bannière démo reste
 // le chemin de conversion.
-export default function HouseholdMenuContent({ ownerDisplayName, households, isDemo }: Props) {
+export default function HouseholdMenuContent({
+  ownerDisplayName,
+  households,
+  isDemo,
+  hasRecoveryEmail,
+}: Props) {
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <h1
@@ -55,7 +62,7 @@ export default function HouseholdMenuContent({ ownerDisplayName, households, isD
                   {ownerDisplayName}
                 </span>
                 <span className="block text-xs text-muted-foreground">
-                  {t.household.profileSubtitle}
+                  {hasRecoveryEmail ? t.household.accessSaved : t.household.accessToSave}
                 </span>
               </span>
               <ChevronRight size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />

@@ -359,7 +359,9 @@ export const t = {
     // Hub « Toi + Tes foyers » (chantier foyer, Lot 1)
     sectionYou: "Toi",
     sectionHouseholds: "Tes foyers",
-    profileSubtitle: "Nom & sauvegarde d'accès",
+    // Sous-titre de la ligne « Toi » selon owners.recovery_email (Lot 2)
+    accessSaved: "Accès sauvegardé",
+    accessToSave: "Sauvegarder mon accès",
     createOrJoin: "Créer ou rejoindre un foyer",
     membersSection: "Membres",
     youSuffix: "(toi)",
@@ -394,6 +396,80 @@ export const t = {
     saved: "Profil mis à jour",
     saveError: "Impossible d'enregistrer ton profil. Réessaie.",
     nameInvalid: "Nom invalide — 50 caractères maximum.",
+    // Email de secours (#14) — saisi ici, AUCUN envoi à la saisie
+    emailSection: "Retrouver ton accès",
+    emailLabel: "Email de secours",
+    emailPlaceholder: "ton@email.fr",
+    emailHint:
+      "Ton email sert uniquement à retrouver ton accès si tu changes ou perds ton appareil. On t'enverra un lien seulement à ce moment-là — pas de mot de passe, pas de compte.",
+    emailSaved: "Email enregistré",
+    emailCleared: "Email retiré",
+    emailInvalid: "Adresse email invalide.",
+  },
+
+  // Fusion d'owners (#14, §5) — déclenchée depuis le profil quand l'email est
+  // déjà utilisé par un autre profil
+  merge: {
+    title: "On réunit tes foyers",
+    body: (email: string) =>
+      `Cet email est déjà utilisé par un autre profil. Saisis le code qu'on vient d'envoyer à ${email} pour réunir les deux accès en une seule identité.`,
+    codeLabel: "Code reçu par email",
+    success: "Tes foyers sont réunis",
+    codeInvalid: "Code invalide ou expiré. Réessaie, ou renvoie un email.",
+    cancel: "Annuler",
+  },
+
+  // Récupération d'accès (#14) — fork onboarding + écrans de récup
+  recovery: {
+    // Écran « Rejoindre un foyer » (fork)
+    forkBody: "Avec le code d'invitation d'un proche, ou l'email que tu avais sauvegardé.",
+    forkCode: "J'ai un code d'invitation",
+    forkEmail: "Récupérer avec mon email",
+    // Saisie de l'email
+    title: "Récupérer mon accès",
+    body: "Entre l'email que tu avais sauvegardé. On t'envoie un lien pour retrouver ton foyer sur cet appareil.",
+    emailPlaceholder: "ton@email.fr",
+    send: "Envoyer le lien",
+    sendError: "Impossible d'envoyer le lien. Réessaie.",
+    rateLimited: "Trop de tentatives, réessaie plus tard",
+    // Écran « Vérifie tes mails » (anti-énumération : identique que l'email
+    // existe ou non)
+    checkTitle: "Vérifie tes mails",
+    checkBody: "On a envoyé un lien de connexion à cette adresse :",
+    checkHint: "Ouvre-le pour confirmer — c'est tout.",
+    codePrompt: "Tu lis tes mails sur un autre appareil ?",
+    codePromptHint: "Saisis plutôt le code reçu.",
+    codeLabel: "Code à 6 chiffres",
+    codeInvalid: "Code invalide ou expiré.",
+    resend: "Renvoyer",
+    resendIn: (seconds: number) =>
+      `Renvoyer · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
+    // Magic-link /recover/[token]
+    consuming: "Connexion en cours…",
+    consumeErrorTitle: "Ce lien n'est plus valide",
+    consumeErrorBody:
+      "Il a peut-être expiré (15 minutes) ou déjà servi. Refais une demande depuis « Rejoindre un foyer ».",
+    backToLanding: "Retour à l'accueil",
+  },
+
+  // Hints home (#14, décision n°9) : un hint principal à la fois
+  hints: {
+    share: {
+      title: "Cuisinez à plusieurs",
+      body: "Invite les gens de ton foyer : vos recettes se retrouvent au même endroit, en direct.",
+      cta: "Inviter quelqu'un",
+    },
+    email: {
+      title: "Sauvegarde ton accès",
+      body: "Ajoute un email et tu retrouveras ce foyer même si tu changes d'appareil. Pas de compte, pas de mot de passe.",
+      cta: "Ajouter un email",
+      dismissToast: "Tu retrouveras ça dans ton profil",
+    },
+    install: {
+      label: "Installe l'app Mijote",
+      cta: "Installer",
+    },
+    dismiss: "Fermer",
   },
 
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est
@@ -425,9 +501,7 @@ export const t = {
   // once they tap install — reveal the foyer code for session continuity into
   // the fresh app WebView (separate cookie jar from Safari).
   installBanner: {
-    title: "Garde Mijote sur ton iPhone",
-    body: "Installe l'app pour garder tes recettes à portée de main, même hors connexion.",
-    install: "Installer l'app",
+    // Step 1 (mini-strip) : voir hints.install
     // Step 2 — after tapping install
     codeTitle: "Encore une étape",
     codeBody: "Ouvre Mijote et rejoins ton foyer avec ce code :",

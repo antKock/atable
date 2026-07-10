@@ -11,6 +11,7 @@ function ownerContext(overrides: Partial<OwnerContext> = {}): OwnerContext {
   return {
     ownerId: "owner-1",
     ownerName: null,
+    recoveryEmail: null,
     sessionId: "session-1",
     memberships: [{ householdId: "household-1", role: "member", isDemo: false }],
     ...overrides,

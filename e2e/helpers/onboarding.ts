@@ -54,11 +54,36 @@ export async function openHouseholdDetail(page: Page): Promise<void> {
   await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
 }
 
-/** Onboarding « Rejoindre un foyer » via le formulaire de saisie de code. */
+/**
+ * Onboarding « Rejoindre un foyer » via le code d'invitation — passe par le
+ * fork du Lot 2 (code OU récupération email).
+ */
 export async function joinViaCode(page: Page, code: string): Promise<void> {
   await page.goto("/");
   await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByRole("button", { name: "J'ai un code d'invitation" }).click();
   await page.getByPlaceholder("OLIVE-4821").fill(code);
   await page.getByRole("button", { name: "Rejoindre", exact: true }).click();
   await page.waitForURL(/\/home/);
+}
+
+/** Pose l'email de secours depuis le profil (aucun envoi attendu). */
+export async function setRecoveryEmail(page: Page, email: string): Promise<void> {
+  await page.goto("/household/profile");
+  await page.getByLabel("Email de secours").fill(email);
+  await page.getByRole("button", { name: "Enregistrer" }).click();
+  await expect(page.getByText("Profil mis à jour")).toBeVisible();
+}
+
+/**
+ * Ouvre l'écran de récupération par email depuis la landing et envoie la
+ * demande — laisse la page sur « Vérifie tes mails ».
+ */
+export async function requestRecovery(page: Page, email: string): Promise<void> {
+  await page.goto("/");
+  await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByRole("button", { name: "Récupérer avec mon email" }).click();
+  await page.getByLabel("Email de secours").fill(email);
+  await page.getByRole("button", { name: "Envoyer le lien" }).click();
+  await expect(page.getByRole("heading", { name: "Vérifie tes mails" })).toBeVisible();
 }

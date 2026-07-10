@@ -15,6 +15,7 @@ export default async function ProfilePage() {
     <ProfileForm
       initialName={owner.ownerName ?? ''}
       alias={aliasForOwner(owner.ownerId)}
+      initialEmail={owner.recoveryEmail ?? ''}
     />
   )
 }

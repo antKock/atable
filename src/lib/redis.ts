@@ -56,3 +56,27 @@ export const shareRateLimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(60, '1 h'),
   prefix: 'rl:share:',
 })
+
+// Récupération d'accès (#14) : /api/recovery/request (et la collision → fusion
+// du profil) envoient un email — double plafond, par IP et par adresse ciblée.
+// Le renvoi UI est déjà limité à 60 s : ces limites ne gênent aucun usage
+// légitime. La limite par email s'applique que l'adresse existe OU NON
+// (anti-énumération : le 429 ne doit rien révéler).
+export const recoveryIpRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '1 h'),
+  prefix: 'rl:recip:',
+})
+export const recoveryEmailRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 h'),
+  prefix: 'rl:recmail:',
+})
+
+// Consommation (code 6 chiffres / magic-link) : le token brûle à 5 essais,
+// cette limite par IP couvre le reste (rotation d'emails, énumération).
+export const recoveryVerifyRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(30, '1 h'),
+  prefix: 'rl:recverif:',
+})

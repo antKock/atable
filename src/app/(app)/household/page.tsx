@@ -56,6 +56,7 @@ export default async function HouseholdPage() {
       ownerDisplayName={owner.ownerName ?? aliasForOwner(owner.ownerId)}
       households={households}
       isDemo={isDemoOwner(owner)}
+      hasRecoveryEmail={owner.recoveryEmail !== null}
     />
   )
 }

@@ -23,6 +23,7 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     is_revoked: false,
     owners: {
       name: null,
+      recovery_email: null,
       memberships: [
         { household_id: "household-1", role: "member", households: { is_demo: false } },
       ],
@@ -38,9 +39,21 @@ describe("resolveOwnerContext", () => {
     expect(ctx).toEqual({
       ownerId: "owner-1",
       ownerName: null,
+      recoveryEmail: null,
       sessionId: "session-1",
       memberships: [{ householdId: "household-1", role: "member", isDemo: false }],
     });
+  });
+
+  it("remonte l'email de secours quand il est posé", async () => {
+    supa.queueResult({
+      data: sessionRow({
+        owners: { name: null, recovery_email: "a@ex.fr", memberships: [] },
+      }),
+      error: null,
+    });
+    const ctx = await resolveOwnerContext("session-1");
+    expect(ctx?.recoveryEmail).toBe("a@ex.fr");
   });
 
   it("remonte le nom de l'owner quand il en a un", async () => {

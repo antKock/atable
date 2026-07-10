@@ -34,6 +34,7 @@ function asDemoSession() {
   vi.mocked(getOwnerContext).mockResolvedValueOnce({
     ownerId: "owner-test",
     ownerName: null,
+    recoveryEmail: null,
     sessionId: "session-1",
     memberships: [{ householdId: "household-1", role: "member", isDemo: true }],
   });

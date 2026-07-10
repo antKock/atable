@@ -14,6 +14,8 @@ const PUBLIC_ROUTES = ['/', '/support', '/api/households', '/api/version']
 const PUBLIC_PREFIXES = [
   '/join/',
   '/r/',
+  '/recover/',
+  '/api/recovery/',
   '/legal/',
   '/api/households/lookup',
   '/api/households/join',

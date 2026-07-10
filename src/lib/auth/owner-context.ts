@@ -18,6 +18,8 @@ export type OwnerContext = {
   ownerId: string
   /** NULL → alias auto dérivé de l'id (src/lib/alias.ts), jamais stocké. */
   ownerName: string | null
+  /** Email de secours (#14), déjà normalisé lowercase. NULL → pas posé. */
+  recoveryEmail: string | null
   sessionId: string
   memberships: OwnerMembership[]
 }
@@ -29,6 +31,7 @@ type SessionRow = {
   is_revoked: boolean
   owners: {
     name: string | null
+    recovery_email: string | null
     memberships: {
       household_id: string
       role: string
@@ -53,7 +56,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('device_sessions')
-    .select('owner_id, is_revoked, owners(name, memberships(household_id, role, households(is_demo)))')
+    .select('owner_id, is_revoked, owners(name, recovery_email, memberships(household_id, role, households(is_demo)))')
     .eq('id', sessionId)
     .maybeSingle()
 
@@ -70,7 +73,13 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     isDemo: m.households?.is_demo ?? false,
   }))
 
-  return { ownerId: row.owner_id, ownerName: row.owners.name, sessionId, memberships }
+  return {
+    ownerId: row.owner_id,
+    ownerName: row.owners.name,
+    recoveryEmail: row.owners.recovery_email ?? null,
+    sessionId,
+    memberships,
+  }
 }
 
 /**
