@@ -73,9 +73,9 @@ describe("resolveOwnerContext", () => {
     expect(await resolveOwnerContext("session-1")).toBeNull();
   });
 
-  it("erreur DB → null", async () => {
+  it("erreur DB → propage (ne pas confondre avec une session inconnue)", async () => {
     supa.queueResult({ data: null, error: { message: "boom" } });
-    expect(await resolveOwnerContext("session-1")).toBeNull();
+    await expect(resolveOwnerContext("session-1")).rejects.toThrow(/boom/);
   });
 
   it("owner sans membership → contexte avec liste vide", async () => {

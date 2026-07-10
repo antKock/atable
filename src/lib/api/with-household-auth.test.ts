@@ -53,6 +53,14 @@ describe("withHouseholdAuth (compat owner-context)", () => {
     expect(res.status).toBe(401);
   });
 
+  it("500 (pas 401) quand la résolution de session échoue", async () => {
+    mockGetOwnerContext.mockRejectedValue(new Error("db down"));
+    const res = await withHouseholdAuth(async () =>
+      NextResponse.json({ ok: true }),
+    )(request());
+    expect(res.status).toBe(500);
+  });
+
   it("500 générique quand le handler jette", async () => {
     const res = await withHouseholdAuth(async () => {
       throw new Error("secret db detail");

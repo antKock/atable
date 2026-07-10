@@ -15,11 +15,14 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
   // `context` optionnel dans la signature retournée : les tests appellent les
   // handlers sans params avec un seul argument ; Next passe toujours les deux.
   return async (request: Req, context?: C): Promise<Res | NextResponse> => {
-    const owner = await getOwnerContext();
-    if (!owner) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     try {
+      // Dans le try : une erreur de résolution (DB indisponible) doit donner
+      // un 500 capturé, PAS un 401 — un 401 déclencherait la purge du cookie
+      // côté client alors que la session est probablement valide.
+      const owner = await getOwnerContext();
+      if (!owner) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       return await handler(request, context as C, owner);
     } catch (err) {
       Sentry.captureException(err);

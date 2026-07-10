@@ -11,7 +11,9 @@ import { getOwnerContext } from '@/lib/auth/owner-context'
 export default async function AppShell({ children }: { children: React.ReactNode }) {
   // Le JWT a passé le middleware (signature) mais la session doit exister en
   // DB (owner résolu) : un sid inconnu/révoqué = déconnecté, cookie purgé.
-  // getOwnerContext est mémoïsé par requête — layout + page = une seule requête.
+  // Une erreur DB, elle, PROPAGE (error boundary) — jamais de purge de cookie
+  // sur incident transitoire. getOwnerContext est mémoïsé par requête —
+  // layout + page = une seule requête.
   const owner = await getOwnerContext()
   if (!owner) redirect('/api/auth/session/clear')
 

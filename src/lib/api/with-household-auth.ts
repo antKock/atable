@@ -24,12 +24,14 @@ export function withHouseholdAuth<Req extends Request, C, Res extends Response>(
   // `context` is optional in the returned signature so tests can call
   // param-less handlers with a single argument; Next always passes both.
   return async (request: Req, context?: C): Promise<Res | NextResponse> => {
-    const owner = await getOwnerContext();
-    const householdId = owner?.memberships[0]?.householdId;
-    if (!owner || !householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
     try {
+      // Dans le try : une erreur de résolution (DB indisponible) doit donner
+      // un 500 capturé, PAS un 401 (cf. withOwnerAuth).
+      const owner = await getOwnerContext();
+      const householdId = owner?.memberships[0]?.householdId;
+      if (!owner || !householdId) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
       return await handler(request, context as C, {
         householdId,
         sessionId: owner.sessionId,

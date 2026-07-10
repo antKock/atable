@@ -39,6 +39,12 @@ type SessionRow = {
  * est inconnue ou révoquée — l'appelant traite ce cas comme « déconnecté ».
  * (Une session sans owner_id ne peut naître que dans la fenêtre entre le
  * `db push` de la 027 et le déploiement du code : même traitement.)
+ *
+ * Une erreur de requête (Supabase indisponible…) est PROPAGÉE, jamais
+ * confondue avec une session inconnue : les guards API répondent 500 et les
+ * layouts affichent l'error boundary. Renvoyer null ici ferait purger le
+ * cookie de chaque visiteur à chaque incident DB — une panne transitoire ne
+ * doit pas détruire des sessions.
  */
 export async function resolveOwnerContext(sessionId: string): Promise<OwnerContext | null> {
   const supabase = createServerClient()
@@ -48,7 +54,10 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     .eq('id', sessionId)
     .maybeSingle()
 
-  if (error || !data) return null
+  if (error) {
+    throw new Error(`owner-context: résolution de session impossible (${error.message})`)
+  }
+  if (!data) return null
   const row = data as unknown as SessionRow
   if (row.is_revoked || !row.owner_id || !row.owners) return null
 

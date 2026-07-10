@@ -45,6 +45,12 @@ describe("withOwnerAuth", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
+  it("500 (pas 401) quand la résolution de session échoue — un 401 purgerait le cookie", async () => {
+    mockGetOwnerContext.mockRejectedValue(new Error("db down"));
+    const res = await withOwnerAuth(async () => NextResponse.json({ ok: true }))(request());
+    expect(res.status).toBe(500);
+  });
+
   it("500 générique quand le handler jette", async () => {
     const res = await withOwnerAuth(async () => {
       throw new Error("secret db detail");
