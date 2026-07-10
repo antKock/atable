@@ -363,14 +363,16 @@ export const t = {
     createOrJoin: "Créer ou rejoindre un foyer",
     membersSection: "Membres",
     youSuffix: "(toi)",
+    // Pas de `as Record<MembershipRole, string>` : l'assertion compilerait même
+    // avec une clé manquante. Le `as const` du fichier suffit à l'indexation.
     roles: {
       member: "membre",
       guest: "invité",
-    } as Record<"member" | "guest", string>,
+    },
     rolesCap: {
       member: "Membre",
       guest: "Invité",
-    } as Record<"member" | "guest", string>,
+    },
     peopleCount: (n: number) => `${n} personne${n > 1 ? "s" : ""}`,
     recipeCount: (n: number) => `${n} recette${n > 1 ? "s" : ""}`,
   },
@@ -391,6 +393,7 @@ export const t = {
       "Ton nom apparaît auprès des autres membres de tes foyers. Laisse vide et on te donne un alias par défaut.",
     saved: "Profil mis à jour",
     saveError: "Impossible d'enregistrer ton profil. Réessaie.",
+    nameInvalid: "Nom invalide — 50 caractères maximum.",
   },
 
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est

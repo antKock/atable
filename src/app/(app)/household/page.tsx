@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOwnerContext, type MembershipRole } from '@/lib/auth/owner-context'
+import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { aliasForOwner } from '@/lib/alias'
 import HouseholdMenuContent from '@/components/household/HouseholdMenuContent'
 
@@ -18,10 +19,17 @@ export default async function HouseholdPage() {
   if (!owner || owner.memberships.length === 0) redirect('/')
 
   const supabase = createServerClient()
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from('households')
     .select('id, name, memberships(count), recipes(count)')
     .in('id', owner.memberships.map((m) => m.householdId))
+
+  // Une panne DB transitoire ne doit JAMAIS se lire « tu n'as aucun foyer » :
+  // le hub proposerait « Créer ou rejoindre », qui change le foyer de
+  // l'appareil. On propage vers l'error boundary (doctrine du Lot 0).
+  if (error) {
+    throw new Error(`household hub: chargement des foyers impossible (${error.message})`)
+  }
 
   const rows = (data ?? []) as unknown as HouseholdRow[]
   const byId = new Map(rows.map((row) => [row.id, row]))
@@ -35,18 +43,19 @@ export default async function HouseholdPage() {
       name: row.name,
       role: membership.role as MembershipRole,
       isDemo: membership.isDemo,
-      people: row.memberships[0]?.count ?? 0,
+      // Le foyer démo accumule un owner par visiteur (purge cron à 30 j) :
+      // afficher ce compte fuiterait les autres visiteurs et n'a aucun sens.
+      // Monde gelé = vue solo (cf. la liste des membres du détail).
+      people: membership.isDemo ? 1 : (row.memberships[0]?.count ?? 0),
       recipes: row.recipes[0]?.count ?? 0,
     }]
   })
-
-  const isDemo = owner.memberships.some((m) => m.isDemo)
 
   return (
     <HouseholdMenuContent
       ownerDisplayName={owner.ownerName ?? aliasForOwner(owner.ownerId)}
       households={households}
-      isDemo={isDemo}
+      isDemo={isDemoOwner(owner)}
     />
   )
 }

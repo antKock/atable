@@ -3,39 +3,55 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
-import { revalidatePath } from 'next/cache'
-import { withHouseholdAuth } from '@/lib/api/with-household-auth'
-import { withOwnerAuth } from '@/lib/api/with-owner-auth'
+import {
+  withOwnerAuth,
+  requireMember,
+  assertNotDemoMutation,
+} from '@/lib/api/with-owner-auth'
+import { t } from '@/lib/i18n/fr'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
-export const PUT = withHouseholdAuth(
-  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const PUT = withOwnerAuth(
+  async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params
 
-    if (id !== householdId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Le foyer visé est celui de l'URL, validé contre les memberships de
+    // l'owner (et non memberships[0]) : le détail de foyer est déjà multi-foyer.
+    const forbidden = requireMember(owner, id)
+    if (forbidden) return forbidden
+
+    // Le foyer démo est du contenu partagé : le readOnly de l'UI ne protège
+    // rien côté serveur (leçon de l'incident 2026-06 — garde central).
+    const demo = assertNotDemoMutation(owner, id)
+    if (demo) return demo
+
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: t.household.renameError }, { status: 400 })
     }
 
-    const body = await request.json()
-    const parsed = HouseholdCreateSchema.safeParse(body.name)
+    const parsed = HouseholdCreateSchema.safeParse((body as { name?: unknown } | null)?.name)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid name' }, { status: 400 })
+      return NextResponse.json({ error: t.household.renameError }, { status: 400 })
     }
 
     const supabase = createServerClient()
     const { data, error } = await supabase
       .from('households')
       .update({ name: parsed.data })
-      .eq('id', householdId)
+      .eq('id', id)
       .select('id, name')
       .single()
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to rename' }, { status: 500 })
+      return NextResponse.json({ error: t.household.renameError }, { status: 500 })
     }
 
-    revalidatePath('/household')
+    // Pas de revalidatePath : /household et /household/[id] lisent headers()
+    // (getOwnerContext) — toujours dynamiques, rendues à chaque requête.
     return NextResponse.json({ id: data.id, name: data.name })
   },
 )
@@ -44,14 +60,15 @@ export const DELETE = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params
 
-    // Invariant mono-foyer (vrai jusqu'au Lot 4) : le foyer de la session est
-    // l'unique membership de l'owner.
-    const householdId = owner.memberships[0]?.householdId
+    // Le foyer visé est celui de l'URL, validé contre les memberships de
+    // l'owner. Quitter reste ouvert aux invités (Lot 3) : pas de requireMember.
+    const membership = owner.memberships.find((m) => m.householdId === id)
     const { ownerId, sessionId } = owner
 
-    if (!householdId || id !== householdId) {
+    if (!membership) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+    const householdId = id
 
     // Explicit intent — the UI exposes two distinct actions:
     //   leave  → this device leaves; the household and its data are kept
@@ -67,13 +84,9 @@ export const DELETE = withOwnerAuth(
       // The demo household is shared sample content, not a user's own data — a
       // demo session must not be able to destroy it for everyone (which has
       // happened: the whole demo was wiped this way). 'leave' still works, so
-      // Apple 5.1.1(v) — delete *your* data — stays satisfied.
-      const { data: hh } = await supabase
-        .from('households')
-        .select('is_demo')
-        .eq('id', householdId)
-        .single()
-      if (hh?.is_demo) {
+      // Apple 5.1.1(v) — delete *your* data — stays satisfied. `isDemo` vient du
+      // contexte owner (résolu en DB) : pas de requête supplémentaire.
+      if (membership.isDemo) {
         return NextResponse.json(
           { error: 'Le foyer démo ne peut pas être supprimé.' },
           { status: 403 },

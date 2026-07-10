@@ -103,13 +103,19 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
         </ul>
       </section>
 
-      {/* Blocs d'invitation (écran « Inviter » à 2 liens au Lot 3) */}
-      <div className="mb-3">
-        <CodeDisplay code={household.joinCode} />
-      </div>
-      <div className="mb-6">
-        <InviteLinkDisplay joinCode={household.joinCode} />
-      </div>
+      {/* Blocs d'invitation (écran « Inviter » à 2 liens au Lot 3). Jamais en
+          démo : le monde est gelé et POST /api/households/join exclut de toute
+          façon les foyers démo — l'affordance ne mènerait nulle part. */}
+      {!household.isDemo && (
+        <>
+          <div className="mb-3">
+            <CodeDisplay code={household.joinCode} />
+          </div>
+          <div className="mb-6">
+            <InviteLinkDisplay joinCode={household.joinCode} />
+          </div>
+        </>
+      )}
 
       {/* Quitter / supprimer (double confirmation, oblig. App Store) */}
       <LeaveHouseholdDialog householdId={household.id} />

@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { DELETE, PUT } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
+import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
@@ -27,6 +28,16 @@ beforeEach(() => {
 });
 
 const ctx = (id = "household-1") => ({ params: Promise.resolve({ id }) });
+
+/** Session démo : l'unique membership porte isDemo (résolu en DB par le contexte). */
+function asDemoSession() {
+  vi.mocked(getOwnerContext).mockResolvedValueOnce({
+    ownerId: "owner-test",
+    ownerName: null,
+    sessionId: "session-1",
+    memberships: [{ householdId: "household-1", role: "member", isDemo: true }],
+  });
+}
 
 function deleteRequest(action?: string): NextRequest {
   const url = action
@@ -63,11 +74,9 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
   });
 
   it("action=delete purges Storage then deletes the household (recipes par cascade)", async () => {
-    // 1st result = the is_demo guard SELECT (non-demo), then the Storage
-    // lookup SELECT on recipes, then the household delete (DB cascade covers
-    // recipes/memberships/sessions since migration 027).
+    // Le garde démo lit owner.memberships (pas de SELECT is_demo) : reste le
+    // SELECT Storage sur recipes, puis le delete du foyer (cascade 027).
     supa.queueResults([
-      { data: { is_demo: false }, error: null },
       { data: [], error: null },
       { error: null },
     ]);
@@ -84,17 +93,11 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
   });
 
   it("refuses to delete the demo household with 403", async () => {
-    supa.queueResult({ data: { is_demo: true }, error: null });
+    asDemoSession();
     const res = await DELETE(deleteRequest("delete"), ctx());
     expect(res.status).toBe(403);
-    // The household row must NOT be deleted.
-    expect(
-      supa.calls.some(
-        (c) =>
-          c.table === "households" &&
-          c.ops.some((o) => o.method === "delete"),
-      ),
-    ).toBe(false);
+    // Aucune requête : le garde lit le contexte owner, pas la DB.
+    expect(supa.calls).toHaveLength(0);
   });
 
   it("clears the session cookie", async () => {
@@ -138,5 +141,24 @@ describe("PUT /api/households/[id]", () => {
   it("returns 403 when the id does not match the session household", async () => {
     const res = await PUT(putRequest({ name: "X" }), ctx("someone-else"));
     expect(res.status).toBe(403);
+  });
+
+  // Le readOnly de l'UI ne protège rien : le foyer démo est du contenu partagé
+  // (incident 2026-06). Le garde central doit refuser le rename côté serveur.
+  it("refuses to rename the demo household with 403, sans écriture DB", async () => {
+    asDemoSession();
+    const res = await PUT(putRequest({ name: "Démo vandalisée" }), ctx());
+    expect(res.status).toBe(403);
+    expect(supa.calls).toHaveLength(0);
+  });
+
+  it("returns 400 (not 500) on a malformed body", async () => {
+    const req = new NextRequest("https://test.local/api/households/household-1", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: "{ pas du json",
+    });
+    const res = await PUT(req, ctx());
+    expect(res.status).toBe(400);
   });
 });

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor } from "./helpers/onboarding";
+import { newVisitor, openHouseholdDetail } from "./helpers/onboarding";
 import { db } from "./helpers/db";
 import { loadTestEnv } from "./helpers/env";
 
@@ -23,13 +23,17 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   // Lot 1 : hub + détail) ; le détail est en lecture seule (pas de rename)
   await page.goto("/household");
   await expect(page.getByText("Démo", { exact: true })).toBeVisible();
-  await page
-    .locator('a[href^="/household/"]:not([href$="/profile"]):not([href$="/switch"])')
-    .first()
-    .click();
-  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
+  await openHouseholdDetail(page);
   await expect(page.getByText("Démo", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Renommer" })).toHaveCount(0);
+
+  // Le rename est refusé côté SERVEUR, pas seulement masqué dans l'UI
+  // (garde central assertNotDemoMutation — leçon de l'incident 2026-06)
+  const householdId = new URL(page.url()).pathname.split("/").pop();
+  const rename = await context.request.put(`/api/households/${householdId}`, {
+    data: { name: "Démo vandalisée" },
+  });
+  expect(rename.status()).toBe(403);
 
   // Suppression refusée côté serveur (403) → toast d'erreur, foyer intact
   await page.getByRole("button", { name: "Supprimer le foyer" }).click();

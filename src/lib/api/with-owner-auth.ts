@@ -67,3 +67,20 @@ export function assertNotDemoMutation(
   }
   return null;
 }
+
+/**
+ * Un owner « démo » = au moins un membership sur le foyer démo (stratégie C).
+ * Prédicat owner-level unique, partagé par l'UI (hub gelé, profil masqué) et
+ * les gardes de mutation owner-level (profil), pour ne pas réécrire la règle à
+ * chaque site. `assertNotDemoOwner` en est la variante « garde de route » 403.
+ */
+export function isDemoOwner(owner: OwnerContext): boolean {
+  return owner.memberships.some((m) => m.isDemo);
+}
+
+export function assertNotDemoOwner(owner: OwnerContext): NextResponse | null {
+  if (isDemoOwner(owner)) {
+    return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
+  }
+  return null;
+}

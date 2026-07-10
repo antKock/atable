@@ -117,6 +117,19 @@ test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403",
   await expect(page.getByText("Créer ou rejoindre un foyer")).toHaveCount(0);
   await expect(page.getByText("Démo", { exact: true })).toBeVisible();
 
+  // Vue solo : le détail démo ne liste jamais les autres visiteurs (chaque
+  // session démo crée son propre owner+membership, purgés à 30 j par le cron)
+  const other = await newVisitor(browser);
+  await other.page.goto("/");
+  await other.page.getByRole("button", { name: "Essayer l'app" }).click();
+  await other.page.waitForURL(/\/home/);
+  await openHouseholdDetail(page);
+  await expect(
+    page.getByRole("list", { name: "Membres" }).getByRole("listitem"),
+  ).toHaveCount(1);
+  await expect(page.getByText("Membre · 1 personne")).toBeVisible();
+  await other.context.close();
+
   // Profil inaccessible (l'écran n'existe pas pour une session démo).
   // Le statut HTTP peut rester 200 (notFound() streamé après l'envoi du
   // shell) : on asserte sur le contenu — page 404, aucun formulaire profil.
@@ -127,6 +140,10 @@ test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403",
   // Mutation profil refusée par le guard serveur central (stratégie C)
   const api = await context.request.put("/api/owner", { data: { name: "Intrus" } });
   expect(api.status()).toBe(403);
+
+  // L'écran « Créer ou rejoindre » est coupé aussi par URL directe
+  await page.goto("/household/switch");
+  await expect(page.getByText("Cette page n'existe pas.")).toBeVisible();
 
   await context.close();
 });
