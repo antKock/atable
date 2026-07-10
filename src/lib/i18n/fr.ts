@@ -402,8 +402,6 @@ export const t = {
     emailPlaceholder: "ton@email.fr",
     emailHint:
       "Ton email sert uniquement à retrouver ton accès si tu changes ou perds ton appareil. On t'enverra un lien seulement à ce moment-là — pas de mot de passe, pas de compte.",
-    emailSaved: "Email enregistré",
-    emailCleared: "Email retiré",
     emailInvalid: "Adresse email invalide.",
   },
 
@@ -416,7 +414,6 @@ export const t = {
     codeLabel: "Code reçu par email",
     success: "Tes foyers sont réunis",
     codeInvalid: "Code invalide ou expiré. Réessaie, ou renvoie un email.",
-    cancel: "Annuler",
   },
 
   // Récupération d'accès (#14) — fork onboarding + écrans de récup

@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { headers } from 'next/headers'
 import { withOwnerAuth, assertNotDemoOwner } from '@/lib/api/with-owner-auth'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
+import { recoveryVerifyRateLimit } from '@/lib/redis'
 import {
   findOwnerByEmail,
   verifyLoginCode,
@@ -31,6 +33,17 @@ export const POST = withOwnerAuth(
     const parsedEmail = RecoveryEmailSchema.safeParse(rawEmail)
     if (!parsedEmail.success || typeof code !== 'string' || !CODE_REGEX.test(code)) {
       return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 })
+    }
+
+    // Sans plafond ici, un owner (trivial à obtenir) qui connaît l'email d'une
+    // victime pourrait bruteforcer le code de fusion et absorber ses foyers —
+    // le compteur d'essais du token ne suffit pas seul. Même limite que
+    // /api/recovery/verify.
+    const hdrs = await headers()
+    const ip = (hdrs.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const { success } = await recoveryVerifyRateLimit.limit(ip)
+    if (!success) {
+      return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })
     }
 
     // Message générique quel que soit l'échec (cible disparue, code faux,

@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { PUT } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
-import { recoveryEmailRateLimit } from "@/lib/redis";
+import { recoveryEmailRateLimit, recoveryIpRateLimit } from "@/lib/redis";
 import { createLoginToken } from "@/lib/queries/recovery";
 import { sendRecoveryEmail } from "@/lib/email/send";
 import { t } from "@/lib/i18n/fr";
@@ -16,6 +16,10 @@ vi.mock("@/lib/auth/owner-context", async (importOriginal) => ({
 }));
 vi.mock("@/lib/redis", () => ({
   recoveryEmailRateLimit: { limit: vi.fn(async () => ({ success: true })) },
+  recoveryIpRateLimit: { limit: vi.fn(async () => ({ success: true })) },
+}));
+vi.mock("next/headers", () => ({
+  headers: vi.fn(async () => new Headers({ "x-forwarded-for": "10.0.0.1" })),
 }));
 vi.mock("@/lib/queries/recovery", () => ({
   createLoginToken: vi.fn(async () => ({ token: "TOKENxyz", code: "482913" })),
@@ -30,6 +34,9 @@ beforeEach(() => {
   vi.mocked(createServerClient).mockReturnValue(supa.client);
   vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue(
     { success: true } as Awaited<ReturnType<typeof recoveryEmailRateLimit.limit>>,
+  );
+  vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue(
+    { success: true } as Awaited<ReturnType<typeof recoveryIpRateLimit.limit>>,
   );
 });
 
@@ -140,6 +147,17 @@ describe("PUT /api/owner/email", () => {
     const res = await PUT(request({ email: "deja@pris.fr" }));
     expect(res.status).toBe(429);
     expect(sendRecoveryEmail).not.toHaveBeenCalled();
+  });
+
+  it("plafond IP atteint → 429 avant le lookup (anti-énumération de masse)", async () => {
+    vi.mocked(getOwnerContext).mockResolvedValue(owner());
+    vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue(
+      { success: false } as Awaited<ReturnType<typeof recoveryIpRateLimit.limit>>,
+    );
+    const res = await PUT(request({ email: "cible@ex.fr" }));
+    expect(res.status).toBe(429);
+    // Rien n'est révélé : pas même un lookup d'existence
+    expect(supa.calls).toHaveLength(0);
   });
 
   it("400 sur un format invalide", async () => {

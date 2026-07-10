@@ -47,6 +47,14 @@ CREATE INDEX ON login_tokens(owner_id);
 RLS sans policy. Secrets **hashés au repos** (le bearer en clair ne vit que dans
 l'email). Générateurs dans `src/lib/auth/` à côté de `share-token.ts`.
 
+> **Livré (revue post-implémentation)** : la 028 porte aussi la fonction SQL
+> `merge_owners` (fusion atomique — PostgREST n'a pas de transaction
+> multi-requêtes), et une migration **`029_recovery_verify_atomic.sql`** ajoute
+> `verify_login_code` : comparaison + incrément d'`attempts` + claim single-use
+> sous un même `SELECT … FOR UPDATE`. Un incrément applicatif (lire puis écrire
+> `attempts+1`) était contournable par rafale concurrente — le plafond de 5
+> essais ne tenait pas, rendant le code 6 chiffres brute-forçable.
+
 ## 2. Profil : champ email (maquette 0.3)
 
 - Sous le nom, section « Retrouver ton accès » : input email + copy exacte du
@@ -121,6 +129,11 @@ l'email). Générateurs dans `src/lib/auth/` à côté de `share-token.ts`.
     ne change pas — sa session est repointée).
 - Fonction pure `mergePlan(source, target)` (calcul des unions/décisions) séparée de
   l'exécution → unit-testable à fond.
+- **Rate-limits (ajout de revue)** : la route de vérification du code de fusion
+  est plafonnée par IP comme `/api/recovery/verify` — sans quoi un owner
+  connaissant l'email d'une victime bruteforce le code et **absorbe ses
+  foyers**. `PUT /api/owner/email` est plafonné par IP dès avant le lookup : la
+  décision n°6 assume la fuite d'existence, pas son énumération scriptée.
 
 ## Tests
 

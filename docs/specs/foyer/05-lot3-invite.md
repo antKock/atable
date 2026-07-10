@@ -12,9 +12,10 @@ stables par rôle, la gestion des membres (changer de rôle, retirer), et surtou
 l'**enforcement lecture seule sur toutes les écritures** — 100 % applicatif (RLS
 sans policies), donc c'est LE sujet de test du lot.
 
-## 1. Migration `029_guest_join_code.sql`
+## 1. Migration `030_guest_join_code.sql`
 
-> (Corrigé 2026-07-10 : `028` est prise par `028_login_tokens.sql` du Lot 2.)
+> (Corrigé 2026-07-10 : le Lot 2 a pris `028_login_tokens.sql` puis
+> `029_recovery_verify_atomic.sql` — durcissement issu de la revue.)
 
 ```sql
 ALTER TABLE households ADD COLUMN guest_join_code TEXT UNIQUE;

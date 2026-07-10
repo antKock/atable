@@ -91,6 +91,12 @@ export async function consumeMagicToken(token: string): Promise<ConsumedToken | 
  * Vérifie un code 6 chiffres contre le token actif de l'owner. Compteur
  * d'essais : au 5ᵉ raté le token est brûlé (attempts saturé — verify ET
  * consume le refusent ensuite). Succès = claim single-use, comme le lien.
+ *
+ * Tout se joue dans la fonction SQL `verify_login_code` (migration 029) :
+ * comparaison, incrément et claim sous un même `SELECT … FOR UPDATE`. Un
+ * read-modify-write applicatif (lire attempts, puis écrire attempts+1) serait
+ * contournable par rafale concurrente — N essais liraient la même valeur et
+ * le plafond de 5 ne tiendrait pas.
  */
 export async function verifyLoginCode(
   ownerId: string,
@@ -98,38 +104,13 @@ export async function verifyLoginCode(
   code: string,
 ): Promise<boolean> {
   const supabase = createServerClient();
-  const { data: row, error } = await supabase
-    .from("login_tokens")
-    .select("id, code_hash, attempts")
-    .eq("owner_id", ownerId)
-    .eq("purpose", purpose)
-    .is("used_at", null)
-    .gt("expires_at", new Date().toISOString())
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw new Error(`recovery: lecture du token impossible (${error.message})`);
-  if (!row || row.attempts >= LOGIN_CODE_MAX_ATTEMPTS) return false;
-
-  const codeHash = await sha256Hex(code);
-  if (codeHash !== row.code_hash) {
-    const { error: bumpError } = await supabase
-      .from("login_tokens")
-      .update({ attempts: row.attempts + 1 })
-      .eq("id", row.id);
-    if (bumpError) throw new Error(`recovery: incrément des essais impossible (${bumpError.message})`);
-    return false;
-  }
-
-  const { data: claimed, error: claimError } = await supabase
-    .from("login_tokens")
-    .update({ used_at: new Date().toISOString() })
-    .eq("id", row.id)
-    .is("used_at", null)
-    .select("id")
-    .maybeSingle();
-  if (claimError) throw new Error(`recovery: claim du token impossible (${claimError.message})`);
-  return Boolean(claimed);
+  const { data, error } = await supabase.rpc("verify_login_code", {
+    p_owner_id: ownerId,
+    p_purpose: purpose,
+    p_code_hash: await sha256Hex(code),
+  });
+  if (error) throw new Error(`recovery: vérification du code impossible (${error.message})`);
+  return data === "ok";
 }
 
 /**

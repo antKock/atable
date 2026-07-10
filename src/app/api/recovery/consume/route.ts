@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
-import { recoveryVerifyRateLimit } from '@/lib/redis'
+import { redis, recoveryVerifyRateLimit } from '@/lib/redis'
 import {
   consumeMagicToken,
   createOwnerSession,
@@ -50,9 +50,13 @@ export async function POST(request: NextRequest) {
     }
 
     if (consumed.purpose === 'merge') {
+      // Route publique : le middleware ne passe pas ici, donc ni x-session-id
+      // ni le check de révocation Redis. On refait les deux à la main — une
+      // session révoquée ne doit pas servir de source de fusion.
       const raw = request.cookies.get('atable_session')?.value
       const payload = raw ? await verifySession(raw) : null
-      const source = payload ? await resolveOwnerContext(payload.sid) : null
+      const revoked = payload ? await redis.get(`revoked:${payload.sid}`) : null
+      const source = payload && !revoked ? await resolveOwnerContext(payload.sid) : null
       const sourceIsDemo = source?.memberships.some((m) => m.isDemo) ?? false
       if (source && source.ownerId !== consumed.ownerId && !sourceIsDemo) {
         await executeMergeOwners(source.ownerId, consumed.ownerId)

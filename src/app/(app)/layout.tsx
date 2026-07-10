@@ -34,7 +34,10 @@ export default async function AppShell({ children }: { children: React.ReactNode
   const cookieStore = await cookies()
   let installCode: string | null = null
   let mainHint: 'share' | 'email' | null = null
-  let shareHref = '/household'
+  // CTA du hint partage : le détail du (premier) foyer, où vivent code et lien.
+  const shareHref = owner.memberships[0]
+    ? `/household/${owner.memberships[0].householdId}`
+    : '/household'
 
   if (!isDemo) {
     // iOS web visitors (not the native shell) get a one-time, dismissible
@@ -71,23 +74,22 @@ export default async function AppShell({ children }: { children: React.ReactNode
           mainHint = emailEligible ? 'email' : null
         }
       }
-      shareHref = `/household/${owner.memberships[0].householdId}`
     }
   }
-
-  const hasHints = isDemo || installCode !== null || mainHint !== null
 
   return (
     <>
       <DeviceTokenProvider />
+      {/* Hors du <main> et du conteneur centré : sticky pleine largeur, et
+          c'est elle qui dégage le notch quand elle est là. */}
+      {isDemo && <DemoBanner />}
       <div className="mx-auto max-w-[1100px]">
         <main
           className="min-h-screen pb-28"
-          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          style={isDemo ? undefined : { paddingTop: 'env(safe-area-inset-top)' }}
         >
-          {hasHints && (
+          {(installCode || mainHint) && (
             <div className="flex flex-col gap-2.5 px-4 pt-3">
-              {isDemo && <DemoBanner />}
               {installCode && <InstallAppBanner code={installCode} />}
               {mainHint === 'share' && (
                 <HintCard

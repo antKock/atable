@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { withOwnerAuth, assertNotDemoOwner } from '@/lib/api/with-owner-auth'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
-import { recoveryEmailRateLimit } from '@/lib/redis'
+import { recoveryEmailRateLimit, recoveryIpRateLimit } from '@/lib/redis'
 import { createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
 import { t } from '@/lib/i18n/fr'
@@ -47,6 +48,17 @@ export const PUT = withOwnerAuth(
     const email = parsed.data
     if (email === owner.recoveryEmail) {
       return NextResponse.json({ email })
+    }
+
+    // La décision n°6 assume la fuite d'existence côté profil (email pris →
+    // { merge: true }), mais pas son exploitation en masse : sans plafond, un
+    // owner authentifié scripterait l'énumération d'un carnet d'adresses. Posé
+    // AVANT le lookup, donc identique sur les deux issues.
+    const hdrs = await headers()
+    const ip = (hdrs.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const { success: ipAllowed } = await recoveryIpRateLimit.limit(ip)
+    if (!ipAllowed) {
+      return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })
     }
 
     const supabase = createServerClient()

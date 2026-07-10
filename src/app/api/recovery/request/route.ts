@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
@@ -44,10 +44,18 @@ export async function POST(request: NextRequest) {
       const owner = await findOwnerByEmail(email)
       if (owner) {
         const { token, code } = await createLoginToken(owner.id, 'recovery')
-        await sendRecoveryEmail(email, {
-          magicLink: `${request.nextUrl.origin}/recover/${token}`,
-          code,
-          kind: 'recovery',
+        const magicLink = `${request.nextUrl.origin}/recover/${token}`
+        // L'appel HTTP Resend part APRÈS la réponse (after) : c'est le plus
+        // gros différentiel de timing entre email connu et inconnu — le
+        // sortir du chemin de réponse resserre l'anti-énumération. Le token,
+        // lui, reste créé en synchrone (les E2E le lisent dès le 200).
+        after(async () => {
+          try {
+            await sendRecoveryEmail(email, { magicLink, code, kind: 'recovery' })
+          } catch (err) {
+            Sentry.captureException(err)
+            console.error('[recovery/request] envoi email échoué (post-réponse) :', err)
+          }
         })
       }
     } catch (err) {

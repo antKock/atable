@@ -94,11 +94,30 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Step 4 (#14, Lot 2) : purge des login_tokens morts — consommés ou
+    // expirés depuis plus de 24 h (TTL réel : 15 min ; la marge laisse de quoi
+    // inspecter un incident). Sans purge, la table croît indéfiniment : rien
+    // d'autre ne supprime les tokens des owners réels.
+    let purgedTokens = 0
+    const tokenCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count: tokensCount, error: tokensError } = await supabase
+      .from('login_tokens')
+      .delete({ count: 'exact' })
+      .lt('expires_at', tokenCutoff)
+    if (tokensError) {
+      Sentry.captureException(
+        new Error(`[cron/demo-reset] login_tokens purge failed: ${tokensError.message}`)
+      )
+    } else {
+      purgedTokens = tokensCount ?? 0
+    }
+
     return NextResponse.json({
       reset: true,
       deleted: deleted ?? 0,
       restored: 0,
       purgedOwners,
+      purgedTokens,
     })
   } catch (err) {
     Sentry.captureException(err)

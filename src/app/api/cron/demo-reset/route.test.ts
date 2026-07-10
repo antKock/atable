@@ -43,6 +43,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
       deleted: 3,
       restored: 0,
       purgedOwners: 0,
+      purgedTokens: 0,
     });
   });
 

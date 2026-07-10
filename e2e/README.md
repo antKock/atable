@@ -41,6 +41,11 @@ ré-applique les migrations sur une base vidée avant de re-seeder.
 - **Flows IA exclus** (import URL/photo/voix) : clé OpenAI factice — la
   création de recette testée est la saisie manuelle ; l'enrichissement échoue
   en tâche de fond (log `invalid_api_key` attendu), sans impact UI.
+- **Aucun email réel** : `RESEND_API_KEY` épinglée à vide → le transport de
+  `src/lib/email/send.ts` est no-op. Les secrets de récup (#14) étant hashés
+  en DB, les tests les REMPLACENT par des valeurs connues
+  (`overrideLatestLoginToken` de `e2e/helpers/db.ts`) pour jouer les flows
+  code/magic-link à travers la vraie logique serveur.
 - **Un « visiteur » = un contexte navigateur isolé** avec une IP simulée unique
   (header `x-forwarded-for`) pour ne pas partager les rate-limits par IP
   (`e2e/helpers/onboarding.ts`).

@@ -9,7 +9,6 @@
 // same read-aloud-safe property.
 export const UNAMBIGUOUS_ALPHABET =
   "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
-const ALPHABET = UNAMBIGUOUS_ALPHABET;
 const TOKEN_LENGTH = 8;
 
 export function generateShareToken(): string {
@@ -17,7 +16,7 @@ export function generateShareToken(): string {
   crypto.getRandomValues(bytes);
   let token = "";
   for (let i = 0; i < TOKEN_LENGTH; i++) {
-    token += ALPHABET[bytes[i] % ALPHABET.length];
+    token += UNAMBIGUOUS_ALPHABET[bytes[i] % UNAMBIGUOUS_ALPHABET.length];
   }
   return token;
 }
