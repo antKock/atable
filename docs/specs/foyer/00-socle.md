@@ -237,6 +237,16 @@ jamais. Le tri restera manuel, via le retrait de membre du Lot 3.
   garde une FK `ON DELETE CASCADE` (colonne vestigiale) : avant de **supprimer**
   un foyer alors qu'il en reste d'autres, on **repointe** la session courante
   vers un foyer survivant pour éviter que la cascade ne détruise la session.
+- **Dernier membre qui quitte = suppression du foyer** (arbitrage 2026-07, revue
+  sécurité) : un `action=leave` par le dernier membre réel détruit le foyer
+  (cascade + purge Storage), peu importe les invités restants — plus jamais
+  d'orphelin. UI : « Quitter » masqué pour le dernier membre (seule « Supprimer »
+  reste). Un invité, ou un membre non-dernier, ne fait que retirer son membership.
+- **Gardes de suppression durcis (revue sécurité, avant prod)** : `action=delete`
+  exige désormais `requireMember` (un invité ne peut plus détruire un foyer) ; la
+  page détail ne sérialise plus le `join_code` membre vers un invité (escalade
+  invité→membre via re-join fermée) ; purge Storage corrigée (regex `[^?]+`, le
+  cache-buster `?v=` faisait un `remove()` no-op → images orphelines).
   *Limite connue non traitée* : si un AUTRE appareil du même owner avait sa
   session pointée vers le foyer supprimé, il est déconnecté (cascade) — cas
   extrême, non couvert (une nullabilité de la colonne serait la vraie fin de
