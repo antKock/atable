@@ -24,9 +24,11 @@ export default async function JoinPage({ params }: Props) {
   let invite
   try {
     invite = await resolveInviteCode(supabase, code)
-  } catch {
-    // Une panne DB ne doit pas afficher « lien invalide » : error boundary.
-    throw new Error('join page: résolution du code impossible')
+  } catch (err) {
+    // Une panne DB ne doit pas afficher « lien invalide » : error boundary, en
+    // conservant le message d'origine pour le diagnostic (cf. household/[id]).
+    const message = err instanceof Error ? err.message : String(err)
+    throw new Error(`join page: résolution du code impossible (${message})`)
   }
 
   if (!invite) {

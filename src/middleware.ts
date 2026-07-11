@@ -85,6 +85,9 @@ export async function middleware(request: NextRequest) {
     const requestHeaders = new Headers(request.headers)
     requestHeaders.set('x-household-id', payload.hid)
     requestHeaders.set('x-session-id', payload.sid)
+    // Chemin courant exposé aux Server Components (le layout ne le connaît pas
+    // autrement) : les hints ne s'affichent que sur la vue principale /home.
+    requestHeaders.set('x-pathname', pathname)
     const response = NextResponse.next({ request: { headers: requestHeaders } })
 
     // Sliding renewal: re-sign tokens older than the renewal window so active

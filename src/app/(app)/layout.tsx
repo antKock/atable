@@ -45,7 +45,13 @@ export default async function AppShell({ children }: { children: React.ReactNode
     ? `/household/${owner.memberships[0].householdId}`
     : '/household'
 
-  if (!isDemo) {
+  // Les hints (install + partage/email) ne s'affichent QUE sur la vue
+  // principale /home — pas sur les autres écrans (biblio, foyer, fiche…). Cela
+  // évite notamment un doublon d'affordance « Inviter quelqu'un » sur le détail
+  // de foyer (le CTA du hint partage y côtoierait l'entrée d'invitation).
+  const isMainView = hdrs.get('x-pathname') === '/home'
+
+  if (!isDemo && isMainView) {
     // iOS web visitors (not the native shell) get a one-time, dismissible
     // nudge to install the app. The foyer code travels with it so they can
     // re-join inside the app's WebView (separate cookie jar from Safari).
