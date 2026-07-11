@@ -305,6 +305,8 @@ export const t = {
     confirm: 'Rejoindre',
     notFound: 'Ce lien ne correspond à aucun foyer',
     backToLanding: "Retour à l'accueil",
+    // Code invité (Lot 3) : la confirmation dit que l'accès est en lecture seule
+    guestNote: 'En lecture seule, en direct',
   },
 
   // Join household
@@ -364,7 +366,33 @@ export const t = {
     accessToSave: "Sauvegarder mon accès",
     createOrJoin: "Créer ou rejoindre un foyer",
     membersSection: "Membres",
+    guestsSection: "Invités",
     youSuffix: "(toi)",
+    // Entrée « Inviter » depuis le détail du foyer (Lot 3, membres only)
+    inviteEntry: "Inviter quelqu'un",
+    // Bandeau lecture seule affiché à un invité sur le détail d'un foyer (Lot 3)
+    guestReadOnly: "Tu peux consulter les recettes en direct, mais pas les modifier.",
+    // Écran plein « Inviter » à deux liens (Lot 3, maquette 2.1)
+    invite: {
+      title: "Inviter quelqu'un",
+      memberBlockTitle: "Comme membre",
+      memberBlockDesc: "Consulte et modifie les recettes.",
+      guestBlockTitle: "Comme invité",
+      guestBlockDesc: "Lecture seule, en direct.",
+      note: "Pour retirer quelqu'un plus tard, va dans Membres — pas besoin de changer le lien.",
+    },
+    // Dialog d'action sur un membre (Lot 3, maquette 2.2 / MemberActionScreen)
+    memberAction: {
+      subtitleMember: "Membre · consulte et modifie",
+      subtitleGuest: "Invité · lecture seule",
+      toGuest: "Passer en invité (lecture seule)",
+      toMember: "Passer en membre (peut modifier)",
+      remove: "Retirer du foyer",
+      removeBody: "La retirer coupe son accès immédiatement.",
+      roleError: "Impossible de changer le rôle. Réessaie.",
+      removeError: "Impossible de retirer ce membre. Réessaie.",
+      lastMember: "Impossible : c'est le dernier membre du foyer.",
+    },
     // Pas de `as Record<MembershipRole, string>` : l'assertion compilerait même
     // avec une clé manquante. Le `as const` du fichier suffit à l'indexation.
     roles: {

@@ -62,4 +62,4 @@ export const POST = withHouseholdAuth(async (request: NextRequest, _ctx, { house
   if (error) throw error;
 
   return NextResponse.json(data, { status: 201 });
-});
+}, { requireMember: true });

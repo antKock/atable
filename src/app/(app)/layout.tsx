@@ -7,7 +7,7 @@ import DemoBanner from '@/components/demo/DemoBanner'
 import InstallAppBanner from '@/components/app/InstallAppBanner'
 import HintCard from '@/components/app/HintCard'
 import { createServerClient } from '@/lib/supabase/server'
-import { getOwnerContext } from '@/lib/auth/owner-context'
+import { getOwnerContext, isGuestOwner } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { t } from '@/lib/i18n/fr'
 
@@ -22,9 +22,15 @@ export default async function AppShell({ children }: { children: React.ReactNode
   // sur incident transitoire. getOwnerContext est mémoïsé par requête —
   // layout + page = une seule requête.
   const owner = await getOwnerContext()
-  if (!owner) redirect('/api/auth/session/clear')
+  // Session inconnue OU owner sans aucune appartenance : dans les deux cas
+  // l'appareil n'a plus accès à un foyer. Le second cas = retrait de membre
+  // (Lot 3) : le hid du JWT est vestigial, donc sans cette garde un owner
+  // orphelin verrait encore les recettes via x-household-id. Déconnexion propre
+  // → l'accès est coupé dès la page suivante (mono-appartenance).
+  if (!owner || owner.memberships.length === 0) redirect('/api/auth/session/clear')
 
   const isDemo = isDemoOwner(owner)
+  const isGuest = isGuestOwner(owner)
 
   // Hints server-gated (#14, maquette 1.1) : la bannière démo prime sur tout ;
   // sinon install (mini-strip, iOS web) AU-DESSUS d'UN hint principal
@@ -69,7 +75,9 @@ export default async function AppShell({ children }: { children: React.ReactNode
         .in('household_id', owner.memberships.map((m) => m.householdId))
       if (!error) {
         if ((count ?? 0) < SHARE_HINT_RECIPE_THRESHOLD) {
-          mainHint = shareDismissed ? null : 'share'
+          // Le hint partage invite à « Inviter quelqu'un » : sans objet pour un
+          // invité (lecture seule, ne peut pas inviter) — on ne l'affiche pas.
+          mainHint = shareDismissed || isGuest ? null : 'share'
         } else {
           mainHint = emailEligible ? 'email' : null
         }
@@ -115,7 +123,7 @@ export default async function AppShell({ children }: { children: React.ReactNode
           {children}
         </main>
       </div>
-      <Navigation />
+      <Navigation isGuest={isGuest} />
       <Toaster />
     </>
   )

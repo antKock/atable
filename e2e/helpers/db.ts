@@ -17,11 +17,22 @@ export function db(): SupabaseClient {
 export async function getHouseholdByJoinCode(joinCode: string) {
   const { data, error } = await db()
     .from("households")
-    .select("id, name, join_code, is_demo")
+    .select("id, name, join_code, guest_join_code, is_demo")
     .eq("join_code", joinCode)
     .maybeSingle();
   if (error) throw error;
   return data;
+}
+
+/** Memberships (owner_id + role) d'un foyer — pour asserter/piloter le Lot 3. */
+export async function getMemberships(householdId: string) {
+  const { data, error } = await db()
+    .from("memberships")
+    .select("owner_id, role")
+    .eq("household_id", householdId)
+    .order("created_at", { ascending: true });
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function getRecipeByTitle(householdId: string, title: string) {

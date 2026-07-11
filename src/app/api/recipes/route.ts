@@ -114,4 +114,6 @@ export const POST = withHouseholdAuth(
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
   },
+  // Écriture household-scopée : un invité (lecture seule) est refusé en 403.
+  { requireMember: true },
 );

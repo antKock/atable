@@ -70,4 +70,41 @@ describe("withHouseholdAuth (compat owner-context)", () => {
     expect(res.status).toBe(500);
     expect(await (res as NextResponse).json()).toEqual({ error: "Erreur serveur" });
   });
+
+  // Enforcement lecture seule (Lot 3) : l'option requireMember refuse un invité.
+  describe("requireMember", () => {
+    it("403 quand le viewer est invité", async () => {
+      mockGetOwnerContext.mockResolvedValue(
+        ownerContext({ memberships: [{ householdId: "household-1", role: "guest", isDemo: false }] }),
+      );
+      let ran = false;
+      const res = await withHouseholdAuth(
+        async () => {
+          ran = true;
+          return NextResponse.json({ ok: true });
+        },
+        { requireMember: true },
+      )(request());
+      expect(res.status).toBe(403);
+      expect(ran).toBe(false);
+    });
+
+    it("laisse passer un membre", async () => {
+      const res = await withHouseholdAuth(
+        async () => NextResponse.json({ ok: true }),
+        { requireMember: true },
+      )(request());
+      expect(res.status).toBe(200);
+    });
+
+    it("sans l'option, un invité peut lire (route de lecture)", async () => {
+      mockGetOwnerContext.mockResolvedValue(
+        ownerContext({ memberships: [{ householdId: "household-1", role: "guest", isDemo: false }] }),
+      );
+      const res = await withHouseholdAuth(async () =>
+        NextResponse.json({ ok: true }),
+      )(request());
+      expect(res.status).toBe(200);
+    });
+  });
 });

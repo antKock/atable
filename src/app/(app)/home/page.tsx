@@ -3,6 +3,7 @@ import { Settings } from "lucide-react";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
+import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import HomeContent from "@/components/recipes/HomeContent";
 import PostCreationBanner from "@/components/auth/PostCreationBanner";
 
@@ -18,6 +19,12 @@ export default async function HomePage({ searchParams }: Props) {
   if (!householdId) {
     redirect("/");
   }
+
+  // Rôle du viewer (mono-appartenance) → masque le CTA de création pour un
+  // invité (lecture seule, Lot 3). getOwnerContext est mémoïsé (déjà résolu
+  // par le layout) : pas de requête DB supplémentaire.
+  const owner = await getOwnerContext();
+  const isGuest = owner ? isGuestOwner(owner) : false;
 
   return (
     <div className="pb-6 pt-6">
@@ -48,7 +55,7 @@ export default async function HomePage({ searchParams }: Props) {
           code={decodeURIComponent(code)}
         />
       )}
-      <HomeContent />
+      <HomeContent isGuest={isGuest} />
     </div>
   );
 }

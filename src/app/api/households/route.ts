@@ -26,6 +26,11 @@ export async function POST(request: NextRequest) {
 
     const name = result.data
     const joinCode = generateJoinCode()
+    // Second lien stable pour le rôle invité (Lot 3, décision n°3). Distinct du
+    // lien membre au sein du foyer : un même code ne doit jamais porter deux
+    // rôles. Les collisions cross-foyer restent gardées par l'UNIQUE de colonne.
+    let guestJoinCode = generateJoinCode()
+    while (guestJoinCode === joinCode) guestJoinCode = generateJoinCode()
     const ua = request.headers.get('user-agent') ?? ''
     const deviceName = getDeviceName(ua)
 
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Step 2: Insert household
     const { data: household, error: householdError } = await supabase
       .from('households')
-      .insert({ name, join_code: joinCode })
+      .insert({ name, join_code: joinCode, guest_join_code: guestJoinCode })
       .select('id')
       .single()
 

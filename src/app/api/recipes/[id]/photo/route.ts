@@ -97,4 +97,6 @@ export const POST = withHouseholdAuth(
 
     return NextResponse.json({ url });
   },
+  // Upload photo = écriture (recipes.photo_url + Storage) : invité refusé 403.
+  { requireMember: true },
 );

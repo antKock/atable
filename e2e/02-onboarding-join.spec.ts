@@ -26,9 +26,11 @@ test("onboarding rejoindre : le code (saisie tolérante) mène au même foyer", 
   await b.page.getByRole("button", { name: "Rejoindre", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 
-  // Même foyer : le détail du foyer de B affiche le code de A
-  // (sélecteur adapté au Lot 1 : le code vit dans le détail, plus dans le hub)
+  // Même foyer : le code vit désormais dans l'écran « Inviter » (Lot 3 : les
+  // blocs code/lien du détail sont remplacés par l'entrée « Inviter »).
   await openHouseholdDetail(b.page);
+  await b.page.locator(String.raw`a[href$="/invite"]`).click();
+  await b.page.waitForURL(/\/household\/[0-9a-f-]{36}\/invite/);
   await expect(b.page.getByText(code, { exact: true })).toBeVisible();
 
   await a.context.close();

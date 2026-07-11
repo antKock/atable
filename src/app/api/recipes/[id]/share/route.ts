@@ -71,4 +71,6 @@ export const POST = withHouseholdAuth(
     const url = `${request.nextUrl.origin}/r/${token}`;
     return NextResponse.json({ token, url });
   },
+  // Le mint écrit recipes.share_token : écriture household-scopée, invité 403.
+  { requireMember: true },
 );

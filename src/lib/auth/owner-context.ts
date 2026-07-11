@@ -92,3 +92,13 @@ export const getOwnerContext = cache(async (): Promise<OwnerContext | null> => {
   if (!sessionId) return null
   return resolveOwnerContext(sessionId)
 })
+
+/**
+ * L'owner est-il en lecture seule (rôle invité) ? Mono-appartenance jusqu'au
+ * Lot 4 → l'unique membership porte le rôle. Prédicat partagé par les Server
+ * Components (home/biblio/fiche/nav) pour masquer les affordances d'écriture,
+ * en écho au `requireMember` des routes API (enforcement lecture seule, Lot 3).
+ */
+export function isGuestOwner(owner: OwnerContext): boolean {
+  return owner.memberships[0]?.role === 'guest'
+}

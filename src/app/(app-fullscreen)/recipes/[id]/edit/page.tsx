@@ -6,6 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
+import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import { t } from "@/lib/i18n/fr";
 import RecipeForm from "@/components/recipes/RecipeForm";
 
@@ -18,6 +19,11 @@ export default async function EditRecipePage({ params }: Props) {
   const hdrs = await headers();
   const householdId = hdrs.get("x-household-id");
   if (!householdId) notFound();
+
+  // Garde serveur miroir du masquage UI (Lot 3) : un invité (lecture seule) qui
+  // atteint /recipes/[id]/edit par URL directe est renvoyé en 404.
+  const owner = await getOwnerContext();
+  if (owner && isGuestOwner(owner)) notFound();
 
   const supabase = createServerClient();
   const { data } = await supabase

@@ -5,6 +5,7 @@ import { Pencil } from "lucide-react";
 import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
+import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import { t } from "@/lib/i18n/fr";
 import WakeLockActivator from "@/components/recipes/WakeLockActivator";
 import ConfirmDeleteDialog from "@/components/recipes/ConfirmDeleteDialog";
@@ -79,6 +80,12 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   trackView(id, recipe.viewCount);
 
+  // Fiche d'un foyer où le viewer est invité (lecture seule, Lot 3) : AUCUNE
+  // pill d'actions — ni partager (le mint écrit un share_token), ni éditer, ni
+  // supprimer. Le back button reste. Mono-appartenance → memberships[0].
+  const owner = await getOwnerContext();
+  const isGuest = owner ? isGuestOwner(owner) : false;
+
   const heroOverlay = (
     <>
       {/* Back button — clean white circle */}
@@ -86,38 +93,40 @@ export default async function RecipeDetailPage({ params }: Props) {
 
       {/* Share + Edit + Delete pill — single white pill with separators.
           Share is the first action (Lot 3 grammar: ink glyph, same size/stroke
-          as the others, no tint). */}
-      <div
-        className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full p-1"
-        style={{
-          background: "#fff",
-          boxShadow:
-            "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
-        }}
-      >
-        <ShareButton
-          recipeId={id}
-          recipeTitle={recipe.title}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-          iconSize={14}
-          iconStroke={1.75}
-        />
-        <div className="h-4 w-px bg-border" />
-        <Link
-          href={`/recipes/${id}/edit`}
-          aria-label={t.actions.edit}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          as the others, no tint). Masquée pour un invité. */}
+      {!isGuest && (
+        <div
+          className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full p-1"
+          style={{
+            background: "#fff",
+            boxShadow:
+              "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+          }}
         >
-          <Pencil size={14} strokeWidth={1.75} />
-        </Link>
-        <div className="h-4 w-px bg-border" />
-        <ConfirmDeleteDialog
-          recipeId={id}
-          triggerClassName="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          triggerIconSize={14}
-          triggerIconStroke={1.75}
-        />
-      </div>
+          <ShareButton
+            recipeId={id}
+            recipeTitle={recipe.title}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            iconSize={14}
+            iconStroke={1.75}
+          />
+          <div className="h-4 w-px bg-border" />
+          <Link
+            href={`/recipes/${id}/edit`}
+            aria-label={t.actions.edit}
+            className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Pencil size={14} strokeWidth={1.75} />
+          </Link>
+          <div className="h-4 w-px bg-border" />
+          <ConfirmDeleteDialog
+            recipeId={id}
+            triggerClassName="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            triggerIconSize={14}
+            triggerIconStroke={1.75}
+          />
+        </div>
+      )}
     </>
   );
 

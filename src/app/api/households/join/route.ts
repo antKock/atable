@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
+import { resolveInviteCode } from '@/lib/auth/invite-code'
 import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
@@ -37,15 +38,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerClient()
 
-    // Find the household by join code (exclude demo)
-    const { data: household, error: lookupError } = await supabase
-      .from('households')
-      .select('id, name')
-      .eq('join_code', result.data)
-      .eq('is_demo', false)
-      .single()
+    // Résout le code contre les DEUX liens stables du foyer (Lot 3) : join_code
+    // → membre, guest_join_code → invité. Le rôle du membership en découle.
+    const invite = await resolveInviteCode(supabase, result.data)
 
-    if (lookupError || !household) {
+    if (!invite) {
       return NextResponse.json(
         { error: 'Ce code ne correspond à aucun foyer' },
         { status: 404 }
@@ -55,9 +52,9 @@ export async function POST(request: NextRequest) {
     const ua = hdrs.get('user-agent') ?? ''
     const deviceName = getDeviceName(ua)
 
-    // Owner neuf + membership member + session (chantier foyer #14/#15).
-    // Un device qui « change de foyer » crée donc un owner neuf — comportement
-    // actuel conservé ; l'additivité arrive au Lot 4.
+    // Owner neuf + membership (rôle porté par le code) + session (chantier
+    // foyer #14/#15). Un device qui « change de foyer » crée donc un owner
+    // neuf — comportement actuel conservé ; l'additivité arrive au Lot 4.
     const { data: owner, error: ownerError } = await supabase
       .from('owners')
       .insert({})
@@ -70,7 +67,7 @@ export async function POST(request: NextRequest) {
 
     const { error: membershipError } = await supabase
       .from('memberships')
-      .insert({ owner_id: owner.id, household_id: household.id, role: 'member' })
+      .insert({ owner_id: owner.id, household_id: invite.householdId, role: invite.role })
 
     if (membershipError) {
       await supabase.from('owners').delete().eq('id', owner.id)
@@ -79,7 +76,7 @@ export async function POST(request: NextRequest) {
 
     const { data: session, error: sessionError } = await supabase
       .from('device_sessions')
-      .insert({ household_id: household.id, device_name: deviceName, owner_id: owner.id })
+      .insert({ household_id: invite.householdId, device_name: deviceName, owner_id: owner.id })
       .select('id')
       .single()
 
@@ -89,7 +86,7 @@ export async function POST(request: NextRequest) {
       throw new Error(sessionError?.message ?? 'Failed to create session')
     }
 
-    const payload = { hid: household.id, sid: session.id, iat: Math.floor(Date.now() / 1000) }
+    const payload = { hid: invite.householdId, sid: session.id, iat: Math.floor(Date.now() / 1000) }
     const token = await signSession(payload)
 
     // Cookie on a 200 JSON response (not a 303) — reliable in WKWebView.

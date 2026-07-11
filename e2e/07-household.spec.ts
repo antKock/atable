@@ -2,11 +2,11 @@ import { test, expect } from "@playwright/test";
 import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
 import { getHouseholdByJoinCode } from "./helpers/db";
 
-// Caractérisation écran foyer — RÉÉCRITE au Lot 1 (hub « Toi + Tes foyers »
-// + détail de foyer) : le hub liste le foyer, le détail porte le rename
-// inline, le code + lien d'invitation, quitter et supprimer.
+// Caractérisation écran foyer — hub « Toi + Tes foyers » + détail de foyer.
+// Lot 3 : le rename inline reste sur le détail ; le code + lien d'invitation
+// migrent vers l'écran plein « Inviter » (entrée « Inviter quelqu'un »).
 
-test("hub → détail : rename inline, code + lien, quitter → session invalidée", async ({
+test("hub → détail : rename inline, invitation (code + lien), quitter → session invalidée", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser);
@@ -20,11 +20,15 @@ test("hub → détail : rename inline, code + lien, quitter → session invalid�
   await page.getByRole("link", { name }).click();
   await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
 
-  // Code + lien d'invitation affichés (détail)
-  await expect(page.getByText("Code du foyer")).toBeVisible();
+  // Code + lien d'invitation : écran « Inviter » (bloc membre = join_code).
+  // Les labels « Code du foyer » / « Lien d'invitation » apparaissent 2× (membre
+  // + invité) : on assert le code membre (unique) et son URL /join.
+  await page.locator(String.raw`a[href$="/invite"]`).click();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}\/invite/);
   await expect(page.getByText(code, { exact: true })).toBeVisible();
-  await expect(page.getByText("Lien d'invitation")).toBeVisible();
   await expect(page.getByText(new RegExp(`/join/${code}`))).toBeVisible();
+  await page.goBack();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}$/);
 
   // Rename inline (crayon → input → valider), persistant après reload
   await page.getByRole("button", { name: "Renommer" }).click();

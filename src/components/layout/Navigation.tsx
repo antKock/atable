@@ -32,9 +32,13 @@ function useKeyboardOpen(): boolean {
   return open;
 }
 
-export default function Navigation() {
+export default function Navigation({ isGuest = false }: { isGuest?: boolean }) {
   const pathname = usePathname();
   const keyboardOpen = useKeyboardOpen();
+
+  // Un invité (lecture seule, Lot 3) n'a pas de création : on retire le FAB « + »
+  // — il ne reste que Home et Bibliothèque. Le serveur garde /recipes/new.
+  const items = isGuest ? navItems.filter((item) => !item.isAdd) : navItems;
 
   return (
     <>
@@ -61,7 +65,7 @@ export default function Navigation() {
         }}
       >
         <ul className="flex h-full items-center justify-around px-3">
-          {navItems.map(({ href, label, icon: Icon, isAdd }) => {
+          {items.map(({ href, label, icon: Icon, isAdd }) => {
             const isActive = pathname === href;
             return (
               <li key={href} className="flex flex-1 justify-center">

@@ -19,6 +19,7 @@ import { matchesFilters } from "@/lib/filters";
 
 interface LibraryContentProps {
   autoFocusSearch?: boolean;
+  isGuest?: boolean;
 }
 
 const VALID_DURATIONS = new Set(["lt30", "30to60", "gt60"]);
@@ -46,6 +47,7 @@ function filtersToParams(filters: FilterState): URLSearchParams {
 
 export default function LibraryContent({
   autoFocusSearch = false,
+  isGuest = false,
 }: LibraryContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -207,13 +209,16 @@ export default function LibraryContent({
               {t.empty.libraryTitle}
             </p>
             <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
-            <Link
-              href="/recipes/new"
-              className="mt-6 inline-flex min-h-11 items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
-              style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
-            >
-              {t.actions.addRecipe}
-            </Link>
+            {/* Pas de CTA de création pour un invité (lecture seule, Lot 3). */}
+            {!isGuest && (
+              <Link
+                href="/recipes/new"
+                className="mt-6 inline-flex min-h-11 items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
+              >
+                {t.actions.addRecipe}
+              </Link>
+            )}
           </div>
         ) : (
           <div className="mx-auto mt-12 max-w-xs px-4 text-center">

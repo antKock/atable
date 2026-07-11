@@ -2,15 +2,19 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Eye } from 'lucide-react'
 import { t } from '@/lib/i18n/fr'
 import { dropSwrCache } from '@/lib/swr'
+import type { MembershipRole } from '@/lib/auth/owner-context'
 
 type Props = {
   householdName: string
   joinCode: string
+  // Rôle porté par le code (Lot 3) : un code invité affiche la copy lecture seule.
+  role?: MembershipRole
 }
 
-export default function JoinConfirmation({ householdName, joinCode }: Props) {
+export default function JoinConfirmation({ householdName, joinCode, role = 'member' }: Props) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -44,6 +48,13 @@ export default function JoinConfirmation({ householdName, joinCode }: Props) {
       <h1 className="text-2xl font-bold text-foreground">
         {t.joinLink.hero(householdName)}
       </h1>
+
+      {role === 'guest' && (
+        <p className="-mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+          <Eye size={15} strokeWidth={2} aria-hidden="true" />
+          {t.joinLink.guestNote}
+        </p>
+      )}
 
       {error && (
         <p className="text-sm text-destructive">{error}</p>

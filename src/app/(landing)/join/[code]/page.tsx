@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
+import { resolveInviteCode } from '@/lib/auth/invite-code'
 import { t } from '@/lib/i18n/fr'
 import JoinConfirmation from '@/components/auth/JoinConfirmation'
 
@@ -17,20 +18,28 @@ export default async function JoinPage({ params }: Props) {
     return <ErrorState />
   }
 
-  // Fetch household name server-side (direct Supabase — no extra HTTP round-trip)
+  // Résout le lien contre join_code OU guest_join_code (direct Supabase — pas
+  // de round-trip HTTP) pour connaître le foyer ET le rôle porté par le code.
   const supabase = createServerClient()
-  const { data: household } = await supabase
-    .from('households')
-    .select('id, name')
-    .eq('join_code', code)
-    .eq('is_demo', false)
-    .single()
+  let invite
+  try {
+    invite = await resolveInviteCode(supabase, code)
+  } catch {
+    // Une panne DB ne doit pas afficher « lien invalide » : error boundary.
+    throw new Error('join page: résolution du code impossible')
+  }
 
-  if (!household) {
+  if (!invite) {
     return <ErrorState />
   }
 
-  return <JoinConfirmation householdName={household.name} joinCode={code} />
+  return (
+    <JoinConfirmation
+      householdName={invite.householdName}
+      joinCode={code}
+      role={invite.role}
+    />
+  )
 }
 
 function ErrorState() {

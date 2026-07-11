@@ -17,13 +17,16 @@ import {
 
 type Props = {
   householdId: string
+  // « Supprimer le foyer » est réservé aux membres (Lot 3) : un invité n'a que
+  // « Quitter ». Défaut true = comportement Lot 1/2 (viewer membre).
+  canDelete?: boolean
 }
 
 // null = closed. 'leave' = single leave confirmation.
 // 'delete-1' / 'delete-2' = the two steps of the delete double-confirmation.
 type Step = null | 'leave' | 'delete-1' | 'delete-2'
 
-export default function LeaveHouseholdDialog({ householdId }: Props) {
+export default function LeaveHouseholdDialog({ householdId, canDelete = true }: Props) {
   const [step, setStep] = useState<Step>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -86,14 +89,16 @@ export default function LeaveHouseholdDialog({ householdId }: Props) {
       >
         {t.household.leaveHousehold}
       </Button>
-      <Button
-        variant="ghost"
-        type="button"
-        onClick={() => setStep('delete-1')}
-        className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
-      >
-        {t.household.deleteHousehold}
-      </Button>
+      {canDelete && (
+        <Button
+          variant="ghost"
+          type="button"
+          onClick={() => setStep('delete-1')}
+          className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
+        >
+          {t.household.deleteHousehold}
+        </Button>
+      )}
 
       <Dialog open={step !== null} onOpenChange={(open) => !open && close()}>
         {current && (

@@ -59,4 +59,4 @@ export const POST = withHouseholdAuth(async (request: Request, _ctx, { household
       { status: 422 },
     );
   }
-});
+}, { requireMember: true });

@@ -150,6 +150,8 @@ export const PUT = withHouseholdAuth(
 
     return NextResponse.json(mapDbRowToRecipe(data));
   },
+  // Édition household-scopée : un invité (lecture seule) est refusé en 403.
+  { requireMember: true },
 );
 
 export const DELETE = withHouseholdAuth(
@@ -180,4 +182,6 @@ export const DELETE = withHouseholdAuth(
 
     return new NextResponse(null, { status: 204 });
   },
+  // Suppression household-scopée : un invité (lecture seule) est refusé en 403.
+  { requireMember: true },
 );

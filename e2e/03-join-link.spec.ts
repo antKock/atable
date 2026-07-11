@@ -18,8 +18,10 @@ test("rejoindre par lien : /join/[code] → confirmation → même foyer", async
   await b.page.getByRole("button", { name: "Rejoindre", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 
-  // Sélecteur adapté au Lot 1 : le code vit dans le détail, plus dans le hub
+  // Le code vit désormais dans l'écran « Inviter » (Lot 3).
   await openHouseholdDetail(b.page);
+  await b.page.locator(String.raw`a[href$="/invite"]`).click();
+  await b.page.waitForURL(/\/household\/[0-9a-f-]{36}\/invite/);
   await expect(b.page.getByText(code, { exact: true })).toBeVisible();
 
   await a.context.close();
