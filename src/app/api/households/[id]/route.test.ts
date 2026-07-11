@@ -68,10 +68,11 @@ function putRequest(body: unknown): NextRequest {
 }
 
 describe("DELETE /api/households/[id] (Fix 1.4)", () => {
-  it("action=leave removes the membership and the device session", async () => {
+  it("action=leave par un membre NON-dernier retire juste le membership", async () => {
     supa.queueResults([
+      { count: 2, error: null }, // count des membres du foyer (>1 → pas de suppression)
       { error: null }, // delete membership
-      { error: null }, // delete session
+      { error: null }, // delete session (dernier foyer de l'owner)
     ]);
     const res = await DELETE(deleteRequest("leave"), ctx());
     expect(res.status).toBe(200);
@@ -83,7 +84,34 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
       ),
     ).toBe(true);
     expect(supa.calls.some((c) => c.table === "device_sessions")).toBe(true);
-    expect(supa.calls.some((c) => c.table === "households")).toBe(false);
+    // Le foyer survit : pas de delete households.
+    expect(
+      supa.calls.some(
+        (c) => c.table === "households" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(false);
+  });
+
+  it("action=leave par le DERNIER membre SUPPRIME le foyer (arbitrage : pas d'orphelin)", async () => {
+    supa.queueResults([
+      { count: 1, error: null }, // dernier membre → suppression
+      { data: [], error: null }, // SELECT recipes (purge Storage)
+      { error: null }, // delete households (cascade)
+    ]);
+    const res = await DELETE(deleteRequest("leave"), ctx());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, redirect: "/" });
+    // Le foyer est détruit, pas un simple retrait de membership.
+    expect(
+      supa.calls.some(
+        (c) => c.table === "households" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(true);
+    expect(
+      supa.calls.some(
+        (c) => c.table === "memberships" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(false);
   });
 
   it("action=delete purges Storage then deletes the household (recipes par cascade)", async () => {

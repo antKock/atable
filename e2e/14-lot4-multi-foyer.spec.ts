@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import {
   newVisitor,
   createHouseholdViaUI,
+  createFromHub,
   joinFromHub,
   uniqueName,
 } from "./helpers/onboarding";
@@ -203,6 +204,35 @@ test("quitter un foyer parmi N : session conservée, retour au hub, recettes dis
   await expect(v.page.getByText(titleB)).toHaveCount(0);
 
   await vb.context.close();
+  await v.context.close();
+});
+
+test("dernier membre qui quitte = suppression du foyer (UI : pas de « Quitter »)", async ({
+  browser,
+}) => {
+  const v = await newVisitor(browser);
+  await createHouseholdViaUI(v.page, uniqueName("Solo A")); // v membre de A
+  const bId = await createFromHub(v.page, uniqueName("Solo B")); // v seul membre de B
+  const titleB = uniqueName("Recette B solo");
+  await insertRecipe({ householdId: bId, title: titleB });
+
+  // UI : v est le DERNIER membre de B → « Supprimer » proposé, « Quitter » masqué
+  // (partir supprimerait le foyer ; la copie « tu pourras rejoindre » serait fausse).
+  await v.page.goto(`/household/${bId}`);
+  await expect(v.page.getByRole("button", { name: "Supprimer le foyer" })).toBeVisible();
+  await expect(v.page.getByRole("button", { name: "Quitter ce foyer" })).toHaveCount(0);
+
+  // API : quitter B en tant que dernier membre SUPPRIME le foyer (cascade).
+  const leave = await v.page.request.delete(`/api/households/${bId}?action=leave`);
+  expect(leave.status()).toBe(200);
+  const bRow = await db().from("households").select("id").eq("id", bId).maybeSingle();
+  expect(bRow.data, "le foyer doit être supprimé, pas orphelin").toBeNull();
+  expect(await getRecipeByTitle(bId, titleB)).toBeNull();
+
+  // v reste membre de A et connecté.
+  await v.page.goto("/home");
+  await expect(v.page).toHaveURL(/\/home/);
+
   await v.context.close();
 });
 

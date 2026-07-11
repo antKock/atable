@@ -86,27 +86,46 @@ export const DELETE = withOwnerAuth(
 
     const supabase = createServerClient()
 
+    // Décider si l'opération DÉTRUIT le foyer (cascade recettes/membres/sessions
+    // + purge Storage) ou se contente de retirer le membership du partant :
+    //   - action=delete : réservé aux MEMBRES (invité 403), jamais la démo ;
+    //   - action=leave par le DERNIER membre d'un foyer réel → suppression
+    //     (arbitrage Anthony 2026-07 : dernier membre partant = suppression du
+    //     foyer, peu importe les invités restants — jamais d'orphelin).
+    // Le masquage UI ne suffit pas : la sécurité est serveur (RLS sans policy).
+    let destroy: boolean
     if (action === 'delete') {
-      // Supprimer un foyer (destruction cascade des recettes/membres/sessions de
-      // TOUS) est réservé aux MEMBRES : un invité (lecture seule) est refusé
-      // 403. Le masquage UI (LeaveHouseholdDialog canDelete) ne suffit pas — la
-      // sécurité est serveur (RLS sans policy). « Quitter » reste ouvert aux
-      // invités (branche else, pas de requireMember).
       const forbidden = requireMember(owner, householdId)
       if (forbidden) return forbidden
-
-      // The demo household is shared sample content, not a user's own data — a
-      // demo session must not be able to destroy it for everyone (which has
-      // happened: the whole demo was wiped this way). 'leave' still works, so
-      // Apple 5.1.1(v) — delete *your* data — stays satisfied. `isDemo` vient du
-      // contexte owner (résolu en DB) : pas de requête supplémentaire.
+      // Le foyer démo est du contenu partagé : jamais supprimable (incident
+      // 2026-06 — démo effacée par ses visiteurs). « Quitter » reste possible.
       if (membership.isDemo) {
         return NextResponse.json(
           { error: 'Le foyer démo ne peut pas être supprimé.' },
           { status: 403 },
         )
       }
+      destroy = true
+    } else {
+      // action === 'leave' — un invité, ou un membre avec d'AUTRES membres,
+      // retire juste son membership ; le dernier membre d'un foyer réel déclenche
+      // la suppression. Le foyer démo (multi-membres, monde gelé) n'est jamais
+      // supprimé par cette voie.
+      destroy = false
+      if (membership.role === 'member' && !membership.isDemo) {
+        const { count, error } = await supabase
+          .from('memberships')
+          .select('id', { count: 'exact', head: true })
+          .eq('household_id', householdId)
+          .eq('role', 'member')
+        if (error) {
+          return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+        }
+        destroy = (count ?? 0) <= 1
+      }
+    }
 
+    if (destroy) {
       // Si l'owner reste membre d'autres foyers, on repointe D'ABORD la session
       // de CET appareil vers un foyer survivant : device_sessions.household_id
       // porte encore une FK ON DELETE CASCADE (colonne vestigiale), donc sans ce
@@ -159,7 +178,8 @@ export const DELETE = withOwnerAuth(
         return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
       }
     } else {
-      // action === 'leave' — drop the owner's membership on this foyer.
+      // Retrait simple du membership du partant (le foyer et ses autres membres
+      // restent). `leave` d'un invité, ou d'un membre non-dernier.
       const { error: membershipError } = await supabase
         .from('memberships')
         .delete()
@@ -170,8 +190,7 @@ export const DELETE = withOwnerAuth(
       }
       // Dernier foyer quitté → on supprime aussi la session de cet appareil
       // (déconnexion). S'il reste des foyers, la session survit : le foyer
-      // n'étant PAS supprimé, device_sessions.household_id (même s'il pointait
-      // vers ce foyer) reste une FK valide — rien à repointer.
+      // n'étant PAS supprimé, device_sessions.household_id reste une FK valide.
       if (!stayLoggedIn) {
         const { error: sessionError } = await supabase
           .from('device_sessions')

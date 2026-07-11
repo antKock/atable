@@ -6,7 +6,7 @@ import { getHouseholdByJoinCode } from "./helpers/db";
 // Lot 3 : le rename inline reste sur le détail ; le code + lien d'invitation
 // migrent vers l'écran plein « Inviter » (entrée « Inviter quelqu'un »).
 
-test("hub → détail : rename inline, invitation (code + lien), quitter → session invalidée", async ({
+test("hub → détail : rename inline, invitation (code + lien), dernier membre = pas de « Quitter »", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser);
@@ -39,15 +39,11 @@ test("hub → détail : rename inline, invitation (code + lien), quitter → ses
   await page.reload();
   await expect(page.getByText(renamed)).toBeVisible();
 
-  // Quitter ce foyer → retour landing, session invalidée (accès /home refusé)
-  await page.getByRole("button", { name: "Quitter ce foyer" }).click();
-  const dialog = page.getByRole("dialog");
-  await expect(dialog.getByText("Quitter le foyer ?")).toBeVisible();
-  await dialog.getByRole("button", { name: "Quitter", exact: true }).click();
-  await page.waitForURL((url) => url.pathname === "/");
-  await expect(page.getByRole("button", { name: "Essayer l'app" })).toBeVisible();
-  await page.goto("/home");
-  await page.waitForURL((url) => url.pathname === "/");
+  // Dernier membre du foyer : « Quitter » est masqué (partir supprimerait le
+  // foyer — arbitrage 2026-07), seule « Supprimer le foyer » reste (la
+  // suppression + déconnexion est couverte par le test suivant).
+  await expect(page.getByRole("button", { name: "Quitter ce foyer" })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Supprimer le foyer" })).toBeVisible();
 
   await context.close();
 });

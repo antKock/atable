@@ -60,6 +60,13 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
   const memberList = members.filter((m) => m.role === 'member')
   const guestList = members.filter((m) => m.role === 'guest')
 
+  // Dernier membre d'un foyer réel : « Quitter » supprimerait le foyer (arbitrage
+  // 2026-07), donc on ne laisse que « Supprimer » (copie honnête). La démo est
+  // exclue (vue solo → 1 membre affiché, mais foyer multi-membres jamais
+  // supprimable).
+  const isLastMember =
+    isMemberViewer && !household.isDemo && memberList.length === 1
+
   // Un chevron n'est actif que pour agir sur un AUTRE membre (pas soi-même :
   // se retirer = « Quitter »). Le serveur refuse de toute façon les actions self.
   const canActOn = (member: Member) => canManage && !member.isViewer
@@ -173,7 +180,11 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
       )}
 
       {/* Quitter / supprimer (suppression = membre only) */}
-      <LeaveHouseholdDialog householdId={household.id} canDelete={isMemberViewer} />
+      <LeaveHouseholdDialog
+        householdId={household.id}
+        canDelete={isMemberViewer}
+        canLeave={!isLastMember}
+      />
 
       <MemberActionDialog
         householdId={household.id}
