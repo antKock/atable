@@ -6,12 +6,17 @@ import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
 
 export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const supabase = createServerClient();
-  // Tags globaux (household_id NULL) + tags custom de l'un des foyers de l'owner.
+  // Tags globaux (household_id NULL) + tags custom des foyers de l'owner. Sans
+  // foyer, on ne garde que les globaux (pas de clause `in.()` dégénérée).
   const ids = householdIds(owner);
+  const orClause =
+    ids.length > 0
+      ? `household_id.is.null,household_id.in.(${ids.join(",")})`
+      : `household_id.is.null`;
   const { data, error } = await supabase
     .from("tags")
     .select("id, name, category")
-    .or(`household_id.is.null,household_id.in.(${ids.join(",")})`)
+    .or(orClause)
     .order("category", { ascending: true, nullsFirst: false })
     .order("name", { ascending: true });
 

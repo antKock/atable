@@ -16,6 +16,10 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const seasonParam = searchParams.get("season");
   const costParam = searchParams.get("cost");
 
+  const ids = householdIds(owner);
+  // Owner sans foyer (retrait de membre) : liste vide, pas de `in.()` dégénéré.
+  if (ids.length === 0) return NextResponse.json([]);
+
   const supabase = createServerClient();
 
   // Use !inner join when filtering by tags to get INNER JOIN behavior
@@ -27,7 +31,7 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   let query = supabase
     .from("recipes")
     .select(selectClause)
-    .in("household_id", householdIds(owner));
+    .in("household_id", ids);
 
   if (tagsParam) {
     const tagIds = tagsParam.split(",").filter(Boolean);

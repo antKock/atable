@@ -28,6 +28,13 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const supabase = createServerClient();
   const ids = householdIds(owner);
 
+  // Owner sans aucun foyer (retrait de membre, avant redirection du layout) :
+  // pas de scoping possible — on ne lance PAS un `in.()` dégénéré (dont le
+  // résultat dépend de la version PostgREST), on renvoie une biblio vide.
+  if (ids.length === 0) {
+    return NextResponse.json({ recipes: [], tags: [], households: [] });
+  }
+
   const [recipesResult, tagsResult, householdsResult] = await Promise.all([
     supabase
       .from("recipes")
