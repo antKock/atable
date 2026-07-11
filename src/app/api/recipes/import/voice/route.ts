@@ -2,9 +2,18 @@ import { NextResponse } from "next/server";
 import { MAX_VOICE_FILE_SIZE, VALID_VOICE_MIME_TYPES } from "@/lib/schemas/import";
 import { extractRecipeFromVoice, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { memberHouseholdIds } from "@/lib/auth/owner-context";
 
-export const POST = withHouseholdAuth(async (request: Request, _ctx, { householdId }) => {
+export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+  // Quota/coût IA rattachés au premier foyer membre (l'import précède le choix
+  // du foyer). Invité (lecture seule) refusé.
+  const memberIds = memberHouseholdIds(owner);
+  if (memberIds.length === 0) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const householdId = memberIds[0];
+
   const quotaResponse = await enforceImportQuota(householdId);
   if (quotaResponse) return quotaResponse;
 
@@ -59,4 +68,4 @@ export const POST = withHouseholdAuth(async (request: Request, _ctx, { household
       { status: 422 },
     );
   }
-}, { requireMember: true });
+});

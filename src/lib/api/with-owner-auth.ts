@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
-import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
+import {
+  getOwnerContext,
+  memberHouseholdIds,
+  type OwnerContext,
+} from "@/lib/auth/owner-context";
 import { t } from "@/lib/i18n/fr";
 
 /**
  * Guard des routes API à contexte owner (chantier foyer #14 + #15) : résout la
  * session via getOwnerContext (401 si inconnue/révoquée) et transforme toute
- * erreur non attrapée en 500 générique loggé + Sentry, comme withHouseholdAuth
- * — qui est désormais un adaptateur par-dessus ce contexte.
+ * erreur non attrapée en 500 générique loggé + Sentry. Unique guard des routes
+ * household-scopées depuis le décommissionnement du hid (Lot 4).
  */
 export function withOwnerAuth<Req extends Request, C, Res extends Response>(
   handler: (request: Req, context: C, owner: OwnerContext) => Promise<Res>,
@@ -49,6 +53,35 @@ export function requireMember(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   return null;
+}
+
+/**
+ * Résout le foyer cible d'une ÉCRITURE multi-foyer (Lot 4). `requested` = le
+ * `householdId` du payload (optionnel) :
+ *   - fourni → doit être un foyer où l'owner est MEMBRE (sinon 403) ;
+ *   - absent → repli sur l'unique foyer membre (compat mono-foyer). S'il y a
+ *     plusieurs foyers membres et aucun choix, c'est une erreur cliente (422) :
+ *     le dialog de choix aurait dû fournir le foyer.
+ * Retourne `{ householdId }` OU la réponse d'erreur à renvoyer.
+ */
+export function resolveWriteHousehold(
+  owner: OwnerContext,
+  requested?: unknown,
+): { householdId: string } | NextResponse {
+  const memberIds = memberHouseholdIds(owner);
+  if (typeof requested === "string" && requested.length > 0) {
+    if (!memberIds.includes(requested)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+    return { householdId: requested };
+  }
+  if (memberIds.length === 0) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  if (memberIds.length > 1) {
+    return NextResponse.json({ error: t.household.picker.required }, { status: 422 });
+  }
+  return { householdId: memberIds[0] };
 }
 
 /**

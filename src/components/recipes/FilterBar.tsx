@@ -15,13 +15,19 @@ interface FilterBarProps {
   tags: Tag[];
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
+  // Foyers de l'owner (multi-foyer, Lot 4) : la pill « Foyer » n'apparaît qu'à
+  // partir de 2 foyers. Vide/absent en mono-foyer → pas de pill.
+  foyers?: { id: string; name: string }[];
 }
 
 export default function FilterBar({
   tags,
   filters,
   onFiltersChange,
+  foyers = [],
 }: FilterBarProps) {
+  const showFoyerPill = foyers.length > 1;
+
   const toggleSeason = () => {
     onFiltersChange({ ...filters, season: !filters.season });
   };
@@ -29,11 +35,19 @@ export default function FilterBar({
   const countSelected = (key: string): number => {
     if (key === "duration") return filters.duration ? 1 : 0;
     if (key === "cost") return filters.cost ? 1 : 0;
+    if (key === "foyer") return filters.foyerIds.length;
     const dbCategory = FILTER_CATEGORIES.find((c) => c.key === key)?.dbCategory;
     if (!dbCategory) return 0;
     return tags.filter(
       (tag) => tag.category === dbCategory && filters.tagIds.includes(tag.id),
     ).length;
+  };
+
+  const toggleFoyer = (foyerId: string) => {
+    const foyerIds = filters.foyerIds.includes(foyerId)
+      ? filters.foyerIds.filter((id) => id !== foyerId)
+      : [...filters.foyerIds, foyerId];
+    onFiltersChange({ ...filters, foyerIds });
   };
 
   const toggleTag = (tagId: string) => {
@@ -63,12 +77,14 @@ export default function FilterBar({
     Régime: t.filters.regime,
     duration: t.filters.duree,
     cost: t.filters.cout,
+    foyer: t.filters.foyer,
   };
 
   const allCategories = [
     ...FILTER_CATEGORIES.map((c) => c.key),
     "duration",
     "cost",
+    ...(showFoyerPill ? ["foyer"] : []),
   ];
 
   const optionButtonClass =
@@ -123,6 +139,28 @@ export default function FilterBar({
           >
             {selected && <Check size={12} strokeWidth={2.5} />}
             {opt.label}
+          </button>
+        );
+      });
+    }
+    if (key === "foyer") {
+      return foyers.map((foyer) => {
+        const selected = filters.foyerIds.includes(foyer.id);
+        return (
+          <button
+            key={foyer.id}
+            type="button"
+            aria-pressed={selected}
+            onClick={() => toggleFoyer(foyer.id)}
+            className={optionButtonClass}
+            style={{
+              background: selected ? "var(--chip-bg-selected)" : "transparent",
+              color: selected ? "var(--chip-text-selected)" : "var(--foreground)",
+              border: selected ? "1px solid transparent" : "1px solid var(--border)",
+            }}
+          >
+            {selected && <Check size={12} strokeWidth={2.5} />}
+            {foyer.name}
           </button>
         );
       });

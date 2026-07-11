@@ -58,12 +58,15 @@ function mapRow(row: Record<string, any>): CarouselRecipeItem {
  */
 export async function fetchCarouselSections(
   supabase: SupabaseClient,
-  householdId: string,
+  householdIds: string[],
 ): Promise<CarouselSection[]> {
+  // Home multi-foyer (Lot 4) : carrousels mélangés sur l'union des foyers de
+  // l'owner, sans aucun marqueur d'origine (maquette 0.1). Passe une liste de
+  // foyers (union) plutôt qu'un seul `hid`.
   const { data } = await supabase
     .from("recipes")
     .select(CAROUSEL_SELECT)
-    .eq("household_id", householdId)
+    .in("household_id", householdIds)
     .order("created_at", { ascending: false });
 
   const recipes = (data ?? []).map(mapRow);

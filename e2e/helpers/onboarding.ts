@@ -67,6 +67,45 @@ export async function joinViaCode(page: Page, code: string): Promise<void> {
   await page.waitForURL(/\/home/);
 }
 
+/**
+ * Rejoindre ADDITIVEMENT depuis le hub (Lot 4) : l'owner courant ajoute un
+ * foyer, la session est conservée, le hub liste tous ses foyers. Passe par
+ * /household/switch (« Créer ou rejoindre »).
+ */
+export async function joinFromHub(page: Page, code: string): Promise<void> {
+  await openSwitchScreen(page);
+  await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByPlaceholder("OLIVE-4821").fill(code);
+  await page.getByRole("button", { name: "Rejoindre", exact: true }).click();
+  // Additif → retour au hub (pas de nouvelle session). Attendre que le hub soit
+  // RÉELLEMENT chargé (pas seulement l'URL) : la redirection additive passe par
+  // window.location, et un goto suivant qui court-circuite ce chargement en vol
+  // avorte (net::ERR_ABORTED).
+  await page.waitForURL(/\/household(\?|$|\/)/);
+  await expect(page.getByRole("heading", { name: "Foyer & profil" })).toBeVisible();
+}
+
+/** Ouvre « Créer ou rejoindre un foyer » depuis le hub (nav SPA fiable). */
+async function openSwitchScreen(page: Page): Promise<void> {
+  await page.goto("/household");
+  await page.getByRole("link", { name: "Créer ou rejoindre un foyer" }).click();
+  await page.waitForURL(/\/household\/switch/);
+}
+
+/**
+ * Créer ADDITIVEMENT un foyer depuis le hub (Lot 4) : ajoute un foyer à l'owner
+ * courant, redirige vers le détail du nouveau foyer. Retourne son id (lu dans
+ * l'URL).
+ */
+export async function createFromHub(page: Page, name: string): Promise<string> {
+  await openSwitchScreen(page);
+  await page.getByRole("button", { name: "Créer un foyer" }).click();
+  await page.getByPlaceholder("Ex : Chez nous, Famille Dupont…").fill(name);
+  await page.getByRole("button", { name: "Créer le foyer" }).click();
+  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
+  return page.url().split("/household/")[1].split(/[?#]/)[0];
+}
+
 /** Pose l'email de secours depuis le profil (aucun envoi attendu). */
 export async function setRecoveryEmail(page: Page, email: string): Promise<void> {
   await page.goto("/household/profile");

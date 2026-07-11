@@ -17,6 +17,10 @@ interface RecipeCardProps {
     cost?: string | null;
   };
   variant?: "carousel" | "grid";
+  // Marqueur d'origine (multi-foyer, Lot 4) : label texte discret sous le
+  // sous-titre, jamais de couleur ni d'œil (décision n°11). Vue biblio
+  // uniquement, jamais la home — l'appelant ne le passe que quand pertinent.
+  householdName?: string | null;
 }
 
 function formatDuration(
@@ -34,6 +38,7 @@ function formatDuration(
 export default function RecipeCard({
   recipe,
   variant = "carousel",
+  householdName = null,
 }: RecipeCardProps) {
   const isCarousel = variant === "carousel";
   const imageUrl = recipe.photoUrl ?? recipe.generatedImageUrl;
@@ -88,6 +93,11 @@ export default function RecipeCard({
         <p className="mt-1 text-xs leading-tight text-muted-foreground">
           {subtitle}
         </p>
+        {householdName && (
+          <p className="mt-1 truncate text-[11px] leading-tight text-muted-foreground/80">
+            {householdName}
+          </p>
+        )}
       </div>
     </Link>
   );

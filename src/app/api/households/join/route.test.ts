@@ -7,7 +7,12 @@ import { joinRateLimit, joinCodeRateLimit } from "@/lib/redis";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
-vi.mock("next/headers", () => ({ headers: vi.fn() }));
+// cookies() : additivité du re-join (Lot 4). Par défaut aucun cookie → chemin
+// « device neuf » (owner + session), comme la caractérisation historique.
+vi.mock("next/headers", () => ({
+  headers: vi.fn(),
+  cookies: vi.fn(async () => ({ get: () => undefined })),
+}));
 vi.mock("@/lib/redis", () => ({
   redis: { get: vi.fn() },
   joinRateLimit: { limit: vi.fn() },

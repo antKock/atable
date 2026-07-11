@@ -9,9 +9,12 @@ import CodeEntryForm from '@/components/auth/CodeEntryForm'
 
 type View = 'menu' | 'create' | 'join'
 
-// « Créer ou rejoindre un foyer » depuis le hub. Sémantique actuelle
-// conservée (Lot 1) : l'appareil CHANGE de foyer — les flows d'onboarding
-// existants sont réutilisés tels quels. L'additivité arrive au Lot 4.
+// « Créer ou rejoindre un foyer » depuis le hub. Sémantique ADDITIVE (Lot 4) :
+// l'appareil AJOUTE un foyer à l'owner courant (les routes create/join
+// détectent la session et n'émettent plus de nouvelle session/cookie). Les
+// formulaires d'onboarding sont réutilisés tels quels — leur `onSuccess` par
+// défaut suit le `redirect` renvoyé (vers le hub / le nouveau foyer), sans
+// réécrire le cookie.
 export default function SwitchHouseholdScreen() {
   const [view, setView] = useState<View>('menu')
 

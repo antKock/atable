@@ -27,7 +27,7 @@ qu'une **session** pointant vers cet owner ; l'appartenance est une ligne
 | 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | staging |
 | 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | staging |
 | 3 | `05-lot3-invite.md` | #15a : rôle invité, 2 liens d'invitation, membres + révocation, lecture seule | staging |
-| 4 | `06-lot4-multi-foyer.md` | #15b : multi-appartenance, choix de foyer, filtre biblio, déplacer | à faire |
+| 4 | `06-lot4-multi-foyer.md` | #15b : multi-appartenance, choix de foyer, filtre biblio, déplacer | staging |
 
 **À la fin de chaque lot : mettre à jour la colonne Statut ici** (`staging` quand
 déployé sur staging, `done` quand promu en prod — même convention que le backlog).
@@ -213,6 +213,36 @@ jamais. Le tri restera manuel, via le retrait de membre du Lot 3.
   tokens de `globals.css`). Si un composant ne se réutilise pas tel quel :
   **s'arrêter et prévenir** (composant, raison, option de refacto minimale).
 - Wording : tout en français, ajouter les chaînes dans `src/lib/i18n/fr.ts`.
+
+## Lot 4 — décisions d'implémentation (livré sur staging)
+
+> Notes pour les sessions suivantes (promotion prod, débogage).
+
+- **Aucune migration DB** : le schéma du Lot 0 (memberships `UNIQUE(owner_id,
+  household_id)`) supporte déjà N appartenances. Lot 4 = 100 % applicatif.
+- **`hid` du JWT + header `x-household-id` décommissionnés** : `signSession` ne
+  signe plus que `sid` ; `verifySession` ignore un éventuel `hid` (anciens
+  cookies valides, **aucune migration de cookie**) ; le middleware n'injecte
+  plus `x-household-id`. Tout scoping passe par `getOwnerContext` (résolution
+  `session → owner → memberships` en DB). `withHouseholdAuth` supprimé au profit
+  de `withOwnerAuth` + `requireMember(owner, householdId)`.
+- **Rejoindre / créer additif** : `POST /api/households/join` et `POST
+  /api/households` détectent la session courante (lecture directe du cookie, ces
+  routes sont publiques) et ajoutent un membership à l'owner **sans** nouvelle
+  session ni réécriture de cookie. Owner démo → chemin « owner neuf »
+  (conversion), jamais d'ajout sur/de la démo. Fusion des rôles au re-join :
+  `planRoleMerge` (jamais de rétrogradation).
+- **Quitter/supprimer un foyer parmi N** : la session survit tant qu'il reste
+  ≥1 membership (retour au hub, cookie intact). `device_sessions.household_id`
+  garde une FK `ON DELETE CASCADE` (colonne vestigiale) : avant de **supprimer**
+  un foyer alors qu'il en reste d'autres, on **repointe** la session courante
+  vers un foyer survivant pour éviter que la cascade ne détruise la session.
+  *Limite connue non traitée* : si un AUTRE appareil du même owner avait sa
+  session pointée vers le foyer supprimé, il est déconnecté (cascade) — cas
+  extrême, non couvert (une nullabilité de la colonne serait la vraie fin de
+  décommissionnement, hors périmètre Lot 4).
+- **Défaut ouvert « join non idempotent »** (fabrique à fantômes) : toujours
+  **non traité** (arbitrage Anthony) — cf. « Constats terrain ».
 
 ## Definition of Done commune à tous les lots
 

@@ -5,13 +5,13 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { t } from "@/lib/i18n/fr";
 import ImportSelector from "./ImportSelector";
-import RecipeForm from "./RecipeForm";
+import RecipeForm, { type MemberFoyer } from "./RecipeForm";
 import type { ImportedRecipeData } from "@/lib/import";
 import type { RecipeSource } from "@/lib/schemas/recipe";
 
 type View = "intent" | "form";
 
-export default function NewRecipeFlow() {
+export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: MemberFoyer[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   // The form step is a real history entry (?view=form, pushed in openForm) so
@@ -122,6 +122,7 @@ export default function NewRecipeFlow() {
           source={source}
           stickySubmit
           shareExtension={isExt}
+          memberFoyers={memberFoyers}
         />
       )}
     </div>

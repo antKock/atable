@@ -1,6 +1,15 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { headers } from "next/headers";
-import { resolveOwnerContext, getOwnerContext } from "./owner-context";
+import {
+  resolveOwnerContext,
+  getOwnerContext,
+  isGuestOwner,
+  memberHouseholdIds,
+  householdIds,
+  roleForHousehold,
+  planRoleMerge,
+  type OwnerContext,
+} from "./owner-context";
 import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 
@@ -125,5 +134,79 @@ describe("getOwnerContext", () => {
     mockHeaders.mockResolvedValue(new Headers());
     expect(await getOwnerContext()).toBeNull();
     expect(supa.calls.length).toBe(0);
+  });
+});
+
+// Helpers multi-appartenance (Lot 4) — logique pure, pas de DB.
+function owner(memberships: OwnerContext["memberships"]): OwnerContext {
+  return {
+    ownerId: "owner-1",
+    ownerName: null,
+    recoveryEmail: null,
+    sessionId: "session-1",
+    memberships,
+  };
+}
+
+describe("isGuestOwner (invité PARTOUT)", () => {
+  it("false si l'owner est membre d'au moins un foyer", () => {
+    expect(
+      isGuestOwner(
+        owner([
+          { householdId: "A", role: "member", isDemo: false },
+          { householdId: "C", role: "guest", isDemo: false },
+        ]),
+      ),
+    ).toBe(false);
+  });
+
+  it("true si l'owner n'est que invité", () => {
+    expect(isGuestOwner(owner([{ householdId: "C", role: "guest", isDemo: false }]))).toBe(true);
+  });
+
+  it("true si aucun membership", () => {
+    expect(isGuestOwner(owner([]))).toBe(true);
+  });
+});
+
+describe("memberHouseholdIds / householdIds / roleForHousehold", () => {
+  const o = owner([
+    { householdId: "A", role: "member", isDemo: false },
+    { householdId: "B", role: "member", isDemo: false },
+    { householdId: "C", role: "guest", isDemo: false },
+  ]);
+
+  it("memberHouseholdIds ne garde que les foyers membres", () => {
+    expect(memberHouseholdIds(o)).toEqual(["A", "B"]);
+  });
+
+  it("householdIds garde l'union (membre + invité)", () => {
+    expect(householdIds(o)).toEqual(["A", "B", "C"]);
+  });
+
+  it("roleForHousehold rend le rôle du foyer, ou null hors appartenance", () => {
+    expect(roleForHousehold(o, "A")).toBe("member");
+    expect(roleForHousehold(o, "C")).toBe("guest");
+    expect(roleForHousehold(o, "Z")).toBeNull();
+  });
+});
+
+describe("planRoleMerge (re-join additif)", () => {
+  it("pas encore membre → add", () => {
+    expect(planRoleMerge(null, "member")).toEqual({ action: "add", role: "member" });
+    expect(planRoleMerge(null, "guest")).toEqual({ action: "add", role: "guest" });
+  });
+
+  it("invité + code membre → upgrade", () => {
+    expect(planRoleMerge("guest", "member")).toEqual({ action: "upgrade", role: "member" });
+  });
+
+  it("membre + code invité → noop (jamais de rétrogradation)", () => {
+    expect(planRoleMerge("member", "guest")).toEqual({ action: "noop", role: "member" });
+  });
+
+  it("rôle identique → noop", () => {
+    expect(planRoleMerge("member", "member")).toEqual({ action: "noop", role: "member" });
+    expect(planRoleMerge("guest", "guest")).toEqual({ action: "noop", role: "guest" });
   });
 });

@@ -70,6 +70,12 @@ export const DELETE = withOwnerAuth(
     }
     const householdId = id
 
+    // Multi-foyer (Lot 4) : quitter/supprimer UN foyer parmi N ne déconnecte
+    // pas. S'il reste ≥1 membership après l'opération, la session est CONSERVÉE
+    // et on renvoie vers le hub — pas la landing, pas de cookie invalidé.
+    const remaining = owner.memberships.filter((m) => m.householdId !== id)
+    const stayLoggedIn = remaining.length > 0
+
     // Explicit intent — the UI exposes two distinct actions:
     //   leave  → this device leaves; the household and its data are kept
     //   delete → the household and all its recipes/sessions are destroyed
@@ -91,6 +97,19 @@ export const DELETE = withOwnerAuth(
           { error: 'Le foyer démo ne peut pas être supprimé.' },
           { status: 403 },
         )
+      }
+
+      // Si l'owner reste membre d'autres foyers, on repointe D'ABORD la session
+      // de CET appareil vers un foyer survivant : device_sessions.household_id
+      // porte encore une FK ON DELETE CASCADE (colonne vestigiale), donc sans ce
+      // repointage la suppression du foyer courant détruirait la session et
+      // déconnecterait un owner multi-foyer. (hid décommissionné : rien ne scope
+      // sur cette colonne, elle ne sert qu'à garder la session vivante.)
+      if (stayLoggedIn) {
+        await supabase
+          .from('device_sessions')
+          .update({ household_id: remaining[0].householdId })
+          .eq('id', sessionId)
       }
 
       // Purge Storage files first — the DB row delete cascade won't reach them.
@@ -124,10 +143,7 @@ export const DELETE = withOwnerAuth(
         return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
       }
     } else {
-      // action === 'leave' — drop the owner's membership, then this device's
-      // session. Membership first: if the session delete fails the user is
-      // still a member and can retry; the reverse would leave an unreachable
-      // membership behind.
+      // action === 'leave' — drop the owner's membership on this foyer.
       const { error: membershipError } = await supabase
         .from('memberships')
         .delete()
@@ -136,17 +152,28 @@ export const DELETE = withOwnerAuth(
       if (membershipError) {
         return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
       }
-      const { error: sessionError } = await supabase
-        .from('device_sessions')
-        .delete()
-        .eq('id', sessionId)
-      if (sessionError) {
-        return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+      // Dernier foyer quitté → on supprime aussi la session de cet appareil
+      // (déconnexion). S'il reste des foyers, la session survit : le foyer
+      // n'étant PAS supprimé, device_sessions.household_id (même s'il pointait
+      // vers ce foyer) reste une FK valide — rien à repointer.
+      if (!stayLoggedIn) {
+        const { error: sessionError } = await supabase
+          .from('device_sessions')
+          .delete()
+          .eq('id', sessionId)
+        if (sessionError) {
+          return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+        }
       }
     }
 
-    // Clear the cookie on a 200 JSON response (reliable in WKWebView); the
-    // client reads `redirect` and navigates to the landing page itself.
+    // Il reste ≥1 foyer : session conservée, retour au hub, cookie intact.
+    if (stayLoggedIn) {
+      return NextResponse.json({ ok: true, redirect: '/household' })
+    }
+
+    // Dernier foyer : déconnexion propre. Clear cookie sur une réponse 200 JSON
+    // (fiable en WKWebView) ; le client suit `redirect` vers la landing.
     const response = NextResponse.json({ ok: true, redirect: '/' })
     clearSessionCookie(response)
     return response

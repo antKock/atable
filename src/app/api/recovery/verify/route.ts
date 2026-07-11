@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
     }
 
-    const token = await signSession({ hid: session.householdId, sid: session.sessionId })
+    const token = await signSession({ sid: session.sessionId })
     // Cookie sur un 200 JSON (pas un 303) — fiable en WKWebView, comme join.
     const response = NextResponse.json({ ok: true, redirect: '/home' })
     setSessionCookie(response, token)

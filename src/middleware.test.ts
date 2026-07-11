@@ -134,7 +134,7 @@ describe("middleware — sliding session renewal", () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue(null);
     const res = await middleware(makeRequest("/home", { cookie: "old-token" }));
-    expect(signSession).toHaveBeenCalledWith({ hid: "household-1", sid: "session-1" });
+    expect(signSession).toHaveBeenCalledWith({ sid: "session-1" });
     expect(res.cookies.get("atable_session")?.value).toBe("renewed-token");
   });
 

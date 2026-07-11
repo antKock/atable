@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 const BUCKET = "recipe-photos";
@@ -35,13 +35,20 @@ async function duplicateImage(
 // Copies a shared recipe (resolved by its capability token) into the caller's
 // household. Used both by guests right after they create/join a household and
 // by members of another household adding a friend's recipe.
-export const POST = withHouseholdAuth(
-  async (request: NextRequest, _ctx, { householdId, sessionId }) => {
+export const POST = withOwnerAuth(
+  async (request: NextRequest, _ctx, owner) => {
     const body = await request.json().catch(() => ({}));
     const token = typeof body.token === "string" ? body.token.trim() : "";
     if (!token) {
       return NextResponse.json({ error: "Token manquant" }, { status: 422 });
     }
+
+    // Copie = écriture : foyer cible explicite (multi-foyer) ou repli mono-foyer,
+    // toujours un foyer où l'owner est membre.
+    const target = resolveWriteHousehold(owner, body?.householdId);
+    if (target instanceof NextResponse) return target;
+    const { householdId } = target;
+    const sessionId = owner.sessionId;
 
     const supabase = createServerClient();
 

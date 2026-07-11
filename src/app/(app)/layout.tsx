@@ -40,10 +40,10 @@ export default async function AppShell({ children }: { children: React.ReactNode
   const cookieStore = await cookies()
   let installCode: string | null = null
   let mainHint: 'share' | 'email' | null = null
-  // CTA du hint partage : le détail du (premier) foyer, où vivent code et lien.
-  const shareHref = owner.memberships[0]
-    ? `/household/${owner.memberships[0].householdId}`
-    : '/household'
+  // CTA du hint partage : le détail d'un foyer où l'owner est MEMBRE (là où
+  // vivent code et lien d'invitation). Multi-foyer (Lot 4) : premier membre.
+  const shareFoyerId = owner.memberships.find((m) => m.role === 'member')?.householdId
+  const shareHref = shareFoyerId ? `/household/${shareFoyerId}` : '/household'
 
   // Les hints (install + partage/email) ne s'affichent QUE sur la vue
   // principale /home — pas sur les autres écrans (biblio, foyer, fiche…). Cela
@@ -58,12 +58,14 @@ export default async function AppShell({ children }: { children: React.ReactNode
     const ua = hdrs.get('user-agent') ?? ''
     const isIOSWeb = /iPhone|iPad|iPod/i.test(ua) && !ua.includes('MijoteNative')
     const installDismissed = cookieStore.get('mijote_install_dismissed')?.value === '1'
-    const householdId = hdrs.get('x-household-id')
-    if (isIOSWeb && !installDismissed && householdId) {
+    // Multi-foyer (Lot 4) : le code d'install voyage avec un foyer où l'owner
+    // est MEMBRE (re-join depuis la WebView de l'app). Plus de x-household-id.
+    const installHouseholdId = owner.memberships.find((m) => m.role === 'member')?.householdId
+    if (isIOSWeb && !installDismissed && installHouseholdId) {
       const { data } = await createServerClient()
         .from('households')
         .select('join_code')
-        .eq('id', householdId)
+        .eq('id', installHouseholdId)
         .single()
       installCode = (data?.join_code as string | undefined) ?? null
     }

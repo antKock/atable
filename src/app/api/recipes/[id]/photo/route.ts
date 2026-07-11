@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { householdIds } from "@/lib/auth/owner-context";
 
 // Stay under Vercel's 4.5 MB function body limit; the client resizes photos
 // to ~150-300 KB WebP before upload, so this only guards the raw-file fallback.
@@ -20,8 +21,8 @@ type RouteContext = { params: Promise<{ id: string }> };
 // Uploads a recipe photo through the server (service role) so the Storage
 // bucket needs no anon write policies. Path is derived from the session's
 // household, never from client input.
-export const POST = withHouseholdAuth(
-  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const POST = withOwnerAuth(
+  async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params;
     const formData = await request.formData();
     const photo = formData.get("photo");
@@ -46,17 +47,23 @@ export const POST = withHouseholdAuth(
 
     const supabase = createServerClient();
 
-    // Verify the recipe exists and belongs to this household
+    // La recette doit exister dans un foyer de l'owner ; l'upload est une
+    // écriture → MEMBRE requis sur LE foyer de la recette (Lot 4). Le chemin
+    // Storage reste rangé par foyer.
     const { data: existing } = await supabase
       .from("recipes")
-      .select("id")
+      .select("id, household_id")
       .eq("id", id)
-      .eq("household_id", householdId)
+      .in("household_id", householdIds(owner))
       .single();
 
     if (!existing) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
+
+    const forbidden = requireMember(owner, existing.household_id);
+    if (forbidden) return forbidden;
+    const householdId = existing.household_id;
 
     const path = `${householdId}/${id}/photo.${ext}`;
     const { error: uploadError } = await supabase.storage
@@ -97,6 +104,4 @@ export const POST = withHouseholdAuth(
 
     return NextResponse.json({ url });
   },
-  // Upload photo = écriture (recipes.photo_url + Storage) : invité refusé 403.
-  { requireMember: true },
 );

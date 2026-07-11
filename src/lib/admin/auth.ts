@@ -13,3 +13,11 @@ export function isAdmin(householdId: string | null | undefined): boolean {
   if (!householdId) return false;
   return adminHouseholdIds().includes(householdId);
 }
+
+// Multi-foyer (Lot 4) : l'admin se déduit des foyers de l'owner (le
+// x-household-id a disparu). Vrai si l'UN d'eux est listé dans
+// ADMIN_HOUSEHOLD_IDS.
+export function isAdminForHouseholds(ids: string[]): boolean {
+  const admin = adminHouseholdIds();
+  return ids.some((id) => admin.includes(id));
+}

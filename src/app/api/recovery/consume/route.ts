@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     if (!session) {
       return NextResponse.json({ error: t.recovery.consumeErrorTitle }, { status: 400 })
     }
-    const jwt = await signSession({ hid: session.householdId, sid: session.sessionId })
+    const jwt = await signSession({ sid: session.sessionId })
     const response = NextResponse.json({
       ok: true,
       redirect: consumed.purpose === 'merge' ? '/household' : '/home',

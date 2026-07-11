@@ -94,11 +94,51 @@ export const getOwnerContext = cache(async (): Promise<OwnerContext | null> => {
 })
 
 /**
- * L'owner est-il en lecture seule (rôle invité) ? Mono-appartenance jusqu'au
- * Lot 4 → l'unique membership porte le rôle. Prédicat partagé par les Server
- * Components (home/biblio/fiche/nav) pour masquer les affordances d'écriture,
- * en écho au `requireMember` des routes API (enforcement lecture seule, Lot 3).
+ * L'owner est-il en lecture seule PARTOUT (invité de tous ses foyers, aucun
+ * rôle membre) ? Multi-appartenance (Lot 4) : un owner membre de A et invité de
+ * C peut écrire (dans A) — il n'est donc PAS « invité ». Ce prédicat masque les
+ * affordances d'écriture GLOBALES (FAB, CTA de création, /recipes/new) ; la
+ * fiche d'une recette, elle, décide au cas par cas selon le rôle de l'owner sur
+ * LE foyer de la recette (cf. roleForHousehold). En écho au `requireMember` des
+ * routes API (enforcement lecture seule, Lot 3).
  */
 export function isGuestOwner(owner: OwnerContext): boolean {
-  return owner.memberships[0]?.role === 'guest'
+  return !owner.memberships.some((m) => m.role === 'member')
+}
+
+/** Ids des foyers où l'owner est MEMBRE (destinations d'écriture / de choix). */
+export function memberHouseholdIds(owner: OwnerContext): string[] {
+  return owner.memberships.filter((m) => m.role === 'member').map((m) => m.householdId)
+}
+
+/** Ids de TOUS les foyers de l'owner (union de lecture : biblio, carrousels). */
+export function householdIds(owner: OwnerContext): string[] {
+  return owner.memberships.map((m) => m.householdId)
+}
+
+/** Rôle de l'owner sur un foyer donné, ou null s'il n'en est pas membre. */
+export function roleForHousehold(owner: OwnerContext, householdId: string): MembershipRole | null {
+  return owner.memberships.find((m) => m.householdId === householdId)?.role ?? null
+}
+
+// Force du rôle : membre > invité.
+const ROLE_RANK: Record<MembershipRole, number> = { member: 2, guest: 1 }
+
+export type RoleMergePlan = { action: 'add' | 'upgrade' | 'noop'; role: MembershipRole }
+
+/**
+ * Décide de l'effet d'un re-join ADDITIF (Lot 4) sur le rôle de l'owner dans le
+ * foyer visé, à partir du rôle courant (null = pas encore membre) et du rôle
+ * porté par le code d'invitation :
+ *   - pas encore membre → `add` (nouveau membership) ;
+ *   - déjà membre, code plus fort (invité→membre) → `upgrade` ;
+ *   - déjà membre, code ≤ courant → `noop` (jamais de rétrogradation).
+ */
+export function planRoleMerge(
+  current: MembershipRole | null,
+  incoming: MembershipRole,
+): RoleMergePlan {
+  if (current === null) return { action: 'add', role: incoming }
+  if (ROLE_RANK[incoming] > ROLE_RANK[current]) return { action: 'upgrade', role: incoming }
+  return { action: 'noop', role: current }
 }

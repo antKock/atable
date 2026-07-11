@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer } from "react";
+import { useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSWRConfig } from "swr";
 import { toast } from "sonner";
@@ -15,8 +15,12 @@ import PhotoManager from "./PhotoManager";
 import TagInput from "./TagInput";
 import ChipSelector from "./ChipSelector";
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
+import HouseholdPickerDialog from "@/components/household/HouseholdPickerDialog";
 import type { Recipe, Tag } from "@/types/recipe";
 import type { RecipeSource } from "@/lib/schemas/recipe";
+
+/** Foyer membre proposé au choix à l'enregistrement (multi-foyer, Lot 4). */
+export type MemberFoyer = { id: string; name: string; recipeCount: number };
 
 const PREP_TIME_OPTIONS = ["< 10 min", "10-20 min", "20-30 min", "30-45 min", "> 45 min"];
 const COOK_TIME_OPTIONS = ["Aucune", "< 15 min", "15-30 min", "30 min - 1h", "1h - 2h", "> 2h"];
@@ -49,6 +53,9 @@ interface CreateProps {
   /** When true, the form runs inside the iOS Share Extension's WebView: on save
    *  we dismiss the extension sheet instead of navigating. */
   shareExtension?: boolean;
+  /** Foyers membres de l'owner. À l'enregistrement, si >1 → dialog de choix du
+   *  foyer avant le POST ; sinon POST direct (mono-foyer, aucun dialog). */
+  memberFoyers?: MemberFoyer[];
 }
 
 interface EditProps {
@@ -58,6 +65,7 @@ interface EditProps {
   source?: never;
   stickySubmit?: boolean;
   shareExtension?: never;
+  memberFoyers?: never;
 }
 
 type RecipeFormProps = CreateProps | EditProps;
@@ -293,20 +301,31 @@ function ServingsStepper({
   );
 }
 
-export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension }: RecipeFormProps) {
+export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension, memberFoyers = [] }: RecipeFormProps) {
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const isEdit = mode === "edit";
   const { uploadPhoto } = usePhotoUpload();
 
   const [form, dispatch] = useReducer(formReducer, { initialData, isEdit }, initFormState);
+  // Dialog de choix de foyer à l'enregistrement (multi-foyer, Lot 4).
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const canSave = form.title.trim().length > 0;
 
-  async function handleSubmit(e: React.FormEvent) {
+  // Enregistrement : en création multi-foyer, on choisit le foyer AVANT le POST
+  // (dialog) ; en mono-foyer ou édition, envoi direct.
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!canSave || form.isSaving) return;
+    if (!isEdit && memberFoyers.length > 1) {
+      setPickerOpen(true);
+      return;
+    }
+    void runSave(isEdit ? undefined : memberFoyers[0]?.id);
+  }
 
+  async function runSave(chosenHouseholdId?: string) {
     dispatch({ type: "saveStarted" });
     try {
       const payload: Record<string, unknown> = {
@@ -356,6 +375,11 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         }
       } else {
         payload.source = source ?? "manual";
+        // Foyer de destination explicite (dialog de choix) ; absent en
+        // mono-foyer → le serveur retombe sur l'unique foyer membre.
+        if (chosenHouseholdId) {
+          payload.householdId = chosenHouseholdId;
+        }
         // Tell the server a user photo is coming so enrichment skips (and
         // doesn't bill) an AI image that the upload would immediately hide.
         if (form.photoFile) {
@@ -622,6 +646,27 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
             triggerLabel={t.deleteDialog.trigger}
           />
         </div>
+      )}
+
+      {/* Choix du foyer à l'enregistrement (multi-foyer) — jamais monté en
+          mono-foyer (le submit poste directement). */}
+      {!isEdit && memberFoyers.length > 1 && (
+        <HouseholdPickerDialog
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          title={t.household.picker.saveTitle}
+          note={t.household.picker.lockNote}
+          busy={form.isSaving}
+          foyers={memberFoyers.map((f) => ({
+            id: f.id,
+            name: f.name,
+            recipeCount: f.recipeCount,
+          }))}
+          onSelect={(id) => {
+            setPickerOpen(false);
+            void runSave(id);
+          }}
+        />
       )}
     </form>
   );

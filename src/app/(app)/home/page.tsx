@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Settings } from "lucide-react";
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
 import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
@@ -13,18 +12,16 @@ type Props = {
 
 export default async function HomePage({ searchParams }: Props) {
   const { code, householdName } = await searchParams;
-  const hdrs = await headers();
-  const householdId = hdrs.get("x-household-id");
 
-  if (!householdId) {
+  // Multi-foyer (Lot 4) : plus de x-household-id — l'accès et le rôle se
+  // résolvent en DB via l'owner. `isGuest` = invité PARTOUT (aucun rôle membre)
+  // → masque le CTA de création. getOwnerContext est mémoïsé (déjà résolu par
+  // le layout) : pas de requête DB supplémentaire.
+  const owner = await getOwnerContext();
+  if (!owner || owner.memberships.length === 0) {
     redirect("/");
   }
-
-  // Rôle du viewer (mono-appartenance) → masque le CTA de création pour un
-  // invité (lecture seule, Lot 3). getOwnerContext est mémoïsé (déjà résolu
-  // par le layout) : pas de requête DB supplémentaire.
-  const owner = await getOwnerContext();
-  const isGuest = owner ? isGuestOwner(owner) : false;
+  const isGuest = isGuestOwner(owner);
 
   return (
     <div className="pb-6 pt-6">

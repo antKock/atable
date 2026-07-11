@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { generateShareToken } from "@/lib/auth/share-token";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { householdIds } from "@/lib/auth/owner-context";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -10,22 +11,27 @@ const MAX_ATTEMPTS = 5;
 // POST /api/recipes/[id]/share
 // Idempotently mints (or returns the existing) capability token for a recipe
 // the caller's household owns, and returns the public share URL.
-export const POST = withHouseholdAuth(
-  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const POST = withOwnerAuth(
+  async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params;
     const supabase = createServerClient();
 
-    // Verify ownership and check for an already-minted token.
+    // La recette doit exister dans un foyer de l'owner ; le mint écrit
+    // share_token → MEMBRE requis sur LE foyer de la recette (Lot 4).
     const { data: recipe, error } = await supabase
       .from("recipes")
-      .select("id, share_token")
+      .select("id, share_token, household_id")
       .eq("id", id)
-      .eq("household_id", householdId)
+      .in("household_id", householdIds(owner))
       .single();
 
     if (error || !recipe) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
+
+    const forbidden = requireMember(owner, recipe.household_id);
+    if (forbidden) return forbidden;
+    const householdId = recipe.household_id;
 
     let token = recipe.share_token as string | null;
 
@@ -71,6 +77,4 @@ export const POST = withHouseholdAuth(
     const url = `${request.nextUrl.origin}/r/${token}`;
     return NextResponse.json({ token, url });
   },
-  // Le mint écrit recipes.share_token : écriture household-scopée, invité 403.
-  { requireMember: true },
 );

@@ -21,6 +21,7 @@ export const t = {
     removePhoto: "Retirer la photo",
     addRecipe: "Ajouter une recette",
     seeAll: "Voir tout",
+    move: "Déplacer",
   },
 
   // Recipe form
@@ -179,6 +180,7 @@ export const t = {
     regime: "Régime",
     duree: "Durée",
     cout: "Coût",
+    foyer: "Foyer",
     lt30min: "< 30 min",
     "30to60": "30 min - 1h",
     gt60: "> 1h",
@@ -405,12 +407,33 @@ export const t = {
     },
     peopleCount: (n: number) => `${n} personne${n > 1 ? "s" : ""}`,
     recipeCount: (n: number) => `${n} recette${n > 1 ? "s" : ""}`,
+    // Rejoindre devient additif (Lot 4, §1) : messages du re-join.
+    join: {
+      alreadyMember: "Tu fais déjà partie de ce foyer.",
+      added: (name: string) => `Tu as rejoint « ${name} ».`,
+      upgraded: "Tu es maintenant membre de ce foyer.",
+    },
+    // Dialog de choix de foyer (maquette 0.4 / 2.4, Lot 4) : enregistrement et
+    // déplacement d'une recette. Réutilise ui/dialog (décision n°8).
+    picker: {
+      saveTitle: "Dans quel foyer ?",
+      moveTitle: "Déplacer vers…",
+      lockNote: "Les foyers où tu es invité sont en lecture seule.",
+      current: "Actuel",
+      // 422 serveur : plusieurs foyers membres mais aucun choix transmis.
+      required: "Choisis un foyer de destination.",
+      moveError: "Impossible de déplacer la recette. Réessaie.",
+      moved: (name: string) => `Recette déplacée vers « ${name} ».`,
+      // Copie lecture seule générique (jamais de nom de foyer cité, §5).
+      readOnlyDestination: "Ce foyer est en lecture seule.",
+    },
   },
 
-  // Écran « Créer ou rejoindre » (depuis le hub — sémantique : changer de foyer)
+  // Écran « Créer ou rejoindre » (depuis le hub — sémantique additive, Lot 4 :
+  // le foyer s'ajoute à tes foyers, l'appareil ne quitte rien)
   switchHousehold: {
     title: "Créer ou rejoindre",
-    body: "Ton appareil changera de foyer. Tu pourras retrouver celui-ci en le rejoignant à nouveau avec son code d'invitation.",
+    body: "Le foyer s'ajoutera à tes foyers. Tu gardes l'accès à tous ceux que tu as déjà rejoints.",
     create: "Créer un foyer",
     join: "Rejoindre un foyer",
   },

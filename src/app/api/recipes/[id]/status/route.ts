@@ -1,18 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { householdIds } from "@/lib/auth/owner-context";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export const GET = withHouseholdAuth(
-  async (_request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const GET = withOwnerAuth(
+  async (_request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params;
     const supabase = createServerClient();
     const { data, error } = await supabase
       .from("recipes")
       .select("enrichment_status, image_status")
       .eq("id", id)
-      .eq("household_id", householdId)
+      .in("household_id", householdIds(owner))
       .single();
 
     if (error || !data) {

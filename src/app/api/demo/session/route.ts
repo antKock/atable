@@ -55,8 +55,7 @@ export async function POST(request: NextRequest) {
       throw new Error(error?.message ?? 'Failed to create demo session')
     }
 
-    const payload = { hid: demoHouseholdId, sid: session.id, iat: Math.floor(Date.now() / 1000) }
-    const token = await signSession(payload)
+    const token = await signSession({ sid: session.id })
     console.log(`[demo/session] token signed, length=${token.length}`)
 
     // Set the session cookie on a 200 JSON response instead of a 303 redirect:

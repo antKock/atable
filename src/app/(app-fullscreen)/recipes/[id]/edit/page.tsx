@@ -3,10 +3,9 @@ export const dynamic = "force-dynamic";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { headers } from "next/headers";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
-import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
+import { getOwnerContext, householdIds, roleForHousehold } from "@/lib/auth/owner-context";
 import { t } from "@/lib/i18n/fr";
 import RecipeForm from "@/components/recipes/RecipeForm";
 
@@ -16,24 +15,23 @@ type Props = {
 
 export default async function EditRecipePage({ params }: Props) {
   const { id } = await params;
-  const hdrs = await headers();
-  const householdId = hdrs.get("x-household-id");
-  if (!householdId) notFound();
 
-  // Garde serveur miroir du masquage UI (Lot 3) : un invité (lecture seule) qui
-  // atteint /recipes/[id]/edit par URL directe est renvoyé en 404.
+  // Multi-foyer (Lot 4) : la recette est cherchée dans l'union des foyers de
+  // l'owner ; l'édition exige d'être MEMBRE de SON foyer (un invité — ou un
+  // membre d'un autre foyer — qui atteint /edit par URL directe → 404).
   const owner = await getOwnerContext();
-  if (owner && isGuestOwner(owner)) notFound();
+  if (!owner) notFound();
 
   const supabase = createServerClient();
   const { data } = await supabase
     .from("recipes")
-    .select("*, recipe_tags(tag_id, tags(id, name, category))")
+    .select("*, recipe_tags(tag_id, tags(id, name, category)), household_id")
     .eq("id", id)
-    .eq("household_id", householdId)
+    .in("household_id", householdIds(owner))
     .single();
 
   if (!data) notFound();
+  if (roleForHousehold(owner, data.household_id) !== "member") notFound();
 
   const recipe = mapDbRowToRecipe(data);
 
