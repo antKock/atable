@@ -21,6 +21,7 @@ export const t = {
     removePhoto: "Retirer la photo",
     addRecipe: "Ajouter une recette",
     seeAll: "Voir tout",
+    move: "Déplacer",
   },
 
   // Recipe form
@@ -179,6 +180,7 @@ export const t = {
     regime: "Régime",
     duree: "Durée",
     cout: "Coût",
+    foyer: "Foyer",
     lt30min: "< 30 min",
     "30to60": "30 min - 1h",
     gt60: "> 1h",
@@ -305,6 +307,8 @@ export const t = {
     confirm: 'Rejoindre',
     notFound: 'Ce lien ne correspond à aucun foyer',
     backToLanding: "Retour à l'accueil",
+    // Code invité (Lot 3) : la confirmation dit que l'accès est en lecture seule
+    guestNote: 'En lecture seule, en direct',
   },
 
   // Join household
@@ -333,26 +337,19 @@ export const t = {
     inviteLinkCopied: "Lien d'invitation copié !",
     shareTitle: (name: string) => `Rejoindre mon foyer « ${name} » sur Mijote`,
     createError: "Impossible de créer le foyer. Réessaie.",
-    menu: "Mon foyer",
-    menuButton: "Menu du foyer",
+    menu: "Foyer & profil",
+    menuButton: "Foyer & profil",
     shareCode: "Code du foyer",
     inviteLink: "Lien d'invitation",
-    devices: "Appareils connectés",
-    leaveHousehold: "Quitter le foyer",
+    leaveHousehold: "Quitter ce foyer",
     rename: "Renommer",
     renameTitle: "Renommer le foyer",
     renameSuccess: "Foyer renommé",
     renameError: "Impossible de renommer le foyer",
-    revokeDevice: "Révoquer",
-    revokeDeviceConfirm: "Révoquer cet appareil ?",
-    deviceRevoked: "Appareil révoqué",
     leaveConfirm: "Quitter le foyer ?",
     leaveBody: "Tu devras rejoindre avec un code ou un lien pour accéder à nouveau aux recettes.",
     leaveAction: "Quitter",
     demoLabel: "Démo",
-    currentDevice: "cet appareil",
-    revokeBody: "Cette action est irréversible.",
-    revokeError: "Impossible de révoquer l'appareil",
     deleteHousehold: "Supprimer le foyer",
     deleteConfirmTitle: "Supprimer le foyer ?",
     deleteConfirmBody:
@@ -363,6 +360,164 @@ export const t = {
       "Cette action est irréversible. Le foyer et toutes ses recettes seront définitivement perdus.",
     deleteFinalAction: "Supprimer définitivement",
     leaveError: "Une erreur s'est produite. Réessaie.",
+    // Hub « Toi + Tes foyers » (chantier foyer, Lot 1)
+    sectionYou: "Toi",
+    sectionHouseholds: "Tes foyers",
+    // Sous-titre de la ligne « Toi » selon owners.recovery_email (Lot 2)
+    accessSaved: "Accès sauvegardé",
+    accessToSave: "Sauvegarder mon accès",
+    createOrJoin: "Créer ou rejoindre un foyer",
+    membersSection: "Membres",
+    guestsSection: "Invités",
+    youSuffix: "(toi)",
+    // Entrée « Inviter » depuis le détail du foyer (Lot 3, membres only)
+    inviteEntry: "Inviter quelqu'un",
+    // Bandeau lecture seule affiché à un invité sur le détail d'un foyer (Lot 3)
+    guestReadOnly: "Tu peux consulter les recettes en direct, mais pas les modifier.",
+    // Écran plein « Inviter » à deux liens (Lot 3, maquette 2.1)
+    invite: {
+      title: "Inviter quelqu'un",
+      memberBlockTitle: "Comme membre",
+      memberBlockDesc: "Consulte et modifie les recettes.",
+      guestBlockTitle: "Comme invité",
+      guestBlockDesc: "Lecture seule, en direct.",
+      note: "Pour retirer quelqu'un plus tard, va dans Membres — pas besoin de changer le lien.",
+    },
+    // Dialog d'action sur un membre (Lot 3, maquette 2.2 / MemberActionScreen)
+    memberAction: {
+      subtitleMember: "Membre · consulte et modifie",
+      subtitleGuest: "Invité · lecture seule",
+      toGuest: "Passer en invité (lecture seule)",
+      toMember: "Passer en membre (peut modifier)",
+      remove: "Retirer du foyer",
+      removeBody: "La retirer coupe son accès immédiatement.",
+      roleError: "Impossible de changer le rôle. Réessaie.",
+      removeError: "Impossible de retirer ce membre. Réessaie.",
+      lastMember: "Impossible : c'est le dernier membre du foyer.",
+    },
+    // Pas de `as Record<MembershipRole, string>` : l'assertion compilerait même
+    // avec une clé manquante. Le `as const` du fichier suffit à l'indexation.
+    roles: {
+      member: "membre",
+      guest: "invité",
+    },
+    rolesCap: {
+      member: "Membre",
+      guest: "Invité",
+    },
+    peopleCount: (n: number) => `${n} personne${n > 1 ? "s" : ""}`,
+    recipeCount: (n: number) => `${n} recette${n > 1 ? "s" : ""}`,
+    // Rejoindre devient additif (Lot 4, §1) : messages du re-join.
+    join: {
+      alreadyMember: "Tu fais déjà partie de ce foyer.",
+      added: (name: string) => `Tu as rejoint « ${name} ».`,
+      upgraded: "Tu es maintenant membre de ce foyer.",
+    },
+    // Dialog de choix de foyer (maquette 0.4 / 2.4, Lot 4) : enregistrement et
+    // déplacement d'une recette. Réutilise ui/dialog (décision n°8).
+    picker: {
+      saveTitle: "Dans quel foyer ?",
+      moveTitle: "Déplacer vers…",
+      lockNote: "Les foyers où tu es invité sont en lecture seule.",
+      current: "Actuel",
+      // 422 serveur : plusieurs foyers membres mais aucun choix transmis.
+      required: "Choisis un foyer de destination.",
+      moveError: "Impossible de déplacer la recette. Réessaie.",
+      moved: (name: string) => `Recette déplacée vers « ${name} ».`,
+      // Copie lecture seule générique (jamais de nom de foyer cité, §5).
+      readOnlyDestination: "Ce foyer est en lecture seule.",
+    },
+  },
+
+  // Écran « Créer ou rejoindre » (depuis le hub — sémantique additive, Lot 4 :
+  // le foyer s'ajoute à tes foyers, l'appareil ne quitte rien)
+  switchHousehold: {
+    title: "Créer ou rejoindre",
+    body: "Le foyer s'ajoutera à tes foyers. Tu gardes l'accès à tous ceux que tu as déjà rejoints.",
+    create: "Créer un foyer",
+    join: "Rejoindre un foyer",
+  },
+
+  // Profil (« Toi »)
+  profile: {
+    title: "Ton profil",
+    nameLabel: "Ton nom",
+    nameHint:
+      "Ton nom apparaît auprès des autres membres de tes foyers. Laisse vide et on te donne un alias par défaut.",
+    saved: "Profil mis à jour",
+    saveError: "Impossible d'enregistrer ton profil. Réessaie.",
+    nameInvalid: "Nom invalide — 50 caractères maximum.",
+    // Email de secours (#14) — saisi ici, AUCUN envoi à la saisie
+    emailSection: "Retrouver ton accès",
+    emailLabel: "Email de secours",
+    emailPlaceholder: "ton@email.fr",
+    emailHint:
+      "Ton email sert uniquement à retrouver ton accès si tu changes ou perds ton appareil. On t'enverra un lien seulement à ce moment-là — pas de mot de passe, pas de compte.",
+    emailInvalid: "Adresse email invalide.",
+  },
+
+  // Fusion d'owners (#14, §5) — déclenchée depuis le profil quand l'email est
+  // déjà utilisé par un autre profil
+  merge: {
+    title: "On réunit tes foyers",
+    body: (email: string) =>
+      `Cet email est déjà utilisé par un autre profil. Saisis le code qu'on vient d'envoyer à ${email} pour réunir les deux accès en une seule identité.`,
+    codeLabel: "Code reçu par email",
+    success: "Tes foyers sont réunis",
+    codeInvalid: "Code invalide ou expiré. Réessaie, ou renvoie un email.",
+  },
+
+  // Récupération d'accès (#14) — fork onboarding + écrans de récup
+  recovery: {
+    // Écran « Rejoindre un foyer » (fork)
+    forkBody: "Avec le code d'invitation d'un proche, ou l'email que tu avais sauvegardé.",
+    forkCode: "J'ai un code d'invitation",
+    forkEmail: "Récupérer avec mon email",
+    // Saisie de l'email
+    title: "Récupérer mon accès",
+    body: "Entre l'email que tu avais sauvegardé. On t'envoie un lien pour retrouver ton foyer sur cet appareil.",
+    emailPlaceholder: "ton@email.fr",
+    send: "Envoyer le lien",
+    sendError: "Impossible d'envoyer le lien. Réessaie.",
+    rateLimited: "Trop de tentatives, réessaie plus tard",
+    // Écran « Vérifie tes mails » (anti-énumération : identique que l'email
+    // existe ou non)
+    checkTitle: "Vérifie tes mails",
+    checkBody: "On a envoyé un lien de connexion à cette adresse :",
+    checkHint: "Ouvre-le pour confirmer — c'est tout.",
+    codePrompt: "Tu lis tes mails sur un autre appareil ?",
+    codePromptHint: "Saisis plutôt le code reçu.",
+    codeLabel: "Code à 6 chiffres",
+    codeInvalid: "Code invalide ou expiré.",
+    resend: "Renvoyer",
+    resendIn: (seconds: number) =>
+      `Renvoyer · ${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`,
+    // Magic-link /recover/[token]
+    consuming: "Connexion en cours…",
+    consumeErrorTitle: "Ce lien n'est plus valide",
+    consumeErrorBody:
+      "Il a peut-être expiré (15 minutes) ou déjà servi. Refais une demande depuis « Rejoindre un foyer ».",
+    backToLanding: "Retour à l'accueil",
+  },
+
+  // Hints home (#14, décision n°9) : un hint principal à la fois
+  hints: {
+    share: {
+      title: "Cuisinez à plusieurs",
+      body: "Invite les gens de ton foyer : vos recettes se retrouvent au même endroit, en direct.",
+      cta: "Inviter quelqu'un",
+    },
+    email: {
+      title: "Sauvegarde ton accès",
+      body: "Ajoute un email et tu retrouveras ce foyer même si tu changes d'appareil. Pas de compte, pas de mot de passe.",
+      cta: "Ajouter un email",
+      dismissToast: "Tu retrouveras ça dans ton profil",
+    },
+    install: {
+      label: "Installe l'app Mijote",
+      cta: "Installer",
+    },
+    dismiss: "Fermer",
   },
 
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est
@@ -394,9 +549,7 @@ export const t = {
   // once they tap install — reveal the foyer code for session continuity into
   // the fresh app WebView (separate cookie jar from Safari).
   installBanner: {
-    title: "Garde Mijote sur ton iPhone",
-    body: "Installe l'app pour garder tes recettes à portée de main, même hors connexion.",
-    install: "Installer l'app",
+    // Step 1 (mini-strip) : voir hints.install
     // Step 2 — after tapping install
     codeTitle: "Encore une étape",
     codeBody: "Ouvre Mijote et rejoins ton foyer avec ce code :",

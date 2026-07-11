@@ -14,6 +14,8 @@ const PUBLIC_ROUTES = ['/', '/support', '/api/households', '/api/version']
 const PUBLIC_PREFIXES = [
   '/join/',
   '/r/',
+  '/recover/',
+  '/api/recovery/',
   '/legal/',
   '/api/households/lookup',
   '/api/households/join',
@@ -81,8 +83,13 @@ export async function middleware(request: NextRequest) {
     }
 
     const requestHeaders = new Headers(request.headers)
-    requestHeaders.set('x-household-id', payload.hid)
+    // Décommissionnement du chantier foyer (Lot 4) : plus de `x-household-id` —
+    // le `sid` est l'unique clé, le foyer se résout en DB (owner-context). Seuls
+    // `x-session-id` et `x-pathname` sont injectés.
     requestHeaders.set('x-session-id', payload.sid)
+    // Chemin courant exposé aux Server Components (le layout ne le connaît pas
+    // autrement) : les hints ne s'affichent que sur la vue principale /home.
+    requestHeaders.set('x-pathname', pathname)
     const response = NextResponse.next({ request: { headers: requestHeaders } })
 
     // Sliding renewal: re-sign tokens older than the renewal window so active
@@ -91,7 +98,7 @@ export async function middleware(request: NextRequest) {
     const tokenAgeS = Math.floor(Date.now() / 1000) - payload.iat
     if (tokenAgeS > SESSION_RENEW_AFTER_S) {
       try {
-        const fresh = await signSession({ hid: payload.hid, sid: payload.sid })
+        const fresh = await signSession({ sid: payload.sid })
         setSessionCookie(response, fresh)
       } catch {
         // Renewal is best-effort; the current token is still valid.

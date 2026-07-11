@@ -16,6 +16,10 @@ export type OwnerMembership = {
 
 export type OwnerContext = {
   ownerId: string
+  /** NULL → alias auto dérivé de l'id (src/lib/alias.ts), jamais stocké. */
+  ownerName: string | null
+  /** Email de secours (#14), déjà normalisé lowercase. NULL → pas posé. */
+  recoveryEmail: string | null
   sessionId: string
   memberships: OwnerMembership[]
 }
@@ -26,6 +30,8 @@ type SessionRow = {
   owner_id: string | null
   is_revoked: boolean
   owners: {
+    name: string | null
+    recovery_email: string | null
     memberships: {
       household_id: string
       role: string
@@ -50,7 +56,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('device_sessions')
-    .select('owner_id, is_revoked, owners(memberships(household_id, role, households(is_demo)))')
+    .select('owner_id, is_revoked, owners(name, recovery_email, memberships(household_id, role, households(is_demo)))')
     .eq('id', sessionId)
     .maybeSingle()
 
@@ -67,7 +73,13 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     isDemo: m.households?.is_demo ?? false,
   }))
 
-  return { ownerId: row.owner_id, sessionId, memberships }
+  return {
+    ownerId: row.owner_id,
+    ownerName: row.owners.name,
+    recoveryEmail: row.owners.recovery_email ?? null,
+    sessionId,
+    memberships,
+  }
 }
 
 /**
@@ -80,3 +92,53 @@ export const getOwnerContext = cache(async (): Promise<OwnerContext | null> => {
   if (!sessionId) return null
   return resolveOwnerContext(sessionId)
 })
+
+/**
+ * L'owner est-il en lecture seule PARTOUT (invité de tous ses foyers, aucun
+ * rôle membre) ? Multi-appartenance (Lot 4) : un owner membre de A et invité de
+ * C peut écrire (dans A) — il n'est donc PAS « invité ». Ce prédicat masque les
+ * affordances d'écriture GLOBALES (FAB, CTA de création, /recipes/new) ; la
+ * fiche d'une recette, elle, décide au cas par cas selon le rôle de l'owner sur
+ * LE foyer de la recette (cf. roleForHousehold). En écho au `requireMember` des
+ * routes API (enforcement lecture seule, Lot 3).
+ */
+export function isGuestOwner(owner: OwnerContext): boolean {
+  return !owner.memberships.some((m) => m.role === 'member')
+}
+
+/** Ids des foyers où l'owner est MEMBRE (destinations d'écriture / de choix). */
+export function memberHouseholdIds(owner: OwnerContext): string[] {
+  return owner.memberships.filter((m) => m.role === 'member').map((m) => m.householdId)
+}
+
+/** Ids de TOUS les foyers de l'owner (union de lecture : biblio, carrousels). */
+export function householdIds(owner: OwnerContext): string[] {
+  return owner.memberships.map((m) => m.householdId)
+}
+
+/** Rôle de l'owner sur un foyer donné, ou null s'il n'en est pas membre. */
+export function roleForHousehold(owner: OwnerContext, householdId: string): MembershipRole | null {
+  return owner.memberships.find((m) => m.householdId === householdId)?.role ?? null
+}
+
+// Force du rôle : membre > invité.
+const ROLE_RANK: Record<MembershipRole, number> = { member: 2, guest: 1 }
+
+export type RoleMergePlan = { action: 'add' | 'upgrade' | 'noop'; role: MembershipRole }
+
+/**
+ * Décide de l'effet d'un re-join ADDITIF (Lot 4) sur le rôle de l'owner dans le
+ * foyer visé, à partir du rôle courant (null = pas encore membre) et du rôle
+ * porté par le code d'invitation :
+ *   - pas encore membre → `add` (nouveau membership) ;
+ *   - déjà membre, code plus fort (invité→membre) → `upgrade` ;
+ *   - déjà membre, code ≤ courant → `noop` (jamais de rétrogradation).
+ */
+export function planRoleMerge(
+  current: MembershipRole | null,
+  incoming: MembershipRole,
+): RoleMergePlan {
+  if (current === null) return { action: 'add', role: incoming }
+  if (ROLE_RANK[incoming] > ROLE_RANK[current]) return { action: 'upgrade', role: incoming }
+  return { action: 'noop', role: current }
+}

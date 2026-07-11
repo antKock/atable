@@ -5,8 +5,12 @@ import { t } from '@/lib/i18n/fr'
 import { dropSwrCache } from '@/lib/swr'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
+import JoinForkScreen from './JoinForkScreen'
+import RecoverFlow from './RecoverFlow'
 
-type View = 'menu' | 'create' | 'join'
+// « join » = fork « Rejoindre un foyer » (#14, maquette 1.2) : code
+// d'invitation OU récupération par email — la clé anti-doublon d'owner.
+type View = 'menu' | 'create' | 'join' | 'joinCode' | 'recover'
 
 export default function LandingScreen() {
   const [view, setView] = useState<View>('menu')
@@ -35,7 +39,21 @@ export default function LandingScreen() {
   }
 
   if (view === 'join') {
-    return <CodeEntryForm onCancel={() => setView('menu')} />
+    return (
+      <JoinForkScreen
+        onCode={() => setView('joinCode')}
+        onRecover={() => setView('recover')}
+        onBack={() => setView('menu')}
+      />
+    )
+  }
+
+  if (view === 'joinCode') {
+    return <CodeEntryForm onCancel={() => setView('join')} />
+  }
+
+  if (view === 'recover') {
+    return <RecoverFlow onBack={() => setView('join')} />
   }
 
   // Welcome / first-launch (Mijote onboarding 06-A). Sage hero is full-bleed

@@ -24,13 +24,19 @@ qu'une **session** pointant vers cet owner ; l'appartenance est une ligne
 |---|---|---|---|
 | P | `01-pre-lot-harnais.md` | Harnais E2E Playwright + Supabase local + tests de caractérisation ; préparation Universal Links `/recover` | done |
 | 0 | `02-lot0-data-session.md` | Migration `owners`/`memberships`, résolution owner par requête, invisible pour l'utilisateur | done |
-| 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | à faire |
-| 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | à faire |
-| 3 | `05-lot3-invite.md` | #15a : rôle invité, 2 liens d'invitation, membres + révocation, lecture seule | à faire |
-| 4 | `06-lot4-multi-foyer.md` | #15b : multi-appartenance, choix de foyer, filtre biblio, déplacer | à faire |
+| 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | staging |
+| 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | staging |
+| 3 | `05-lot3-invite.md` | #15a : rôle invité, 2 liens d'invitation, membres + révocation, lecture seule | staging |
+| 4 | `06-lot4-multi-foyer.md` | #15b : multi-appartenance, choix de foyer, filtre biblio, déplacer | staging |
 
 **À la fin de chaque lot : mettre à jour la colonne Statut ici** (`staging` quand
 déployé sur staging, `done` quand promu en prod — même convention que le backlog).
+
+> ⚠️ **Le Lot 1 reste sur staging jusqu'à la livraison du Lot 3** (décision Anthony,
+> 2026-07-10). Il rend visibles les « membres fantômes » du backfill 027 alors qu'il
+> supprime la liste d'appareils et sa révocation (décision n°5) : l'utilisateur verrait
+> des inconnus dans son foyer sans aucun moyen de les retirer. Le Lot 3 réintroduit le
+> retrait de membre. Lots 1→3 promus ensemble. Voir « Constats terrain » ci-dessous.
 
 ## Architecture ACTUELLE (cartographiée le 2026-07-09)
 
@@ -130,6 +136,11 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 9. **Deux hints mineurs** de même gabarit : démo (CTA conversion) et install ;
    priorité démo ; install jamais en démo (déjà le cas). Le hint principal
    (partage/email) est distinct, un seul à la fois.
+   **Hints = vue principale `/home` uniquement** (arbitrage 2026-07-11, Lot 3) :
+   aucun hint (install + partage/email) sur les autres écrans (biblio, foyer,
+   fiche…). Implémenté via `x-pathname` (middleware) + garde `isMainView` dans
+   `(app)/layout.tsx`. Évite notamment un doublon d'affordance « Inviter
+   quelqu'un » sur le détail de foyer (CTA du hint partage vs entrée d'invitation).
 10. **Pas de foyer par défaut** : choix du foyer à chaque enregistrement (dialog),
     masqué en mono-foyer. Foyer invité = jamais une destination (grisé).
 11. **Marqueur d'origine biblio** = label texte discret (nom du foyer), jamais de
@@ -138,6 +149,53 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 12. **Magic link ouvre le web** ET l'app via Universal Link ; repli code 6 chiffres
     obligatoire. Emails : deux propositions HTML visualisables en navigateur avant
     implémentation (Anthony arbitre).
+
+## Constats terrain — « membres fantômes » (mesuré en prod le 2026-07-10)
+
+> Constat, pas décision. Documenté pour ne pas être re-découvert lot après lot.
+> **Aucune action pour l'instant** (arbitrage Anthony) : on verra plus tard si
+> c'est un vrai problème. Ne pas « corriger » sans re-poser la question.
+
+**Le fait.** Le backfill de la 027 (Lot 0) a créé **un owner par `device_session`**.
+Or une même personne possède plusieurs sessions. En prod, 74 owners, **aucun nommé** :
+
+| Foyer | memberships | réalité probable |
+|---|---|---|
+| Los Kockenos | 11 | 2 humains |
+| Bruno (106 recettes) | 6 | **1 humain** — 6 sessions créées en 5 jours d'onboarding, 1 seule porte les 106 recettes, les 5 autres n'ont **rien écrit** |
+| Jojo & Toto | 4 | 2 humains |
+| Chez Jojo & Toto | 3 | 1 humain (aucune session vue depuis 116 j) |
+| Maison de Pauline & Ugo | 3 | 2 humains |
+| Démo Mijote | 27 | 1 owner par visiteur (traité : vue solo au Lot 1) |
+
+Invisible jusqu'au Lot 0 ; **rendu visible par le Lot 1** (liste des membres +
+compteur « N personnes »). D'où la décision de **ne pas promouvoir le Lot 1 en prod
+avant le Lot 3** (qui réintroduit le retrait de membre) — cf. tableau des lots.
+La note « doublon de membre inoffensif » du Lot 1 est **invalidée** : le doublon est
+la norme sur les foyers réellement utilisés, pas l'exception.
+
+**La cause.** Une `device_session` ne naît QUE de trois inserts explicites
+(`POST /api/households`, `POST /api/households/join`, `POST /api/demo/session`) —
+relancer l'app n'en crée jamais (cookie `HttpOnly`, 180 j glissants, jar WKWebView
+persistant). Mais **une session = un cookie jar + un join**, pas un téléphone : sur
+un seul iPhone, Safari, Safari privé, Chrome iOS, la WebView de l'app, celle de la
+Share Extension et chaque navigateur intégré (Instagram, WhatsApp…) sont des jars
+distincts. `device_name` ne distingue d'ailleurs pas l'app native de Safari (Bowser
+lit un UA Safari-like ; `MijoteNative/1.0` n'est pas enregistré).
+
+**Le multiplicateur (défaut ouvert).** `/join/[code]` et `POST /api/households/join`
+sont des routes **publiques** : la page ne lit jamais le cookie et la route crée
+inconditionnellement owner + membership + session, puis écrase le cookie. Un
+utilisateur **déjà membre** qui tape son propre lien d'invitation se fabrique donc
+une identité neuve, l'ancienne gardant son membership. La bannière d'install
+*demande explicitement* de rejoindre avec le code depuis l'app. C'est la fabrique à
+fantômes. Correctif possible (~30 lignes, non décidé) : si la session courante
+résout vers un owner déjà membre du foyer visé, ne rien créer et rediriger `/home`.
+
+**Ce que la fusion du Lot 2 ne réglera pas.** Elle se déclenche à la saisie d'un
+email déjà pris depuis le profil : il faudrait reposer le même email depuis chaque
+jar encore vivant. Les sessions dormantes (Chez Jojo & Toto, 116 j) ne fusionneront
+jamais. Le tri restera manuel, via le retrait de membre du Lot 3.
 
 ## Conventions de développement (rappel)
 
@@ -155,6 +213,46 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
   tokens de `globals.css`). Si un composant ne se réutilise pas tel quel :
   **s'arrêter et prévenir** (composant, raison, option de refacto minimale).
 - Wording : tout en français, ajouter les chaînes dans `src/lib/i18n/fr.ts`.
+
+## Lot 4 — décisions d'implémentation (livré sur staging)
+
+> Notes pour les sessions suivantes (promotion prod, débogage).
+
+- **Aucune migration DB** : le schéma du Lot 0 (memberships `UNIQUE(owner_id,
+  household_id)`) supporte déjà N appartenances. Lot 4 = 100 % applicatif.
+- **`hid` du JWT + header `x-household-id` décommissionnés** : `signSession` ne
+  signe plus que `sid` ; `verifySession` ignore un éventuel `hid` (anciens
+  cookies valides, **aucune migration de cookie**) ; le middleware n'injecte
+  plus `x-household-id`. Tout scoping passe par `getOwnerContext` (résolution
+  `session → owner → memberships` en DB). `withHouseholdAuth` supprimé au profit
+  de `withOwnerAuth` + `requireMember(owner, householdId)`.
+- **Rejoindre / créer additif** : `POST /api/households/join` et `POST
+  /api/households` détectent la session courante (lecture directe du cookie, ces
+  routes sont publiques) et ajoutent un membership à l'owner **sans** nouvelle
+  session ni réécriture de cookie. Owner démo → chemin « owner neuf »
+  (conversion), jamais d'ajout sur/de la démo. Fusion des rôles au re-join :
+  `planRoleMerge` (jamais de rétrogradation).
+- **Quitter/supprimer un foyer parmi N** : la session survit tant qu'il reste
+  ≥1 membership (retour au hub, cookie intact). `device_sessions.household_id`
+  garde une FK `ON DELETE CASCADE` (colonne vestigiale) : avant de **supprimer**
+  un foyer alors qu'il en reste d'autres, on **repointe** la session courante
+  vers un foyer survivant pour éviter que la cascade ne détruise la session.
+- **Dernier membre qui quitte = suppression du foyer** (arbitrage 2026-07, revue
+  sécurité) : un `action=leave` par le dernier membre réel détruit le foyer
+  (cascade + purge Storage), peu importe les invités restants — plus jamais
+  d'orphelin. UI : « Quitter » masqué pour le dernier membre (seule « Supprimer »
+  reste). Un invité, ou un membre non-dernier, ne fait que retirer son membership.
+- **Gardes de suppression durcis (revue sécurité, avant prod)** : `action=delete`
+  exige désormais `requireMember` (un invité ne peut plus détruire un foyer) ; la
+  page détail ne sérialise plus le `join_code` membre vers un invité (escalade
+  invité→membre via re-join fermée) ; purge Storage corrigée (regex `[^?]+`, le
+  cache-buster `?v=` faisait un `remove()` no-op → images orphelines).
+  *Limite connue non traitée* : si un AUTRE appareil du même owner avait sa
+  session pointée vers le foyer supprimé, il est déconnecté (cascade) — cas
+  extrême, non couvert (une nullabilité de la colonne serait la vraie fin de
+  décommissionnement, hors périmètre Lot 4).
+- **Défaut ouvert « join non idempotent »** (fabrique à fantômes) : toujours
+  **non traité** (arbitrage Anthony) — cf. « Constats terrain ».
 
 ## Definition of Done commune à tous les lots
 

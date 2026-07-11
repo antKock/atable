@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
+import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import LibraryContent from "@/components/recipes/LibraryContent";
 
 type Props = {
@@ -9,9 +9,14 @@ type Props = {
 
 export default async function LibraryPage({ searchParams }: Props) {
   const { search } = await searchParams;
-  const hdrs = await headers();
-  const householdId = hdrs.get("x-household-id");
-  if (!householdId) redirect("/");
+
+  // Multi-foyer (Lot 4) : accès résolu via l'owner (plus de x-household-id).
+  // `isGuest` (invité partout) masque le CTA de création vide. La biblio
+  // fusionne tous les foyers ; le filtre « Foyer » et les labels d'origine
+  // sont pilotés côté client depuis /api/library.
+  const owner = await getOwnerContext();
+  if (!owner || owner.memberships.length === 0) redirect("/");
+  const isGuest = isGuestOwner(owner);
 
   return (
     <div className="pb-8 pt-6">
@@ -27,7 +32,7 @@ export default async function LibraryPage({ searchParams }: Props) {
       >
         {t.nav.library}
       </h1>
-      <LibraryContent autoFocusSearch={search === "true"} />
+      <LibraryContent autoFocusSearch={search === "true"} isGuest={isGuest} />
     </div>
   );
 }

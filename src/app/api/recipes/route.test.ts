@@ -10,9 +10,10 @@ import { recipeDbRow } from "@/test/fixtures";
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
-vi.mock("@/lib/auth/owner-context", async () => {
+vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/owner-context")>();
   const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
-  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+  return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/server", async (importOriginal) => ({
@@ -179,9 +180,10 @@ describe("GET /api/recipes — filters", () => {
     supa.queueResult({ data: [], error: null });
     await GET(getRequest());
     const ops = findCall(supa, "recipes")!.ops.map((o) => o.method);
-    expect(ops).not.toContain("in");
     expect(ops).not.toContain("contains");
-    expect(ops.filter((m) => m === "eq")).toHaveLength(1); // household_id only
+    expect(ops.filter((m) => m === "eq")).toHaveLength(0); // plus de scoping par eq
+    // Scoping multi-foyer (Lot 4) : union des foyers via un unique .in().
+    expect(ops.filter((m) => m === "in")).toHaveLength(1); // household_id only
   });
 
   it("always orders by created_at descending", async () => {

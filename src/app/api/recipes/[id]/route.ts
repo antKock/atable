@@ -4,21 +4,24 @@ import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { RecipeUpdateSchema } from "@/lib/schemas/recipe";
 import { enrichRecipe, regenerateImage } from "@/lib/enrichment";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { householdIds } from "@/lib/auth/owner-context";
 
 export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export const GET = withHouseholdAuth(
-  async (_request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const GET = withOwnerAuth(
+  async (_request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params;
     const supabase = createServerClient();
+    // Lecture : accessible si la recette appartient à l'un des foyers de
+    // l'owner (membre OU invité) — plus seulement le foyer du cookie (Lot 4).
     const { data, error } = await supabase
       .from("recipes")
       .select("*, recipe_tags(tag_id, tags(id, name, category))")
       .eq("id", id)
-      .eq("household_id", householdId)
+      .in("household_id", householdIds(owner))
       .single();
 
     if (error || !data) {
@@ -29,8 +32,8 @@ export const GET = withHouseholdAuth(
   },
 );
 
-export const PUT = withHouseholdAuth(
-  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const PUT = withOwnerAuth(
+  async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params;
     const body = await request.json();
     const result = RecipeUpdateSchema.safeParse(body);
@@ -44,18 +47,22 @@ export const PUT = withHouseholdAuth(
 
     const supabase = createServerClient();
 
-    // Verify the recipe exists and belongs to this household
-    // Fetch content fields to detect if enrichment-relevant data changed
+    // La recette doit exister dans un foyer de l'owner ; l'écriture exige d'y
+    // être MEMBRE (invité = lecture seule). On lit household_id pour valider le
+    // rôle sur LE foyer de la recette, pas sur memberships[0] (Lot 4).
     const { data: existing } = await supabase
       .from("recipes")
-      .select("id, title, ingredients, steps")
+      .select("id, title, ingredients, steps, household_id")
       .eq("id", id)
-      .eq("household_id", householdId)
+      .in("household_id", householdIds(owner))
       .single();
 
     if (!existing) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
+
+    const forbidden = requireMember(owner, existing.household_id);
+    if (forbidden) return forbidden;
 
     const contentChanged =
       existing.title !== result.data.title ||
@@ -95,7 +102,7 @@ export const PUT = withHouseholdAuth(
       .from("recipes")
       .update(updatePayload)
       .eq("id", id)
-      .eq("household_id", householdId)
+      .eq("household_id", existing.household_id)
       .select()
       .single();
 
@@ -152,27 +159,30 @@ export const PUT = withHouseholdAuth(
   },
 );
 
-export const DELETE = withHouseholdAuth(
-  async (_request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const DELETE = withOwnerAuth(
+  async (_request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params;
     const supabase = createServerClient();
 
     const { data: existing } = await supabase
       .from("recipes")
-      .select("id")
+      .select("id, household_id")
       .eq("id", id)
-      .eq("household_id", householdId)
+      .in("household_id", householdIds(owner))
       .single();
 
     if (!existing) {
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
 
+    const forbidden = requireMember(owner, existing.household_id);
+    if (forbidden) return forbidden;
+
     const { error } = await supabase
       .from("recipes")
       .delete()
       .eq("id", id)
-      .eq("household_id", householdId);
+      .eq("household_id", existing.household_id);
 
     if (error) throw error;
 

@@ -8,9 +8,10 @@ import { createSupabaseMock, calledWith, type SupabaseMock } from "@/test/supaba
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
-vi.mock("@/lib/auth/owner-context", async () => {
+vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/owner-context")>();
   const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
-  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+  return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 
 const mockHeaders = headers as unknown as Mock;
@@ -59,8 +60,9 @@ describe("GET /api/tags", () => {
   it("scopes the query to predefined OR household-owned tags", async () => {
     supa.queueResult({ data: [], error: null });
     await GET(getRequest());
+    // Multi-foyer (Lot 4) : union des foyers de l'owner via household_id.in.(…).
     expect(
-      calledWith(supa, "tags", "or", "household_id.is.null,household_id.eq.household-1"),
+      calledWith(supa, "tags", "or", "household_id.is.null,household_id.in.(household-1)"),
     ).toBe(true);
   });
 });

@@ -8,9 +8,10 @@ import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
-vi.mock("@/lib/auth/owner-context", async () => {
+vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/owner-context")>();
   const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
-  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+  return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
@@ -48,7 +49,7 @@ function recipeUpdate(): Record<string, unknown> | undefined {
 describe("POST /api/recipes/[id]/photo", () => {
   it("persists photo_url and settles image_status to 'none' on success", async () => {
     supa.queueResults([
-      { data: { id: "recipe-1" } }, // ownership check
+      { data: { id: "recipe-1", household_id: "household-1" } }, // ownership + rôle
       { error: null }, // recipes update
     ]);
 

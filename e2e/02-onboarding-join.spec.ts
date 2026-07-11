@@ -1,5 +1,10 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
+import {
+  newVisitor,
+  createHouseholdViaUI,
+  openHouseholdDetail,
+  uniqueName,
+} from "./helpers/onboarding";
 
 // Caractérisation : un second appareil rejoint avec le code du foyer créé par
 // le premier. Saisie tolérante : minuscules + espaces au lieu du tiret.
@@ -11,7 +16,9 @@ test("onboarding rejoindre : le code (saisie tolérante) mène au même foyer", 
 
   const b = await newVisitor(browser);
   await b.page.goto("/");
+  // Fork « Rejoindre un foyer » (Lot 2) : code d'invitation OU récup email
   await b.page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await b.page.getByRole("button", { name: "J'ai un code d'invitation" }).click();
   // « olive 4821 » : minuscules, espace au lieu du tiret — normalisé côté serveur
   await b.page
     .getByPlaceholder("OLIVE-4821")
@@ -19,8 +26,11 @@ test("onboarding rejoindre : le code (saisie tolérante) mène au même foyer", 
   await b.page.getByRole("button", { name: "Rejoindre", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 
-  // Même foyer : l'écran foyer de B affiche le code de A
-  await b.page.goto("/household");
+  // Même foyer : le code vit désormais dans l'écran « Inviter » (Lot 3 : les
+  // blocs code/lien du détail sont remplacés par l'entrée « Inviter »).
+  await openHouseholdDetail(b.page);
+  await b.page.locator(String.raw`a[href$="/invite"]`).click();
+  await b.page.waitForURL(/\/household\/[0-9a-f-]{36}\/invite/);
   await expect(b.page.getByText(code, { exact: true })).toBeVisible();
 
   await a.context.close();

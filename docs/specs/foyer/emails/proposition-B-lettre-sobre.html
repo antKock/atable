@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Proposition B — « Lettre sobre » (email de récupération)</title>
+<style>
+  /* Chrome de prévisualisation uniquement — PAS dans l'email final. */
+  body { margin: 0; background: #DDD8CE; font-family: -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+  .preview-meta { max-width: 640px; margin: 0 auto; padding: 24px 16px 8px; color: #444; font-size: 13px; line-height: 1.6; }
+  .preview-meta strong { color: #1A1A18; }
+  .preview-meta code { background: #fff; padding: 1px 6px; border-radius: 6px; font-size: 12px; }
+  .preview-note { max-width: 640px; margin: 0 auto; padding: 8px 16px 40px; color: #666; font-size: 12px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="preview-meta">
+  <strong>Proposition B — « Lettre sobre »</strong> · fond blanc, gauche, code en tête d'objet
+  (lisible depuis la notification sans ouvrir le mail — utile pour le repli « autre appareil »).<br>
+  <strong>Expéditeur :</strong> <code>Mijote &lt;acces@mijote.anthonykocken.fr&gt;</code><br>
+  <strong>Objet :</strong> <code>482913 est ton code Mijote</code><br>
+  <strong>Variante fusion</strong> (même gabarit) — objet : <code>482913 pour réunir tes foyers</code>,
+  intro : « Tu as saisi cet email depuis ton profil. Confirme pour réunir tes deux accès en une seule identité. »
+</div>
+
+<!-- ============ DÉBUT DE L'EMAIL (markup tables + styles inline, prêt client mail) ============ -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFFFF;">
+  <tr>
+    <td align="center" style="padding:44px 20px 56px;">
+
+      <table role="presentation" width="520" cellpadding="0" cellspacing="0" border="0" style="width:520px; max-width:100%;">
+
+        <!-- Wordmark discret -->
+        <tr>
+          <td style="padding:0 0 30px;">
+            <span style="font-family:Fraunces, Georgia, 'Times New Roman', serif; font-size:21px; font-weight:700; font-style:italic; letter-spacing:-0.02em; color:#6E7A38;">Mijote</span>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-family:Fraunces, Georgia, 'Times New Roman', serif; font-size:24px; font-weight:600; letter-spacing:-0.01em; color:#1A1A18; padding:0 0 14px;">
+            Retrouve ton foyer sur cet appareil
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:15px; line-height:1.65; color:#1A1A18; padding:0 0 24px;">
+            Tu as demandé à retrouver ton foyer Mijote. Si tu lis ce mail sur l'appareil
+            où tu veux retrouver tes recettes, appuie simplement ici&nbsp;:
+          </td>
+        </tr>
+
+        <!-- Bouton olive plein, radius 14 (DS) -->
+        <tr>
+          <td style="padding:0 0 30px;">
+            <a href="https://mijote.anthonykocken.fr/recover/EXEMPLEtoken"
+               style="display:inline-block; background-color:#6E7A38; color:#FFFFFF; font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:16px; font-weight:600; text-decoration:none; padding:15px 34px; border-radius:14px;">
+            Retrouver mon foyer
+            </a>
+          </td>
+        </tr>
+
+        <!-- Repli code, filet gauche olive -->
+        <tr>
+          <td style="border-left:3px solid #6E7A38; padding:2px 0 2px 18px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:14px; line-height:1.6; color:#6B6E68; padding:0 0 6px;">
+                  Tu lis ce mail ailleurs (ordinateur, tablette)&nbsp;?<br>
+                  Saisis ce code dans Mijote, sur le nouvel appareil&nbsp;:
+                </td>
+              </tr>
+              <tr>
+                <td style="font-family:'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace; font-size:28px; font-weight:500; letter-spacing:0.3em; color:#1A1A18;">
+                  482913
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <tr>
+          <td style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:13px; color:#6B6E68; padding:26px 0 0;">
+            Lien et code valables 15&nbsp;minutes.
+          </td>
+        </tr>
+
+        <!-- Footer sobre -->
+        <tr>
+          <td style="padding:34px 0 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="border-top:1px solid #E5DED6; font-size:0; line-height:0;">&nbsp;</td></tr>
+              <tr>
+                <td style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#6B6E68; padding:14px 0 0;">
+                  Tu n'as rien demandé&nbsp;? Ignore ce mail, il expirera tout seul.
+                  Personne n'accède à ton foyer sans lui.<br>
+                  Mijote · <a href="https://mijote.anthonykocken.fr" style="color:#6E7A38; text-decoration:none;">mijote.anthonykocken.fr</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+      </table>
+
+    </td>
+  </tr>
+</table>
+<!-- ============ FIN DE L'EMAIL ============ -->
+
+<div class="preview-note">
+  Notes : fond blanc et mise en page « lettre » (gauche) = rendu le plus stable possible d'un
+  client mail à l'autre, look transactionnel classique. Le code figure dans l'objet — visible
+  depuis la notification de l'autre appareil sans ouvrir le mail (compromis assumé : un regard
+  par-dessus l'épaule peut le lire pendant ses 15 minutes de validité). Markup tables + styles
+  inline ; aucune webfont embarquée. Code <code>482913</code> et token = placeholders.
+</div>
+
+</body>
+</html>

@@ -20,8 +20,10 @@ function getSecret(): Uint8Array {
   return new TextEncoder().encode(secret)
 }
 
-export async function signSession(payload: Pick<SessionPayload, 'hid' | 'sid'>): Promise<string> {
-  return new SignJWT({ hid: payload.hid, sid: payload.sid })
+export async function signSession(payload: Pick<SessionPayload, 'sid'>): Promise<string> {
+  // `sid` seul : le foyer se résout en DB (chantier foyer, Lot 4). Les cookies
+  // émis avant le décommissionnement portaient aussi un `hid` — inoffensif.
+  return new SignJWT({ sid: payload.sid })
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime(`${SESSION_MAX_AGE_S}s`)
@@ -31,13 +33,13 @@ export async function signSession(payload: Pick<SessionPayload, 'hid' | 'sid'>):
 export async function verifySession(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, getSecret(), { algorithms: ['HS256'] })
-    const hid = payload['hid']
     const sid = payload['sid']
     const iat = payload['iat']
-    if (typeof hid !== 'string' || typeof sid !== 'string' || typeof iat !== 'number') {
+    // `hid` n'est plus lu : un ancien cookie qui le porte encore reste valide.
+    if (typeof sid !== 'string' || typeof iat !== 'number') {
       return null
     }
-    return { hid, sid, iat }
+    return { sid, iat }
   } catch {
     return null
   }

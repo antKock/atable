@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
+import { resolveInviteCode } from '@/lib/auth/invite-code'
 import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
 import { t } from '@/lib/i18n/fr'
 
@@ -34,19 +35,20 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createServerClient()
-  const { data, error } = await supabase
-    .from('households')
-    .select('id, name')
-    .eq('join_code', result.data)
-    .eq('is_demo', false)
-    .single()
+  // Résout contre join_code OU guest_join_code : le rôle porté par le code est
+  // renvoyé pour que l'écran de confirmation affiche la bonne copy (Lot 3).
+  const invite = await resolveInviteCode(supabase, result.data)
 
-  if (error || !data) {
+  if (!invite) {
     return NextResponse.json(
       { error: 'Ce code ne correspond à aucun foyer' },
       { status: 404 }
     )
   }
 
-  return NextResponse.json({ householdId: data.id, householdName: data.name })
+  return NextResponse.json({
+    householdId: invite.householdId,
+    householdName: invite.householdName,
+    role: invite.role,
+  })
 }

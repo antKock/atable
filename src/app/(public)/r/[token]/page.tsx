@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { shareRateLimit } from "@/lib/redis";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
+import { resolveOwnerContext, householdIds } from "@/lib/auth/owner-context";
 import RecipeView from "@/components/recipes/RecipeView";
 import InAppBackButton from "@/components/recipes/InAppBackButton";
 import ShareRecipeActions, {
@@ -80,9 +81,14 @@ export default async function SharedRecipePage({ params }: Props) {
   const sessionToken = cookieStore.get("atable_session")?.value;
   const payload = sessionToken ? await verifySession(sessionToken) : null;
 
+  // Multi-foyer (Lot 4) : le viewer est « owner » du partage si la recette
+  // vit dans l'UN de ses foyers (le hid du cookie a disparu — on résout
+  // l'owner en DB), sinon « friend » ; sans session, « guest ».
   let viewerState: ViewerState = "guest";
   if (payload) {
-    viewerState = payload.hid === householdId ? "owner" : "friend";
+    const owner = await resolveOwnerContext(payload.sid);
+    const belongs = owner !== null && householdId !== null && householdIds(owner).includes(householdId);
+    viewerState = belongs ? "owner" : "friend";
   }
 
   // No edit/delete controls and — per the design — no brand banner; the CTA

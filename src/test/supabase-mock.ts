@@ -70,6 +70,12 @@ function buildClient(
 
   const client = {
     from: vi.fn((table: string) => makeBuilder(table)),
+    // RPC (fonctions SQL : merge_owners, verify_login_code) — consomme un
+    // résultat de la même file FIFO que les chaînes .from().
+    rpc: vi.fn((fn: string, args: unknown) => {
+      calls.push({ table: `rpc:${fn}`, ops: [{ method: "rpc", args: [args] }] });
+      return Promise.resolve(nextResult());
+    }),
     storage: {
       from: vi.fn(() => ({
         upload: uploadMock,

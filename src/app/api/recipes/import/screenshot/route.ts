@@ -3,9 +3,18 @@ import { ImportScreenshotSchema } from "@/lib/schemas/import";
 import { extractRecipeFromImages } from "@/lib/import";
 import { t } from "@/lib/i18n/fr";
 import { enforceImportQuota } from "@/lib/import-quota";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { memberHouseholdIds } from "@/lib/auth/owner-context";
 
-export const POST = withHouseholdAuth(async (request: Request, _ctx, { householdId }) => {
+export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+  // Quota/coût IA rattachés au premier foyer membre (l'import précède le choix
+  // du foyer). Invité (lecture seule) refusé.
+  const memberIds = memberHouseholdIds(owner);
+  if (memberIds.length === 0) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+  const householdId = memberIds[0];
+
   const quotaResponse = await enforceImportQuota(householdId);
   if (quotaResponse) return quotaResponse;
 

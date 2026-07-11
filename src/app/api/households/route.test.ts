@@ -8,6 +8,11 @@ vi.mock("@/lib/supabase/server");
 vi.mock("@/lib/import-quota", () => ({
   enforceHouseholdCreateQuota: vi.fn().mockResolvedValue(null),
 }));
+// cookies() : « Créer un foyer » est additif quand une session existe (Lot 4).
+// Par défaut aucun cookie → chemin « owner neuf » (caractérisation historique).
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({ get: () => undefined })),
+}));
 
 let supa: SupabaseMock;
 

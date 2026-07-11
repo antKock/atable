@@ -13,7 +13,10 @@ const VALID_PLATFORMS = ["ios", "android", "web"] as const;
  */
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, { ownerId, sessionId, memberships }) => {
-    // Invariant mono-foyer (vrai jusqu'au Lot 4)
+    // Heartbeat analytics : un appareil actif est rattaché à UN foyer
+    // représentatif (le premier membership). En multi-foyer (Lot 4) l'appareil
+    // couvre plusieurs foyers ; le DAU/MAU par appareil n'en dépend pas, et
+    // daily_activity porte aussi owner_id pour l'attribution owner-level.
     const householdId = memberships[0]?.householdId;
     if (!householdId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

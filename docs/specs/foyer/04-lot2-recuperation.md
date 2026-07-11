@@ -25,7 +25,10 @@ profil en cas de collision. Plus les hints home qui y mènent.
   arbitrer par Anthony. Contenu : objet, corps (lien magique bouton + code 6
   chiffres en repli), footer sobre. Français.
 
-## 1. Migration `027_login_tokens.sql`
+## 1. Migration `028_login_tokens.sql`
+
+> (Corrigé 2026-07-10 : la spec disait `027`, déjà pris par
+> `027_owners_memberships.sql` du Lot 0, appliquée en prod.)
 
 ```sql
 CREATE TABLE login_tokens (
@@ -44,12 +47,22 @@ CREATE INDEX ON login_tokens(owner_id);
 RLS sans policy. Secrets **hashés au repos** (le bearer en clair ne vit que dans
 l'email). Générateurs dans `src/lib/auth/` à côté de `share-token.ts`.
 
+> **Livré (revue post-implémentation)** : la 028 porte aussi la fonction SQL
+> `merge_owners` (fusion atomique — PostgREST n'a pas de transaction
+> multi-requêtes), et une migration **`029_recovery_verify_atomic.sql`** ajoute
+> `verify_login_code` : comparaison + incrément d'`attempts` + claim single-use
+> sous un même `SELECT … FOR UPDATE`. Un incrément applicatif (lire puis écrire
+> `attempts+1`) était contournable par rafale concurrente — le plafond de 5
+> essais ne tenait pas, rendant le code 6 chiffres brute-forçable.
+
 ## 2. Profil : champ email (maquette 0.3)
 
 - Sous le nom, section « Retrouver ton accès » : input email + copy exacte du
   handoff (« sert uniquement à retrouver ton accès… pas de mot de passe, pas de
-  compte »). `PUT /api/owner/email` (withOwnerAuth + assertNotDemoMutation) :
-  normalise lowercase, valide le format, stocke. **Aucun envoi à la saisie.**
+  compte »). `PUT /api/owner/email` (withOwnerAuth + **assertNotDemoOwner** —
+  le gel démo du profil est owner-level depuis le Lot 1, pas foyer-level :
+  suivre le patron de `PUT /api/owner`) : normalise lowercase, valide le
+  format, stocke. **Aucun envoi à la saisie.**
 - **Collision** (email déjà sur un autre owner) → flow **fusion** (§5).
 - Ligne « Toi » du hub : sous-titre devient « Accès sauvegardé » /
   « Sauvegarder mon accès » selon `recovery_email`.
@@ -72,6 +85,10 @@ l'email). Générateurs dans `src/lib/auth/` à côté de `share-token.ts`.
 
 ## 4. Fork onboarding + récupération (maquettes 1.2, 1.3, 1.4)
 
+- **Routes publiques** : ajouter `/recover/` et `/api/recovery/` aux
+  `PUBLIC_PREFIXES` de `src/middleware.ts` — sans ça l'écran de récupération
+  est inatteignable (redirect `/` pour un visiteur sans cookie). L'AASA liste
+  déjà `/recover/*` (pré-lot).
 - `LandingScreen` : 3ᵉ action **« Rejoindre un foyer »** (lien texte sous les CTA,
   cf. maquette) → écran « Rejoindre un foyer » (fond sage, icône clé) :
   - CTA principal « J'ai un code d'invitation » → `CodeEntryForm` existant ;
@@ -112,6 +129,11 @@ l'email). Générateurs dans `src/lib/auth/` à côté de `share-token.ts`.
     ne change pas — sa session est repointée).
 - Fonction pure `mergePlan(source, target)` (calcul des unions/décisions) séparée de
   l'exécution → unit-testable à fond.
+- **Rate-limits (ajout de revue)** : la route de vérification du code de fusion
+  est plafonnée par IP comme `/api/recovery/verify` — sans quoi un owner
+  connaissant l'email d'une victime bruteforce le code et **absorbe ses
+  foyers**. `PUT /api/owner/email` est plafonné par IP dès avant le lookup : la
+  décision n°6 assume la fuite d'existence, pas son énumération scriptée.
 
 ## Tests
 

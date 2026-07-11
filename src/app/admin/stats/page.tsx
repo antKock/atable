@@ -1,6 +1,6 @@
-import { headers } from "next/headers";
 import { notFound } from "next/navigation";
-import { isAdmin } from "@/lib/admin/auth";
+import { isAdminForHouseholds } from "@/lib/admin/auth";
+import { getOwnerContext, householdIds as ownerHouseholdIds } from "@/lib/auth/owner-context";
 import { getDashboardData, getHouseholdsForPicker, type KpiCard, type Signal } from "@/lib/admin/queries";
 import { resolvePeriod, isPeriodKey } from "@/lib/admin/periods";
 import { PALETTE as P } from "@/lib/admin/palette";
@@ -150,8 +150,8 @@ export default async function DashboardPage({
 }: {
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
-  const hdrs = await headers();
-  if (!isAdmin(hdrs.get("x-household-id"))) notFound();
+  const owner = await getOwnerContext();
+  if (!owner || !isAdminForHouseholds(ownerHouseholdIds(owner))) notFound();
 
   const sp = await searchParams;
   const rawPlatform = typeof sp.platform === "string" ? sp.platform : undefined;

@@ -7,7 +7,12 @@ import { joinRateLimit, joinCodeRateLimit } from "@/lib/redis";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
-vi.mock("next/headers", () => ({ headers: vi.fn() }));
+// cookies() : additivité du re-join (Lot 4). Par défaut aucun cookie → chemin
+// « device neuf » (owner + session), comme la caractérisation historique.
+vi.mock("next/headers", () => ({
+  headers: vi.fn(),
+  cookies: vi.fn(async () => ({ get: () => undefined })),
+}));
 vi.mock("@/lib/redis", () => ({
   redis: { get: vi.fn() },
   joinRateLimit: { limit: vi.fn() },
@@ -39,10 +44,18 @@ function request(body: unknown): NextRequest {
 }
 
 describe("POST /api/households/join (Fix 1.2)", () => {
-  /** Queue the 4 results a successful join consumes (Lot 0 foyer). */
+  /** Queue the 4 results a successful join consumes (Lot 3 : résolution du code
+   *  contre join_code OU guest_join_code → tableau, ici un lien MEMBRE). */
   function queueSuccess(name = "Famille Dupont") {
     supa.queueResults([
-      { data: { id: "household-1", name }, error: null }, // lookup by code
+      // resolveInviteCode : .or(...).eq(is_demo,false).limit(2) → tableau. Le
+      // code saisi = join_code ⇒ rôle 'member'.
+      {
+        data: [
+          { id: "household-1", name, join_code: "OLIVE-4821", guest_join_code: "THYME-0001" },
+        ],
+        error: null,
+      }, // lookup by code (member link)
       { data: { id: "owner-1" }, error: null }, // insert owner
       { error: null }, // insert membership
       { data: { id: "session-1" }, error: null }, // insert device_session
@@ -104,8 +117,35 @@ describe("POST /api/households/join (Fix 1.2)", () => {
   });
 
   it("returns 404 when the code matches no household", async () => {
-    supa.queueResult({ data: null, error: { message: "no rows" } });
+    // Aucun foyer : le SELECT filtré (.limit) renvoie un tableau vide, pas une
+    // erreur — resolveInviteCode → null → 404.
+    supa.queueResult({ data: [], error: null });
     const res = await POST(request({ code: "OLIVE-4821" }));
     expect(res.status).toBe(404);
+  });
+
+  it("crée un membership 'guest' quand le code est le lien invité", async () => {
+    // Le code saisi correspond au guest_join_code (pas au join_code) → invité.
+    supa.queueResults([
+      {
+        data: [
+          {
+            id: "household-1",
+            name: "Famille",
+            join_code: "OLIVE-4821",
+            guest_join_code: "THYME-0002",
+          },
+        ],
+        error: null,
+      },
+      { data: { id: "owner-1" }, error: null },
+      { error: null },
+      { data: { id: "session-1" }, error: null },
+    ]);
+    const res = await POST(request({ code: "THYME-0002" }));
+    expect(res.status).toBe(200);
+    const membership = supa.calls.find((c) => c.table === "memberships")!;
+    const insert = membership.ops.find((op) => op.method === "insert");
+    expect((insert?.args[0] as { role?: string }).role).toBe("guest");
   });
 });

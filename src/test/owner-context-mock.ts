@@ -20,6 +20,8 @@ export async function ownerContextFromTestHeaders(): Promise<OwnerContext | null
   if (!householdId) return null;
   return {
     ownerId: "owner-test",
+    ownerName: null,
+    recoveryEmail: null,
     sessionId: hdrs.get("x-session-id") ?? "session-test",
     memberships: [{ householdId, role: "member", isDemo: false }],
   };

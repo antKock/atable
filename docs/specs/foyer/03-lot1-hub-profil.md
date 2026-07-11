@@ -91,7 +91,11 @@ enrichis des noms de foyers, nb de personnes = memberships du foyer, nb de recet
   requêtes (memberships + counts au lieu de device_sessions). Compter les recettes
   par foyer en une requête groupée, pas N+1.
 - Les owners issus du backfill Lot 0 n'ont pas de nom → la liste des membres
-  affichera des alias. C'est voulu (doublon de membre inoffensif, fusion au Lot 2).
+  affichera des alias. ~~C'est voulu (doublon de membre inoffensif, fusion au Lot 2).~~
+  **INVALIDÉ par les données prod (2026-07-10)** : le doublon est la norme sur les
+  foyers réellement utilisés, pas l'exception (Bruno = 1 humain pour 6 memberships ;
+  Los Kockenos = 11). Conséquence actée : **ce lot ne part pas en prod avant le
+  Lot 3**, qui réintroduit le retrait de membre. Voir « Constats terrain » du socle.
 
 ## Definition of Done
 

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { signSession, verifySession, setSessionCookie, clearSessionCookie } from './session'
-import type { SessionPayload } from '@/types/household'
 
 const TEST_SECRET = 'test-secret-that-is-at-least-32-chars-long!!'
 
@@ -10,22 +9,19 @@ beforeEach(() => {
 
 describe('signSession', () => {
   it('returns a string token', async () => {
-    const payload: SessionPayload = { hid: 'hh-1', sid: 'ss-1', iat: Date.now() }
-    const token = await signSession(payload)
+    const token = await signSession({ sid: 'ss-1' })
     expect(typeof token).toBe('string')
     expect(token.length).toBeGreaterThan(0)
   })
 })
 
 describe('verifySession', () => {
-  it('round-trips a valid payload', async () => {
+  it('round-trips a valid payload (sid only — hid décommissionné)', async () => {
     const before = Math.floor(Date.now() / 1000)
-    const payload: SessionPayload = { hid: 'hh-abc', sid: 'ss-xyz', iat: before }
-    const token = await signSession(payload)
+    const token = await signSession({ sid: 'ss-xyz' })
     const result = await verifySession(token)
     const after = Math.floor(Date.now() / 1000)
     expect(result).not.toBeNull()
-    expect(result!.hid).toBe('hh-abc')
     expect(result!.sid).toBe('ss-xyz')
     // iat is set by signSession via setIssuedAt() — just verify it's a plausible timestamp
     expect(result!.iat).toBeGreaterThanOrEqual(before)
@@ -33,8 +29,7 @@ describe('verifySession', () => {
   })
 
   it('returns null for a tampered token', async () => {
-    const payload: SessionPayload = { hid: 'hh-abc', sid: 'ss-xyz', iat: 1234567890 }
-    const token = await signSession(payload)
+    const token = await signSession({ sid: 'ss-xyz' })
     const tampered = token.slice(0, -5) + 'XXXXX'
     const result = await verifySession(tampered)
     expect(result).toBeNull()
@@ -53,8 +48,7 @@ describe('verifySession', () => {
 
 describe('setSessionCookie', () => {
   it('calls response.cookies.set with correct options', async () => {
-    const payload: SessionPayload = { hid: 'hh-1', sid: 'ss-1', iat: Date.now() }
-    const token = await signSession(payload)
+    const token = await signSession({ sid: 'ss-1' })
     const setCalls: object[] = []
     const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } }
 

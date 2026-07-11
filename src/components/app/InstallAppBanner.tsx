@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { X, Copy, Check } from "lucide-react";
+import { Check, Copy, Smartphone, X } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { t } from "@/lib/i18n/fr";
+import MiniStrip from "./MiniStrip";
 
 // Canonical App Store listing for Mijote (id 6772487648).
 const APP_STORE_URL =
@@ -19,8 +19,10 @@ type Props = {
   code: string;
 };
 
-// Shown only to iOS web visitors (gated server-side in the (app) layout). Two
-// steps: nudge to install, then surface the foyer code for the handoff.
+// Shown only to iOS web visitors (gated server-side in the (app) layout).
+// Lot 2 restyle (décision n°9) : step 1 = MiniStrip une-ligne « Installe
+// l'app Mijote », toujours AU-DESSUS du hint principal ; step 2 (après le tap
+// install) = card avec le code du foyer pour le handoff vers la WebView.
 export default function InstallAppBanner({ code }: Props) {
   const [hidden, setHidden] = useState(false);
   const [showCode, setShowCode] = useState(false);
@@ -54,8 +56,27 @@ export default function InstallAppBanner({ code }: Props) {
 
   if (hidden) return null;
 
+  if (!showCode) {
+    return (
+      <MiniStrip
+        icon={<Smartphone size={15} />}
+        label={t.hints.install.label}
+        action={
+          <button
+            type="button"
+            onClick={handleInstall}
+            className="min-h-8 shrink-0 px-1 text-[12.5px] font-semibold text-accent transition-opacity hover:opacity-80"
+          >
+            {t.hints.install.cta}
+          </button>
+        }
+        onDismiss={dismiss}
+      />
+    );
+  }
+
   return (
-    <div className="relative mx-4 mb-4 mt-3 rounded-xl border border-accent/30 bg-accent/10 px-4 py-3">
+    <div className="relative rounded-[14px] bg-accent/10 px-4 py-3">
       <button
         type="button"
         onClick={dismiss}
@@ -65,53 +86,32 @@ export default function InstallAppBanner({ code }: Props) {
         <X size={16} />
       </button>
 
-      {!showCode ? (
-        <>
-          <p className="pr-8 text-sm font-semibold text-foreground">
-            {t.installBanner.title}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {t.installBanner.body}
-          </p>
-          <Button
-            type="button"
-            size="lg"
-            onClick={handleInstall}
-            className="mt-3 h-[50px] w-full min-h-11 rounded-xl"
-          >
-            {t.installBanner.install}
-          </Button>
-        </>
-      ) : (
-        <>
-          <p className="pr-8 text-sm font-semibold text-foreground">
-            {t.installBanner.codeTitle}
-          </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {t.installBanner.codeBody}
-          </p>
-          <button
-            type="button"
-            onClick={copyCode}
-            aria-label={t.installBanner.copyCode}
-            className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-background px-2.5 py-1 font-mono text-sm font-medium text-foreground transition-colors hover:bg-accent/10"
-          >
-            {code}
-            {copied ? (
-              <Check size={14} className="text-accent" />
-            ) : (
-              <Copy size={14} className="text-muted-foreground" />
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={openStore}
-            className="mt-3 block text-xs font-medium text-accent transition-opacity hover:opacity-80"
-          >
-            {t.installBanner.reopenStore}
-          </button>
-        </>
-      )}
+      <p className="pr-8 text-sm font-semibold text-foreground">
+        {t.installBanner.codeTitle}
+      </p>
+      <p className="mt-0.5 text-xs text-muted-foreground">
+        {t.installBanner.codeBody}
+      </p>
+      <button
+        type="button"
+        onClick={copyCode}
+        aria-label={t.installBanner.copyCode}
+        className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-background px-2.5 py-1 font-mono text-sm font-medium text-foreground transition-colors hover:bg-accent/10"
+      >
+        {code}
+        {copied ? (
+          <Check size={14} className="text-accent" />
+        ) : (
+          <Copy size={14} className="text-muted-foreground" />
+        )}
+      </button>
+      <button
+        type="button"
+        onClick={openStore}
+        className="mt-3 block text-xs font-medium text-accent transition-opacity hover:opacity-80"
+      >
+        {t.installBanner.reopenStore}
+      </button>
     </div>
   );
 }

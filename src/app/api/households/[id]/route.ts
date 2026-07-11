@@ -3,39 +3,55 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
-import { revalidatePath } from 'next/cache'
-import { withHouseholdAuth } from '@/lib/api/with-household-auth'
-import { withOwnerAuth } from '@/lib/api/with-owner-auth'
+import {
+  withOwnerAuth,
+  requireMember,
+  assertNotDemoMutation,
+} from '@/lib/api/with-owner-auth'
+import { t } from '@/lib/i18n/fr'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
-export const PUT = withHouseholdAuth(
-  async (request: NextRequest, { params }: RouteContext, { householdId }) => {
+export const PUT = withOwnerAuth(
+  async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params
 
-    if (id !== householdId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    // Le foyer visé est celui de l'URL, validé contre les memberships de
+    // l'owner (et non memberships[0]) : le détail de foyer est déjà multi-foyer.
+    const forbidden = requireMember(owner, id)
+    if (forbidden) return forbidden
+
+    // Le foyer démo est du contenu partagé : le readOnly de l'UI ne protège
+    // rien côté serveur (leçon de l'incident 2026-06 — garde central).
+    const demo = assertNotDemoMutation(owner, id)
+    if (demo) return demo
+
+    let body: unknown
+    try {
+      body = await request.json()
+    } catch {
+      return NextResponse.json({ error: t.household.renameError }, { status: 400 })
     }
 
-    const body = await request.json()
-    const parsed = HouseholdCreateSchema.safeParse(body.name)
+    const parsed = HouseholdCreateSchema.safeParse((body as { name?: unknown } | null)?.name)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid name' }, { status: 400 })
+      return NextResponse.json({ error: t.household.renameError }, { status: 400 })
     }
 
     const supabase = createServerClient()
     const { data, error } = await supabase
       .from('households')
       .update({ name: parsed.data })
-      .eq('id', householdId)
+      .eq('id', id)
       .select('id, name')
       .single()
 
     if (error) {
-      return NextResponse.json({ error: 'Failed to rename' }, { status: 500 })
+      return NextResponse.json({ error: t.household.renameError }, { status: 500 })
     }
 
-    revalidatePath('/household')
+    // Pas de revalidatePath : /household et /household/[id] lisent headers()
+    // (getOwnerContext) — toujours dynamiques, rendues à chaque requête.
     return NextResponse.json({ id: data.id, name: data.name })
   },
 )
@@ -44,14 +60,21 @@ export const DELETE = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
     const { id } = await params
 
-    // Invariant mono-foyer (vrai jusqu'au Lot 4) : le foyer de la session est
-    // l'unique membership de l'owner.
-    const householdId = owner.memberships[0]?.householdId
+    // Le foyer visé est celui de l'URL, validé contre les memberships de
+    // l'owner. Quitter reste ouvert aux invités (Lot 3) : pas de requireMember.
+    const membership = owner.memberships.find((m) => m.householdId === id)
     const { ownerId, sessionId } = owner
 
-    if (!householdId || id !== householdId) {
+    if (!membership) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
+    const householdId = id
+
+    // Multi-foyer (Lot 4) : quitter/supprimer UN foyer parmi N ne déconnecte
+    // pas. S'il reste ≥1 membership après l'opération, la session est CONSERVÉE
+    // et on renvoie vers le hub — pas la landing, pas de cookie invalidé.
+    const remaining = owner.memberships.filter((m) => m.householdId !== id)
+    const stayLoggedIn = remaining.length > 0
 
     // Explicit intent — the UI exposes two distinct actions:
     //   leave  → this device leaves; the household and its data are kept
@@ -63,21 +86,62 @@ export const DELETE = withOwnerAuth(
 
     const supabase = createServerClient()
 
+    // Décider si l'opération DÉTRUIT le foyer (cascade recettes/membres/sessions
+    // + purge Storage) ou se contente de retirer le membership du partant :
+    //   - action=delete : réservé aux MEMBRES (invité 403), jamais la démo ;
+    //   - action=leave par le DERNIER membre d'un foyer réel → suppression
+    //     (arbitrage Anthony 2026-07 : dernier membre partant = suppression du
+    //     foyer, peu importe les invités restants — jamais d'orphelin).
+    // Le masquage UI ne suffit pas : la sécurité est serveur (RLS sans policy).
+    let destroy: boolean
     if (action === 'delete') {
-      // The demo household is shared sample content, not a user's own data — a
-      // demo session must not be able to destroy it for everyone (which has
-      // happened: the whole demo was wiped this way). 'leave' still works, so
-      // Apple 5.1.1(v) — delete *your* data — stays satisfied.
-      const { data: hh } = await supabase
-        .from('households')
-        .select('is_demo')
-        .eq('id', householdId)
-        .single()
-      if (hh?.is_demo) {
+      const forbidden = requireMember(owner, householdId)
+      if (forbidden) return forbidden
+      // Le foyer démo est du contenu partagé : jamais supprimable (incident
+      // 2026-06 — démo effacée par ses visiteurs). « Quitter » reste possible.
+      if (membership.isDemo) {
         return NextResponse.json(
           { error: 'Le foyer démo ne peut pas être supprimé.' },
           { status: 403 },
         )
+      }
+      destroy = true
+    } else {
+      // action === 'leave' — un invité, ou un membre avec d'AUTRES membres,
+      // retire juste son membership ; le dernier membre d'un foyer réel déclenche
+      // la suppression. Le foyer démo (multi-membres, monde gelé) n'est jamais
+      // supprimé par cette voie.
+      destroy = false
+      if (membership.role === 'member' && !membership.isDemo) {
+        const { count, error } = await supabase
+          .from('memberships')
+          .select('id', { count: 'exact', head: true })
+          .eq('household_id', householdId)
+          .eq('role', 'member')
+        if (error) {
+          return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+        }
+        destroy = (count ?? 0) <= 1
+      }
+    }
+
+    if (destroy) {
+      // Si l'owner reste membre d'autres foyers, on repointe D'ABORD la session
+      // de CET appareil vers un foyer survivant : device_sessions.household_id
+      // porte encore une FK ON DELETE CASCADE (colonne vestigiale), donc sans ce
+      // repointage la suppression du foyer courant détruirait la session et
+      // déconnecterait un owner multi-foyer. (hid décommissionné : rien ne scope
+      // sur cette colonne, elle ne sert qu'à garder la session vivante.)
+      if (stayLoggedIn) {
+        const { error: repointError } = await supabase
+          .from('device_sessions')
+          .update({ household_id: remaining[0].householdId })
+          .eq('id', sessionId)
+        // Si le repointage échoue, ne PAS lancer la cascade : elle détruirait la
+        // session (FK) et déconnecterait à tort un owner multi-foyer.
+        if (repointError) {
+          return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
+        }
       }
 
       // Purge Storage files first — the DB row delete cascade won't reach them.
@@ -91,8 +155,11 @@ export const DELETE = withOwnerAuth(
         for (const r of recipesToDelete) {
           for (const url of [r.photo_url, r.generated_image_url]) {
             if (url) {
-              const match = (url as string).match(/recipe-photos\/(.+)$/)
-              if (match) paths.push(match[1])
+              // `[^?]+` et pas `(.+)$` : les URLs portent un cache-buster
+              // `?v=timestamp` (photo/route + enrichment) — le capturer donnerait
+              // une clé Storage inexistante et `remove()` no-op (images orphelines).
+              const match = (url as string).match(/recipe-photos\/([^?]+)/)
+              if (match) paths.push(decodeURIComponent(match[1]))
             }
           }
         }
@@ -111,10 +178,8 @@ export const DELETE = withOwnerAuth(
         return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
       }
     } else {
-      // action === 'leave' — drop the owner's membership, then this device's
-      // session. Membership first: if the session delete fails the user is
-      // still a member and can retry; the reverse would leave an unreachable
-      // membership behind.
+      // Retrait simple du membership du partant (le foyer et ses autres membres
+      // restent). `leave` d'un invité, ou d'un membre non-dernier.
       const { error: membershipError } = await supabase
         .from('memberships')
         .delete()
@@ -123,17 +188,27 @@ export const DELETE = withOwnerAuth(
       if (membershipError) {
         return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
       }
-      const { error: sessionError } = await supabase
-        .from('device_sessions')
-        .delete()
-        .eq('id', sessionId)
-      if (sessionError) {
-        return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+      // Dernier foyer quitté → on supprime aussi la session de cet appareil
+      // (déconnexion). S'il reste des foyers, la session survit : le foyer
+      // n'étant PAS supprimé, device_sessions.household_id reste une FK valide.
+      if (!stayLoggedIn) {
+        const { error: sessionError } = await supabase
+          .from('device_sessions')
+          .delete()
+          .eq('id', sessionId)
+        if (sessionError) {
+          return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+        }
       }
     }
 
-    // Clear the cookie on a 200 JSON response (reliable in WKWebView); the
-    // client reads `redirect` and navigates to the landing page itself.
+    // Il reste ≥1 foyer : session conservée, retour au hub, cookie intact.
+    if (stayLoggedIn) {
+      return NextResponse.json({ ok: true, redirect: '/household' })
+    }
+
+    // Dernier foyer : déconnexion propre. Clear cookie sur une réponse 200 JSON
+    // (fiable en WKWebView) ; le client suit `redirect` vers la landing.
     const response = NextResponse.json({ ok: true, redirect: '/' })
     clearSessionCookie(response)
     return response

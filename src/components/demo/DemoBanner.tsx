@@ -1,8 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import { Sparkles } from 'lucide-react'
 import { dropSwrCache } from '@/lib/swr'
+import MiniStrip from '@/components/app/MiniStrip'
 
+// Bannière démo, refaite sur la grammaire MiniStrip (décision n°9) : hint
+// mineur prioritaire sur tout, jamais dismissable — c'est l'état démo, et le
+// CTA de conversion (quitter → créer son foyer) doit rester visible.
+//
+// Reste STICKY, contrairement aux autres hints : la sortie de démo doit être
+// atteignable en bas de page comme en haut (c'est le seul chemin de
+// conversion). Elle absorbe aussi le notch — d'où l'absence de padding
+// safe-area sur le <main> en démo (cf. (app)/layout.tsx).
 export default function DemoBanner() {
   const [loading, setLoading] = useState(false)
 
@@ -25,20 +35,23 @@ export default function DemoBanner() {
 
   return (
     <div
-      className="sticky top-0 z-40 flex items-center justify-between gap-2 border-b border-accent/30 bg-background/90 backdrop-blur-sm px-4 py-2"
+      className="sticky top-0 z-40 bg-background/90 px-4 pb-2 backdrop-blur-sm"
       style={{ paddingTop: 'calc(0.5rem + env(safe-area-inset-top))' }}
     >
-      <p className="text-xs font-medium text-accent">
-        Mode démo — tes recettes ne seront pas conservées
-      </p>
-      <button
-        type="button"
-        onClick={handleExit}
-        disabled={loading}
-        className="min-h-11 shrink-0 rounded-lg px-3 text-xs font-semibold text-accent transition-colors hover:bg-accent/20 disabled:opacity-50"
-      >
-        {loading ? '…' : 'Quitter la démo'}
-      </button>
+      <MiniStrip
+        icon={<Sparkles size={15} />}
+        label="Mode démo — tes recettes ne seront pas conservées"
+        action={
+          <button
+            type="button"
+            onClick={handleExit}
+            disabled={loading}
+            className="min-h-8 shrink-0 px-1 text-[12.5px] font-semibold text-accent transition-opacity hover:opacity-80 disabled:opacity-50"
+          >
+            {loading ? '…' : 'Quitter la démo'}
+          </button>
+        }
+      />
     </div>
   )
 }

@@ -41,6 +41,10 @@ export type LibraryRecipeItem = RecipeListItem & {
   cookTime: string | null;
   cost: string | null;
   seasons: string[];
+  // Foyer d'origine (multi-foyer, Lot 4) : sert au filtre « Foyer » et au label
+  // discret sous le titre en biblio (affiché seulement si l'owner a >1 foyer).
+  householdId: string;
+  householdName: string | null;
 };
 
 export type RecipeFormData = {

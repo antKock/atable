@@ -11,6 +11,11 @@ const PINNED_DEFAULTS: Record<string, string> = {
   OPENAI_SERVICE_KEY: "sk-e2e-dummy",
   OPENAI_ADMIN_KEY: "sk-e2e-dummy",
   APIFY_TOKEN: "",
+  // Clé absente = transport email no-op (contrat des tests de récup #14) :
+  // sans ce pin, la clé de .env.local fuite et Resend enverrait de VRAIS
+  // emails vers les adresses fictives des tests.
+  RESEND_API_KEY: "",
+  EMAIL_FROM: "",
   CRON_SECRET: "e2e-cron-secret",
   ADMIN_HOUSEHOLD_IDS: "",
   NEXT_PUBLIC_SENTRY_DSN: "",

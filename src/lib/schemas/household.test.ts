@@ -1,5 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { HouseholdCreateSchema, JoinCodeSchema } from "./household";
+import {
+  HouseholdCreateSchema,
+  JoinCodeSchema,
+  RecoveryEmailSchema,
+} from "./household";
 
 describe("HouseholdCreateSchema", () => {
   it("accepts a normal name", () => {
@@ -59,5 +63,30 @@ describe("JoinCodeSchema", () => {
 
   it("rejects a missing prefix", () => {
     expect(JoinCodeSchema.safeParse("-4821").success).toBe(false);
+  });
+});
+
+describe("RecoveryEmailSchema", () => {
+  it("normalise trim + lowercase (colonne UNIQUE : la collision doit se voir)", () => {
+    const r = RecoveryEmailSchema.safeParse("  A.Kocken@GMAIL.com ");
+    expect(r.success).toBe(true);
+    expect(r.success && r.data).toBe("a.kocken@gmail.com");
+  });
+
+  it("accepte une adresse déjà canonique telle quelle", () => {
+    const r = RecoveryEmailSchema.safeParse("anthony@example.fr");
+    expect(r.success).toBe(true);
+    expect(r.success && r.data).toBe("anthony@example.fr");
+  });
+
+  it("rejette les formats invalides", () => {
+    for (const bad of ["", "  ", "sans-arobase", "a@b", "a @b.fr", 42, null]) {
+      expect(RecoveryEmailSchema.safeParse(bad).success).toBe(false);
+    }
+  });
+
+  it("rejette au-delà de 254 caractères", () => {
+    const long = `${"x".repeat(250)}@ex.fr`;
+    expect(RecoveryEmailSchema.safeParse(long).success).toBe(false);
   });
 });

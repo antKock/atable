@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
+import { resolveInviteCode } from '@/lib/auth/invite-code'
 import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
 import { getDeviceName } from '@/lib/auth/device-name'
-import { signSession, setSessionCookie } from '@/lib/auth/session'
+import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
+import { resolveOwnerContext, roleForHousehold, planRoleMerge } from '@/lib/auth/owner-context'
+import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { t } from '@/lib/i18n/fr'
 
 export async function POST(request: NextRequest) {
@@ -37,15 +40,11 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServerClient()
 
-    // Find the household by join code (exclude demo)
-    const { data: household, error: lookupError } = await supabase
-      .from('households')
-      .select('id, name')
-      .eq('join_code', result.data)
-      .eq('is_demo', false)
-      .single()
+    // Résout le code contre les DEUX liens stables du foyer (Lot 3) : join_code
+    // → membre, guest_join_code → invité. Le rôle du membership en découle.
+    const invite = await resolveInviteCode(supabase, result.data)
 
-    if (lookupError || !household) {
+    if (!invite) {
       return NextResponse.json(
         { error: 'Ce code ne correspond à aucun foyer' },
         { status: 404 }
@@ -55,9 +54,41 @@ export async function POST(request: NextRequest) {
     const ua = hdrs.get('user-agent') ?? ''
     const deviceName = getDeviceName(ua)
 
-    // Owner neuf + membership member + session (chantier foyer #14/#15).
-    // Un device qui « change de foyer » crée donc un owner neuf — comportement
-    // actuel conservé ; l'additivité arrive au Lot 4.
+    // Rejoindre est ADDITIF (Lot 4) : si l'appareil a déjà une session résolvant
+    // vers un owner RÉEL (non démo), on ajoute un membership à CET owner — pas
+    // de nouvelle session ni de réécriture de cookie. Un owner démo (monde gelé)
+    // ne reçoit jamais de membership : il retombe sur le chemin « device neuf »
+    // ci-dessous (= sortie de la démo, owner neuf).
+    const sessionCookie = (await cookies()).get('atable_session')?.value
+    const sessionPayload = sessionCookie ? await verifySession(sessionCookie) : null
+    const existingOwner = sessionPayload ? await resolveOwnerContext(sessionPayload.sid) : null
+
+    if (existingOwner && !isDemoOwner(existingOwner)) {
+      const currentRole = roleForHousehold(existingOwner, invite.householdId)
+      const plan = planRoleMerge(currentRole, invite.role)
+
+      if (plan.action === 'noop') {
+        // Déjà membre, code ≤ rôle courant : jamais de rétrogradation.
+        return NextResponse.json({ ok: true, redirect: '/household', alreadyMember: true })
+      }
+      if (plan.action === 'upgrade') {
+        const { error: upErr } = await supabase
+          .from('memberships')
+          .update({ role: plan.role })
+          .eq('owner_id', existingOwner.ownerId)
+          .eq('household_id', invite.householdId)
+        if (upErr) throw new Error(upErr.message)
+        return NextResponse.json({ ok: true, redirect: '/household', upgraded: true })
+      }
+      // action === 'add' : nouveau foyer pour cet owner.
+      const { error: addErr } = await supabase
+        .from('memberships')
+        .insert({ owner_id: existingOwner.ownerId, household_id: invite.householdId, role: plan.role })
+      if (addErr) throw new Error(addErr.message)
+      return NextResponse.json({ ok: true, redirect: '/household', added: true })
+    }
+
+    // Device neuf (aucune session) OU sortie de démo : owner + membership + session.
     const { data: owner, error: ownerError } = await supabase
       .from('owners')
       .insert({})
@@ -70,7 +101,7 @@ export async function POST(request: NextRequest) {
 
     const { error: membershipError } = await supabase
       .from('memberships')
-      .insert({ owner_id: owner.id, household_id: household.id, role: 'member' })
+      .insert({ owner_id: owner.id, household_id: invite.householdId, role: invite.role })
 
     if (membershipError) {
       await supabase.from('owners').delete().eq('id', owner.id)
@@ -79,7 +110,7 @@ export async function POST(request: NextRequest) {
 
     const { data: session, error: sessionError } = await supabase
       .from('device_sessions')
-      .insert({ household_id: household.id, device_name: deviceName, owner_id: owner.id })
+      .insert({ household_id: invite.householdId, device_name: deviceName, owner_id: owner.id })
       .select('id')
       .single()
 
@@ -89,12 +120,11 @@ export async function POST(request: NextRequest) {
       throw new Error(sessionError?.message ?? 'Failed to create session')
     }
 
-    const payload = { hid: household.id, sid: session.id, iat: Math.floor(Date.now() / 1000) }
-    const token = await signSession(payload)
+    const jwt = await signSession({ sid: session.id })
 
     // Cookie on a 200 JSON response (not a 303) — reliable in WKWebView.
     const response = NextResponse.json({ ok: true, redirect: '/home' })
-    setSessionCookie(response, token)
+    setSessionCookie(response, jwt)
 
     return response
   } catch (err) {

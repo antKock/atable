@@ -9,9 +9,10 @@ import { recipeDbRow } from "@/test/fixtures";
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
-vi.mock("@/lib/auth/owner-context", async () => {
+vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/owner-context")>();
   const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
-  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+  return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("next/server", async (importOriginal) => ({
@@ -67,7 +68,7 @@ describe("GET /api/recipes/[id]", () => {
 describe("PUT /api/recipes/[id]", () => {
   it("updates an existing recipe", async () => {
     supa.queueResults([
-      { data: { id: "recipe-1", title: "Old", ingredients: null, steps: null } },
+      { data: { id: "recipe-1", title: "Old", ingredients: null, steps: null, household_id: "household-1" } },
       { data: recipeDbRow({ title: "Nouveau titre" }), error: null },
     ]);
     const res = await PUT(req("PUT", { title: "Nouveau titre" }), ctx());
@@ -89,7 +90,10 @@ describe("PUT /api/recipes/[id]", () => {
 
 describe("DELETE /api/recipes/[id]", () => {
   it("deletes a recipe and returns 204", async () => {
-    supa.queueResults([{ data: { id: "recipe-1" } }, { error: null }]);
+    supa.queueResults([
+      { data: { id: "recipe-1", household_id: "household-1" } },
+      { error: null },
+    ]);
     const res = await DELETE(req("DELETE"), ctx());
     expect(res.status).toBe(204);
   });

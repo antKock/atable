@@ -5,6 +5,9 @@ export type FilterState = {
   tagIds: string[];
   duration: string | null; // 'lt30' | '30to60' | 'gt60'
   cost: string | null; // '€' | '€€' | '€€€'
+  // Multi-foyer (Lot 4) : ids des foyers cochés. Vide = tous (pas d'option
+  // « Tous les foyers » — rien de coché = non filtré). Multi-select.
+  foyerIds: string[];
 };
 
 export const EMPTY_FILTERS: FilterState = {
@@ -12,6 +15,7 @@ export const EMPTY_FILTERS: FilterState = {
   tagIds: [],
   duration: null,
   cost: null,
+  foyerIds: [],
 };
 
 export function getCurrentSeason(): string {
@@ -60,6 +64,7 @@ interface FilterableRecipe {
   prepTime?: string | null;
   cookTime?: string | null;
   cost?: string | null;
+  householdId?: string;
 }
 
 export function matchesFilters(
@@ -67,6 +72,13 @@ export function matchesFilters(
   filters: FilterState,
   allTags: Tag[],
 ): boolean {
+  // Foyer filter (multi-foyer, Lot 4) : OR entre les foyers cochés. Vide = tous.
+  if (filters.foyerIds.length > 0) {
+    if (!recipe.householdId || !filters.foyerIds.includes(recipe.householdId)) {
+      return false;
+    }
+  }
+
   // Season filter
   if (filters.season) {
     const currentSeason = getCurrentSeason();

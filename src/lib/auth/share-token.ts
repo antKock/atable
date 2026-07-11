@@ -5,7 +5,10 @@
 // (54^8 ≈ 7.2e13) — far beyond enumeration risk for non-sensitive recipe data.
 // Collisions are handled by the caller retrying against the unique index.
 
-const ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
+// Shared with the recovery magic-link tokens (login-token.ts), which need the
+// same read-aloud-safe property.
+export const UNAMBIGUOUS_ALPHABET =
+  "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
 const TOKEN_LENGTH = 8;
 
 export function generateShareToken(): string {
@@ -13,7 +16,7 @@ export function generateShareToken(): string {
   crypto.getRandomValues(bytes);
   let token = "";
   for (let i = 0; i < TOKEN_LENGTH; i++) {
-    token += ALPHABET[bytes[i] % ALPHABET.length];
+    token += UNAMBIGUOUS_ALPHABET[bytes[i] % UNAMBIGUOUS_ALPHABET.length];
   }
   return token;
 }

@@ -3,14 +3,16 @@ import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { DELETE, PUT } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
+import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
-vi.mock("@/lib/auth/owner-context", async () => {
+vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/auth/owner-context")>();
   const { ownerContextFromTestHeaders } = await import("@/test/owner-context-mock");
-  return { getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
+  return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 
@@ -28,6 +30,28 @@ beforeEach(() => {
 
 const ctx = (id = "household-1") => ({ params: Promise.resolve({ id }) });
 
+/** Session démo : l'unique membership porte isDemo (résolu en DB par le contexte). */
+function asDemoSession() {
+  vi.mocked(getOwnerContext).mockResolvedValueOnce({
+    ownerId: "owner-test",
+    ownerName: null,
+    recoveryEmail: null,
+    sessionId: "session-1",
+    memberships: [{ householdId: "household-1", role: "member", isDemo: true }],
+  });
+}
+
+/** Session INVITÉ (lecture seule) sur le foyer. */
+function asGuestSession() {
+  vi.mocked(getOwnerContext).mockResolvedValueOnce({
+    ownerId: "owner-test",
+    ownerName: null,
+    recoveryEmail: null,
+    sessionId: "session-1",
+    memberships: [{ householdId: "household-1", role: "guest", isDemo: false }],
+  });
+}
+
 function deleteRequest(action?: string): NextRequest {
   const url = action
     ? `https://test.local/api/households/household-1?action=${action}`
@@ -44,10 +68,11 @@ function putRequest(body: unknown): NextRequest {
 }
 
 describe("DELETE /api/households/[id] (Fix 1.4)", () => {
-  it("action=leave removes the membership and the device session", async () => {
+  it("action=leave par un membre NON-dernier retire juste le membership", async () => {
     supa.queueResults([
+      { count: 2, error: null }, // count des membres du foyer (>1 → pas de suppression)
       { error: null }, // delete membership
-      { error: null }, // delete session
+      { error: null }, // delete session (dernier foyer de l'owner)
     ]);
     const res = await DELETE(deleteRequest("leave"), ctx());
     expect(res.status).toBe(200);
@@ -59,15 +84,40 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
       ),
     ).toBe(true);
     expect(supa.calls.some((c) => c.table === "device_sessions")).toBe(true);
-    expect(supa.calls.some((c) => c.table === "households")).toBe(false);
+    // Le foyer survit : pas de delete households.
+    expect(
+      supa.calls.some(
+        (c) => c.table === "households" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(false);
+  });
+
+  it("action=leave par le DERNIER membre SUPPRIME le foyer (arbitrage : pas d'orphelin)", async () => {
+    supa.queueResults([
+      { count: 1, error: null }, // dernier membre → suppression
+      { data: [], error: null }, // SELECT recipes (purge Storage)
+      { error: null }, // delete households (cascade)
+    ]);
+    const res = await DELETE(deleteRequest("leave"), ctx());
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, redirect: "/" });
+    // Le foyer est détruit, pas un simple retrait de membership.
+    expect(
+      supa.calls.some(
+        (c) => c.table === "households" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(true);
+    expect(
+      supa.calls.some(
+        (c) => c.table === "memberships" && c.ops.some((o) => o.method === "delete"),
+      ),
+    ).toBe(false);
   });
 
   it("action=delete purges Storage then deletes the household (recipes par cascade)", async () => {
-    // 1st result = the is_demo guard SELECT (non-demo), then the Storage
-    // lookup SELECT on recipes, then the household delete (DB cascade covers
-    // recipes/memberships/sessions since migration 027).
+    // Le garde démo lit owner.memberships (pas de SELECT is_demo) : reste le
+    // SELECT Storage sur recipes, puis le delete du foyer (cascade 027).
     supa.queueResults([
-      { data: { is_demo: false }, error: null },
       { data: [], error: null },
       { error: null },
     ]);
@@ -83,18 +133,28 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
     ).toBe(true);
   });
 
-  it("refuses to delete the demo household with 403", async () => {
-    supa.queueResult({ data: { is_demo: true }, error: null });
+  it("refuses action=delete for a GUEST with 403, sans toucher à la DB", async () => {
+    asGuestSession();
     const res = await DELETE(deleteRequest("delete"), ctx());
     expect(res.status).toBe(403);
-    // The household row must NOT be deleted.
-    expect(
-      supa.calls.some(
-        (c) =>
-          c.table === "households" &&
-          c.ops.some((o) => o.method === "delete"),
-      ),
-    ).toBe(false);
+    // Aucune destruction : ni households, ni storage.
+    expect(supa.calls.some((c) => c.table === "households")).toBe(false);
+    expect(supa.uploadMock).not.toHaveBeenCalled();
+  });
+
+  it("allows action=leave for a GUEST (un invité peut quitter)", async () => {
+    asGuestSession();
+    supa.queueResults([{ error: null }, { error: null }]);
+    const res = await DELETE(deleteRequest("leave"), ctx());
+    expect(res.status).toBe(200);
+  });
+
+  it("refuses to delete the demo household with 403", async () => {
+    asDemoSession();
+    const res = await DELETE(deleteRequest("delete"), ctx());
+    expect(res.status).toBe(403);
+    // Aucune requête : le garde lit le contexte owner, pas la DB.
+    expect(supa.calls).toHaveLength(0);
   });
 
   it("clears the session cookie", async () => {
@@ -138,5 +198,24 @@ describe("PUT /api/households/[id]", () => {
   it("returns 403 when the id does not match the session household", async () => {
     const res = await PUT(putRequest({ name: "X" }), ctx("someone-else"));
     expect(res.status).toBe(403);
+  });
+
+  // Le readOnly de l'UI ne protège rien : le foyer démo est du contenu partagé
+  // (incident 2026-06). Le garde central doit refuser le rename côté serveur.
+  it("refuses to rename the demo household with 403, sans écriture DB", async () => {
+    asDemoSession();
+    const res = await PUT(putRequest({ name: "Démo vandalisée" }), ctx());
+    expect(res.status).toBe(403);
+    expect(supa.calls).toHaveLength(0);
+  });
+
+  it("returns 400 (not 500) on a malformed body", async () => {
+    const req = new NextRequest("https://test.local/api/households/household-1", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: "{ pas du json",
+    });
+    const res = await PUT(req, ctx());
+    expect(res.status).toBe(400);
   });
 });

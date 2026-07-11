@@ -1,10 +1,13 @@
 import { useMemo } from "react";
 import type { RecipeListItem } from "@/types/recipe";
 
-export function filterRecipes(
-  recipes: RecipeListItem[],
+// Générique : préserve le type d'item passé (ex. LibraryRecipeItem, qui porte
+// householdId/householdName en multi-foyer) plutôt que de le réduire à
+// RecipeListItem.
+export function filterRecipes<T extends RecipeListItem>(
+  recipes: T[],
   query: string
-): RecipeListItem[] {
+): T[] {
   const q = query.trim().toLowerCase();
   if (!q) return recipes;
   return recipes.filter(
@@ -15,9 +18,9 @@ export function filterRecipes(
   );
 }
 
-export function useRecipeSearch(
-  recipes: RecipeListItem[],
+export function useRecipeSearch<T extends RecipeListItem>(
+  recipes: T[],
   query: string
-): RecipeListItem[] {
+): T[] {
   return useMemo(() => filterRecipes(recipes, query), [recipes, query]);
 }

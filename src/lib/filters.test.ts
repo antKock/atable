@@ -138,8 +138,36 @@ describe("matchesFilters", () => {
       tagIds: ["t1"], // Végétarien
       duration: "30to60",
       cost: "€",
+      foyerIds: [],
     };
     expect(matchesFilters(baseRecipe, filters, allTags)).toBe(true);
     vi.useRealTimers();
+  });
+});
+
+describe("matchesFilters — filtre foyer (multi-foyer, Lot 4)", () => {
+  const recipeA = { ...baseRecipe, householdId: "A" };
+  const recipeB = { ...baseRecipe, householdId: "B" };
+
+  it("foyerIds vide = tous les foyers passent", () => {
+    expect(matchesFilters(recipeA, EMPTY_FILTERS, allTags)).toBe(true);
+    expect(matchesFilters(recipeB, EMPTY_FILTERS, allTags)).toBe(true);
+  });
+
+  it("ne garde que les foyers cochés (OR)", () => {
+    const filters: FilterState = { ...EMPTY_FILTERS, foyerIds: ["A"] };
+    expect(matchesFilters(recipeA, filters, allTags)).toBe(true);
+    expect(matchesFilters(recipeB, filters, allTags)).toBe(false);
+  });
+
+  it("multi-select : plusieurs foyers cochés", () => {
+    const filters: FilterState = { ...EMPTY_FILTERS, foyerIds: ["A", "B"] };
+    expect(matchesFilters(recipeA, filters, allTags)).toBe(true);
+    expect(matchesFilters(recipeB, filters, allTags)).toBe(true);
+  });
+
+  it("recette sans householdId exclue dès qu'un foyer est coché", () => {
+    const filters: FilterState = { ...EMPTY_FILTERS, foyerIds: ["A"] };
+    expect(matchesFilters(baseRecipe, filters, allTags)).toBe(false);
   });
 });

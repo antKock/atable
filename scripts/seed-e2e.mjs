@@ -29,7 +29,9 @@ const DEMO_ID = env.DEMO_HOUSEHOLD_ID
 const { error: householdError } = await supabase
   .from('households')
   .upsert(
-    { id: DEMO_ID, name: 'Démo Mijote', join_code: 'DEMO-0000', is_demo: true },
+    // guest_join_code NOT NULL depuis la 030 : le foyer démo n'est jamais
+    // rejoint (is_demo exclu de join/lookup), mais la colonne exige une valeur.
+    { id: DEMO_ID, name: 'Démo Mijote', join_code: 'DEMO-0000', guest_join_code: 'DEMOGUEST-0000', is_demo: true },
     { onConflict: 'id' },
   )
 if (householdError) throw householdError

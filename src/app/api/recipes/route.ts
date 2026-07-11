@@ -4,16 +4,21 @@ import { createServerClient } from "@/lib/supabase/server";
 import { RecipeCreateSchema } from "@/lib/schemas/recipe";
 import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import { enrichRecipe } from "@/lib/enrichment";
-import { withHouseholdAuth } from "@/lib/api/with-household-auth";
+import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
+import { householdIds } from "@/lib/auth/owner-context";
 import { enforceRecipeCreateQuota } from "@/lib/import-quota";
 
 export const maxDuration = 60;
 
-export const GET = withHouseholdAuth(async (request: NextRequest, _ctx, { householdId }) => {
+export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const { searchParams } = new URL(request.url);
   const tagsParam = searchParams.get("tags");
   const seasonParam = searchParams.get("season");
   const costParam = searchParams.get("cost");
+
+  const ids = householdIds(owner);
+  // Owner sans foyer (retrait de membre) : liste vide, pas de `in.()` dégénéré.
+  if (ids.length === 0) return NextResponse.json([]);
 
   const supabase = createServerClient();
 
@@ -22,10 +27,11 @@ export const GET = withHouseholdAuth(async (request: NextRequest, _ctx, { househ
     ? "id, title, ingredients, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags!inner(tag_id, tags!inner(id, name, category))"
     : "id, title, ingredients, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))";
 
+  // Union des foyers de l'owner (Lot 4) — plus de scoping sur un seul `hid`.
   let query = supabase
     .from("recipes")
     .select(selectClause)
-    .eq("household_id", householdId);
+    .in("household_id", ids);
 
   if (tagsParam) {
     const tagIds = tagsParam.split(",").filter(Boolean);
@@ -53,14 +59,22 @@ export const GET = withHouseholdAuth(async (request: NextRequest, _ctx, { househ
   return NextResponse.json(recipes);
 });
 
-export const POST = withHouseholdAuth(
-  async (request: NextRequest, _ctx, { householdId, sessionId }) => {
+export const POST = withOwnerAuth(
+  async (request: NextRequest, _ctx, owner) => {
+    const body = await request.json();
+
+    // Foyer cible explicite (dialog de choix, multi-foyer) OU repli mono-foyer.
+    // Validé MEMBRE : un invité (lecture seule) est refusé, et un foyer où
+    // l'owner n'est pas membre ne peut pas recevoir de recette.
+    const target = resolveWriteHousehold(owner, body?.householdId);
+    if (target instanceof NextResponse) return target;
+    const { householdId } = target;
+
     // Each create triggers AI enrichment (+ image generation), which the
     // import quota doesn't cover — cap it here.
     const quotaResponse = await enforceRecipeCreateQuota(householdId);
     if (quotaResponse) return quotaResponse;
 
-    const body = await request.json();
     const result = RecipeCreateSchema.safeParse(body);
 
     if (!result.success) {
@@ -89,7 +103,7 @@ export const POST = withHouseholdAuth(
         servings: result.data.servings ?? null,
         household_id: householdId,
         source: result.data.source,
-        created_by_device_id: sessionId,
+        created_by_device_id: owner.sessionId,
         enrichment_status: "pending",
         image_status: "pending",
       })
