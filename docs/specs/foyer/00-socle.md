@@ -136,6 +136,11 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 9. **Deux hints mineurs** de même gabarit : démo (CTA conversion) et install ;
    priorité démo ; install jamais en démo (déjà le cas). Le hint principal
    (partage/email) est distinct, un seul à la fois.
+   **Hints = vue principale `/home` uniquement** (arbitrage 2026-07-11, Lot 3) :
+   aucun hint (install + partage/email) sur les autres écrans (biblio, foyer,
+   fiche…). Implémenté via `x-pathname` (middleware) + garde `isMainView` dans
+   `(app)/layout.tsx`. Évite notamment un doublon d'affordance « Inviter
+   quelqu'un » sur le détail de foyer (CTA du hint partage vs entrée d'invitation).
 10. **Pas de foyer par défaut** : choix du foyer à chaque enregistrement (dialog),
     masqué en mono-foyer. Foyer invité = jamais une destination (grisé).
 11. **Marqueur d'origine biblio** = label texte discret (nom du foyer), jamais de
