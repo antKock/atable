@@ -14,10 +14,11 @@ export const APIFY_ACTORS = {
   websiteCrawler: "apify/website-content-crawler",
 } as const;
 
-// The Instagram audio transcript is a paid Apify add-on (billed per minute of
-// audio, on top of the per-result reel price). Enabled to also capture recipes
-// that are narrated in the reel rather than written in the caption.
-export const INCLUDE_INSTAGRAM_TRANSCRIPT = true;
+// The Instagram audio transcript is a paid Apify add-on. Measured at ~$0.048
+// per reel (~14× a caption-only import), too expensive for the value — disabled.
+// We only use the caption. Flip to true (and request it in the actor input) to
+// also capture recipes that are narrated in the reel rather than written.
+export const INCLUDE_INSTAGRAM_TRANSCRIPT = false;
 
 // Flat USD estimate per Apify call, mirroring IMAGE_PRICING in ai-cost.ts:
 // list-rate approximations so the cost dashboard reflects real Apify spend
