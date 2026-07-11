@@ -17,6 +17,15 @@ npm run test:e2e                       # lance la suite (démarre son propre nex
 `npm run test:e2e:ui` ouvre le mode UI de Playwright. `node scripts/e2e-setup.mjs --reset`
 ré-applique les migrations sur une base vidée avant de re-seeder.
 
+### Environnement Claude Code web (conteneur distant)
+
+Dans une session Claude Code web (proxy filtrant, Docker non démarré), utiliser
+`bash scripts/e2e-bootstrap-remote.sh` à la place de `test:e2e:setup` : il
+démarre Docker, récupère le binaire supabase via npm (les releases GitHub sont
+bloquées), ponte le Chromium préinstallé et applique les contournements connus
+(edge-runtime exclu, grants `service_role`). Idempotent ; détail des
+contournements en tête du script.
+
 ## Ce que fait le setup
 
 - **Supabase local** (`supabase start`, config `supabase/config.toml`) : les
