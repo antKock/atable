@@ -87,6 +87,14 @@ export const DELETE = withOwnerAuth(
     const supabase = createServerClient()
 
     if (action === 'delete') {
+      // Supprimer un foyer (destruction cascade des recettes/membres/sessions de
+      // TOUS) est réservé aux MEMBRES : un invité (lecture seule) est refusé
+      // 403. Le masquage UI (LeaveHouseholdDialog canDelete) ne suffit pas — la
+      // sécurité est serveur (RLS sans policy). « Quitter » reste ouvert aux
+      // invités (branche else, pas de requireMember).
+      const forbidden = requireMember(owner, householdId)
+      if (forbidden) return forbidden
+
       // The demo household is shared sample content, not a user's own data — a
       // demo session must not be able to destroy it for everyone (which has
       // happened: the whole demo was wiped this way). 'leave' still works, so
@@ -106,10 +114,15 @@ export const DELETE = withOwnerAuth(
       // déconnecterait un owner multi-foyer. (hid décommissionné : rien ne scope
       // sur cette colonne, elle ne sert qu'à garder la session vivante.)
       if (stayLoggedIn) {
-        await supabase
+        const { error: repointError } = await supabase
           .from('device_sessions')
           .update({ household_id: remaining[0].householdId })
           .eq('id', sessionId)
+        // Si le repointage échoue, ne PAS lancer la cascade : elle détruirait la
+        // session (FK) et déconnecterait à tort un owner multi-foyer.
+        if (repointError) {
+          return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
+        }
       }
 
       // Purge Storage files first — the DB row delete cascade won't reach them.
@@ -123,8 +136,11 @@ export const DELETE = withOwnerAuth(
         for (const r of recipesToDelete) {
           for (const url of [r.photo_url, r.generated_image_url]) {
             if (url) {
-              const match = (url as string).match(/recipe-photos\/(.+)$/)
-              if (match) paths.push(match[1])
+              // `[^?]+` et pas `(.+)$` : les URLs portent un cache-buster
+              // `?v=timestamp` (photo/route + enrichment) — le capturer donnerait
+              // une clé Storage inexistante et `remove()` no-op (images orphelines).
+              const match = (url as string).match(/recipe-photos\/([^?]+)/)
+              if (match) paths.push(decodeURIComponent(match[1]))
             }
           }
         }

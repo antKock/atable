@@ -21,7 +21,6 @@ type Props = {
   household: {
     id: string
     name: string
-    joinCode: string
     isDemo: boolean
   }
   viewerRole: MembershipRole

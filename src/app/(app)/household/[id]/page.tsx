@@ -32,7 +32,7 @@ export default async function HouseholdDetailPage({ params }: Props) {
   const supabase = createServerClient()
   const { data: household, error: householdError } = await supabase
     .from('households')
-    .select('id, name, join_code, is_demo')
+    .select('id, name, is_demo')
     .eq('id', id)
     .single()
 
@@ -79,7 +79,6 @@ export default async function HouseholdDetailPage({ params }: Props) {
       household={{
         id: household.id,
         name: household.name,
-        joinCode: household.join_code,
         isDemo: household.is_demo,
       }}
       viewerRole={membership.role}

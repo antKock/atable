@@ -27,6 +27,9 @@ function mutationMatrix(hid: string, recipeId: string, targetOwnerId: string) {
     { label: "PUT /api/households/[id] (rename)", method: "put" as const, url: `/api/households/${hid}`, data: { name: "Renommé par un invité" } },
     { label: "PATCH members/[ownerId] (rôle)", method: "patch" as const, url: `/api/households/${hid}/members/${targetOwnerId}`, data: { role: "guest" } },
     { label: "DELETE members/[ownerId] (retrait)", method: "delete" as const, url: `/api/households/${hid}/members/${targetOwnerId}` },
+    // Supprimer le foyer = destruction cascade : réservé aux membres, jamais un
+    // invité (masquage UI insuffisant, la garde est serveur).
+    { label: "DELETE households/[id]?action=delete", method: "delete" as const, url: `/api/households/${hid}?action=delete` },
   ];
 }
 
@@ -90,6 +93,11 @@ test("détail foyer côté invité : bandeau lecture seule, pas d'« Inviter »,
   await expect(b.page.getByRole("link", { name: "Inviter quelqu'un" })).toHaveCount(0);
   await expect(b.page.getByRole("button", { name: "Supprimer le foyer" })).toHaveCount(0);
   await expect(b.page.getByRole("button", { name: "Quitter ce foyer" })).toBeVisible();
+
+  // Le code d'invitation MEMBRE ne doit JAMAIS être livré à un invité (même
+  // non affiché : prop sérialisée dans le payload RSC → escalade invité→membre
+  // via le re-join additif). La page ne doit pas contenir le code membre.
+  expect(await b.page.content()).not.toContain(memberCode);
 
   await a.context.close();
   await b.context.close();

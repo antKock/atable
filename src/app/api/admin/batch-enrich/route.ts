@@ -40,8 +40,10 @@ export async function POST(request: NextRequest) {
       for (const r of allRecipes) {
         for (const url of [r.photo_url, r.generated_image_url]) {
           if (url) {
-            const match = (url as string).match(/recipe-photos\/(.+)$/);
-            if (match) paths.push(match[1]);
+            // `[^?]+` : exclut le cache-buster `?v=…` (sinon clé Storage
+            // inexistante → remove() no-op).
+            const match = (url as string).match(/recipe-photos\/([^?]+)/);
+            if (match) paths.push(decodeURIComponent(match[1]));
           }
         }
       }

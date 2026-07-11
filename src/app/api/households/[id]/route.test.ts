@@ -41,6 +41,17 @@ function asDemoSession() {
   });
 }
 
+/** Session INVITÉ (lecture seule) sur le foyer. */
+function asGuestSession() {
+  vi.mocked(getOwnerContext).mockResolvedValueOnce({
+    ownerId: "owner-test",
+    ownerName: null,
+    recoveryEmail: null,
+    sessionId: "session-1",
+    memberships: [{ householdId: "household-1", role: "guest", isDemo: false }],
+  });
+}
+
 function deleteRequest(action?: string): NextRequest {
   const url = action
     ? `https://test.local/api/households/household-1?action=${action}`
@@ -92,6 +103,22 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
           c.ops.some((o) => o.method === "delete"),
       ),
     ).toBe(true);
+  });
+
+  it("refuses action=delete for a GUEST with 403, sans toucher à la DB", async () => {
+    asGuestSession();
+    const res = await DELETE(deleteRequest("delete"), ctx());
+    expect(res.status).toBe(403);
+    // Aucune destruction : ni households, ni storage.
+    expect(supa.calls.some((c) => c.table === "households")).toBe(false);
+    expect(supa.uploadMock).not.toHaveBeenCalled();
+  });
+
+  it("allows action=leave for a GUEST (un invité peut quitter)", async () => {
+    asGuestSession();
+    supa.queueResults([{ error: null }, { error: null }]);
+    const res = await DELETE(deleteRequest("leave"), ctx());
+    expect(res.status).toBe(200);
   });
 
   it("refuses to delete the demo household with 403", async () => {

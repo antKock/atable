@@ -17,7 +17,10 @@ async function duplicateImage(
   suffix: string
 ): Promise<string | null> {
   if (!sourceUrl) return null;
-  const match = sourceUrl.match(/recipe-photos\/(.+)$/);
+  // `[^?]+` : ne pas capturer le cache-buster `?v=timestamp` des URLs, sinon
+  // storage.copy() vise une clé inexistante et la copie retombe sur l'URL source
+  // (copie non self-contained).
+  const match = sourceUrl.match(/recipe-photos\/([^?]+)/);
   if (!match) return sourceUrl; // not in our bucket — reference it directly
 
   const fromPath = decodeURIComponent(match[1]);
