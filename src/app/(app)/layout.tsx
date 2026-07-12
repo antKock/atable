@@ -1,19 +1,10 @@
-import { headers, cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import Navigation from '@/components/layout/Navigation'
 import DeviceTokenProvider from '@/components/layout/DeviceTokenProvider'
 import { Toaster } from '@/components/ui/sonner'
 import DemoBanner from '@/components/demo/DemoBanner'
-import InstallAppBanner from '@/components/app/InstallAppBanner'
-import HintCard from '@/components/app/HintCard'
-import { createServerClient } from '@/lib/supabase/server'
 import { getOwnerContext, isGuestOwner } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
-import { t } from '@/lib/i18n/fr'
-
-// Seuil du hint principal (#14, décision n°9) : partage tant que le foyer a
-// moins de 3 recettes, puis email tant que recovery_email est absent.
-const SHARE_HINT_RECIPE_THRESHOLD = 3
 
 export default async function AppShell({ children }: { children: React.ReactNode }) {
   // Le JWT a passé le middleware (signature) mais la session doit exister en
@@ -32,66 +23,10 @@ export default async function AppShell({ children }: { children: React.ReactNode
   const isDemo = isDemoOwner(owner)
   const isGuest = isGuestOwner(owner)
 
-  // Hints server-gated (#14, maquette 1.1) : la bannière démo prime sur tout ;
-  // sinon install (mini-strip, iOS web) AU-DESSUS d'UN hint principal
-  // (partage OU email). Tous à dismiss définitif par cookie (180 j). En démo :
-  // aucun hint — la bannière démo est le seul chemin (conversion).
-  const hdrs = await headers()
-  const cookieStore = await cookies()
-  let installCode: string | null = null
-  let mainHint: 'share' | 'email' | null = null
-  // CTA du hint partage : le détail d'un foyer où l'owner est MEMBRE (là où
-  // vivent code et lien d'invitation). Multi-foyer (Lot 4) : premier membre.
-  const shareFoyerId = owner.memberships.find((m) => m.role === 'member')?.householdId
-  const shareHref = shareFoyerId ? `/household/${shareFoyerId}` : '/household'
-
-  // Les hints (install + partage/email) ne s'affichent QUE sur la vue
-  // principale /home — pas sur les autres écrans (biblio, foyer, fiche…). Cela
-  // évite notamment un doublon d'affordance « Inviter quelqu'un » sur le détail
-  // de foyer (le CTA du hint partage y côtoierait l'entrée d'invitation).
-  const isMainView = hdrs.get('x-pathname') === '/home'
-
-  if (!isDemo && isMainView) {
-    // iOS web visitors (not the native shell) get a one-time, dismissible
-    // nudge to install the app. The foyer code travels with it so they can
-    // re-join inside the app's WebView (separate cookie jar from Safari).
-    const ua = hdrs.get('user-agent') ?? ''
-    const isIOSWeb = /iPhone|iPad|iPod/i.test(ua) && !ua.includes('MijoteNative')
-    const installDismissed = cookieStore.get('mijote_install_dismissed')?.value === '1'
-    // Multi-foyer (Lot 4) : le code d'install voyage avec un foyer où l'owner
-    // est MEMBRE (re-join depuis la WebView de l'app). Plus de x-household-id.
-    const installHouseholdId = owner.memberships.find((m) => m.role === 'member')?.householdId
-    if (isIOSWeb && !installDismissed && installHouseholdId) {
-      const { data } = await createServerClient()
-        .from('households')
-        .select('join_code')
-        .eq('id', installHouseholdId)
-        .single()
-      installCode = (data?.join_code as string | undefined) ?? null
-    }
-
-    const shareDismissed = cookieStore.get('mijote_share_hint_dismissed')?.value === '1'
-    const emailDismissed = cookieStore.get('mijote_email_hint_dismissed')?.value === '1'
-    const emailEligible = !emailDismissed && owner.recoveryEmail === null
-    if ((!shareDismissed || emailEligible) && owner.memberships.length > 0) {
-      // Compteur groupé sur tous les foyers de l'owner — requête payée
-      // seulement quand un hint est encore possible. Échec silencieux : un
-      // hint absent ne vaut pas une app cassée (même politique qu'install).
-      const { count, error } = await createServerClient()
-        .from('recipes')
-        .select('id', { count: 'exact', head: true })
-        .in('household_id', owner.memberships.map((m) => m.householdId))
-      if (!error) {
-        if ((count ?? 0) < SHARE_HINT_RECIPE_THRESHOLD) {
-          // Le hint partage invite à « Inviter quelqu'un » : sans objet pour un
-          // invité (lecture seule, ne peut pas inviter) — on ne l'affiche pas.
-          mainHint = shareDismissed || isGuest ? null : 'share'
-        } else {
-          mainHint = emailEligible ? 'email' : null
-        }
-      }
-    }
-  }
+  // Les hints (install + partage/email) sont rendus DANS la page /home
+  // (`HomeHints`), sous la top bar — pas ici. Un layout partagé ne se
+  // ré-évalue pas à la navigation client, ce qui laissait les hints collés
+  // après un clic vers un autre écran, et au-dessus de la top bar.
 
   return (
     <>
@@ -101,33 +36,15 @@ export default async function AppShell({ children }: { children: React.ReactNode
       {isDemo && <DemoBanner />}
       <div className="mx-auto max-w-[1100px]">
         <main
-          className="min-h-screen pb-28"
-          style={isDemo ? undefined : { paddingTop: 'env(safe-area-inset-top)' }}
+          className="min-h-screen"
+          style={{
+            // Bas : dégage la nav flottante ET la barre système Android (safe
+            // area). Sans l'inset, le dernier contenu passe sous la barre
+            // d'action Android en edge-to-edge (targetSdk 36).
+            paddingBottom: 'calc(7rem + env(safe-area-inset-bottom))',
+            ...(isDemo ? {} : { paddingTop: 'env(safe-area-inset-top)' }),
+          }}
         >
-          {(installCode || mainHint) && (
-            <div className="flex flex-col gap-2.5 px-4 pt-3">
-              {installCode && <InstallAppBanner code={installCode} />}
-              {mainHint === 'share' && (
-                <HintCard
-                  variant="share"
-                  title={t.hints.share.title}
-                  body={t.hints.share.body}
-                  cta={t.hints.share.cta}
-                  href={shareHref}
-                />
-              )}
-              {mainHint === 'email' && (
-                <HintCard
-                  variant="email"
-                  title={t.hints.email.title}
-                  body={t.hints.email.body}
-                  cta={t.hints.email.cta}
-                  href="/household/profile"
-                  dismissToast={t.hints.email.dismissToast}
-                />
-              )}
-            </div>
-          )}
           {children}
         </main>
       </div>

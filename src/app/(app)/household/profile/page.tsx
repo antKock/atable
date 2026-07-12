@@ -3,6 +3,7 @@ import { getOwnerContext } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { aliasForOwner } from '@/lib/alias'
 import ProfileForm from '@/components/household/ProfileForm'
+import LogoutDialog from '@/components/household/LogoutDialog'
 
 export default async function ProfilePage() {
   const owner = await getOwnerContext()
@@ -12,10 +13,13 @@ export default async function ProfilePage() {
   if (isDemoOwner(owner)) notFound()
 
   return (
-    <ProfileForm
-      initialName={owner.ownerName ?? ''}
-      alias={aliasForOwner(owner.ownerId)}
-      initialEmail={owner.recoveryEmail ?? ''}
-    />
+    <>
+      <ProfileForm
+        initialName={owner.ownerName ?? ''}
+        alias={aliasForOwner(owner.ownerId)}
+        initialEmail={owner.recoveryEmail ?? ''}
+      />
+      <LogoutDialog hasRecoveryEmail={owner.recoveryEmail !== null} />
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import { expect, type Browser, type BrowserContext, type Page } from "@playwright/test";
+import { getHouseholdByName } from "./db";
 
 /**
  * Chaque « visiteur » E2E = un contexte navigateur isolé (cookies propres)
@@ -27,8 +28,8 @@ export function uniqueName(prefix: string): string {
 }
 
 /**
- * Onboarding « Créer un foyer » via l'UI. Retourne le join code (lu dans
- * l'URL /home?code=… posée par POST /api/households).
+ * Onboarding « Créer un foyer » via l'UI. Redirige vers /home (sans query) et
+ * retourne le join code relu en DB par le nom du foyer.
  */
 export async function createHouseholdViaUI(page: Page, name: string): Promise<string> {
   await page.goto("/");
@@ -36,9 +37,9 @@ export async function createHouseholdViaUI(page: Page, name: string): Promise<st
   await page.getByPlaceholder("Ex : Chez nous, Famille Dupont…").fill(name);
   await page.getByRole("button", { name: "Créer le foyer" }).click();
   await page.waitForURL(/\/home/);
-  const code = new URL(page.url()).searchParams.get("code");
-  expect(code, "le redirect post-création doit porter ?code=").toMatch(/^[A-Z]+-\d{4}$/);
-  return code as string;
+  const household = await getHouseholdByName(name);
+  expect(household?.join_code, "le foyer créé doit avoir un join_code").toMatch(/^[A-Z]+-\d{4}$/);
+  return household!.join_code as string;
 }
 
 /**
@@ -94,16 +95,18 @@ async function openSwitchScreen(page: Page): Promise<void> {
 
 /**
  * Créer ADDITIVEMENT un foyer depuis le hub (Lot 4) : ajoute un foyer à l'owner
- * courant, redirige vers le détail du nouveau foyer. Retourne son id (lu dans
- * l'URL).
+ * courant, redirige vers la Home (créer depuis le profil ramène à l'accueil).
+ * Retourne l'id du nouveau foyer (relu en DB par le nom).
  */
 export async function createFromHub(page: Page, name: string): Promise<string> {
   await openSwitchScreen(page);
   await page.getByRole("button", { name: "Créer un foyer" }).click();
   await page.getByPlaceholder("Ex : Chez nous, Famille Dupont…").fill(name);
   await page.getByRole("button", { name: "Créer le foyer" }).click();
-  await page.waitForURL(/\/household\/[0-9a-f-]{36}/);
-  return page.url().split("/household/")[1].split(/[?#]/)[0];
+  await page.waitForURL(/\/home/);
+  const household = await getHouseholdByName(name);
+  expect(household?.id, "le foyer créé depuis le hub doit exister en DB").toBeTruthy();
+  return household!.id as string;
 }
 
 /** Pose l'email de secours depuis le profil (aucun envoi attendu). */

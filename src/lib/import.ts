@@ -255,7 +255,10 @@ export async function extractRecipeFromVoice(
     const result = await openai.audio.transcriptions.create({
       model: "whisper-1",
       file: audioFile,
-      language: "fr",
+      // Pas de `language` figé : Whisper auto-détecte la langue parlée. Le forcer
+      // à "fr" faisait échouer/mal transcrire les dictées dans une autre langue
+      // (ex. portugais). L'étape de structuration (gpt-4o-mini) reste tolérante
+      // à la langue de la transcription.
       response_format: "text",
     });
     return result as unknown as string;

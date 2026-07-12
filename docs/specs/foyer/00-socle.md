@@ -24,10 +24,10 @@ qu'une **session** pointant vers cet owner ; l'appartenance est une ligne
 |---|---|---|---|
 | P | `01-pre-lot-harnais.md` | Harnais E2E Playwright + Supabase local + tests de caractérisation ; préparation Universal Links `/recover` | done |
 | 0 | `02-lot0-data-session.md` | Migration `owners`/`memberships`, résolution owner par requête, invisible pour l'utilisateur | done |
-| 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | staging |
-| 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | staging |
-| 3 | `05-lot3-invite.md` | #15a : rôle invité, 2 liens d'invitation, membres + révocation, lecture seule | staging |
-| 4 | `06-lot4-multi-foyer.md` | #15b : multi-appartenance, choix de foyer, filtre biblio, déplacer | staging |
+| 1 | `03-lot1-hub-profil.md` | Hub « Toi + Tes foyers », détail foyer, profil (nom + alias) | done |
+| 2 | `04-lot2-recuperation.md` | #14 : email de secours, hints, fork onboarding, récup Resend, fusion | done |
+| 3 | `05-lot3-invite.md` | #15a : rôle invité, 2 liens d'invitation, membres + révocation, lecture seule | done |
+| 4 | `06-lot4-multi-foyer.md` | #15b : multi-appartenance, choix de foyer, filtre biblio, déplacer | done |
 
 **À la fin de chaque lot : mettre à jour la colonne Statut ici** (`staging` quand
 déployé sur staging, `done` quand promu en prod — même convention que le backlog).
@@ -253,6 +253,48 @@ jamais. Le tri restera manuel, via le retrait de membre du Lot 3.
   décommissionnement, hors périmètre Lot 4).
 - **Défaut ouvert « join non idempotent »** (fabrique à fantômes) : toujours
   **non traité** (arbitrage Anthony) — cf. « Constats terrain ».
+
+## Correctifs post-release (Lots 1-4 en prod — branche `foyer-post-release-fixes`)
+
+> Petits bugs remontés après la mise en prod. Un correctif par bug ; tests
+> unit/E2E ajoutés (`e2e/15-foyer-post-release-fixes.spec.ts`,
+> `RecoveryCodeInput.test.tsx`, cas Whisper dans `import.test.ts`).
+
+1. **Créer un foyer depuis le hub → Home** : `POST /api/households` (chemin
+   additif) renvoyait `redirect: /household/<id>` (édition du nouveau foyer).
+   Renvoie `/home`. Le chemin cold-onboarding aussi (voir #9).
+2. **Filtre « Foyer » en tête** : dans `FilterBar`, la pill « Foyer » est
+   rendue en première position (avant « De saison »), toujours gardée par
+   `foyers.length > 1`.
+3. **Coller le magic code (mobile)** : `RecoveryCodeInput` gère désormais un
+   `onPaste` explicite (certaines WebView ne routent pas le collage via
+   `onChange` dans un champ contrôlé).
+4 & 8. **Hints déplacés du layout vers `HomeHints` (page /home)** : rendus SOUS
+   la top bar et uniquement sur la Home. Un layout partagé ne se ré-évalue pas
+   à la navigation client → le hint restait collé après un clic (bug 4) et se
+   peignait au-dessus de la top bar (bug 8). `x-pathname`/`isMainView`
+   décommissionnés (middleware nettoyé).
+5. **Safe-area bas Android** : `paddingBottom` des `main` (app + fullscreen)
+   inclut `env(safe-area-inset-bottom)` (edge-to-edge forcé, targetSdk 36).
+   **Correctif web (déployé via l'URL distante, pas de build Play).**
+   ⚠️ **À valider sur un vrai appareil Android** : si la WebView Android ne
+   renseigne pas `env(safe-area-inset-*)`, il faudra le plugin
+   `@capacitor-community/safe-area` (→ build Play). Non vérifiable en E2E.
+6. **Dialog rôle** : `MemberActionDialog` — la ligne « Retirer du foyer » porte
+   désormais une icône (LogOut) comme la bascule de rôle → lignes icône+libellé
+   homogènes (maquette 2.2).
+7. **Freeze au 2ᵉ retrait de membre** : cause réelle = `isSubmitting` restait à
+   `true` après un retrait réussi (reset seulement dans le `catch` ;
+   `router.refresh()` ne redémonte pas le composant client) → boutons
+   `disabled` (`pointer-events:none`) ET `close()` bloqué au 2ᵉ membre. Reset de
+   `isSubmitting` à chaque ouverture. `DialogContent` piloté par l'état `open`
+   de Radix (plus de démontage brutal `{member && …}`).
+9. **Ancien hint « foyer créé - code invitation »** : `PostCreationBanner`
+   supprimé (remplacé par le hint partage de la Home) ; le `redirect` cold-create
+   ne porte plus `?code=&householdName=`.
+10. **Transcript audio multilingue** : `extractRecipeFromVoice` ne force plus
+    `language: "fr"` sur Whisper (auto-détection) — une dictée en portugais, etc.
+    ne cassait plus.
 
 ## Definition of Done commune à tous les lots
 

@@ -202,8 +202,17 @@ describe("extractRecipeFromVoice", () => {
     const result = await extractRecipeFromVoice(audioFile());
     expect(result.title).toBe("Tarte aux pommes");
     expect(mockTranscribe.mock.calls[0][0].model).toBe("whisper-1");
-    expect(mockTranscribe.mock.calls[0][0].language).toBe("fr");
+    // La langue ne doit PAS être figée : Whisper auto-détecte (sinon une dictée
+    // en portugais, etc. échoue). Régression #10.
+    expect(mockTranscribe.mock.calls[0][0].language).toBeUndefined();
     expect(mockChat.mock.calls[0][0].model).toBe("gpt-4o-mini");
+  });
+
+  it("ne force aucune langue Whisper (auto-détection, ex. portugais)", async () => {
+    mockTranscribe.mockResolvedValue("Para a torta precisamos de maçãs");
+    mockChat.mockResolvedValue(chatCompletion(importResult()));
+    await extractRecipeFromVoice(audioFile());
+    expect("language" in mockTranscribe.mock.calls[0][0]).toBe(false);
   });
 
   it("throws TRANSCRIPTION_FAILED on an empty transcription", async () => {

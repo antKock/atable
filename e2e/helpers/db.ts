@@ -24,6 +24,23 @@ export async function getHouseholdByJoinCode(joinCode: string) {
   return data;
 }
 
+/**
+ * Foyer le plus récent portant ce nom exact. Les redirections post-création ne
+ * portent plus le join_code en query (l'ancienne bannière post-création a été
+ * retirée), donc on relit le code en DB via le nom (unique par run de test).
+ */
+export async function getHouseholdByName(name: string) {
+  const { data, error } = await db()
+    .from("households")
+    .select("id, name, join_code, guest_join_code, is_demo")
+    .eq("name", name)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
 /** Memberships (owner_id + role) d'un foyer — pour asserter/piloter le Lot 3. */
 export async function getMemberships(householdId: string) {
   const { data, error } = await db()

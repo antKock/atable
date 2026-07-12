@@ -16,7 +16,15 @@ export default async function FullscreenShell({ children }: { children: React.Re
   return (
     <>
       <DeviceTokenProvider />
-      <main className="min-h-screen" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      <main
+        className="min-h-screen"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          // Dégage la barre système Android (edge-to-edge) sous le contenu de
+          // bas de page. Les formulaires gèrent en plus leur propre footer.
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
         {children}
       </main>
       <Toaster />

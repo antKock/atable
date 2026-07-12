@@ -245,13 +245,15 @@ test("démo : « Créer un foyer » = conversion (owner neuf), le hub ne liste p
   await page.waitForURL(/\/home/);
 
   // Créer un foyer depuis la démo = CONVERSION : chemin « owner neuf » (redirect
-  // /home?code=…), jamais un ajout de membership sur l'owner démo (garde serveur).
+  // /home), jamais un ajout de membership sur l'owner démo (garde serveur). Le
+  // chemin « owner neuf » ne renvoie PAS `added:true` (réservé au chemin additif).
   const create = await context.request.post("/api/households", {
     data: { name: uniqueName("Converti") },
   });
   expect(create.status()).toBe(200);
   const body = await create.json();
-  expect(body.redirect as string).toMatch(/^\/home\?code=/);
+  expect(body.redirect as string).toBe("/home");
+  expect(body.added).toBeUndefined();
 
   // Le hub du converti ne liste PAS la démo.
   await page.goto("/household");

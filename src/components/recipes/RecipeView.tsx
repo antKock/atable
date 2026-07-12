@@ -55,6 +55,10 @@ function SubsectionLabel({ children }: { children: ReactNode }) {
 
 type Props = {
   recipe: Recipe;
+  // Nom du foyer d'origine, affiché sous le titre comme un tag — seulement en
+  // multi-foyer (résolu par l'appelant). null/absent → rien (mono-foyer, ou
+  // page publique de partage).
+  householdName?: string | null;
   // Controls overlaid on the hero image (back button, edit/delete/share, brand
   // header…). Lets the authenticated detail page and the public share page
   // share the exact recipe rendering while supplying their own chrome.
@@ -64,7 +68,7 @@ type Props = {
 // Presentational recipe body (hero + title + metadata + ingredients + steps +
 // tags). Pure rendering — no data fetching, polling, or view tracking; the
 // caller wraps it with whatever behavior it needs.
-export default function RecipeView({ recipe, heroOverlay }: Props) {
+export default function RecipeView({ recipe, householdName, heroOverlay }: Props) {
   const ingredientSections = parseSections(recipe.ingredients);
   const stepSections = parseSections(recipe.steps);
 
@@ -116,6 +120,13 @@ export default function RecipeView({ recipe, heroOverlay }: Props) {
         >
           {recipe.title}
         </h1>
+
+        {/* Foyer d'origine (multi-foyer) — réutilise la UI des tags (Chip). */}
+        {householdName && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Chip label={householdName} />
+          </div>
+        )}
 
         {/* MetadataGrid */}
         <div className="mt-4">

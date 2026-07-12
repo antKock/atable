@@ -66,9 +66,11 @@ export async function POST(request: NextRequest) {
         throw new Error(addMembershipError.message)
       }
 
-      // Pas de cookie : la session courante est conservée. Le détail du nouveau
-      // foyer porte code et lien d'invitation.
-      return NextResponse.json({ ok: true, redirect: `/household/${addHousehold.id}`, added: true })
+      // Pas de cookie : la session courante est conservée. Redirection vers la
+      // Home (et non le détail/édition du nouveau foyer) : créer un foyer depuis
+      // le profil ramène à l'accueil ; le code d'invitation reste accessible sur
+      // le détail du foyer.
+      return NextResponse.json({ ok: true, redirect: '/home', added: true })
     }
 
     // Step 1: Insert owner — the abstract identity the household belongs to
@@ -141,8 +143,9 @@ export async function POST(request: NextRequest) {
     const token = await signSession({ sid })
 
     // Cookie on a 200 JSON response (not a 303) — reliable in WKWebView.
-    const redirect = `/home?code=${encodeURIComponent(joinCode)}&householdName=${encodeURIComponent(name)}`
-    const response = NextResponse.json({ ok: true, redirect })
+    // Redirection Home simple : le hint « partage » de la Home (server-gated)
+    // remplace l'ancienne bannière post-création (code d'invitation en clair).
+    const response = NextResponse.json({ ok: true, redirect: '/home' })
     setSessionCookie(response, token)
 
     return response

@@ -21,6 +21,16 @@ export default function RecoveryCodeInput({ value, onChange, label, disabled }: 
         aria-label={label}
         value={value}
         onChange={(e) => onChange(e.target.value.replace(/\D/g, '').slice(0, 6))}
+        // Coller explicite : sur certaines WebView mobiles (iOS/Android), coller
+        // dans un champ contrôlé ne déclenche pas d'`input`/onChange fiable — on
+        // lit le presse-papier et on extrait les chiffres nous-mêmes.
+        onPaste={(e) => {
+          const digits = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6)
+          if (digits) {
+            e.preventDefault()
+            onChange(digits)
+          }
+        }}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         autoComplete="one-time-code"

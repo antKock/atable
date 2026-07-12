@@ -332,10 +332,6 @@ export const t = {
     namePlaceholder: "Ex : Chez nous, Famille Dupont…",
     nameLabel: "Nom du foyer",
     createTitle: "Créer un foyer",
-    createSuccess: (name: string) => `Foyer ${name} créé`,
-    inviteCodeLabel: "Code invitation",
-    inviteLinkCopied: "Lien d'invitation copié !",
-    shareTitle: (name: string) => `Rejoindre mon foyer « ${name} » sur Mijote`,
     createError: "Impossible de créer le foyer. Réessaie.",
     menu: "Foyer & profil",
     menuButton: "Foyer & profil",
@@ -454,6 +450,13 @@ export const t = {
     emailHint:
       "Ton email sert uniquement à retrouver ton accès si tu changes ou perds ton appareil. On t'enverra un lien seulement à ce moment-là — pas de mot de passe, pas de compte.",
     emailInvalid: "Adresse email invalide.",
+    // Déconnexion (même gabarit que « Quitter le foyer »)
+    logout: "Se déconnecter",
+    logoutConfirmTitle: "Se déconnecter ?",
+    logoutConfirmBody: "Cet appareil sera déconnecté. Tu pourras retrouver tes foyers avec ton email de secours.",
+    logoutConfirmBodyNoEmail:
+      "Cet appareil sera déconnecté. Sans email de secours, tu risques de perdre l'accès à tes foyers — pense à en ajouter un avant.",
+    logoutAction: "Se déconnecter",
   },
 
   // Fusion d'owners (#14, §5) — déclenchée depuis le profil quand l'email est

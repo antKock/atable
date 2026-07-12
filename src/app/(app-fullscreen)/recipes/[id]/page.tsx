@@ -86,6 +86,18 @@ export default async function RecipeDetailPage({ params }: Props) {
   // MEMBRE de ce foyer précis — un owner peut être membre de A et invité de C.
   const isMember = roleForHousehold(owner, householdId) === "member";
 
+  // Multi-foyer : nom du foyer d'origine, affiché sous le titre comme un tag.
+  // Mono-foyer → inutile (un seul foyer possible, aucune ambiguïté d'origine).
+  let householdName: string | null = null;
+  if (householdIds(owner).length > 1) {
+    const { data } = await createServerClient()
+      .from("households")
+      .select("name")
+      .eq("id", householdId)
+      .single();
+    householdName = (data?.name as string | undefined) ?? null;
+  }
+
   // Destinations de « Déplacer » : les foyers où l'owner est membre (noms lus
   // en une requête). La pill masque l'icône s'il n'y a pas d'autre foyer.
   let memberFoyers: { id: string; name: string }[] = [];
@@ -129,7 +141,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         enrichmentStatus={recipe.enrichmentStatus}
         imageStatus={recipe.imageStatus}
       />
-      <RecipeView recipe={recipe} heroOverlay={heroOverlay} />
+      <RecipeView recipe={recipe} householdName={householdName} heroOverlay={heroOverlay} />
     </>
   );
 }

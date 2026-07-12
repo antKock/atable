@@ -61,7 +61,9 @@ describe("POST /api/households (Fix 1.2)", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.ok).toBe(true);
-    expect(body.redirect).toContain("/home?code=");
+    // Redirection Home simple : le `?code=…` (ancienne bannière post-création) a
+    // été retiré au profit du hint « partage » server-gated de la Home (#9).
+    expect(body.redirect).toBe("/home");
   });
 
   it("sets the atable_session cookie", async () => {

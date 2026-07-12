@@ -84,12 +84,10 @@ export async function middleware(request: NextRequest) {
 
     const requestHeaders = new Headers(request.headers)
     // Décommissionnement du chantier foyer (Lot 4) : plus de `x-household-id` —
-    // le `sid` est l'unique clé, le foyer se résout en DB (owner-context). Seuls
-    // `x-session-id` et `x-pathname` sont injectés.
+    // le `sid` est l'unique clé, le foyer se résout en DB (owner-context). Seul
+    // `x-session-id` est injecté. (Les hints ne dépendent plus de `x-pathname` :
+    // ils sont rendus directement dans la page /home via `HomeHints`.)
     requestHeaders.set('x-session-id', payload.sid)
-    // Chemin courant exposé aux Server Components (le layout ne le connaît pas
-    // autrement) : les hints ne s'affichent que sur la vue principale /home.
-    requestHeaders.set('x-pathname', pathname)
     const response = NextResponse.next({ request: { headers: requestHeaders } })
 
     // Sliding renewal: re-sign tokens older than the renewal window so active
