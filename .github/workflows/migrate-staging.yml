@@ -1,0 +1,44 @@
+name: Migrate staging DB
+
+# Applique les migrations Supabase (supabase/migrations/) sur le PROJET STAGING
+# dès qu'un fichier de migration change sur la branche `staging`. On garde deux
+# projets Supabase distincts (staging / prod, plan gratuit) ; ce workflow évite
+# le décalage schéma ↔ code qu'on a connu : `db push` tourne en quelques
+# secondes, avant que le build Vercel (plus lent) ne serve le nouveau code.
+#
+# Déclenchement manuel possible aussi (workflow_dispatch) pour rattraper un
+# retard sans nouveau commit de migration.
+#
+# Secrets requis (repo → Settings → Secrets and variables → Actions) :
+#   - SUPABASE_ACCESS_TOKEN        : jeton perso (Supabase → Account → Access Tokens)
+#   - SUPABASE_STAGING_PROJECT_ID  : ref du projet STAGING (Project Settings → General)
+#   - SUPABASE_STAGING_DB_PASSWORD : mot de passe DB du projet STAGING
+#
+# Prod reste promue à la main (gh pr merge --admin) avec sa migration appliquée
+# manuellement : ce workflow ne touche QUE staging.
+
+on:
+  push:
+    branches: [staging]
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch: {}
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_STAGING_DB_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link staging project
+        run: supabase link --project-ref "${{ secrets.SUPABASE_STAGING_PROJECT_ID }}"
+
+      - name: Push migrations
+        run: supabase db push
