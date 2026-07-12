@@ -1,8 +1,10 @@
+import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOwnerContext, type MembershipRole } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { aliasForOwner } from '@/lib/alias'
+import { HOME_HIDDEN_FOYERS_COOKIE, parseHiddenFoyers } from '@/lib/home-foyers'
 import HouseholdMenuContent from '@/components/household/HouseholdMenuContent'
 
 // Ligne PostgREST : households + compteurs embarqués (une seule requête
@@ -51,12 +53,16 @@ export default async function HouseholdPage() {
     }]
   })
 
+  const cookieStore = await cookies()
+  const hiddenFoyerIds = parseHiddenFoyers(cookieStore.get(HOME_HIDDEN_FOYERS_COOKIE)?.value)
+
   return (
     <HouseholdMenuContent
       ownerDisplayName={owner.ownerName ?? aliasForOwner(owner.ownerId)}
       households={households}
       isDemo={isDemoOwner(owner)}
       hasRecoveryEmail={owner.recoveryEmail !== null}
+      hiddenFoyerIds={hiddenFoyerIds}
     />
   )
 }

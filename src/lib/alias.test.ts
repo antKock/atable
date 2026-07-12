@@ -32,6 +32,19 @@ describe('aliasForOwner', () => {
     expect(aliases.size).toBeGreaterThan(300)
   })
 
+  it('n’emploie plus les mots retirés (surnoms désagréables)', () => {
+    const banned = new Set([
+      'Blaireau', 'Phoque', 'Corbeau', 'Mouton', 'Bourdon', 'Manchot', 'Bouquetin',
+      'Candide', 'Léger', 'Débonnaire', 'Affable',
+    ])
+    for (let i = 0; i < 3000; i++) {
+      const hex = i.toString(16).padStart(4, '0')
+      const [animal, adjective] = aliasForOwner(`${hex}8400-e29b-41d4-a716-4466554${hex}0`).split(' ')
+      expect(banned.has(animal), `animal retiré généré : ${animal}`).toBe(false)
+      expect(banned.has(adjective), `adjectif retiré généré : ${adjective}`).toBe(false)
+    }
+  })
+
   it('ne concentre pas tout sur un même animal ni un même adjectif', () => {
     const animals = new Set<string>()
     const adjectives = new Set<string>()

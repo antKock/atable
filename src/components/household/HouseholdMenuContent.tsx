@@ -3,6 +3,7 @@ import { ChevronRight, Plus, ShieldCheck } from 'lucide-react'
 import { t } from '@/lib/i18n/fr'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 import RolePill from './RolePill'
+import HomeFoyersSetting from './HomeFoyersSetting'
 
 type HubHousehold = {
   id: string
@@ -19,6 +20,8 @@ type Props = {
   isDemo: boolean
   // Sous-titre de la ligne « Toi » (#14) : accès sauvegardé ou à sauvegarder
   hasRecoveryEmail: boolean
+  // Foyers actuellement masqués de l'accueil (cookie) — pour le réglage multi-foyer.
+  hiddenFoyerIds: string[]
 }
 
 // Hub « Toi + Tes foyers » (maquette 0.2). Mono-foyer à ce lot, mais l'UI est
@@ -30,7 +33,10 @@ export default function HouseholdMenuContent({
   households,
   isDemo,
   hasRecoveryEmail,
+  hiddenFoyerIds,
 }: Props) {
+  // Réglage « affichés sur l'accueil » : pertinent seulement à partir de 2 foyers.
+  const showHomeFoyersSetting = !isDemo && households.length >= 2
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <h1
@@ -111,6 +117,12 @@ export default function HouseholdMenuContent({
                 {t.household.createOrJoin}
               </span>
             </Link>
+          )}
+          {showHomeFoyersSetting && (
+            <HomeFoyersSetting
+              foyers={households.map((h) => ({ id: h.id, name: h.name }))}
+              initialHiddenIds={hiddenFoyerIds}
+            />
           )}
         </div>
       </section>
