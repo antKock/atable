@@ -7,7 +7,7 @@ import {
   joinViaCode,
   uniqueName,
 } from "./helpers/onboarding";
-import { getHouseholdByJoinCode, getMemberships, insertRecipe } from "./helpers/db";
+import { db, getHouseholdByJoinCode, getMemberships, insertRecipe } from "./helpers/db";
 
 // Correctifs post-release du chantier Foyer (Lots 1-4). Un test par bug.
 
@@ -141,4 +141,66 @@ test("bug 7 : retirer deux membres à la suite ne fige pas la dialog", async ({ 
   await a.context.close();
   await b.context.close();
   await c.context.close();
+});
+
+// ── Ajout 1 ─────────────────────────────────────────────────────────────────
+// Fiche recette complète : en multi-foyer, le nom du foyer d'origine s'affiche
+// sous le titre (UI des tags). En mono-foyer : rien.
+test("ajout 1 : nom du foyer sous le titre de la fiche (multi-foyer uniquement)", async ({
+  browser,
+}) => {
+  // Multi-foyer → chip visible.
+  const vb = await newVisitor(browser);
+  const codeB = await createHouseholdViaUI(vb.page, uniqueName("Fiche B"));
+
+  const v = await newVisitor(browser);
+  const codeA = await createHouseholdViaUI(v.page, uniqueName("Fiche A"));
+  const ha = (await getHouseholdByJoinCode(codeA))!;
+  const nameA = "FoyerFiche " + ha.id.slice(0, 6);
+  await db().from("households").update({ name: nameA }).eq("id", ha.id);
+  const rid = await insertRecipe({ householdId: ha.id, title: uniqueName("Plat fiche") });
+  await joinFromHub(v.page, codeB); // owner désormais multi-foyer
+
+  await v.page.goto(`/recipes/${rid}`);
+  await expect(v.page.getByText(nameA)).toBeVisible();
+
+  await vb.context.close();
+  await v.context.close();
+
+  // Mono-foyer → pas de chip.
+  const mono = await newVisitor(browser);
+  const codeM = await createHouseholdViaUI(mono.page, uniqueName("Mono Fiche"));
+  const hm = (await getHouseholdByJoinCode(codeM))!;
+  const nameM = "FoyerMono " + hm.id.slice(0, 6);
+  await db().from("households").update({ name: nameM }).eq("id", hm.id);
+  const titleM = uniqueName("Plat mono");
+  const ridM = await insertRecipe({ householdId: hm.id, title: titleM });
+
+  await mono.page.goto(`/recipes/${ridM}`);
+  await expect(mono.page.getByRole("heading", { name: titleM })).toBeVisible();
+  await expect(mono.page.getByText(nameM)).toHaveCount(0);
+
+  await mono.context.close();
+});
+
+// ── Ajout 2 ─────────────────────────────────────────────────────────────────
+// Profil : bouton « Se déconnecter » (confirmation) → purge du cookie de
+// session, retour à la landing.
+test("ajout 2 : « Se déconnecter » depuis le profil purge la session", async ({ browser }) => {
+  const v = await newVisitor(browser);
+  await createHouseholdViaUI(v.page, uniqueName("Logout Foyer"));
+
+  await v.page.goto("/household/profile");
+  await v.page.getByRole("button", { name: "Se déconnecter" }).click();
+
+  const dialog = v.page.getByRole("dialog");
+  await expect(dialog.getByText("Se déconnecter ?")).toBeVisible();
+  await dialog.getByRole("button", { name: "Se déconnecter" }).click();
+
+  // Retour à la landing + cookie de session purgé.
+  await expect(v.page.getByRole("button", { name: "Créer un foyer" })).toBeVisible();
+  const session = (await v.context.cookies()).find((c) => c.name === "atable_session");
+  expect(session?.value ?? "").toBe("");
+
+  await v.context.close();
 });
