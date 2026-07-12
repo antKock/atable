@@ -4,21 +4,24 @@
 // sobre. Tous les animaux sont masculins pour que l'accord des adjectifs
 // tienne sans déclinaison.
 
+// Animaux masculins, ton sobre. Écartés (surnoms désagréables) : Blaireau,
+// Phoque, Corbeau, Mouton, Bourdon, Manchot, Bouquetin.
 const ANIMALS = [
-  'Lapin', 'Renard', 'Blaireau', 'Héron', 'Moineau', 'Castor', 'Hibou',
+  'Lapin', 'Renard', 'Héron', 'Moineau', 'Castor', 'Hibou',
   'Écureuil', 'Hérisson', 'Faucon', 'Loup', 'Ours', 'Cerf', 'Chevreuil',
-  'Corbeau', 'Rossignol', 'Pinson', 'Canard', 'Cygne', 'Dauphin',
-  'Phoque', 'Manchot', 'Chamois', 'Bouquetin', 'Lynx', 'Chat', 'Poney',
-  'Mouton', 'Bélier', 'Taureau', 'Marcassin', 'Lézard', 'Papillon',
-  'Bourdon', 'Grillon', 'Colibri', 'Flamant', 'Pélican', 'Goéland', 'Merle',
+  'Rossignol', 'Pinson', 'Canard', 'Cygne', 'Dauphin',
+  'Chamois', 'Lynx', 'Chat', 'Poney',
+  'Bélier', 'Taureau', 'Marcassin', 'Lézard', 'Papillon',
+  'Grillon', 'Colibri', 'Flamant', 'Pélican', 'Goéland', 'Merle',
 ] as const
 
+// Écartés (connotation péjorative ou fade) : Candide, Léger, Débonnaire, Affable.
 const ADJECTIVES = [
   'Discret', 'Curieux', 'Paisible', 'Attentif', 'Prudent', 'Songeur',
   'Serein', 'Vaillant', 'Modeste', 'Patient', 'Aimable', 'Loyal', 'Agile',
   'Habile', 'Tranquille', 'Réfléchi', 'Posé', 'Courtois', 'Sincère',
-  'Fidèle', 'Tenace', 'Vif', 'Sage', 'Calme', 'Doux', 'Léger', 'Alerte',
-  'Candide', 'Placide', 'Studieux', 'Soigneux', 'Débonnaire', 'Affable',
+  'Fidèle', 'Tenace', 'Vif', 'Sage', 'Calme', 'Doux', 'Alerte',
+  'Placide', 'Studieux', 'Soigneux',
   'Avisé', 'Lucide', 'Intrépide', 'Gourmand', 'Matinal', 'Nocturne',
   'Voyageur',
 ] as const

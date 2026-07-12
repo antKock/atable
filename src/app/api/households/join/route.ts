@@ -9,6 +9,7 @@ import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
 import { resolveOwnerContext, roleForHousehold, planRoleMerge } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
+import { aliasForOwner } from '@/lib/alias'
 import { t } from '@/lib/i18n/fr'
 
 export async function POST(request: NextRequest) {
@@ -89,34 +90,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Device neuf (aucune session) OU sortie de démo : owner + membership + session.
-    const { data: owner, error: ownerError } = await supabase
+    // Id généré côté app pour figer le surnom (alias) dès l'insertion (031).
+    const ownerId = crypto.randomUUID()
+    const { error: ownerError } = await supabase
       .from('owners')
-      .insert({})
-      .select('id')
-      .single()
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId) })
 
-    if (ownerError || !owner) {
-      throw new Error(ownerError?.message ?? 'Failed to create owner')
+    if (ownerError) {
+      throw new Error(ownerError.message ?? 'Failed to create owner')
     }
 
     const { error: membershipError } = await supabase
       .from('memberships')
-      .insert({ owner_id: owner.id, household_id: invite.householdId, role: invite.role })
+      .insert({ owner_id: ownerId, household_id: invite.householdId, role: invite.role })
 
     if (membershipError) {
-      await supabase.from('owners').delete().eq('id', owner.id)
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(membershipError.message)
     }
 
     const { data: session, error: sessionError } = await supabase
       .from('device_sessions')
-      .insert({ household_id: invite.householdId, device_name: deviceName, owner_id: owner.id })
+      .insert({ household_id: invite.householdId, device_name: deviceName, owner_id: ownerId })
       .select('id')
       .single()
 
     if (sessionError || !session) {
       // Owner delete cascades the membership
-      await supabase.from('owners').delete().eq('id', owner.id)
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(sessionError?.message ?? 'Failed to create session')
     }
 

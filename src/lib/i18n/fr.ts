@@ -363,6 +363,18 @@ export const t = {
     accessSaved: "Accès sauvegardé",
     accessToSave: "Sauvegarder mon accès",
     createOrJoin: "Créer ou rejoindre un foyer",
+    // Réglage « foyers affichés sur l'accueil » (multi-foyer) — hub + dialog
+    homeFoyers: {
+      section: "Affichage",
+      entry: "Foyers affichés sur l'accueil",
+      title: "Affichés sur l'accueil",
+      note: "Choisis les foyers dont les recettes apparaissent sur l'accueil.",
+      minWarning: "Au moins un foyer doit rester affiché.",
+      done: "Terminé",
+      // Sous-titre de l'entrée : « Tous » ou « N sur M »
+      summaryAll: "Tous",
+      summaryCount: (shown: number, total: number) => `${shown} sur ${total}`,
+    },
     membersSection: "Membres",
     guestsSection: "Invités",
     youSuffix: "(toi)",

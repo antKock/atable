@@ -204,3 +204,82 @@ test("ajout 2 : « Se déconnecter » depuis le profil purge la session", async 
 
   await v.context.close();
 });
+
+// ── Ajustement — filtre « foyers affichés sur l'accueil » (Design B) ──────────
+test("réglage : masquer un foyer de l'accueil (dialog du hub), mono-foyer = pas d'entrée", async ({
+  browser,
+}) => {
+  const vb = await newVisitor(browser);
+  const codeB = await createHouseholdViaUI(vb.page, uniqueName("Home B"));
+  const hb = (await getHouseholdByJoinCode(codeB))!;
+  const nameB = "HomeB " + hb.id.slice(0, 6);
+  await db().from("households").update({ name: nameB }).eq("id", hb.id);
+
+  const v = await newVisitor(browser);
+  const codeA = await createHouseholdViaUI(v.page, uniqueName("Home A"));
+  const ha = (await getHouseholdByJoinCode(codeA))!;
+  await joinFromHub(v.page, codeB);
+
+  const titleA = uniqueName("PlatHomeA");
+  const titleB = uniqueName("PlatHomeB");
+  await insertRecipe({ householdId: ha.id, title: titleA });
+  await insertRecipe({ householdId: hb.id, title: titleB });
+
+  // Accueil : les recettes des deux foyers sont là.
+  await v.page.goto("/home");
+  await expect(v.page.getByText(titleA)).toBeVisible();
+  await expect(v.page.getByText(titleB)).toBeVisible();
+
+  // Hub → dialog → décocher le foyer B.
+  await v.page.goto("/household");
+  await v.page.getByRole("button", { name: "Foyers affichés sur l'accueil" }).click();
+  const dialog = v.page.getByRole("dialog");
+  const rowB = dialog.getByRole("button", { name: nameB });
+  await expect(rowB).toHaveAttribute("aria-pressed", "true");
+  await rowB.click();
+  await expect(rowB).toHaveAttribute("aria-pressed", "false");
+  await dialog.getByRole("button", { name: "Terminé" }).click();
+
+  // Accueil : B masqué, A conservé.
+  await v.page.goto("/home");
+  await expect(v.page.getByText(titleA)).toBeVisible();
+  await expect(v.page.getByText(titleB)).toHaveCount(0);
+
+  await vb.context.close();
+  await v.context.close();
+
+  // Mono-foyer : l'entrée de réglage n'apparaît pas.
+  const mono = await newVisitor(browser);
+  await createHouseholdViaUI(mono.page, uniqueName("Mono Home"));
+  await mono.page.goto("/household");
+  await expect(
+    mono.page.getByRole("button", { name: "Foyers affichés sur l'accueil" }),
+  ).toHaveCount(0);
+  await mono.context.close();
+});
+
+// ── Surnom stocké en base (statique) ─────────────────────────────────────────
+test("surnom : alias figé en base à la création, affiché et stable", async ({ browser }) => {
+  const v = await newVisitor(browser);
+  const code = await createHouseholdViaUI(v.page, uniqueName("Alias Foyer"));
+  const h = (await getHouseholdByJoinCode(code))!;
+  const ownerId = (await getMemberships(h.id))[0].owner_id;
+
+  // L'alias est STOCKÉ (migration 031), pas dérivé à la volée ; aucun nom choisi.
+  const { data: owner } = await db()
+    .from("owners")
+    .select("alias, name")
+    .eq("id", ownerId)
+    .single();
+  expect(owner?.alias, "un alias est figé en base dès la création").toBeTruthy();
+  expect(owner?.name).toBeNull();
+  const alias = owner!.alias as string;
+
+  // Affiché sur le hub, et identique après rechargement (statique).
+  await v.page.goto("/household");
+  await expect(v.page.getByText(alias)).toBeVisible();
+  await v.page.reload();
+  await expect(v.page.getByText(alias)).toBeVisible();
+
+  await v.context.close();
+});

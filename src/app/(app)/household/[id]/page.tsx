@@ -10,7 +10,7 @@ type Props = { params: Promise<{ id: string }> }
 type MemberRow = {
   owner_id: string
   role: string
-  owners: { name: string | null } | null
+  owners: { name: string | null; alias: string | null } | null
 }
 
 type Member = {
@@ -44,7 +44,7 @@ export default async function HouseholdDetailPage({ params }: Props) {
   }
   if (!household) notFound()
 
-  const viewerName = owner.ownerName ?? aliasForOwner(owner.ownerId)
+  const viewerName = owner.ownerName ?? owner.ownerAlias ?? aliasForOwner(owner.ownerId)
   let members: Member[]
 
   if (membership.isDemo) {
@@ -55,7 +55,7 @@ export default async function HouseholdDetailPage({ params }: Props) {
   } else {
     const { data: memberData, error: membersError } = await supabase
       .from('memberships')
-      .select('owner_id, role, owners(name)')
+      .select('owner_id, role, owners(name, alias)')
       .eq('household_id', id)
       .order('created_at', { ascending: true })
 
@@ -67,8 +67,8 @@ export default async function HouseholdDetailPage({ params }: Props) {
 
     members = ((memberData ?? []) as unknown as MemberRow[]).map((row) => ({
       ownerId: row.owner_id,
-      // Les owners du backfill Lot 0 n'ont pas de nom → alias auto (voulu).
-      displayName: row.owners?.name ?? aliasForOwner(row.owner_id),
+      // Nom choisi > alias stocké (031) > alias dérivé (repli pré-backfill).
+      displayName: row.owners?.name ?? row.owners?.alias ?? aliasForOwner(row.owner_id),
       role: (row.role === 'guest' ? 'guest' : 'member') as MembershipRole,
       isViewer: row.owner_id === owner.ownerId,
     }))

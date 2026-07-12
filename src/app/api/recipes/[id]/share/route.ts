@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { generateShareToken } from "@/lib/auth/share-token";
-import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -16,8 +16,12 @@ export const POST = withOwnerAuth(
     const { id } = await params;
     const supabase = createServerClient();
 
-    // La recette doit exister dans un foyer de l'owner ; le mint écrit
-    // share_token → MEMBRE requis sur LE foyer de la recette (Lot 4).
+    // Partager n'expose qu'une lecture publique (lien capability) d'une recette
+    // que l'owner peut DÉJÀ voir : autorisé pour un MEMBRE comme pour un INVITÉ
+    // du foyer (décision produit — seul le partage échappe à la lecture seule de
+    // l'invité ; éditer/supprimer/déplacer restent membres). L'accès est borné
+    // par householdIds(owner) ci-dessous ; le mint de share_token est une
+    // écriture bénigne (jeton aléatoire, contenu de la recette inchangé).
     const { data: recipe, error } = await supabase
       .from("recipes")
       .select("id, share_token, household_id")
@@ -29,8 +33,6 @@ export const POST = withOwnerAuth(
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
 
-    const forbidden = requireMember(owner, recipe.household_id);
-    if (forbidden) return forbidden;
     const householdId = recipe.household_id;
 
     let token = recipe.share_token as string | null;

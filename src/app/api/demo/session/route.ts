@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 import { createServerClient } from '@/lib/supabase/server'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
+import { aliasForOwner } from '@/lib/alias'
 
 export async function POST(request: NextRequest) {
   console.log(`[demo/session] POST start`)
@@ -22,28 +23,27 @@ export async function POST(request: NextRequest) {
     // Stratégie C (monde gelé) : un visiteur démo a un owner + membership
     // normaux — c'est la surface foyer/membership/profil qui est coupée
     // (assertNotDemoMutation). Purge des owners démo par le cron demo-reset.
-    const { data: owner, error: ownerError } = await supabase
+    const ownerId = crypto.randomUUID()
+    const { error: ownerError } = await supabase
       .from('owners')
-      .insert({})
-      .select('id')
-      .single()
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId) })
 
-    if (ownerError || !owner) {
-      throw new Error(ownerError?.message ?? 'Failed to create demo owner')
+    if (ownerError) {
+      throw new Error(ownerError.message ?? 'Failed to create demo owner')
     }
 
     const { error: membershipError } = await supabase
       .from('memberships')
-      .insert({ owner_id: owner.id, household_id: demoHouseholdId, role: 'member' })
+      .insert({ owner_id: ownerId, household_id: demoHouseholdId, role: 'member' })
 
     if (membershipError) {
-      await supabase.from('owners').delete().eq('id', owner.id)
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(membershipError.message)
     }
 
     const { data: session, error } = await supabase
       .from('device_sessions')
-      .insert({ household_id: demoHouseholdId, device_name: deviceName, owner_id: owner.id })
+      .insert({ household_id: demoHouseholdId, device_name: deviceName, owner_id: ownerId })
       .select('id')
       .single()
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (error || !session) {
       // Owner delete cascades the membership
-      await supabase.from('owners').delete().eq('id', owner.id)
+      await supabase.from('owners').delete().eq('id', ownerId)
       throw new Error(error?.message ?? 'Failed to create demo session')
     }
 

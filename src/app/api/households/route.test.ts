@@ -96,20 +96,28 @@ describe("POST /api/households (Fix 1.2)", () => {
     queueSuccess();
     await POST(request({ name: "Chez nous" }));
 
-    expect(supa.calls.some((c) => c.table === "owners")).toBe(true);
+    // L'id de l'owner est généré côté app (pour figer l'alias) : on le lit du
+    // payload d'insertion plutôt que de le supposer.
+    const ownerInsert = supa.calls
+      .find((c) => c.table === "owners")!
+      .ops.find((op) => op.method === "insert");
+    const owner = ownerInsert!.args[0] as { id: string; alias: string };
+    expect(owner.id).toBeTruthy();
+    expect(owner.alias, "un surnom (alias) est figé dès la création").toBeTruthy();
+
     const membership = supa.calls.find((c) => c.table === "memberships")!;
     expect(
       membership.ops.some(
         (op) =>
           op.method === "insert" &&
           JSON.stringify(op.args[0]) ===
-            JSON.stringify({ owner_id: "owner-1", household_id: "household-1", role: "member" }),
+            JSON.stringify({ owner_id: owner.id, household_id: "household-1", role: "member" }),
       ),
     ).toBe(true);
 
     const session = supa.calls.find((c) => c.table === "device_sessions")!;
     const insert = session.ops.find((op) => op.method === "insert");
-    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe("owner-1");
+    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe(owner.id);
   });
 
   it("compensates (household + owner deleted) when the session insert fails", async () => {

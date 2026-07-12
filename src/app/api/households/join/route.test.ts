@@ -72,18 +72,25 @@ describe("POST /api/households/join (Fix 1.2)", () => {
   it("creates owner + membership member, session pointing at the owner (Lot 0)", async () => {
     queueSuccess();
     await POST(request({ code: "OLIVE-4821" }));
+    // Id owner généré côté app (alias figé) : lu du payload, pas supposé.
+    const ownerInsert = supa.calls
+      .find((c) => c.table === "owners")!
+      .ops.find((op) => op.method === "insert");
+    const owner = ownerInsert!.args[0] as { id: string; alias: string };
+    expect(owner.id).toBeTruthy();
+    expect(owner.alias).toBeTruthy();
     const membership = supa.calls.find((c) => c.table === "memberships")!;
     expect(
       membership.ops.some(
         (op) =>
           op.method === "insert" &&
           JSON.stringify(op.args[0]) ===
-            JSON.stringify({ owner_id: "owner-1", household_id: "household-1", role: "member" }),
+            JSON.stringify({ owner_id: owner.id, household_id: "household-1", role: "member" }),
       ),
     ).toBe(true);
     const session = supa.calls.find((c) => c.table === "device_sessions")!;
     const insert = session.ops.find((op) => op.method === "insert");
-    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe("owner-1");
+    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe(owner.id);
   });
 
   it("sets the atable_session cookie", async () => {
