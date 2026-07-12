@@ -120,16 +120,16 @@ export default async function RecipeDetailPage({ params }: Props) {
       {/* Back button — clean white circle */}
       <BackCircleButton href="/home" />
 
-      {/* Pill d'actions (client) — rendue seulement pour un membre du foyer de
-          la recette ; « Déplacer » n'apparaît qu'avec ≥2 foyers membres. */}
-      {isMember && (
-        <RecipeActionPill
-          recipeId={id}
-          recipeTitle={recipe.title}
-          currentHouseholdId={householdId}
-          memberFoyers={memberFoyers}
-        />
-      )}
+      {/* Pill d'actions (client). Un INVITÉ n'a que « Partager » (le reste —
+          éditer/supprimer/déplacer — reste réservé aux membres via canManage).
+          « Déplacer » n'apparaît qu'avec ≥2 foyers membres. */}
+      <RecipeActionPill
+        recipeId={id}
+        recipeTitle={recipe.title}
+        currentHouseholdId={householdId}
+        memberFoyers={memberFoyers}
+        canManage={isMember}
+      />
     </>
   );
 

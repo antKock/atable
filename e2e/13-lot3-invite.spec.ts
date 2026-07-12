@@ -21,7 +21,8 @@ function mutationMatrix(hid: string, recipeId: string, targetOwnerId: string) {
     { label: "POST /api/recipes", method: "post" as const, url: "/api/recipes", data: { title: "Intrus" } },
     { label: "PUT /api/recipes/[id]", method: "put" as const, url: `/api/recipes/${recipeId}`, data: { title: "Intrus", ingredients: "x", steps: "y" } },
     { label: "DELETE /api/recipes/[id]", method: "delete" as const, url: `/api/recipes/${recipeId}` },
-    { label: "POST /api/recipes/[id]/share", method: "post" as const, url: `/api/recipes/${recipeId}/share` },
+    // NB : POST /api/recipes/[id]/share n'est PAS ici — partager est autorisé à
+    // un invité (décision produit ; testé positivement plus bas).
     { label: "POST /api/tags", method: "post" as const, url: "/api/tags", data: { name: uniqueName("tag") } },
     { label: "POST /api/recipes/import/url", method: "post" as const, url: "/api/recipes/import/url", data: { url: "https://example.com/recette" } },
     { label: "PUT /api/households/[id] (rename)", method: "put" as const, url: `/api/households/${hid}`, data: { name: "Renommé par un invité" } },
@@ -67,12 +68,20 @@ test("invité : lien invité → rôle guest, lecture live, matrice 403 sur tout
   await b.page.goto(`/recipes/${recipeId}`);
   await expect(b.page.getByRole("heading", { name: title1 })).toBeVisible();
   await expect(b.page.getByRole("link", { name: "Modifier" })).toHaveCount(0);
+  // …mais « Partager » RESTE disponible pour un invité (décision produit).
+  await expect(b.page.getByRole("button", { name: "Partager" })).toBeVisible();
 
   // Matrice API : toutes les mutations household-scopées → 403.
   for (const route of mutationMatrix(hid, recipeId, aOwnerId)) {
     const res = await b.page.request[route.method](route.url, route.data ? { data: route.data } : undefined);
     expect(res.status(), `${route.label} doit répondre 403 pour un invité`).toBe(403);
   }
+
+  // Partage : un invité PEUT créer le lien public (200 + url) — seul geste
+  // « sortant » permis en lecture seule.
+  const share = await b.page.request.post(`/api/recipes/${recipeId}/share`);
+  expect(share.status(), "un invité doit pouvoir partager").toBe(200);
+  expect((await share.json()).url as string).toContain("/r/");
 
   await a.context.close();
   await b.context.close();

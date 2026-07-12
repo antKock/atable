@@ -21,24 +21,28 @@ type Props = {
   currentHouseholdId: string;
   /** Foyers où l'owner est MEMBRE — destinations possibles du déplacement. */
   memberFoyers: Foyer[];
+  /** MEMBRE du foyer de la recette : débloque éditer/supprimer/déplacer. Un
+   *  INVITÉ (false) ne voit que « Partager » (lecture seule sinon). */
+  canManage: boolean;
 };
 
 // Pill d'actions du hero (fiche recette) : Partager · Éditer · Supprimer, plus
 // « Déplacer » (4ᵉ icône) en multi-foyer (maquette 2.4, Lot 4). Extraite en
-// composant client pour porter l'état du dialog de déplacement. N'est rendue
-// que pour un MEMBRE du foyer de la recette (garde côté page).
+// composant client pour porter l'état du dialog de déplacement. Pour un INVITÉ,
+// seul « Partager » est rendu (canManage=false).
 export default function RecipeActionPill({
   recipeId,
   recipeTitle,
   currentHouseholdId,
   memberFoyers,
+  canManage,
 }: Props) {
   const router = useRouter();
   const [moveOpen, setMoveOpen] = useState(false);
   const [moving, setMoving] = useState(false);
 
-  // « Déplacer » n'a de sens que s'il existe au moins un AUTRE foyer membre.
-  const canMove = memberFoyers.some((f) => f.id !== currentHouseholdId);
+  // « Déplacer » n'a de sens que pour un membre, avec au moins un AUTRE foyer membre.
+  const canMove = canManage && memberFoyers.some((f) => f.id !== currentHouseholdId);
 
   const pickerFoyers: PickerFoyer[] = memberFoyers.map((f) => ({
     id: f.id,
@@ -92,34 +96,40 @@ export default function RecipeActionPill({
           iconSize={14}
           iconStroke={1.75}
         />
-        <div className="h-4 w-px bg-border" />
-        <Link
-          href={`/recipes/${recipeId}/edit`}
-          aria-label={t.actions.edit}
-          className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Pencil size={14} strokeWidth={1.75} />
-        </Link>
-        {canMove && (
+        {/* Éditer / Déplacer / Supprimer : membres uniquement. Un invité s'arrête
+            à « Partager » (pas de séparateur orphelin). */}
+        {canManage && (
           <>
             <div className="h-4 w-px bg-border" />
-            <button
-              type="button"
-              aria-label={t.actions.move}
-              onClick={() => setMoveOpen(true)}
+            <Link
+              href={`/recipes/${recipeId}/edit`}
+              aria-label={t.actions.edit}
               className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <FolderInput size={14} strokeWidth={1.75} />
-            </button>
+              <Pencil size={14} strokeWidth={1.75} />
+            </Link>
+            {canMove && (
+              <>
+                <div className="h-4 w-px bg-border" />
+                <button
+                  type="button"
+                  aria-label={t.actions.move}
+                  onClick={() => setMoveOpen(true)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <FolderInput size={14} strokeWidth={1.75} />
+                </button>
+              </>
+            )}
+            <div className="h-4 w-px bg-border" />
+            <ConfirmDeleteDialog
+              recipeId={recipeId}
+              triggerClassName="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              triggerIconSize={14}
+              triggerIconStroke={1.75}
+            />
           </>
         )}
-        <div className="h-4 w-px bg-border" />
-        <ConfirmDeleteDialog
-          recipeId={recipeId}
-          triggerClassName="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          triggerIconSize={14}
-          triggerIconStroke={1.75}
-        />
       </div>
 
       {canMove && (

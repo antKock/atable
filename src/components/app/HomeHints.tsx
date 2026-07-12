@@ -82,7 +82,7 @@ export default async function HomeHints() {
   if (!installCode && !mainHint) return null
 
   return (
-    <div className="flex flex-col gap-2.5 px-4 pb-1 pt-1">
+    <div className="flex flex-col gap-2.5 px-4 pb-4">
       {installCode && <InstallAppBanner code={installCode} />}
       {mainHint === 'share' && (
         <HintCard
