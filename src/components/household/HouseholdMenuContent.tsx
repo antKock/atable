@@ -118,14 +118,25 @@ export default function HouseholdMenuContent({
               </span>
             </Link>
           )}
-          {showHomeFoyersSetting && (
+        </div>
+      </section>
+
+      {/* Réglage d'affichage — section À PART de la liste des foyers rejoints
+          (ce sont deux choses distinctes : ce que tu as rejoint vs ce que tu
+          affiches sur l'accueil). */}
+      {showHomeFoyersSetting && (
+        <section className="mt-6">
+          <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t.household.homeFoyers.section}
+          </p>
+          <div className="rounded-xl border border-border bg-surface">
             <HomeFoyersSetting
               foyers={households.map((h) => ({ id: h.id, name: h.name }))}
               initialHiddenIds={hiddenFoyerIds}
             />
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      )}
     </div>
   )
 }

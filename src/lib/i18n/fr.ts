@@ -365,6 +365,7 @@ export const t = {
     createOrJoin: "Créer ou rejoindre un foyer",
     // Réglage « foyers affichés sur l'accueil » (multi-foyer) — hub + dialog
     homeFoyers: {
+      section: "Affichage",
       entry: "Foyers affichés sur l'accueil",
       title: "Affichés sur l'accueil",
       note: "Choisis les foyers dont les recettes apparaissent sur l'accueil.",

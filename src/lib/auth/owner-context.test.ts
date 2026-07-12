@@ -32,6 +32,7 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
     is_revoked: false,
     owners: {
       name: null,
+      alias: null,
       recovery_email: null,
       memberships: [
         { household_id: "household-1", role: "member", households: { is_demo: false } },
@@ -48,10 +49,22 @@ describe("resolveOwnerContext", () => {
     expect(ctx).toEqual({
       ownerId: "owner-1",
       ownerName: null,
+      ownerAlias: null,
       recoveryEmail: null,
       sessionId: "session-1",
       memberships: [{ householdId: "household-1", role: "member", isDemo: false }],
     });
+  });
+
+  it("remonte l'alias stocké (surnom statique, 031)", async () => {
+    supa.queueResult({
+      data: sessionRow({
+        owners: { name: null, alias: "Renard Discret", recovery_email: null, memberships: [] },
+      }),
+      error: null,
+    });
+    const ctx = await resolveOwnerContext("session-1");
+    expect(ctx?.ownerAlias).toBe("Renard Discret");
   });
 
   it("remonte l'email de secours quand il est posé", async () => {
@@ -142,6 +155,7 @@ function owner(memberships: OwnerContext["memberships"]): OwnerContext {
   return {
     ownerId: "owner-1",
     ownerName: null,
+    ownerAlias: null,
     recoveryEmail: null,
     sessionId: "session-1",
     memberships,

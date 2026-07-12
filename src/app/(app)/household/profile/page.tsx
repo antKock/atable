@@ -16,7 +16,7 @@ export default async function ProfilePage() {
     <>
       <ProfileForm
         initialName={owner.ownerName ?? ''}
-        alias={aliasForOwner(owner.ownerId)}
+        alias={owner.ownerAlias ?? aliasForOwner(owner.ownerId)}
         initialEmail={owner.recoveryEmail ?? ''}
       />
       <LogoutDialog hasRecoveryEmail={owner.recoveryEmail !== null} />

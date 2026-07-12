@@ -16,8 +16,11 @@ export type OwnerMembership = {
 
 export type OwnerContext = {
   ownerId: string
-  /** NULL → alias auto dérivé de l'id (src/lib/alias.ts), jamais stocké. */
+  /** Nom choisi par l'utilisateur. NULL → on affiche l'alias (ci-dessous). */
   ownerName: string | null
+  /** Surnom auto STOCKÉ (statique, migration 031). NULL pour un owner d'avant
+   *  le backfill → l'appelant retombe sur aliasForOwner(id). */
+  ownerAlias: string | null
   /** Email de secours (#14), déjà normalisé lowercase. NULL → pas posé. */
   recoveryEmail: string | null
   sessionId: string
@@ -31,6 +34,7 @@ type SessionRow = {
   is_revoked: boolean
   owners: {
     name: string | null
+    alias: string | null
     recovery_email: string | null
     memberships: {
       household_id: string
@@ -56,7 +60,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const supabase = createServerClient()
   const { data, error } = await supabase
     .from('device_sessions')
-    .select('owner_id, is_revoked, owners(name, recovery_email, memberships(household_id, role, households(is_demo)))')
+    .select('owner_id, is_revoked, owners(name, alias, recovery_email, memberships(household_id, role, households(is_demo)))')
     .eq('id', sessionId)
     .maybeSingle()
 
@@ -76,6 +80,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   return {
     ownerId: row.owner_id,
     ownerName: row.owners.name,
+    ownerAlias: row.owners.alias ?? null,
     recoveryEmail: row.owners.recovery_email ?? null,
     sessionId,
     memberships,

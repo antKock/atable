@@ -257,3 +257,29 @@ test("réglage : masquer un foyer de l'accueil (dialog du hub), mono-foyer = pas
   ).toHaveCount(0);
   await mono.context.close();
 });
+
+// ── Surnom stocké en base (statique) ─────────────────────────────────────────
+test("surnom : alias figé en base à la création, affiché et stable", async ({ browser }) => {
+  const v = await newVisitor(browser);
+  const code = await createHouseholdViaUI(v.page, uniqueName("Alias Foyer"));
+  const h = (await getHouseholdByJoinCode(code))!;
+  const ownerId = (await getMemberships(h.id))[0].owner_id;
+
+  // L'alias est STOCKÉ (migration 031), pas dérivé à la volée ; aucun nom choisi.
+  const { data: owner } = await db()
+    .from("owners")
+    .select("alias, name")
+    .eq("id", ownerId)
+    .single();
+  expect(owner?.alias, "un alias est figé en base dès la création").toBeTruthy();
+  expect(owner?.name).toBeNull();
+  const alias = owner!.alias as string;
+
+  // Affiché sur le hub, et identique après rechargement (statique).
+  await v.page.goto("/household");
+  await expect(v.page.getByText(alias)).toBeVisible();
+  await v.page.reload();
+  await expect(v.page.getByText(alias)).toBeVisible();
+
+  await v.context.close();
+});

@@ -58,7 +58,7 @@ export default async function HouseholdPage() {
 
   return (
     <HouseholdMenuContent
-      ownerDisplayName={owner.ownerName ?? aliasForOwner(owner.ownerId)}
+      ownerDisplayName={owner.ownerName ?? owner.ownerAlias ?? aliasForOwner(owner.ownerId)}
       households={households}
       isDemo={isDemoOwner(owner)}
       hasRecoveryEmail={owner.recoveryEmail !== null}

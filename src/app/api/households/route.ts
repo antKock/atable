@@ -9,6 +9,7 @@ import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session
 import { resolveOwnerContext } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { enforceHouseholdCreateQuota } from '@/lib/import-quota'
+import { aliasForOwner } from '@/lib/alias'
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,16 +76,16 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Insert owner — the abstract identity the household belongs to
     // (chantier foyer #14/#15); the device session below just points at it.
-    const { data: owner, error: ownerError } = await supabase
+    // On génère l'id côté app pour figer le surnom (alias) dès l'insertion
+    // (migration 031 : surnom statique, jamais re-dérivé).
+    const ownerId = crypto.randomUUID()
+    const { error: ownerError } = await supabase
       .from('owners')
-      .insert({})
-      .select('id')
-      .single()
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId) })
 
-    if (ownerError || !owner) {
-      throw new Error(ownerError?.message ?? 'Failed to create owner')
+    if (ownerError) {
+      throw new Error(ownerError.message ?? 'Failed to create owner')
     }
-    const ownerId = owner.id
 
     // Step 2: Insert household
     const { data: household, error: householdError } = await supabase

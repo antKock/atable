@@ -40,6 +40,13 @@ describe("POST /api/demo/session (Fix 1.2)", () => {
   it("creates owner + membership member on the demo household (Lot 0)", async () => {
     queueSuccess();
     await POST(request());
+    // Id owner généré côté app (alias figé) : lu du payload, pas supposé.
+    const ownerInsert = supa.calls
+      .find((c) => c.table === "owners")!
+      .ops.find((op) => op.method === "insert");
+    const owner = ownerInsert!.args[0] as { id: string; alias: string };
+    expect(owner.id).toBeTruthy();
+    expect(owner.alias).toBeTruthy();
     const membership = supa.calls.find((c) => c.table === "memberships")!;
     expect(
       membership.ops.some(
@@ -47,7 +54,7 @@ describe("POST /api/demo/session (Fix 1.2)", () => {
           op.method === "insert" &&
           JSON.stringify(op.args[0]) ===
             JSON.stringify({
-              owner_id: "owner-1",
+              owner_id: owner.id,
               household_id: process.env.DEMO_HOUSEHOLD_ID,
               role: "member",
             }),
