@@ -4,15 +4,9 @@ import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n/fr";
 import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import HomeContent from "@/components/recipes/HomeContent";
-import PostCreationBanner from "@/components/auth/PostCreationBanner";
+import HomeHints from "@/components/app/HomeHints";
 
-type Props = {
-  searchParams: Promise<{ code?: string; householdName?: string }>;
-};
-
-export default async function HomePage({ searchParams }: Props) {
-  const { code, householdName } = await searchParams;
-
+export default async function HomePage() {
   // Multi-foyer (Lot 4) : plus de x-household-id — l'accès et le rôle se
   // résolvent en DB via l'owner. `isGuest` = invité PARTOUT (aucun rôle membre)
   // → masque le CTA de création. getOwnerContext est mémoïsé (déjà résolu par
@@ -46,12 +40,8 @@ export default async function HomePage({ searchParams }: Props) {
           <Settings size={20} />
         </Link>
       </header>
-      {code && householdName && (
-        <PostCreationBanner
-          householdName={decodeURIComponent(householdName)}
-          code={decodeURIComponent(code)}
-        />
-      )}
+      {/* Hints (install + partage/email) SOUS la top bar, uniquement sur la Home. */}
+      <HomeHints />
       <HomeContent isGuest={isGuest} />
     </div>
   );

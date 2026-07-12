@@ -1,9 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Eye, UserCog } from 'lucide-react'
+import { Eye, LogOut, UserCog } from 'lucide-react'
 import { t } from '@/lib/i18n/fr'
 import { haptics } from '@/lib/haptics'
 import type { MembershipRole } from '@/lib/auth/owner-context'
@@ -35,6 +35,23 @@ type Props = {
 export default function MemberActionDialog({ householdId, member, onClose }: Props) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // On garde le dernier membre affiché le temps de l'animation de fermeture :
+  // le `DialogContent` reste monté et piloté par l'état `open` de Radix (jamais
+  // démonté d'un coup via `{member && …}`). Sans ça, retirer un membre puis en
+  // ouvrir un second laissait `pointer-events: none` collé sur <body> (nettoyage
+  // Radix court-circuité par le démontage brutal + router.refresh) → dialog figée.
+  const [shown, setShown] = useState<MemberTarget | null>(member)
+  useEffect(() => {
+    if (member) {
+      setShown(member)
+      // Ouverture d'une NOUVELLE dialog = état neuf. Sans ce reset, `isSubmitting`
+      // restait à true après un retrait réussi (les handlers ne le remettaient à
+      // false que dans leur catch, et router.refresh() ne redémonte pas ce
+      // composant client) → au 2ᵉ membre, tous les boutons `disabled`
+      // (`pointer-events:none`) et `close()` bloqué : dialog figée. (#7)
+      setIsSubmitting(false)
+    }
+  }, [member])
 
   const close = () => {
     if (!isSubmitting) onClose()
@@ -86,56 +103,58 @@ export default function MemberActionDialog({ householdId, member, onClose }: Pro
     }
   }
 
-  const isGuest = member?.role === 'guest'
+  // `shown` (et non `member`) pour rendre le contenu même pendant la fermeture.
+  const isGuest = shown?.role === 'guest'
 
   return (
     <Dialog open={member !== null} onOpenChange={(open) => !open && close()}>
-      {member && (
-        <DialogContent showCloseButton={false}>
-          <DialogHeader>
-            <DialogTitle>{member.displayName}</DialogTitle>
-            <DialogDescription>
-              {isGuest
-                ? t.household.memberAction.subtitleGuest
-                : t.household.memberAction.subtitleMember}
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{shown?.displayName ?? ''}</DialogTitle>
+          <DialogDescription>
+            {isGuest
+              ? t.household.memberAction.subtitleGuest
+              : t.household.memberAction.subtitleMember}
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="flex flex-col gap-1">
-            {/* Bascule de rôle */}
-            <Button
-              variant="ghost"
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => changeRole(isGuest ? 'member' : 'guest')}
-              className="min-h-11 justify-start gap-2"
-            >
-              {isGuest ? (
-                <UserCog size={18} strokeWidth={2} aria-hidden="true" />
-              ) : (
-                <Eye size={18} strokeWidth={2} aria-hidden="true" />
-              )}
-              {isGuest
-                ? t.household.memberAction.toMember
-                : t.household.memberAction.toGuest}
-            </Button>
+        {/* Actions en lignes icône + libellé (maquette 2.2 / MemberActionScreen),
+            bien démarquées : chaque action porte une icône de tête. */}
+        <div className="flex flex-col gap-1">
+          {/* Bascule de rôle */}
+          <Button
+            variant="ghost"
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => changeRole(isGuest ? 'member' : 'guest')}
+            className="min-h-11 justify-start gap-3 px-3"
+          >
+            {isGuest ? (
+              <UserCog size={18} strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <Eye size={18} strokeWidth={2} aria-hidden="true" />
+            )}
+            {isGuest
+              ? t.household.memberAction.toMember
+              : t.household.memberAction.toGuest}
+          </Button>
 
-            {/* Retrait (destructif) */}
-            <Button
-              variant="ghost"
-              type="button"
-              disabled={isSubmitting}
-              onClick={remove}
-              className="min-h-11 justify-start text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              {t.household.memberAction.remove}
-            </Button>
-            <p className="px-3 text-xs text-muted-foreground">
-              {t.household.memberAction.removeBody}
-            </p>
-          </div>
-        </DialogContent>
-      )}
+          {/* Retrait (destructif) */}
+          <Button
+            variant="ghost"
+            type="button"
+            disabled={isSubmitting}
+            onClick={remove}
+            className="min-h-11 justify-start gap-3 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          >
+            <LogOut size={18} strokeWidth={2} aria-hidden="true" />
+            {t.household.memberAction.remove}
+          </Button>
+          <p className="px-3 text-xs text-muted-foreground">
+            {t.household.memberAction.removeBody}
+          </p>
+        </div>
+      </DialogContent>
     </Dialog>
   )
 }

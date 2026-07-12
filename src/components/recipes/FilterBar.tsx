@@ -80,11 +80,12 @@ export default function FilterBar({
     foyer: t.filters.foyer,
   };
 
-  const allCategories = [
+  // Le filtre « Foyer » passe en TÊTE de liste (avant « De saison ») dès qu'il y
+  // a au moins 2 foyers — c'est l'axe de tri le plus structurant en multi-foyer.
+  const baseCategories = [
     ...FILTER_CATEGORIES.map((c) => c.key),
     "duration",
     "cost",
-    ...(showFoyerPill ? ["foyer"] : []),
   ];
 
   const optionButtonClass =
@@ -194,9 +195,62 @@ export default function FilterBar({
       });
   }
 
+  const renderCategoryPill = (key: string) => {
+    const count = countSelected(key);
+    const active = count > 0;
+    return (
+      <Popover.Root key={key}>
+        <Popover.Trigger asChild>
+          <button
+            type="button"
+            className={`flex h-8 flex-none items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
+              active
+                ? "border border-transparent bg-accent/10 text-accent"
+                : "border border-border bg-background text-foreground"
+            }`}
+          >
+            {categoryLabels[key]}
+            {count > 0 && (
+              <span
+                className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold leading-none text-white"
+                style={{
+                  minWidth: 18,
+                  height: 18,
+                  padding: "0 5px",
+                  background: "var(--accent)",
+                }}
+              >
+                {count}
+              </span>
+            )}
+            <ChevronDown className="h-3 w-3" />
+          </button>
+        </Popover.Trigger>
+        <Popover.Portal>
+          <Popover.Content
+            sideOffset={8}
+            align="start"
+            collisionPadding={12}
+            className="z-50 max-w-[calc(100vw-24px)] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none"
+          >
+            <div className="flex flex-wrap gap-2">{renderPanel(key)}</div>
+            <Popover.Arrow
+              width={12}
+              height={6}
+              style={{ fill: "var(--popover)" }}
+            />
+          </Popover.Content>
+        </Popover.Portal>
+      </Popover.Root>
+    );
+  };
+
   return (
     <div>
       <div className="flex gap-2 overflow-x-auto px-3 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        {/* « Foyer » en première position (multi-foyer uniquement). */}
+        {showFoyerPill && renderCategoryPill("foyer")}
+
         <button
           type="button"
           aria-pressed={filters.season}
@@ -211,55 +265,7 @@ export default function FilterBar({
           {t.filters.deSaison}
         </button>
 
-        {allCategories.map((key) => {
-          const count = countSelected(key);
-          const active = count > 0;
-          return (
-            <Popover.Root key={key}>
-              <Popover.Trigger asChild>
-                <button
-                  type="button"
-                  className={`flex h-8 flex-none items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
-                    active
-                      ? "border border-transparent bg-accent/10 text-accent"
-                      : "border border-border bg-background text-foreground"
-                  }`}
-                >
-                  {categoryLabels[key]}
-                  {count > 0 && (
-                    <span
-                      className="inline-flex items-center justify-center rounded-full text-[10px] font-semibold leading-none text-white"
-                      style={{
-                        minWidth: 18,
-                        height: 18,
-                        padding: "0 5px",
-                        background: "var(--accent)",
-                      }}
-                    >
-                      {count}
-                    </span>
-                  )}
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </Popover.Trigger>
-              <Popover.Portal>
-                <Popover.Content
-                  sideOffset={8}
-                  align="start"
-                  collisionPadding={12}
-                  className="z-50 max-w-[calc(100vw-24px)] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none"
-                >
-                  <div className="flex flex-wrap gap-2">{renderPanel(key)}</div>
-                  <Popover.Arrow
-                    width={12}
-                    height={6}
-                    style={{ fill: "var(--popover)" }}
-                  />
-                </Popover.Content>
-              </Popover.Portal>
-            </Popover.Root>
-          );
-        })}
+        {baseCategories.map(renderCategoryPill)}
       </div>
     </div>
   );
