@@ -9,7 +9,7 @@ const PAYLOAD = {
 describe("renderRecoveryEmail", () => {
   it("récup : objet, lien, code et copy arbitrée (proposition A)", () => {
     const { subject, html, text } = renderRecoveryEmail({ ...PAYLOAD, kind: "recovery" });
-    expect(subject).toBe("Retrouve ton foyer sur Mijote");
+    expect(subject).toBe("Retrouve ton carnet sur Mijote");
     expect(html).toContain(PAYLOAD.magicLink);
     expect(html).toContain("482913");
     expect(html).toContain("appuie sur le bouton, et c'est tout");
@@ -21,9 +21,9 @@ describe("renderRecoveryEmail", () => {
 
   it("fusion : même gabarit, objet et copy dédiés", () => {
     const { subject, html } = renderRecoveryEmail({ ...PAYLOAD, kind: "merge" });
-    expect(subject).toBe("On réunit tes foyers");
+    expect(subject).toBe("On réunit tes carnets");
     expect(html).toContain("réunir tes deux accès en une seule identité");
-    expect(html).toContain("Réunir mes foyers");
+    expect(html).toContain("Réunir mes carnets");
     expect(html).toContain(PAYLOAD.magicLink);
   });
 });
@@ -58,7 +58,7 @@ describe("sendRecoveryEmail — sélection de transport", () => {
     const body = JSON.parse(init.body as string);
     expect(body.from).toBe("Mijote <acces@mijote.anthonykocken.fr>");
     expect(body.to).toBe("a@ex.fr");
-    expect(body.subject).toBe("Retrouve ton foyer sur Mijote");
+    expect(body.subject).toBe("Retrouve ton carnet sur Mijote");
     expect(body.html).toContain(PAYLOAD.magicLink);
     expect(body.text).toContain("482913");
   });

@@ -101,7 +101,7 @@ export const DELETE = withOwnerAuth(
       // 2026-06 — démo effacée par ses visiteurs). « Quitter » reste possible.
       if (membership.isDemo) {
         return NextResponse.json(
-          { error: 'Le foyer démo ne peut pas être supprimé.' },
+          { error: 'Le carnet démo ne peut pas être supprimé.' },
           { status: 403 },
         )
       }

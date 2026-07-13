@@ -26,16 +26,16 @@ const COPY: Record<
   { subject: string; title: string; body: string; cta: string }
 > = {
   recovery: {
-    subject: "Retrouve ton foyer sur Mijote",
-    title: "Retrouve ton foyer",
-    body: "Pour retrouver ton foyer Mijote sur un nouvel appareil, appuie sur le bouton, et c'est tout.",
+    subject: "Retrouve ton carnet sur Mijote",
+    title: "Retrouve ton carnet",
+    body: "Pour retrouver ton carnet Mijote sur un nouvel appareil, appuie sur le bouton, et c'est tout.",
     cta: "Ouvrir Mijote",
   },
   merge: {
-    subject: "On réunit tes foyers",
-    title: "On réunit tes foyers",
+    subject: "On réunit tes carnets",
+    title: "On réunit tes carnets",
     body: "Tu as saisi cet email depuis ton profil. Confirme pour réunir tes deux accès en une seule identité.",
-    cta: "Réunir mes foyers",
+    cta: "Réunir mes carnets",
   },
 };
 
@@ -55,7 +55,7 @@ export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
     `Tu lis ce mail sur un autre appareil ? Saisis plutôt ce code dans Mijote : ${code}`,
     "",
     "Ce lien et ce code expirent dans 15 minutes.",
-    "Tu n'as rien demandé ? Ignore ce mail — ton foyer reste bien au chaud.",
+    "Tu n'as rien demandé ? Ignore ce mail — ton carnet reste bien au chaud.",
   ].join("\n");
 
   const html = `<!DOCTYPE html>
@@ -119,7 +119,7 @@ export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
         </tr>
         <tr>
           <td align="center" style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#6B6E68; padding:22px 24px 0;">
-            Tu n'as rien demandé&nbsp;? Ignore ce mail — ton foyer reste bien au chaud.<br>
+            Tu n'as rien demandé&nbsp;? Ignore ce mail — ton carnet reste bien au chaud.<br>
             <a href="https://mijote.anthonykocken.fr" style="color:#6E7A38; text-decoration:none;">mijote.anthonykocken.fr</a>
           </td>
         </tr>
