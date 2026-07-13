@@ -8,7 +8,7 @@ import {
 } from "./helpers/onboarding";
 import { getHouseholdByJoinCode, insertRecipe } from "./helpers/db";
 
-// Lot 1 foyer : hub « Toi + Tes foyers », détail de foyer (membres inline),
+// Lot 1 foyer : hub « Toi + Tes carnets », détail de foyer (membres inline),
 // profil (nom + alias auto), démo gelée (stratégie C).
 
 test("hub : le foyer est listé avec rôle membre et compteurs corrects", async ({
@@ -21,11 +21,11 @@ test("hub : le foyer est listé avec rôle membre et compteurs corrects", async 
   await insertRecipe({ householdId: household!.id, title: uniqueName("Recette") });
 
   await a.page.goto("/household");
-  await expect(a.page.getByRole("heading", { name: "Foyer & profil" })).toBeVisible();
+  await expect(a.page.getByRole("heading", { name: "Carnet & profil" })).toBeVisible();
   const row = a.page.getByRole("link", { name });
   await expect(row).toContainText("membre");
   await expect(row).toContainText("1 personne · 1 recette");
-  await expect(a.page.getByText("Créer ou rejoindre un foyer")).toBeVisible();
+  await expect(a.page.getByText("Créer ou ouvrir un carnet")).toBeVisible();
 
   // Un second appareil rejoint → 2 personnes, même compteur de recettes
   const b = await newVisitor(browser);
@@ -110,11 +110,11 @@ test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403",
   await page.getByRole("button", { name: "Essayer l'app" }).click();
   await page.waitForURL(/\/home/);
 
-  // Hub gelé : pas de ligne « Toi », pas de « Créer ou rejoindre »
+  // Hub gelé : pas de ligne « Toi », pas de « Créer ou ouvrir »
   await page.goto("/household");
-  await expect(page.getByRole("heading", { name: "Foyer & profil" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Carnet & profil" })).toBeVisible();
   await expect(page.getByText("Toi", { exact: true })).toHaveCount(0);
-  await expect(page.getByText("Créer ou rejoindre un foyer")).toHaveCount(0);
+  await expect(page.getByText("Créer ou ouvrir un carnet")).toHaveCount(0);
   await expect(page.getByText("Démo", { exact: true })).toBeVisible();
 
   // Vue solo : le détail démo ne liste jamais les autres visiteurs (chaque
@@ -141,7 +141,7 @@ test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403",
   const api = await context.request.put("/api/owner", { data: { name: "Intrus" } });
   expect(api.status()).toBe(403);
 
-  // L'écran « Créer ou rejoindre » est coupé aussi par URL directe
+  // L'écran « Créer ou ouvrir » est coupé aussi par URL directe
   await page.goto("/household/switch");
   await expect(page.getByText("Cette page n'existe pas.")).toBeVisible();
 

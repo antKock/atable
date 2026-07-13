@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
   title: "Support — Mijote",
   description:
-    "Aide et contact pour l'application Mijote. Comment importer une recette, partager un foyer, supprimer ses données.",
+    "Aide et contact pour l'application Mijote. Comment importer une recette, partager un carnet, supprimer ses données.",
   alternates: { canonical: "/support" },
   robots: { index: true, follow: true },
 };
@@ -120,9 +120,9 @@ export default function SupportPage() {
           </p>
         </FAQ>
 
-        <FAQ question="Comment partager mon foyer avec ma famille ?">
+        <FAQ question="Comment partager mon carnet avec ma famille ?">
           <p>
-            Ouvre l&apos;écran <strong>Foyer</strong> depuis la barre de
+            Ouvre l&apos;écran <strong>Carnet</strong> depuis la barre de
             navigation. Le <strong>code d&apos;invitation</strong> y est
             affiché (ex. <code>THYME-0421</code>). Communique-le à la personne
             que tu veux ajouter : elle l&apos;entrera sur l&apos;écran
@@ -134,14 +134,14 @@ export default function SupportPage() {
           </p>
         </FAQ>
 
-        <FAQ question="J'ai perdu mon code d'invitation, comment retrouver mon foyer ?">
+        <FAQ question="J'ai perdu mon code d'invitation, comment retrouver mon carnet ?">
           <p>
-            Si un appareil est encore connecté au foyer, ouvre l&apos;écran{" "}
-            <strong>Foyer</strong> : le code y est toujours visible.
+            Si un appareil est encore connecté au carnet, ouvre l&apos;écran{" "}
+            <strong>Carnet</strong> : le code y est toujours visible.
           </p>
           <p>
             Si plus aucun appareil n&apos;est connecté et que tu as perdu
-            le code, le foyer ne peut malheureusement plus être récupéré.
+            le code, le carnet ne peut malheureusement plus être récupéré.
             C&apos;est le revers de la médaille d&apos;une authentification
             anonyme — nous ne stockons ni e-mail ni mot de passe pour vérifier
             ton identité.
@@ -178,14 +178,14 @@ export default function SupportPage() {
               menu&nbsp;…&nbsp;→ Supprimer.
             </li>
             <li>
-              <strong>Quitter le foyer</strong> : déconnecte uniquement
+              <strong>Quitter le carnet</strong> : déconnecte uniquement
               l&apos;appareil actuel. Les recettes restent pour les autres
               membres.
             </li>
             <li>
-              <strong>Supprimer le foyer</strong> : supprime{" "}
+              <strong>Supprimer le carnet</strong> : supprime{" "}
               <strong>définitivement</strong> l&apos;ensemble des recettes, des
-              tags, des sessions et le foyer lui-même. Action à double
+              tags, des sessions et le carnet lui-même. Action à double
               confirmation, irréversible.
             </li>
           </ul>

@@ -12,7 +12,7 @@ import { db, getHouseholdByJoinCode, getMemberships, insertRecipe } from "./help
 // Correctifs post-release du chantier Foyer (Lots 1-4). Un test par bug.
 
 // ── Bug 1 ────────────────────────────────────────────────────────────────
-// Créer un foyer depuis le hub (profil) ramène à la Home, pas à l'édition du
+// Créer un carnet depuis le hub (profil) ramène à la Home, pas à l'édition du
 // nouveau foyer.
 test("bug 1 : créer un foyer depuis le hub redirige vers la Home", async ({ browser }) => {
   const v = await newVisitor(browser);
@@ -44,7 +44,7 @@ test("bug 2 : la pill « Foyer » est en première position du filtre", async ({
   await joinFromHub(v.page, codeB);
 
   await v.page.goto("/library");
-  const foyer = v.page.getByRole("button", { name: "Foyer", exact: true });
+  const foyer = v.page.getByRole("button", { name: "Carnet", exact: true });
   const saison = v.page.getByRole("button", { name: "De saison" });
   await expect(foyer).toBeVisible();
   await expect(saison).toBeVisible();
@@ -120,7 +120,7 @@ test("bug 7 : retirer deux membres à la suite ne fige pas la dialog", async ({ 
   // Retrait n°1
   await memberButtons.first().click();
   let dialog = a.page.getByRole("dialog");
-  await dialog.getByRole("button", { name: "Retirer du foyer" }).click();
+  await dialog.getByRole("button", { name: "Retirer du carnet" }).click();
   await expect(a.page.locator('ul[aria-label="Membres"] button')).toHaveCount(1);
 
   // Retrait n°2 — c'est ici que l'app figeait (dialog affichée mais CTA non
@@ -129,7 +129,7 @@ test("bug 7 : retirer deux membres à la suite ne fige pas la dialog", async ({ 
   // expirerait (échec) si la dialog était figée.
   await a.page.locator('ul[aria-label="Membres"] button').first().click();
   dialog = a.page.getByRole("dialog");
-  const removeBtn = dialog.getByRole("button", { name: "Retirer du foyer" });
+  const removeBtn = dialog.getByRole("button", { name: "Retirer du carnet" });
   await expect(removeBtn).toBeVisible();
   await removeBtn.click({ timeout: 5000 }); // timeout court si figé → échec explicite
   await expect(a.page.locator('ul[aria-label="Membres"] button')).toHaveCount(0);
@@ -144,9 +144,9 @@ test("bug 7 : retirer deux membres à la suite ne fige pas la dialog", async ({ 
 });
 
 // ── Ajout 1 ─────────────────────────────────────────────────────────────────
-// Fiche recette complète : en multi-foyer, le nom du foyer d'origine s'affiche
+// Fiche recette complète : en multi-foyer, le nom du carnet d'origine s'affiche
 // sous le titre (UI des tags). En mono-foyer : rien.
-test("ajout 1 : nom du foyer sous le titre de la fiche (multi-foyer uniquement)", async ({
+test("ajout 1 : nom du carnet sous le titre de la fiche (multi-foyer uniquement)", async ({
   browser,
 }) => {
   // Multi-foyer → chip visible.
@@ -198,7 +198,7 @@ test("ajout 2 : « Se déconnecter » depuis le profil purge la session", async 
   await dialog.getByRole("button", { name: "Se déconnecter" }).click();
 
   // Retour à la landing + cookie de session purgé.
-  await expect(v.page.getByRole("button", { name: "Créer un foyer" })).toBeVisible();
+  await expect(v.page.getByRole("button", { name: "Créer un carnet" })).toBeVisible();
   const session = (await v.context.cookies()).find((c) => c.name === "atable_session");
   expect(session?.value ?? "").toBe("");
 
@@ -232,7 +232,7 @@ test("réglage : masquer un foyer de l'accueil (dialog du hub), mono-foyer = pas
 
   // Hub → dialog → décocher le foyer B.
   await v.page.goto("/household");
-  await v.page.getByRole("button", { name: "Foyers affichés sur l'accueil" }).click();
+  await v.page.getByRole("button", { name: "Carnets affichés sur l'accueil" }).click();
   const dialog = v.page.getByRole("dialog");
   const rowB = dialog.getByRole("button", { name: nameB });
   await expect(rowB).toHaveAttribute("aria-pressed", "true");
@@ -253,7 +253,7 @@ test("réglage : masquer un foyer de l'accueil (dialog du hub), mono-foyer = pas
   await createHouseholdViaUI(mono.page, uniqueName("Mono Home"));
   await mono.page.goto("/household");
   await expect(
-    mono.page.getByRole("button", { name: "Foyers affichés sur l'accueil" }),
+    mono.page.getByRole("button", { name: "Carnets affichés sur l'accueil" }),
   ).toHaveCount(0);
   await mono.context.close();
 });

@@ -32,14 +32,14 @@ test("partage : mint du token → page publique → copie depuis un autre foyer"
   ).toBeVisible();
   await guest.context.close();
 
-  // Foyer B : « Ajouter à mon foyer » → recette copiée
+  // Foyer B : « Ajouter à mon carnet » → recette copiée
   const b = await newVisitor(browser);
   const codeB = await createHouseholdViaUI(b.page, uniqueName("Foyer Partage B"));
   const householdB = await getHouseholdByJoinCode(codeB);
   if (!householdB) throw new Error("foyer B introuvable en DB");
   await b.page.goto(`/r/${token}`);
-  await b.page.getByRole("button", { name: "Ajouter à mon foyer" }).click();
-  await expect(b.page.getByText("Ajoutée à ton foyer")).toBeVisible();
+  await b.page.getByRole("button", { name: "Ajouter à mon carnet" }).click();
+  await expect(b.page.getByText("Ajoutée à ton carnet")).toBeVisible();
   const copy = await getRecipeByTitle(householdB.id, title);
   expect(copy).toBeTruthy();
   expect(copy?.id).not.toBe(recipeId);
@@ -47,6 +47,6 @@ test("partage : mint du token → page publique → copie depuis un autre foyer"
 
   // Depuis le foyer d'origine : badge passif, pas de CTA
   await a.page.goto(`/r/${token}`);
-  await expect(a.page.getByText("Déjà dans ton foyer")).toBeVisible();
+  await expect(a.page.getByText("Déjà dans ton carnet")).toBeVisible();
   await a.context.close();
 });

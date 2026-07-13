@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import FilterBar from "./FilterBar";
 import RecipeCard from "./RecipeCard";
 import CocotteIllustration from "./CocotteIllustration";
+import CarnetIllustration from "./CarnetIllustration";
 import LoadErrorState from "./LoadErrorState";
 import { swrFetcher } from "@/lib/swr";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
@@ -203,7 +204,7 @@ export default function LibraryContent({
         liveRecipes.length === 0 ? (
           <div className="mx-auto mt-16 max-w-xs px-4 text-center">
             <div className="mb-5 flex justify-center">
-              <CocotteIllustration size={72} accent="var(--accent)" />
+              <CarnetIllustration size={72} accent="var(--accent)" />
             </div>
             <p
               className="text-foreground"

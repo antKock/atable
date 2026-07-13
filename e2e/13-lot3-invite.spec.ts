@@ -28,7 +28,7 @@ function mutationMatrix(hid: string, recipeId: string, targetOwnerId: string) {
     { label: "PUT /api/households/[id] (rename)", method: "put" as const, url: `/api/households/${hid}`, data: { name: "Renommé par un invité" } },
     { label: "PATCH members/[ownerId] (rôle)", method: "patch" as const, url: `/api/households/${hid}/members/${targetOwnerId}`, data: { role: "guest" } },
     { label: "DELETE members/[ownerId] (retrait)", method: "delete" as const, url: `/api/households/${hid}/members/${targetOwnerId}` },
-    // Supprimer le foyer = destruction cascade : réservé aux membres, jamais un
+    // Supprimer le carnet = destruction cascade : réservé aux membres, jamais un
     // invité (masquage UI insuffisant, la garde est serveur).
     { label: "DELETE households/[id]?action=delete", method: "delete" as const, url: `/api/households/${hid}?action=delete` },
   ];
@@ -100,8 +100,8 @@ test("détail foyer côté invité : bandeau lecture seule, pas d'« Inviter »,
   // Sous-titre « Invité · N personnes » (le « · » le distingue de la pill de rôle).
   await expect(b.page.getByText(/Invité ·/)).toBeVisible();
   await expect(b.page.getByRole("link", { name: "Inviter quelqu'un" })).toHaveCount(0);
-  await expect(b.page.getByRole("button", { name: "Supprimer le foyer" })).toHaveCount(0);
-  await expect(b.page.getByRole("button", { name: "Quitter ce foyer" })).toBeVisible();
+  await expect(b.page.getByRole("button", { name: "Supprimer le carnet" })).toHaveCount(0);
+  await expect(b.page.getByRole("button", { name: "Quitter ce carnet" })).toBeVisible();
 
   // Le code d'invitation MEMBRE ne doit JAMAIS être livré à un invité (même
   // non affiché : prop sérialisée dans le payload RSC → escalade invité→membre
@@ -168,7 +168,7 @@ test("A retire B → accès coupé immédiatement (page suivante → landing)", 
   // Page suivante de B → déconnexion propre vers la landing.
   await b.page.goto("/home");
   await b.page.waitForURL((url) => url.pathname === "/");
-  await expect(b.page.getByRole("button", { name: "Créer un foyer" })).toBeVisible();
+  await expect(b.page.getByRole("button", { name: "Créer un carnet" })).toBeVisible();
 
   await a.context.close();
   await b.context.close();

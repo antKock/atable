@@ -101,7 +101,7 @@ export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props
         >
           Entre le code
           <br />
-          de ton foyer
+          de ton carnet
         </h1>
 
         <p
@@ -114,8 +114,8 @@ export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props
             maxWidth: '320px',
           }}
         >
-          Demande à un membre du foyer son code d&apos;invitation.
-          Tu rejoindras instantanément la bibliothèque partagée.
+          Demande à un membre du carnet son code d&apos;invitation.
+          Tu accéderas instantanément aux recettes partagées.
         </p>
 
         <div className="relative" style={{ marginTop: '28px' }}>

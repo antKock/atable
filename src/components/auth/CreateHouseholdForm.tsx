@@ -103,7 +103,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
         >
           Donne un nom
           <br />
-          à ton foyer
+          à ton carnet
         </h1>
 
         <p
@@ -116,8 +116,8 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             maxWidth: '320px',
           }}
         >
-          Tu pourras inviter d&apos;autres personnes à le rejoindre.
-          Tes recettes seront partagées au sein du foyer.
+          Un carnet à partager avec tes proches.
+          Vos recettes s&apos;y retrouvent, réunies au même endroit.
         </p>
 
         <div className="relative" style={{ marginTop: '28px' }}>
@@ -136,9 +136,12 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
               strokeLinecap="round"
               strokeLinejoin="round"
             >
-              <path d="M3 12 12 3l9 9" />
-              <path d="M5 10v10h14V10" />
-              <path d="M10 20v-6h4v6" />
+              <path d="M2 6h4" />
+              <path d="M2 10h4" />
+              <path d="M2 14h4" />
+              <path d="M2 18h4" />
+              <rect x="4" y="2" width="16" height="20" rx="2" />
+              <path d="M16 2v20" />
             </svg>
           </span>
           <input
@@ -192,7 +195,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             letterSpacing: '-0.005em',
           }}
         >
-          {submitting ? '…' : 'Créer le foyer'}
+          {submitting ? '…' : 'Créer le carnet'}
         </button>
 
         <button
