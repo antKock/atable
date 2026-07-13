@@ -136,8 +136,8 @@ export default function PrivacyPolicyPage() {
           <strong>
             ni adresse e-mail, ni nom, ni numéro de téléphone, ni mot de passe
           </strong>
-          . L&apos;accès repose sur la notion de <strong>foyer</strong> : un
-          espace de recettes partagé, rejoint au moyen d&apos;un{" "}
+          . L&apos;accès repose sur la notion de <strong>carnet</strong> : un
+          carnet de recettes partagé, ouvert au moyen d&apos;un{" "}
           <strong>code d&apos;invitation</strong>.
         </P>
         <P>Nous nous engageons sur les principes suivants :</P>
@@ -166,8 +166,8 @@ export default function PrivacyPolicyPage() {
         <H3>3.1 Données que vous nous fournissez</H3>
         <UL>
           <li>
-            <strong>Nom du foyer</strong> : le libellé que vous choisissez pour
-            votre espace partagé (ex. « Cuisine de Marie »).
+            <strong>Nom du carnet</strong> : le libellé que vous choisissez pour
+            votre carnet partagé (ex. « Cuisine de Marie »).
           </li>
           <li>
             <strong>Contenu des recettes</strong> : titres, listes
@@ -193,10 +193,10 @@ export default function PrivacyPolicyPage() {
         <UL>
           <li>
             <strong>Nom d&apos;appareil</strong> : lors de la connexion
-            d&apos;un appareil à un foyer, nous dérivons un libellé lisible (ex.
+            d&apos;un appareil à un carnet, nous dérivons un libellé lisible (ex.
             « Apple iPhone 15 · Safari ») à partir de l&apos;en-tête technique
             « User-Agent » de votre navigateur. Cela vous permet de reconnaître
-            et de gérer les appareils connectés à votre foyer. L&apos;en-tête
+            et de gérer les appareils connectés à votre carnet. L&apos;en-tête
             brut n&apos;est pas conservé.
           </li>
           <li>
@@ -208,7 +208,7 @@ export default function PrivacyPolicyPage() {
           <li>
             <strong>Adresse IP</strong> : utilisée{" "}
             <strong>uniquement et de façon temporaire</strong> pour limiter le
-            nombre de tentatives de connexion à un foyer (protection contre les
+            nombre de tentatives de connexion à un carnet (protection contre les
             abus). Elle <strong>n&apos;est pas enregistrée</strong> dans notre
             base de données et n&apos;est pas associée à votre contenu.
           </li>
@@ -245,10 +245,10 @@ export default function PrivacyPolicyPage() {
           </thead>
           <tbody>
             <tr>
-              <Td>Nom du foyer, recettes, photos, tags</Td>
+              <Td>Nom du carnet, recettes, photos, tags</Td>
               <Td>
                 Fournir le service : créer, stocker et partager vos recettes
-                au sein du foyer
+                dans le carnet
               </Td>
               <Td>
                 Exécution du contrat (les conditions d&apos;utilisation du
@@ -262,7 +262,7 @@ export default function PrivacyPolicyPage() {
               </Td>
               <Td>
                 Vous authentifier de manière anonyme et gérer l&apos;accès des
-                appareils au foyer
+                appareils au carnet
               </Td>
               <Td>Exécution du contrat</Td>
             </tr>
@@ -379,7 +379,7 @@ export default function PrivacyPolicyPage() {
                 <strong>Supabase</strong>
               </Td>
               <Td>Base de données et stockage des photos</Td>
-              <Td>Foyers, recettes, sessions, photos</Td>
+              <Td>Carnets, recettes, sessions, photos</Td>
               <Td>
                 Union européenne (Irlande, <code>eu-west-1</code>)
               </Td>
@@ -494,11 +494,11 @@ export default function PrivacyPolicyPage() {
           <tbody>
             <tr>
               <Td>
-                Foyer, recettes, photos, sessions d&apos;appareil
+                Carnet, recettes, photos, sessions d&apos;appareil
               </Td>
               <Td>
-                Conservés tant que le foyer existe ; supprimés lorsque vous
-                supprimez le foyer (voir{" "}
+                Conservés tant que le carnet existe ; supprimés lorsque vous
+                supprimez le carnet (voir{" "}
                 <a
                   href="#suppression"
                   className="underline underline-offset-2"
@@ -536,7 +536,7 @@ export default function PrivacyPolicyPage() {
           </tbody>
         </Table>
         <P>
-          Aucune suppression automatique des foyers inactifs n&apos;est
+          Aucune suppression automatique des carnets inactifs n&apos;est
           appliquée à ce jour : vos recettes restent disponibles tant que vous
           ne les supprimez pas.
         </P>
@@ -557,7 +557,7 @@ export default function PrivacyPolicyPage() {
               Cookie <code>atable_session</code>
             </strong>{" "}
             : cookie <strong>strictement nécessaire</strong> au fonctionnement
-            du Service. Il vous maintient connecté à votre foyer. Il est
+            du Service. Il vous maintient connecté à votre carnet. Il est
             sécurisé (inaccessible au JavaScript, signé cryptographiquement,
             transmis uniquement en HTTPS) et a une durée de vie d&apos;un an.
           </li>
@@ -576,15 +576,15 @@ export default function PrivacyPolicyPage() {
           Nous mettons en œuvre des mesures techniques visant à protéger vos
           données : chiffrement des échanges (HTTPS), cookie de session
           sécurisé et signé cryptographiquement, limitation des tentatives de
-          connexion, et accès aux données restreint à votre foyer.
+          connexion, et accès aux données restreint à votre carnet.
         </P>
         <P>
           Toutefois,{" "}
           <strong>
-            le code d&apos;invitation d&apos;un foyer fait office de clé
+            le code d&apos;invitation d&apos;un carnet fait office de clé
             d&apos;accès
           </strong>{" "}
-          : quiconque possède ce code peut rejoindre le foyer. Nous vous
+          : quiconque possède ce code peut ouvrir le carnet. Nous vous
           recommandons de ne le partager qu&apos;avec les personnes de
           confiance.
         </P>
@@ -596,14 +596,14 @@ export default function PrivacyPolicyPage() {
         </P>
         <UL>
           <li>
-            <strong>Quitter le foyer</strong> : déconnecte l&apos;appareil
-            utilisé. Les recettes du foyer sont conservées pour les autres
+            <strong>Quitter le carnet</strong> : déconnecte l&apos;appareil
+            utilisé. Les recettes du carnet sont conservées pour les autres
             appareils.
           </li>
           <li>
-            <strong>Supprimer le foyer</strong> : supprime{" "}
+            <strong>Supprimer le carnet</strong> : supprime{" "}
             <strong>définitivement</strong> l&apos;ensemble des recettes, des
-            étiquettes, des sessions d&apos;appareil et le foyer lui-même.
+            étiquettes, des sessions d&apos;appareil et le carnet lui-même.
           </li>
           <li>
             <strong>Supprimer une recette</strong> : supprime la recette
@@ -611,7 +611,7 @@ export default function PrivacyPolicyPage() {
           </li>
         </UL>
         <P>
-          La suppression d&apos;un foyer satisfait l&apos;exigence d&apos;un
+          La suppression d&apos;un carnet satisfait l&apos;exigence d&apos;un
           chemin clair de suppression des données de l&apos;utilisateur.
         </P>
 
@@ -628,7 +628,7 @@ export default function PrivacyPolicyPage() {
             Les droits de <strong>rectification</strong> et d&apos;
             <strong>effacement</strong> s&apos;exercent directement dans
             l&apos;Application (modification ou suppression de vos recettes,
-            suppression du foyer).
+            suppression du carnet).
           </li>
           <li>
             Pour toute autre demande (accès, copie de vos données, opposition),
@@ -643,9 +643,9 @@ export default function PrivacyPolicyPage() {
           </li>
         </UL>
         <P>
-          L&apos;Application ne nous permettant pas de relier un foyer à une
+          L&apos;Application ne nous permettant pas de relier un carnet à une
           identité réelle, nous pourrons être amenés à vous demander des
-          éléments permettant d&apos;établir que vous êtes bien membre du foyer
+          éléments permettant d&apos;établir que vous êtes bien membre du carnet
           concerné avant de donner suite à une demande.
         </P>
         <P>

@@ -180,7 +180,7 @@ export const t = {
     regime: "Régime",
     duree: "Durée",
     cout: "Coût",
-    foyer: "Foyer",
+    foyer: "Carnet",
     lt30min: "< 30 min",
     "30to60": "30 min - 1h",
     gt60: "> 1h",
@@ -189,8 +189,8 @@ export const t = {
 
   // Empty states
   empty: {
-    libraryTitle: "La cocotte est vide",
-    libraryBody: "Ajoute ta première recette pour démarrer ta bibliothèque.",
+    libraryTitle: "Ton carnet est vide",
+    libraryBody: "Ajoute ta première recette pour le remplir.",
     searchTitle: "Aucun résultat",
     searchBody: "Essaie avec un autre titre, ingrédient ou tag.",
   },
@@ -297,15 +297,15 @@ export const t = {
     tagline: "Tes recettes",
     subtitle: "Réunies comme par magie",
     tryApp: "Essayer l'app",
-    createHousehold: "Créer un foyer",
-    joinHousehold: "Rejoindre un foyer",
+    createHousehold: "Créer un carnet",
+    joinHousehold: "Ouvrir un carnet",
   },
 
   // Join via invite link
   joinLink: {
-    hero: (name: string) => `Rejoindre « ${name} » ?`,
-    confirm: 'Rejoindre',
-    notFound: 'Ce lien ne correspond à aucun foyer',
+    hero: (name: string) => `Ouvrir « ${name} » ?`,
+    confirm: 'Ouvrir',
+    notFound: 'Ce lien ne correspond à aucun carnet',
     backToLanding: "Retour à l'accueil",
     // Code invité (Lot 3) : la confirmation dit que l'accès est en lecture seule
     guestNote: 'En lecture seule, en direct',
@@ -315,9 +315,9 @@ export const t = {
   join: {
     enterCode: "Entrer un code",
     placeholder: "OLIVE-4821",
-    preview: (name: string) => `Foyer « ${name} » trouvé — Rejoindre ?`,
-    confirm: "Rejoindre",
-    notFound: "Ce code ne correspond à aucun foyer",
+    preview: (name: string) => `Carnet « ${name} » trouvé — Ouvrir ?`,
+    confirm: "Ouvrir",
+    notFound: "Ce code ne correspond à aucun carnet",
     rateLimited: "Trop de tentatives, réessaie plus tard",
     invalidFormat: "Format invalide — ex : OLIVE-4821",
     searching: "Recherche en cours…",
@@ -325,51 +325,51 @@ export const t = {
 
   // Household
   household: {
-    created: "Foyer créé",
+    created: "Carnet créé",
     code: "Code",
     copy: "Copier",
     copied: "Copié !",
-    namePlaceholder: "Ex : Chez nous, Famille Dupont…",
-    nameLabel: "Nom du foyer",
-    createTitle: "Créer un foyer",
-    createError: "Impossible de créer le foyer. Réessaie.",
-    menu: "Foyer & profil",
-    menuButton: "Foyer & profil",
-    shareCode: "Code du foyer",
+    namePlaceholder: "Ex : Recettes de famille, Chez nous…",
+    nameLabel: "Nom du carnet",
+    createTitle: "Créer un carnet",
+    createError: "Impossible de créer le carnet. Réessaie.",
+    menu: "Carnet & profil",
+    menuButton: "Carnet & profil",
+    shareCode: "Code du carnet",
     inviteLink: "Lien d'invitation",
-    leaveHousehold: "Quitter ce foyer",
+    leaveHousehold: "Quitter ce carnet",
     rename: "Renommer",
-    renameTitle: "Renommer le foyer",
-    renameSuccess: "Foyer renommé",
-    renameError: "Impossible de renommer le foyer",
-    leaveConfirm: "Quitter le foyer ?",
-    leaveBody: "Tu devras rejoindre avec un code ou un lien pour accéder à nouveau aux recettes.",
+    renameTitle: "Renommer le carnet",
+    renameSuccess: "Carnet renommé",
+    renameError: "Impossible de renommer le carnet",
+    leaveConfirm: "Quitter le carnet ?",
+    leaveBody: "Tu devras l'ouvrir à nouveau avec un code ou un lien pour retrouver les recettes.",
     leaveAction: "Quitter",
     demoLabel: "Démo",
-    deleteHousehold: "Supprimer le foyer",
-    deleteConfirmTitle: "Supprimer le foyer ?",
+    deleteHousehold: "Supprimer le carnet",
+    deleteConfirmTitle: "Supprimer le carnet ?",
     deleteConfirmBody:
-      "Toutes les recettes du foyer et l'accès de tous les appareils seront supprimés.",
+      "Toutes les recettes du carnet et l'accès de tous les appareils seront supprimés.",
     deleteContinue: "Continuer",
     deleteFinalTitle: "Confirmer la suppression",
     deleteFinalBody:
-      "Cette action est irréversible. Le foyer et toutes ses recettes seront définitivement perdus.",
+      "Cette action est irréversible. Le carnet et toutes ses recettes seront définitivement perdus.",
     deleteFinalAction: "Supprimer définitivement",
     leaveError: "Une erreur s'est produite. Réessaie.",
     // Hub « Toi + Tes foyers » (chantier foyer, Lot 1)
     sectionYou: "Toi",
-    sectionHouseholds: "Tes foyers",
+    sectionHouseholds: "Tes carnets",
     // Sous-titre de la ligne « Toi » selon owners.recovery_email (Lot 2)
     accessSaved: "Accès sauvegardé",
     accessToSave: "Sauvegarder mon accès",
-    createOrJoin: "Créer ou rejoindre un foyer",
+    createOrJoin: "Créer ou ouvrir un carnet",
     // Réglage « foyers affichés sur l'accueil » (multi-foyer) — hub + dialog
     homeFoyers: {
       section: "Affichage",
-      entry: "Foyers affichés sur l'accueil",
+      entry: "Carnets affichés sur l'accueil",
       title: "Affichés sur l'accueil",
-      note: "Choisis les foyers dont les recettes apparaissent sur l'accueil.",
-      minWarning: "Au moins un foyer doit rester affiché.",
+      note: "Choisis les carnets dont les recettes apparaissent sur l'accueil.",
+      minWarning: "Au moins un carnet doit rester affiché.",
       done: "Terminé",
       // Sous-titre de l'entrée : « Tous » ou « N sur M »
       summaryAll: "Tous",
@@ -397,11 +397,11 @@ export const t = {
       subtitleGuest: "Invité · lecture seule",
       toGuest: "Passer en invité (lecture seule)",
       toMember: "Passer en membre (peut modifier)",
-      remove: "Retirer du foyer",
+      remove: "Retirer du carnet",
       removeBody: "La retirer coupe son accès immédiatement.",
       roleError: "Impossible de changer le rôle. Réessaie.",
       removeError: "Impossible de retirer ce membre. Réessaie.",
-      lastMember: "Impossible : c'est le dernier membre du foyer.",
+      lastMember: "Impossible : c'est le dernier membre du carnet.",
     },
     // Pas de `as Record<MembershipRole, string>` : l'assertion compilerait même
     // avec une clé manquante. Le `as const` du fichier suffit à l'indexation.
@@ -417,33 +417,33 @@ export const t = {
     recipeCount: (n: number) => `${n} recette${n > 1 ? "s" : ""}`,
     // Rejoindre devient additif (Lot 4, §1) : messages du re-join.
     join: {
-      alreadyMember: "Tu fais déjà partie de ce foyer.",
-      added: (name: string) => `Tu as rejoint « ${name} ».`,
-      upgraded: "Tu es maintenant membre de ce foyer.",
+      alreadyMember: "Tu as déjà accès à ce carnet.",
+      added: (name: string) => `Tu as maintenant accès à « ${name} ».`,
+      upgraded: "Tu es maintenant membre de ce carnet.",
     },
     // Dialog de choix de foyer (maquette 0.4 / 2.4, Lot 4) : enregistrement et
     // déplacement d'une recette. Réutilise ui/dialog (décision n°8).
     picker: {
-      saveTitle: "Dans quel foyer ?",
+      saveTitle: "Dans quel carnet ?",
       moveTitle: "Déplacer vers…",
-      lockNote: "Les foyers où tu es invité sont en lecture seule.",
+      lockNote: "Les carnets où tu es invité sont en lecture seule.",
       current: "Actuel",
       // 422 serveur : plusieurs foyers membres mais aucun choix transmis.
-      required: "Choisis un foyer de destination.",
+      required: "Choisis un carnet de destination.",
       moveError: "Impossible de déplacer la recette. Réessaie.",
       moved: (name: string) => `Recette déplacée vers « ${name} ».`,
       // Copie lecture seule générique (jamais de nom de foyer cité, §5).
-      readOnlyDestination: "Ce foyer est en lecture seule.",
+      readOnlyDestination: "Ce carnet est en lecture seule.",
     },
   },
 
   // Écran « Créer ou rejoindre » (depuis le hub — sémantique additive, Lot 4 :
   // le foyer s'ajoute à tes foyers, l'appareil ne quitte rien)
   switchHousehold: {
-    title: "Créer ou rejoindre",
-    body: "Le foyer s'ajoutera à tes foyers. Tu gardes l'accès à tous ceux que tu as déjà rejoints.",
-    create: "Créer un foyer",
-    join: "Rejoindre un foyer",
+    title: "Créer ou ouvrir",
+    body: "Le carnet s'ajoutera à tes carnets. Tu gardes l'accès à tous ceux que tu as déjà ouverts.",
+    create: "Créer un carnet",
+    join: "Ouvrir un carnet",
   },
 
   // Profil (« Toi »)
@@ -451,7 +451,7 @@ export const t = {
     title: "Ton profil",
     nameLabel: "Ton nom",
     nameHint:
-      "Ton nom apparaît auprès des autres membres de tes foyers. Laisse vide et on te donne un alias par défaut.",
+      "Ton nom apparaît auprès des autres membres de tes carnets. Laisse vide et on te donne un alias par défaut.",
     saved: "Profil mis à jour",
     saveError: "Impossible d'enregistrer ton profil. Réessaie.",
     nameInvalid: "Nom invalide — 50 caractères maximum.",
@@ -465,20 +465,20 @@ export const t = {
     // Déconnexion (même gabarit que « Quitter le foyer »)
     logout: "Se déconnecter",
     logoutConfirmTitle: "Se déconnecter ?",
-    logoutConfirmBody: "Cet appareil sera déconnecté. Tu pourras retrouver tes foyers avec ton email de secours.",
+    logoutConfirmBody: "Cet appareil sera déconnecté. Tu pourras retrouver tes carnets avec ton email de secours.",
     logoutConfirmBodyNoEmail:
-      "Cet appareil sera déconnecté. Sans email de secours, tu risques de perdre l'accès à tes foyers — pense à en ajouter un avant.",
+      "Cet appareil sera déconnecté. Sans email de secours, tu risques de perdre l'accès à tes carnets — pense à en ajouter un avant.",
     logoutAction: "Se déconnecter",
   },
 
   // Fusion d'owners (#14, §5) — déclenchée depuis le profil quand l'email est
   // déjà utilisé par un autre profil
   merge: {
-    title: "On réunit tes foyers",
+    title: "On réunit tes carnets",
     body: (email: string) =>
       `Cet email est déjà utilisé par un autre profil. Saisis le code qu'on vient d'envoyer à ${email} pour réunir les deux accès en une seule identité.`,
     codeLabel: "Code reçu par email",
-    success: "Tes foyers sont réunis",
+    success: "Tes carnets sont réunis",
     codeInvalid: "Code invalide ou expiré. Réessaie, ou renvoie un email.",
   },
 
@@ -490,7 +490,7 @@ export const t = {
     forkEmail: "Récupérer avec mon email",
     // Saisie de l'email
     title: "Récupérer mon accès",
-    body: "Entre l'email que tu avais sauvegardé. On t'envoie un lien pour retrouver ton foyer sur cet appareil.",
+    body: "Entre l'email que tu avais sauvegardé. On t'envoie un lien pour retrouver ton carnet sur cet appareil.",
     emailPlaceholder: "ton@email.fr",
     send: "Envoyer le lien",
     sendError: "Impossible d'envoyer le lien. Réessaie.",
@@ -511,7 +511,7 @@ export const t = {
     consuming: "Connexion en cours…",
     consumeErrorTitle: "Ce lien n'est plus valide",
     consumeErrorBody:
-      "Il a peut-être expiré (15 minutes) ou déjà servi. Refais une demande depuis « Rejoindre un foyer ».",
+      "Il a peut-être expiré (15 minutes) ou déjà servi. Refais une demande depuis « Ouvrir un carnet ».",
     backToLanding: "Retour à l'accueil",
   },
 
@@ -519,12 +519,12 @@ export const t = {
   hints: {
     share: {
       title: "Cuisinez à plusieurs",
-      body: "Invite les gens de ton foyer : vos recettes se retrouvent au même endroit, en direct.",
+      body: "Partage ton carnet : à plusieurs, vos recettes se retrouvent au même endroit, en direct.",
       cta: "Inviter quelqu'un",
     },
     email: {
       title: "Sauvegarde ton accès",
-      body: "Ajoute un email et tu retrouveras ce foyer même si tu changes d'appareil. Pas de compte, pas de mot de passe.",
+      body: "Ajoute un email et tu retrouveras ce carnet même si tu changes d'appareil. Pas de compte, pas de mot de passe.",
       cta: "Ajouter un email",
       dismissToast: "Tu retrouveras ça dans ton profil",
     },
@@ -544,8 +544,8 @@ export const t = {
     // conservées. Non dismissable — état démo ET seul chemin de conversion :
     // son CTA ouvre directement la création de foyer (→ owner neuf).
     title: "Tu explores un compte démo",
-    body: "Les recettes ajoutées ici ne sont pas conservées. Crée ton foyer pour garder les tiennes.",
-    cta: "Créer mon foyer",
+    body: "Les recettes ajoutées ici ne sont pas conservées. Crée ton carnet de recettes pour garder les tiennes.",
+    cta: "Créer mon carnet",
     frozen: "Cette action n'est pas disponible dans la démo.",
   },
 
@@ -557,12 +557,12 @@ export const t = {
     // Public share page (/r/<token>)
     save: "Enregistrer cette recette",
     reminderLabel: "Recette à enregistrer",
-    haveHousehold: "J'ai déjà un foyer — le rejoindre",
-    addToHousehold: "Ajouter à mon foyer",
+    haveHousehold: "J'ai déjà un carnet — l'ouvrir",
+    addToHousehold: "Ajouter à mon carnet",
     adding: "Ajout en cours…",
-    added: "Ajoutée à ton foyer",
-    viewMyHousehold: "Voir mon foyer",
-    alreadyOwned: "Déjà dans ton foyer",
+    added: "Ajoutée à ton carnet",
+    viewMyHousehold: "Voir mon carnet",
+    alreadyOwned: "Déjà dans ton carnet",
     addError: "Impossible d'ajouter la recette. Réessaie.",
     notFoundTitle: "Recette introuvable",
     notFoundBody: "Ce lien de partage n'est plus valide.",
@@ -575,7 +575,7 @@ export const t = {
     // Step 1 (mini-strip) : voir hints.install
     // Step 2 — after tapping install
     codeTitle: "Encore une étape",
-    codeBody: "Ouvre Mijote et rejoins ton foyer avec ce code :",
+    codeBody: "Ouvre Mijote et entre ce code pour retrouver ton carnet :",
     reopenStore: "Rouvrir l'App Store",
     codeCopied: "Code copié",
     copyCode: "Copier le code",

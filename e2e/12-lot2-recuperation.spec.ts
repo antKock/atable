@@ -187,7 +187,7 @@ test("6. fusion : B pose l'email de A → vérif → la session de B rejoint l'u
   await b.page.getByRole("button", { name: "Enregistrer" }).click();
 
   // Collision → écran fusion (token purpose='merge' créé vers la cible)
-  await expect(b.page.getByRole("heading", { name: "On réunit tes foyers" })).toBeVisible();
+  await expect(b.page.getByRole("heading", { name: "On réunit tes carnets" })).toBeVisible();
   await overrideLatestLoginToken(target!.id, "merge", { code: "654321" });
 
   await b.page.getByLabel("Code reçu par email").fill("654321");
@@ -245,12 +245,12 @@ test("7. hints : partage < 3 recettes, puis email ; dismiss persistant ; rien en
   await d.context.close();
 });
 
-test("8. fork onboarding « Rejoindre un foyer » : les deux chemins", async ({
+test("8. fork onboarding « Ouvrir un carnet » : les deux chemins", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser);
   await page.goto("/");
-  await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByRole("button", { name: "Ouvrir un carnet" }).click();
 
   // Chemin 1 : code d'invitation → formulaire existant
   await page.getByRole("button", { name: "J'ai un code d'invitation" }).click();
