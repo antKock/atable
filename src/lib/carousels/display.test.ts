@@ -93,6 +93,28 @@ describe("cascadeDedup", () => {
     expect(result.map((s) => s.key)).toEqual(["recentes", "desserts"]);
   });
 
+  it("a long pinned carousel does not defeat demotion below (only its head counts as seen)", () => {
+    // Petit foyer : « Récentes » liste tout ; les catégories sont des
+    // sous-ensembles. Seule la tête de Récentes (A, B) compte comme vue, donc
+    // les catégories gardent des recettes fraîches à faire remonter et les
+    // doublons (A, B) filent bien en queue — au lieu de rester en tête.
+    const result = cascadeDedup([
+      section("recentes", ["A", "B", "C", "D", "E", "F"], {
+        pinned: true,
+        reorderable: false,
+      }),
+      section("desserts", ["A", "C", "F"]),
+      section("rapide", ["B", "D", "G"]),
+    ]);
+    const desserts = result.find((s) => s.key === "desserts")!;
+    const rapide = result.find((s) => s.key === "rapide")!;
+    // Mène avec une recette fraîche, le doublon (A / B) en queue.
+    expect(desserts.recipes[0].id).not.toBe("A");
+    expect(desserts.recipes.at(-1)!.id).toBe("A");
+    expect(rapide.recipes[0].id).not.toBe("B");
+    expect(rapide.recipes.at(-1)!.id).toBe("B");
+  });
+
   it("feeds the seen-set only from retained sections, cascading top to bottom", () => {
     const result = cascadeDedup([
       section("recentes", ["r1"], { pinned: true, reorderable: false }),

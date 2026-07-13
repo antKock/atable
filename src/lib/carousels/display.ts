@@ -25,8 +25,18 @@ export function orderSections(
 }
 
 /**
+ * Nombre de cartes de tête qui comptent comme « déjà vues » d'un carrousel à
+ * l'autre — soit ce qui s'affiche sans scroller (carte ~62vw). C'est la tête
+ * qui crée l'impression de répétition ; alimenter le Set avec le contenu
+ * COMPLET (jusqu'à 10) marquait tout le petit catalogue comme vu dès
+ * « Récentes » (épinglé en tête), et défaisait la démotion en aval — les
+ * catégories n'avaient plus aucune recette fraîche à faire remonter.
+ */
+export const SEEN_HEAD = 2;
+
+/**
  * Passe « fraîcheur » de haut en bas sur l'ordre final, avec le Set des
- * recettes déjà affichées par les carrousels retenus au-dessus :
+ * recettes déjà affichées EN TÊTE des carrousels retenus au-dessus :
  * - tris sémantiques (non réordonnables, non épinglés) : masqués si aucune de
  *   leurs 2 premières cartes n'est fraîche — c'est la tête du carrousel qui
  *   crée l'impression de répétition sur mobile ;
@@ -41,19 +51,24 @@ export function cascadeDedup(sections: CarouselSection[]): CarouselSection[] {
   for (const section of sections) {
     if (section.recipes.length === 0) continue;
 
+    // `shown` = ordre réellement affiché de ce carrousel (après démotion pour
+    // les catégories) ; c'est lui qui alimente le Set, pas les données brutes.
+    let shown = section.recipes;
     if (!section.reorderable) {
       const headIsStale = section.recipes
-        .slice(0, 2)
+        .slice(0, SEEN_HEAD)
         .every((recipe) => seen.has(recipe.id));
       if (headIsStale && !section.pinned) continue;
       result.push(section);
     } else {
       const fresh = section.recipes.filter((recipe) => !seen.has(recipe.id));
       const stale = section.recipes.filter((recipe) => seen.has(recipe.id));
-      result.push({ ...section, recipes: [...fresh, ...stale] });
+      shown = [...fresh, ...stale];
+      result.push({ ...section, recipes: shown });
     }
 
-    for (const recipe of section.recipes) seen.add(recipe.id);
+    // Seule la tête (visible sans scroller) alimente le Set — cf. SEEN_HEAD.
+    for (const recipe of shown.slice(0, SEEN_HEAD)) seen.add(recipe.id);
   }
 
   return result;
