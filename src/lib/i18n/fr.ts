@@ -538,10 +538,11 @@ export const t = {
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est
   // coupée pour les sessions démo (guard serveur central assertNotDemoMutation)
   demo: {
-    // Bannière démo persistante (DemoBanner), gabarit « hint classique »
-    // (comme partage/email) pour être plus visible et explicite : c'est un
-    // compte de test dont les recettes ne sont pas conservées. Non dismissable
-    // — c'est l'état démo ET le seul chemin de conversion (→ création de foyer).
+    // Hint démo (HintCard variante `demo`, rendu sur /home par HomeHints),
+    // gabarit « hint classique » comme partage/email pour être plus visible et
+    // explicite : c'est un compte de test dont les recettes ne sont pas
+    // conservées. Non dismissable — état démo ET seul chemin de conversion :
+    // son CTA ouvre directement la création de foyer (→ owner neuf).
     title: "Tu explores un compte démo",
     body: "Les recettes ajoutées ici ne sont pas conservées. Crée ton foyer pour garder les tiennes.",
     cta: "Créer mon foyer",

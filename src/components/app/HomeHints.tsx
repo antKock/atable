@@ -26,8 +26,17 @@ export default async function HomeHints() {
   const owner = await getOwnerContext()
   if (!owner || owner.memberships.length === 0) return null
 
+  // Démo : un seul hint, le hint démo (gabarit classique, non dismissable) —
+  // rendu ici sur /home comme les autres (décision « hints = vue principale »).
+  // Son CTA convertit (crée un foyer) ; aucun autre hint (install/partage/email).
   const isDemo = isDemoOwner(owner)
-  if (isDemo) return null
+  if (isDemo) {
+    return (
+      <div className="flex flex-col gap-2.5 px-4 pb-4">
+        <HintCard variant="demo" title={t.demo.title} body={t.demo.body} cta={t.demo.cta} />
+      </div>
+    )
+  }
 
   const isGuest = isGuestOwner(owner)
   const hdrs = await headers()
