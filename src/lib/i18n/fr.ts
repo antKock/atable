@@ -538,6 +538,10 @@ export const t = {
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est
   // coupée pour les sessions démo (guard serveur central assertNotDemoMutation)
   demo: {
+    // Bannière démo persistante (DemoBanner) : rappelle l'état éphémère et
+    // porte le seul chemin de conversion (sortie → création de foyer).
+    banner: "Mode démo — tes recettes ne seront pas conservées",
+    exit: "Quitter la démo",
     frozen: "Cette action n'est pas disponible dans la démo.",
   },
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Sparkles } from 'lucide-react'
+import { t } from '@/lib/i18n/fr'
 import { dropSwrCache } from '@/lib/swr'
 import MiniStrip from '@/components/app/MiniStrip'
 
@@ -40,7 +41,7 @@ export default function DemoBanner() {
     >
       <MiniStrip
         icon={<Sparkles size={15} />}
-        label="Mode démo — tes recettes ne seront pas conservées"
+        label={t.demo.banner}
         action={
           <button
             type="button"
@@ -48,7 +49,7 @@ export default function DemoBanner() {
             disabled={loading}
             className="min-h-8 shrink-0 px-1 text-[12.5px] font-semibold text-accent transition-opacity hover:opacity-80 disabled:opacity-50"
           >
-            {loading ? '…' : 'Quitter la démo'}
+            {loading ? '…' : t.demo.exit}
           </button>
         }
       />
