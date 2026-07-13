@@ -80,9 +80,10 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 - Foyer désigné par l'env `DEMO_HOUSEHOLD_ID`. Entrée : `POST /api/demo/session`.
 - Protections : delete 403, exclu de join/lookup (`is_demo=false`), reset cron
   (`/api/cron/demo-reset`, garde les recettes `is_seed`), exclu des analytics.
-- `(app)/layout.tsx` calcule `isDemo` et affiche `DemoBanner`, masque la bannière
-  d'install. **Incident passé** (2026-06) : démo supprimable par ses visiteurs →
-  4 semaines d'outage. Leçon : garde-fous serveur centralisés, pas éparpillés.
+- Hint démo rendu sur `/home` par `HomeHints` (variante `demo` de `HintCard`) —
+  cf. décision n°9. **Incident passé** (2026-06) : démo supprimable par ses
+  visiteurs → 4 semaines d'outage. Leçon : garde-fous serveur centralisés, pas
+  éparpillés.
 
 ### Mobile / liens
 
@@ -141,6 +142,21 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
    fiche…). Implémenté via `x-pathname` (middleware) + garde `isMainView` dans
    `(app)/layout.tsx`. Évite notamment un doublon d'affordance « Inviter
    quelqu'un » sur le détail de foyer (CTA du hint partage vs entrée d'invitation).
+   **Amendement 2026-07-13 — le hint démo n'est plus « mineur ».** En prod, les
+   visiteurs ne comprenaient pas que la démo est un compte de test et y ajoutaient
+   leurs recettes en pensant les garder. Le hint démo passe donc du gabarit
+   MiniStrip (une ligne) au gabarit **`HintCard`** (comme partage/email : icône +
+   titre + corps + CTA), plus visible et explicite (*« Tu explores un compte démo
+   — les recettes ajoutées ici ne sont pas conservées »*). Décisions actées :
+   (a) **une seule carte à variantes** — la démo devient la variante `demo` de
+   `HintCard`, **non dismissable** ; `DemoBanner`/MiniStrip démo supprimés ;
+   (b) **home-only** — rendu par `HomeHints` comme les autres (n'est donc plus
+   visible sur les autres écrans, ni sur la fiche après un ajout — assumé) ;
+   (c) **CTA « Créer mon foyer » ouvre directement `CreateHouseholdForm` plein
+   écran** (z-60, au-dessus de la nav) → conversion « owner neuf » via
+   `POST /api/households`, sans repasser par l'accueil. L'install reste un
+   MiniStrip mineur. Pas de migration des recettes démo à la conversion : le hint
+   annonce qu'elles ne sont pas conservées (pas de promesse à tenir).
 10. **Pas de foyer par défaut** : choix du foyer à chaque enregistrement (dialog),
     masqué en mono-foyer. Foyer invité = jamais une destination (grisé).
 11. **Marqueur d'origine biblio** = label texte discret (nom du foyer), jamais de
