@@ -33,9 +33,9 @@ export function uniqueName(prefix: string): string {
  */
 export async function createHouseholdViaUI(page: Page, name: string): Promise<string> {
   await page.goto("/");
-  await page.getByRole("button", { name: "Créer un foyer" }).click();
-  await page.getByPlaceholder("Ex : Chez nous, Famille Dupont…").fill(name);
-  await page.getByRole("button", { name: "Créer le foyer" }).click();
+  await page.getByRole("button", { name: "Créer un carnet" }).click();
+  await page.getByPlaceholder("Ex : Recettes de famille, Chez nous…").fill(name);
+  await page.getByRole("button", { name: "Créer le carnet" }).click();
   await page.waitForURL(/\/home/);
   const household = await getHouseholdByName(name);
   expect(household?.join_code, "le foyer créé doit avoir un join_code").toMatch(/^[A-Z]+-\d{4}$/);
@@ -61,10 +61,10 @@ export async function openHouseholdDetail(page: Page): Promise<void> {
  */
 export async function joinViaCode(page: Page, code: string): Promise<void> {
   await page.goto("/");
-  await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByRole("button", { name: "Ouvrir un carnet" }).click();
   await page.getByRole("button", { name: "J'ai un code d'invitation" }).click();
   await page.getByPlaceholder("OLIVE-4821").fill(code);
-  await page.getByRole("button", { name: "Rejoindre", exact: true }).click();
+  await page.getByRole("button", { name: "Ouvrir", exact: true }).click();
   await page.waitForURL(/\/home/);
 }
 
@@ -75,21 +75,21 @@ export async function joinViaCode(page: Page, code: string): Promise<void> {
  */
 export async function joinFromHub(page: Page, code: string): Promise<void> {
   await openSwitchScreen(page);
-  await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByRole("button", { name: "Ouvrir un carnet" }).click();
   await page.getByPlaceholder("OLIVE-4821").fill(code);
-  await page.getByRole("button", { name: "Rejoindre", exact: true }).click();
+  await page.getByRole("button", { name: "Ouvrir", exact: true }).click();
   // Additif → retour au hub (pas de nouvelle session). Attendre que le hub soit
   // RÉELLEMENT chargé (pas seulement l'URL) : la redirection additive passe par
   // window.location, et un goto suivant qui court-circuite ce chargement en vol
   // avorte (net::ERR_ABORTED).
   await page.waitForURL(/\/household(\?|$|\/)/);
-  await expect(page.getByRole("heading", { name: "Foyer & profil" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Carnet & profil" })).toBeVisible();
 }
 
 /** Ouvre « Créer ou rejoindre un foyer » depuis le hub (nav SPA fiable). */
 async function openSwitchScreen(page: Page): Promise<void> {
   await page.goto("/household");
-  await page.getByRole("link", { name: "Créer ou rejoindre un foyer" }).click();
+  await page.getByRole("link", { name: "Créer ou ouvrir un carnet" }).click();
   await page.waitForURL(/\/household\/switch/);
 }
 
@@ -100,9 +100,9 @@ async function openSwitchScreen(page: Page): Promise<void> {
  */
 export async function createFromHub(page: Page, name: string): Promise<string> {
   await openSwitchScreen(page);
-  await page.getByRole("button", { name: "Créer un foyer" }).click();
-  await page.getByPlaceholder("Ex : Chez nous, Famille Dupont…").fill(name);
-  await page.getByRole("button", { name: "Créer le foyer" }).click();
+  await page.getByRole("button", { name: "Créer un carnet" }).click();
+  await page.getByPlaceholder("Ex : Recettes de famille, Chez nous…").fill(name);
+  await page.getByRole("button", { name: "Créer le carnet" }).click();
   await page.waitForURL(/\/home/);
   const household = await getHouseholdByName(name);
   expect(household?.id, "le foyer créé depuis le hub doit exister en DB").toBeTruthy();
@@ -123,7 +123,7 @@ export async function setRecoveryEmail(page: Page, email: string): Promise<void>
  */
 export async function requestRecovery(page: Page, email: string): Promise<void> {
   await page.goto("/");
-  await page.getByRole("button", { name: "Rejoindre un foyer" }).click();
+  await page.getByRole("button", { name: "Ouvrir un carnet" }).click();
   await page.getByRole("button", { name: "Récupérer avec mon email" }).click();
   await page.getByLabel("Email de secours").fill(email);
   await page.getByRole("button", { name: "Envoyer le lien" }).click();

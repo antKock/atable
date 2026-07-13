@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { t } from "@/lib/i18n/fr";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
-import CocotteIllustration from "./CocotteIllustration";
+import CarnetIllustration from "./CarnetIllustration";
 import LoadErrorState from "./LoadErrorState";
 import { prepareForDisplay } from "@/lib/carousels/display";
 import { swrFetcher } from "@/lib/swr";
@@ -121,7 +121,7 @@ export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) 
       ) : !hasRecipes ? (
         <div className="mx-auto mt-16 max-w-xs px-4 text-center">
           <div className="mb-5 flex justify-center">
-            <CocotteIllustration size={72} accent="var(--accent)" />
+            <CarnetIllustration size={72} accent="var(--accent)" />
           </div>
           <p
             className="text-foreground"

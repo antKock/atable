@@ -17,9 +17,9 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   // Recettes seed du foyer démo visibles
   await expect(page.getByText("Mousse au chocolat").first()).toBeVisible();
 
-  // CTA du hint démo = ouverture directe du formulaire « nom du foyer »
+  // CTA du hint démo = ouverture directe du formulaire « nom du carnet »
   // (conversion), sans repasser par l'accueil. On referme pour la suite.
-  await page.getByRole("button", { name: "Créer mon foyer" }).click();
+  await page.getByRole("button", { name: "Créer mon carnet" }).click();
   await expect(page.getByRole("heading", { name: /Donne un nom/ })).toBeVisible();
   await page.getByRole("button", { name: "Annuler" }).click();
 
@@ -40,7 +40,7 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   expect(rename.status()).toBe(403);
 
   // Suppression refusée côté serveur (403) → toast d'erreur, foyer intact
-  await page.getByRole("button", { name: "Supprimer le foyer" }).click();
+  await page.getByRole("button", { name: "Supprimer le carnet" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Continuer" }).click();
   await dialog.getByRole("button", { name: "Supprimer définitivement" }).click();

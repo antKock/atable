@@ -14,8 +14,8 @@ test("rejoindre par lien : /join/[code] → confirmation → même foyer", async
 
   const b = await newVisitor(browser);
   await b.page.goto(`/join/${code}`);
-  await expect(b.page.getByRole("heading", { name: `Rejoindre « ${name} » ?` })).toBeVisible();
-  await b.page.getByRole("button", { name: "Rejoindre", exact: true }).click();
+  await expect(b.page.getByRole("heading", { name: `Ouvrir « ${name} » ?` })).toBeVisible();
+  await b.page.getByRole("button", { name: "Ouvrir", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 
   // Le code vit désormais dans l'écran « Inviter » (Lot 3).
@@ -31,6 +31,6 @@ test("rejoindre par lien : /join/[code] → confirmation → même foyer", async
 test("rejoindre par lien : code inconnu → message d'erreur", async ({ browser }) => {
   const { context, page } = await newVisitor(browser);
   await page.goto("/join/ZZZZZ-9999");
-  await expect(page.getByText("Ce lien ne correspond à aucun foyer")).toBeVisible();
+  await expect(page.getByText("Ce lien ne correspond à aucun carnet")).toBeVisible();
   await context.close();
 });

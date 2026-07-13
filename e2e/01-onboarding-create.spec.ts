@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
 
-// Caractérisation : landing → « Créer un foyer » → nom → /home, cookie posé.
+// Caractérisation : landing → « Créer un carnet » → nom → /home, cookie posé.
 // L'ancienne bannière post-création (code d'invitation en clair) a été retirée ;
 // c'est le hint « partage » de la Home qui prend le relais (foyer à 0 recette).
 test("onboarding créer : landing → formulaire → /home avec hint partage et cookie", async ({
@@ -15,7 +15,7 @@ test("onboarding créer : landing → formulaire → /home avec hint partage et 
   // Redirection Home sans query (?code=… supprimé avec la bannière).
   await expect(page).toHaveURL(/\/home$/);
   // Plus d'ancienne bannière post-création.
-  await expect(page.getByText(`Foyer ${name} créé`)).toHaveCount(0);
+  await expect(page.getByText(`Carnet ${name} créé`)).toHaveCount(0);
   await expect(page.getByText("Code invitation")).toHaveCount(0);
   // Nouveau hint partage (server-gated, sous la top bar).
   await expect(page.getByText("Cuisinez à plusieurs")).toBeVisible();

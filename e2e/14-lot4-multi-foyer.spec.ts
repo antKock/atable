@@ -110,7 +110,7 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   await v.page.getByText("Saisie manuelle").click();
   await v.page.locator("#title").fill(title);
   await v.page.getByRole("button", { name: "Enregistrer" }).click();
-  await expect(v.page.getByText("Dans quel foyer ?")).toBeVisible();
+  await expect(v.page.getByText("Dans quel carnet ?")).toBeVisible();
   // Tap sur B = confirme ET enregistre (pas de bouton).
   await v.page.getByRole("dialog").getByRole("button", { name: new RegExp(nameB) }).click();
   await v.page.waitForURL(/\/recipes\/[0-9a-f-]+$/);
@@ -128,9 +128,9 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   await mono.page.getByRole("button", { name: "Enregistrer" }).click();
   // Pas de dialog → navigation directe vers la fiche créée.
   await mono.page.waitForURL(/\/recipes\/[0-9a-f-]+$/);
-  await expect(mono.page.getByText("Dans quel foyer ?")).toHaveCount(0);
+  await expect(mono.page.getByText("Dans quel carnet ?")).toHaveCount(0);
   await mono.page.goto("/library");
-  await expect(mono.page.getByRole("button", { name: "Foyer", exact: true })).toHaveCount(0);
+  await expect(mono.page.getByRole("button", { name: "Carnet", exact: true })).toHaveCount(0);
 
   await vb.context.close();
   await v.context.close();
@@ -163,7 +163,7 @@ test("bibliothèque multi-foyer : pill Foyer, filtre (URL persistée), labels d'
   await expect(v.page.getByText(nameB).first()).toBeVisible();
 
   // Filtre « Foyer » multi-select : ne garder que B → URL foyers=<B>.
-  await v.page.getByRole("button", { name: "Foyer", exact: true }).click();
+  await v.page.getByRole("button", { name: "Carnet", exact: true }).click();
   await v.page.getByRole("button", { name: nameB }).click();
   await expect(v.page).toHaveURL(new RegExp(`foyers=${hb.id}`));
   await expect(v.page.getByText(titleB)).toBeVisible();
@@ -219,8 +219,8 @@ test("dernier membre qui quitte = suppression du foyer (UI : pas de « Quitter �
   // UI : v est le DERNIER membre de B → « Supprimer » proposé, « Quitter » masqué
   // (partir supprimerait le foyer ; la copie « tu pourras rejoindre » serait fausse).
   await v.page.goto(`/household/${bId}`);
-  await expect(v.page.getByRole("button", { name: "Supprimer le foyer" })).toBeVisible();
-  await expect(v.page.getByRole("button", { name: "Quitter ce foyer" })).toHaveCount(0);
+  await expect(v.page.getByRole("button", { name: "Supprimer le carnet" })).toBeVisible();
+  await expect(v.page.getByRole("button", { name: "Quitter ce carnet" })).toHaveCount(0);
 
   // API : quitter B en tant que dernier membre SUPPRIME le foyer (cascade).
   const leave = await v.page.request.delete(`/api/households/${bId}?action=leave`);
@@ -236,7 +236,7 @@ test("dernier membre qui quitte = suppression du foyer (UI : pas de « Quitter �
   await v.context.close();
 });
 
-test("démo : « Créer un foyer » = conversion (owner neuf), le hub ne liste pas la démo", async ({
+test("démo : « Créer un carnet » = conversion (owner neuf), le hub ne liste pas la démo", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser);
@@ -244,7 +244,7 @@ test("démo : « Créer un foyer » = conversion (owner neuf), le hub ne liste p
   await page.getByRole("button", { name: "Essayer l'app" }).click();
   await page.waitForURL(/\/home/);
 
-  // Créer un foyer depuis la démo = CONVERSION : chemin « owner neuf » (redirect
+  // Créer un carnet depuis la démo = CONVERSION : chemin « owner neuf » (redirect
   // /home), jamais un ajout de membership sur l'owner démo (garde serveur). Le
   // chemin « owner neuf » ne renvoie PAS `added:true` (réservé au chemin additif).
   const create = await context.request.post("/api/households", {
