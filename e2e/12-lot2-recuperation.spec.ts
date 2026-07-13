@@ -239,9 +239,7 @@ test("7. hints : partage < 3 recettes, puis email ; dismiss persistant ; rien en
   await d.page.goto("/");
   await d.page.getByRole("button", { name: "Essayer l'app" }).click();
   await d.page.waitForURL(/\/home/);
-  await expect(
-    d.page.getByText("Mode démo — tes recettes ne seront pas conservées"),
-  ).toBeVisible();
+  await expect(d.page.getByText("Tu explores un compte démo")).toBeVisible();
   await expect(d.page.getByText("Cuisinez à plusieurs")).toHaveCount(0);
   await expect(d.page.getByText("Sauvegarde ton accès")).toHaveCount(0);
   await d.context.close();

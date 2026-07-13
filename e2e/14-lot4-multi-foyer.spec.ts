@@ -113,7 +113,7 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   await expect(v.page.getByText("Dans quel foyer ?")).toBeVisible();
   // Tap sur B = confirme ET enregistre (pas de bouton).
   await v.page.getByRole("dialog").getByRole("button", { name: new RegExp(nameB) }).click();
-  await v.page.waitForURL(/\/home/);
+  await v.page.waitForURL(/\/recipes\/[0-9a-f-]+$/);
 
   expect(await getRecipeByTitle(hb.id, title)).not.toBeNull();
   expect(await getRecipeByTitle(ha.id, title)).toBeNull();
@@ -126,8 +126,8 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   await mono.page.getByText("Saisie manuelle").click();
   await mono.page.locator("#title").fill(monoTitle);
   await mono.page.getByRole("button", { name: "Enregistrer" }).click();
-  // Pas de dialog → navigation directe.
-  await mono.page.waitForURL(/\/home/);
+  // Pas de dialog → navigation directe vers la fiche créée.
+  await mono.page.waitForURL(/\/recipes\/[0-9a-f-]+$/);
   await expect(mono.page.getByText("Dans quel foyer ?")).toHaveCount(0);
   await mono.page.goto("/library");
   await expect(mono.page.getByRole("button", { name: "Foyer", exact: true })).toHaveCount(0);

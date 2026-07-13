@@ -13,11 +13,15 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   await page.goto("/");
   await page.getByRole("button", { name: "Essayer l'app" }).click();
   await page.waitForURL(/\/home/);
-  await expect(
-    page.getByText("Mode démo — tes recettes ne seront pas conservées"),
-  ).toBeVisible();
+  await expect(page.getByText("Tu explores un compte démo")).toBeVisible();
   // Recettes seed du foyer démo visibles
   await expect(page.getByText("Mousse au chocolat").first()).toBeVisible();
+
+  // CTA du hint démo = ouverture directe du formulaire « nom du foyer »
+  // (conversion), sans repasser par l'accueil. On referme pour la suite.
+  await page.getByRole("button", { name: "Créer mon foyer" }).click();
+  await expect(page.getByRole("heading", { name: /Donne un nom/ })).toBeVisible();
+  await page.getByRole("button", { name: "Annuler" }).click();
 
   // Hub foyer : badge Démo sur la ligne du foyer (sélecteurs adaptés au
   // Lot 1 : hub + détail) ; le détail est en lecture seule (pas de rename)
