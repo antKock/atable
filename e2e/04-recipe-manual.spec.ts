@@ -23,8 +23,8 @@ test("recette manuelle : créer → visible home/biblio → éditer le titre →
   await page.locator("#steps").fill("Éplucher et trancher.\nEnfourner 1 h à 180°C.");
   await page.getByRole("button", { name: "Enregistrer" }).click();
 
-  // Succès → retour home, recette visible (carrousel Récentes)
-  await page.waitForURL(/\/home/);
+  // Succès → atterrissage sur la fiche de la recette créée (voir le résultat)
+  await page.waitForURL(/\/recipes\/[0-9a-f-]+$/);
   await expect(page.getByText(title).first()).toBeVisible();
 
   // Visible en bibliothèque

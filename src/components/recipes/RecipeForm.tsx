@@ -409,9 +409,10 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
           // navigating (the WebView is about to be torn down).
           notifyShareExtensionDone();
         } else {
-          // replace: keep /recipes/new?view=form out of the back stack so
-          // back-from-home lands on the chooser, not a stale form.
-          router.replace("/home");
+          // Land on the new recipe so the user sees the result of their
+          // import/save. replace: keep /recipes/new?view=form out of the back
+          // stack so back-from-fiche lands on the chooser, not a stale form.
+          router.replace(`/recipes/${created.id}`);
         }
 
         if (form.photoFile) {
