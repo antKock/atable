@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
 
     if (!invite) {
       return NextResponse.json(
-        { error: 'Ce code ne correspond à aucun foyer' },
+        { error: 'Ce code ne correspond à aucun carnet' },
         { status: 404 }
       )
     }

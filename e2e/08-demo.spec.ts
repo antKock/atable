@@ -44,7 +44,7 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   const dialog = page.getByRole("dialog");
   await dialog.getByRole("button", { name: "Continuer" }).click();
   await dialog.getByRole("button", { name: "Supprimer définitivement" }).click();
-  await expect(page.getByText("Le foyer démo ne peut pas être supprimé.")).toBeVisible();
+  await expect(page.getByText("Le carnet démo ne peut pas être supprimé.")).toBeVisible();
 
   const env = loadTestEnv();
   const { data } = await db()

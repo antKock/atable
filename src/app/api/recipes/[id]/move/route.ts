@@ -47,7 +47,7 @@ export const PATCH = withOwnerAuth(
     const body = await request.json().catch(() => ({}));
     const destHid = typeof body?.householdId === "string" ? body.householdId : "";
     if (!destHid) {
-      return NextResponse.json({ error: "Foyer cible manquant" }, { status: 422 });
+      return NextResponse.json({ error: "Carnet cible manquant" }, { status: 422 });
     }
 
     const supabase = createServerClient();
