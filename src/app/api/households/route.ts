@@ -8,7 +8,8 @@ import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
 import { resolveOwnerContext } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
-import { resolveDemoTrialStart } from '@/lib/queries/demo-conversion'
+import { resolveDemoTrialStart, resolveDemoAcquisition } from '@/lib/queries/demo-conversion'
+import { parseAcquisition } from '@/lib/acquisition'
 import { enforceHouseholdCreateQuota } from '@/lib/import-quota'
 import { aliasForOwner } from '@/lib/alias'
 
@@ -78,6 +79,12 @@ export async function POST(request: NextRequest) {
     // Marqueur de conversion démo → carnet (dashboard v2, migration 032).
     const demoTrialStartedAt = await resolveDemoTrialStart(supabase, existingOwner)
 
+    // Attribution de campagne (migration 034) : envoyée par le client (création
+    // directe depuis la landing), sinon héritée de la session démo convertie.
+    const acquisition =
+      parseAcquisition((body as { acquisition?: unknown }).acquisition) ??
+      (await resolveDemoAcquisition(supabase, existingOwner))
+
     // Step 1: Insert owner — the abstract identity the household belongs to
     // (chantier foyer #14/#15); the device session below just points at it.
     // On génère l'id côté app pour figer le surnom (alias) dès l'insertion
@@ -99,6 +106,7 @@ export async function POST(request: NextRequest) {
         join_code: joinCode,
         guest_join_code: guestJoinCode,
         origin: demoTrialStartedAt ? 'demo_conversion' : 'landing',
+        acquisition,
       })
       .select('id')
       .single()

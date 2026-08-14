@@ -220,6 +220,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     sharingRows,
     aiCostDemoRows,
     demoActivityRows,
+    acquisitionSourceRows,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
     rpc("analytics_recipes_created_daily", { p_from: ISO(fromRecipes), p_household_ids: hh, p_platform: plat }),
@@ -278,6 +279,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
         if (error) throw new Error(`stats_daily: ${error.message}`);
         return (data ?? []) as Row[];
       }),
+    rpc("analytics_acquisition_sources", { p_days: COST_DAYS }),
   ]);
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
@@ -310,6 +312,15 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   ];
 
   const ttc = (ttcRows as Row[]).map((r) => ({ bin: r.bin as string, value: Number(r.owners) }));
+
+  // ---- acquisition par source (034) — campagne vs organique ----
+  const acquisitionSources = (acquisitionSourceRows as Row[]).map((r) => ({
+    source: String(r.source),
+    campaign: r.campaign == null ? null : String(r.campaign),
+    content: r.content == null ? null : String(r.content),
+    trials: Number(r.trials),
+    carnets: Number(r.carnets),
+  }));
 
   const demoActivityByDay = new Map<string, number>();
   for (const r of demoActivityRows as Row[]) {
@@ -737,6 +748,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     funnel,
     demoDaily: demoDailyChart,
     ttc,
+    acquisitionSources,
     demoActivityDaily,
     demoFrictions: {
       aiCalls: Number(demoSum.demo_ai_calls ?? 0),

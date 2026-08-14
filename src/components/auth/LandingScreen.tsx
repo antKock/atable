@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { t } from '@/lib/i18n/fr'
 import { dropSwrCache } from '@/lib/swr'
+import { captureAcquisitionFromUrl, getStoredAcquisition } from '@/lib/acquisition'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
 import JoinForkScreen from './JoinForkScreen'
@@ -16,12 +17,24 @@ export default function LandingScreen() {
   const [view, setView] = useState<View>('menu')
   const [demoLoading, setDemoLoading] = useState(false)
   const [demoError, setDemoError] = useState<string | null>(null)
+  // Visiteur de campagne (UTM dans l'URL) : les params sont figés pour
+  // l'attribution (migration 034) et la landing affiche la tagline en renfort
+  // de la promesse de la pub.
+  const [fromCampaign, setFromCampaign] = useState(false)
+
+  useEffect(() => {
+    setFromCampaign(captureAcquisitionFromUrl() !== null)
+  }, [])
 
   async function handleTryApp() {
     setDemoLoading(true)
     setDemoError(null)
     try {
-      const response = await fetch('/api/demo/session', { method: 'POST' })
+      const response = await fetch('/api/demo/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ acquisition: getStoredAcquisition() }),
+      })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
         throw new Error((data as { error?: string }).error ?? 'Erreur serveur')
@@ -85,6 +98,11 @@ export default function LandingScreen() {
         >
           {t.landing.title}
         </h1>
+        {fromCampaign && (
+          <p className="mt-4 text-center text-[17px] font-medium opacity-90">
+            {t.landing.tagline}, {t.landing.subtitle.toLowerCase()}
+          </p>
+        )}
       </div>
 
       <div
