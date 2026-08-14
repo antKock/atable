@@ -268,20 +268,6 @@ export default async function DashboardPage({
             >
               <ChartDemoActivity data={data.demoActivityDaily} height={210} />
             </Card>
-            <Card
-              span={8}
-              title="Essais par source"
-              sub="Attribution UTM captée sur la landing (034) · 30 j — « (organique) » = sans UTM"
-            >
-              <HBarList
-                height={200}
-                rows={data.acquisitionSources.map((s) => ({
-                  label: [s.source, s.campaign, s.content].filter(Boolean).join(" · "),
-                  value: s.trials,
-                  hint: `${s.carnets} carnet${s.carnets > 1 ? "s" : ""}`,
-                }))}
-              />
-            </Card>
             <Card span={4} title="Frictions en démo" sub="Ce que les visiteurs font — et n'obtiennent pas · 30 j">
               <BigStats
                 stats={[

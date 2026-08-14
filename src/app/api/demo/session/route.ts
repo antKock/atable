@@ -4,7 +4,6 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
 import { aliasForOwner } from '@/lib/alias'
-import { parseAcquisition } from '@/lib/acquisition'
 
 export async function POST(request: NextRequest) {
   console.log(`[demo/session] POST start`)
@@ -18,11 +17,6 @@ export async function POST(request: NextRequest) {
     const ua = request.headers.get('user-agent') ?? ''
     const deviceName = getDeviceName(ua)
     console.log(`[demo/session] deviceName=${deviceName}`)
-
-    // Attribution de campagne (migration 034) — body optionnel : les anciens
-    // clients (WebView Capacitor pas encore à jour) POSTent sans body.
-    const body = await request.json().catch(() => ({}))
-    const acquisition = parseAcquisition((body as { acquisition?: unknown }).acquisition)
 
     const supabase = createServerClient()
 
@@ -49,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const { data: session, error } = await supabase
       .from('device_sessions')
-      .insert({ household_id: demoHouseholdId, device_name: deviceName, owner_id: ownerId, acquisition })
+      .insert({ household_id: demoHouseholdId, device_name: deviceName, owner_id: ownerId })
       .select('id')
       .single()
 

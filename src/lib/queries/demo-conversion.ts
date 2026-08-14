@@ -1,7 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { isDemoOwner } from "@/lib/api/with-owner-auth";
 import type { OwnerContext } from "@/lib/auth/owner-context";
-import { parseAcquisition, type Acquisition } from "@/lib/acquisition";
 
 /**
  * Marqueur de conversion démo → carnet (dashboard v2, migration 032).
@@ -26,24 +25,4 @@ export async function resolveDemoTrialStart(
     .eq("id", existingOwner.ownerId)
     .single();
   return data?.created_at ?? new Date().toISOString();
-}
-
-/**
- * Attribution héritée à la conversion (migration 034) : si l'owner courant est
- * démo, sa session porte peut-être l'acquisition captée sur la landing — on la
- * recopie sur le carnet créé. Couvre la conversion depuis n'importe quelle
- * page de l'app (le localStorage du client n'est relu que sur la landing).
- */
-export async function resolveDemoAcquisition(
-  supabase: SupabaseClient,
-  existingOwner: OwnerContext | null,
-): Promise<Acquisition | null> {
-  if (!existingOwner || !isDemoOwner(existingOwner)) return null;
-  const { data } = await supabase
-    .from("device_sessions")
-    .select("acquisition")
-    .eq("owner_id", existingOwner.ownerId)
-    .order("created_at", { ascending: true })
-    .limit(1);
-  return parseAcquisition(data?.[0]?.acquisition);
 }

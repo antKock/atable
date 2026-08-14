@@ -3,7 +3,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react'
 import { t } from '@/lib/i18n/fr'
 import { dropSwrCache } from '@/lib/swr'
-import { getStoredAcquisition } from '@/lib/acquisition'
 
 type Props = {
   onCancel: () => void
@@ -34,9 +33,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
       const response = await fetch('/api/households', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // acquisition : attribution de campagne figée à l'arrivée sur la
-        // landing (migration 034) — null hors campagne.
-        body: JSON.stringify({ name: trimmed, acquisition: getStoredAcquisition() }),
+        body: JSON.stringify({ name: trimmed }),
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
