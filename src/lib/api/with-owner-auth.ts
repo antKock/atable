@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
+import { trackStat } from "@/lib/admin/track-stat";
 import {
   getOwnerContext,
   memberHouseholdIds,
@@ -96,6 +97,7 @@ export function assertNotDemoMutation(
 ): NextResponse | null {
   const membership = owner.memberships.find((m) => m.householdId === householdId);
   if (membership?.isDemo) {
+    trackStat("demo_frozen_hits");
     return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
   }
   return null;
@@ -113,6 +115,7 @@ export function isDemoOwner(owner: OwnerContext): boolean {
 
 export function assertNotDemoOwner(owner: OwnerContext): NextResponse | null {
   if (isDemoOwner(owner)) {
+    trackStat("demo_frozen_hits");
     return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
   }
   return null;

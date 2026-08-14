@@ -20,6 +20,20 @@ export async function GET(request: NextRequest) {
   const supabase = createServerClient()
 
   try {
+    // Step 0 (dashboard v2, migration 032) : consolider les agrégats quotidiens
+    // AVANT toute purge — les recettes démo supprimées ci-dessous et les owners
+    // purgés à 30 j sont la seule source de ces compteurs. Best-effort : un
+    // échec du rollup ne doit pas empêcher le reset de la démo.
+    const { error: rollupError } = await supabase.rpc('demo_stats_rollup', {
+      p_demo_household: demoHouseholdId,
+      p_days: 30,
+    })
+    if (rollupError) {
+      Sentry.captureException(
+        new Error(`[cron/demo-reset] stats rollup failed: ${rollupError.message}`)
+      )
+    }
+
     // Step 1: Delete non-seed demo recipes (user-added during demo)
     const { count: deleted, error: deleteError } = await supabase
       .from('recipes')

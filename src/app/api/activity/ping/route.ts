@@ -13,10 +13,11 @@ const VALID_PLATFORMS = ["ios", "android", "web"] as const;
  */
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, { ownerId, sessionId, memberships }) => {
-    // Heartbeat analytics : un appareil actif est rattaché à UN foyer
-    // représentatif (le premier membership). En multi-foyer (Lot 4) l'appareil
-    // couvre plusieurs foyers ; le DAU/MAU par appareil n'en dépend pas, et
-    // daily_activity porte aussi owner_id pour l'attribution owner-level.
+    // Heartbeat analytics. Depuis la migration 033, les fonctions analytics
+    // scoppent l'activité par OWNER (via memberships) — household_id n'est plus
+    // qu'informatif (et sert à l'attribution démo du rollup 032). On continue
+    // de le remplir avec le premier membership, sans que son arbitraire en
+    // multi-carnet ne biaise plus aucune métrique.
     const householdId = memberships[0]?.householdId;
     if (!householdId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
