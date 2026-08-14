@@ -7,6 +7,7 @@ import {
   LOGIN_CODE_MAX_ATTEMPTS,
 } from "@/lib/auth/login-token";
 import { mergePlan, type MergeOwner } from "@/lib/auth/merge-plan";
+import { trackStat } from "@/lib/admin/track-stat";
 
 // Accès DB de la récupération d'accès + fusion (#14, Lot 2). Toutes les
 // erreurs Supabase sont PROPAGÉES : les routes publiques les attrapent pour
@@ -59,6 +60,10 @@ export async function createLoginToken(
   });
   if (error) throw new Error(`recovery: création du token impossible (${error.message})`);
 
+  // Funnel #14 (dashboard v2) : compté à l'émission — la purge ci-dessus
+  // supprime les tokens précédents avant tout rollup nocturne.
+  trackStat(purpose === "recovery" ? "recovery_tokens_sent" : "merge_tokens_sent");
+
   return { token, code };
 }
 
@@ -84,7 +89,9 @@ export async function consumeMagicToken(token: string): Promise<ConsumedToken | 
     .maybeSingle();
   if (error) throw new Error(`recovery: consommation du token impossible (${error.message})`);
   if (!data) return null;
-  return { ownerId: data.owner_id, purpose: data.purpose as LoginTokenPurpose };
+  const purpose = data.purpose as LoginTokenPurpose;
+  trackStat(purpose === "recovery" ? "recovery_tokens_used" : "merge_tokens_used");
+  return { ownerId: data.owner_id, purpose };
 }
 
 /**
@@ -110,6 +117,9 @@ export async function verifyLoginCode(
     p_code_hash: await sha256Hex(code),
   });
   if (error) throw new Error(`recovery: vérification du code impossible (${error.message})`);
+  if (data === "ok") {
+    trackStat(purpose === "recovery" ? "recovery_tokens_used" : "merge_tokens_used");
+  }
   return data === "ok";
 }
 

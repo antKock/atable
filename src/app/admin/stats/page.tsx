@@ -7,14 +7,15 @@ import { PALETTE as P } from "@/lib/admin/palette";
 import FilterBar from "@/components/admin/FilterBar";
 import {
   Sparkline,
+  HBarList,
+  ChartTrialsDaily,
+  ChartDemoActivity,
   ChartWauMau,
   ChartStickiness,
-  ChartLoginFreq,
-  ChartAcquisition,
+  ChartBins,
   ChartParc,
-  ChartHouseholdSize,
+  ChartPeoplePerCarnet,
   ChartRecipeCreation,
-  ChartRecipesPerHousehold,
   ChartAddMethods,
   ChartMethodMix,
   ChartTopHouseholds,
@@ -131,6 +132,24 @@ function SectionHead({ n, title, meta }: { n: string; title: string; meta?: stri
   );
 }
 
+// Tuile « grands chiffres » empilés (profondeur, frictions, adoption invité…).
+function BigStats({ stats }: { stats: { value: string; label: string; hint?: string; warn?: boolean }[] }) {
+  return (
+    <div className="big-stats">
+      {stats.map((s, i) => (
+        <div key={s.label} style={{ display: "contents" }}>
+          {i > 0 && <div className="hr" />}
+          <div className="big-stat">
+            <div className="bs-val" style={s.warn ? { color: "var(--d-neg)" } : undefined}>{s.value}</div>
+            <div className="bs-lab">{s.label}</div>
+            {s.hint && <div className="bs-hint">{s.hint}</div>}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 type LegendItem = { label: string; color: string; dash?: boolean };
 function LegendInline({ items }: { items: LegendItem[] }) {
   return (
@@ -163,7 +182,6 @@ export default async function DashboardPage({
     getDashboardData({ platform, period, householdIds }),
     getHouseholdsForPicker(),
   ]);
-  const dormant = data.signals.find((s) => s.warn)?.value ?? "0";
   const periodSpan = resolvePeriod(period).span;
 
   return (
@@ -179,16 +197,14 @@ export default async function DashboardPage({
           <span className="toplink" style={{ color: "var(--d-faint)" }}>
             Données réelles · prod
           </span>
-          <button className="btn-ghost" type="button">
-            Exporter
-          </button>
         </div>
       </div>
 
       <FilterBar households={households} />
 
       <div className="page">
-        {/* KPI row */}
+        {/* KPI row — ordre du parcours : acquisition → conversion → activation
+            → engagement → contenu → qualité */}
         <div className="kpi-row">
           {data.kpis.map((k) => (
             <Kpi key={k.id} k={k} />
@@ -202,63 +218,133 @@ export default async function DashboardPage({
           ))}
         </div>
 
-        {/* 01 — Activité & fidélité */}
+        {/* 01 — Funnel démo → carnet */}
         <div className="section">
-          <SectionHead n="01" title="Activité & fidélité" meta="Reviennent-ils, et à quelle fréquence ?" />
+          <SectionHead n="01" title="Funnel démo → carnet" meta="L'étape clé : de l'essai anonyme au premier carnet" />
           <div className="cards">
             <Card
-              span={8}
-              title="Appareils actifs — WAU / MAU"
-              sub={`Fenêtre glissante 7 j / 30 j, échantillonnée par jour · ${periodSpan}`}
-              badge="WAU · MAU"
-              footer={<LegendInline items={[{ label: "MAU", color: P.olive }, { label: "WAU", color: P.terracotta }]} />}
+              span={5}
+              title="Funnel des 30 derniers jours"
+              sub="Chaque essai = une session démo créée (« Essayer l'app »)"
+              footer={
+                <div className="chart-note">
+                  Historique disponible depuis la pose du marqueur de conversion (migration 032) —{" "}
+                  <b>aucun rattrapage du passé possible</b>.
+                </div>
+              }
             >
-              <ChartWauMau data={data.wauMau} height={260} />
+              <HBarList
+                height={200}
+                rows={data.funnel.map((s) => ({
+                  label: s.label,
+                  value: s.value,
+                  hint: `${Math.round(s.pct)} %`,
+                }))}
+              />
             </Card>
-            <Card span={4} title="Stickiness" sub="Ratio WAU / MAU — fidélité d'usage">
-              <ChartStickiness data={data.wauMau} height={172} />
+            <Card
+              span={7}
+              title="Essais & conversions par jour"
+              sub={`Volume d'essais démo (barres) et conversions en 1er carnet (ligne) · ${periodSpan}`}
+              badge="global"
+              footer={
+                <LegendInline
+                  items={[
+                    { label: "Essais démo / jour", color: P.oliveSoft },
+                    { label: "Conversions / jour", color: P.terracotta },
+                  ]}
+                />
+              }
+            >
+              <ChartTrialsDaily data={data.demoDaily} height={240} />
             </Card>
-            <Card span={6} title="Fréquence de connexion" sub="Distribution : nb de jours actifs / mois / appareil">
-              <ChartLoginFreq data={data.loginFrequency} height={220} />
+            <Card span={4} title="Délai avant conversion" sub="Temps entre la 1ʳᵉ session démo et la création du carnet (toutes conversions)">
+              <ChartBins data={data.ttc} name="Conversions" height={210} emptySub="Se remplit avec les premières conversions marquées (032)." />
             </Card>
-            <Card span={6} title="Profondeur d'usage" sub="Recettes ajoutées par jour actif & signaux de churn">
-              <div style={{ display: "flex", gap: 20, height: 220, alignItems: "stretch" }}>
-                <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", gap: 18 }}>
-                  <div>
-                    <div style={{ fontFamily: "var(--d-mono)", fontSize: 38, fontWeight: 500, lineHeight: 1 }}>
-                      {String(data.depth.toFixed(1)).replace(".", ",")}
-                    </div>
-                    <div style={{ fontSize: 12.5, color: "var(--d-muted)", marginTop: 6 }}>recettes / jour actif</div>
-                  </div>
-                  <div style={{ height: 1, background: "var(--d-border)" }} />
-                  <div>
-                    <div style={{ fontFamily: "var(--d-mono)", fontSize: 38, fontWeight: 500, lineHeight: 1, color: "var(--d-neg)" }}>{dormant}</div>
-                    <div style={{ fontSize: 12.5, color: "var(--d-muted)", marginTop: 6 }}>foyers dormants (+30 j)</div>
-                  </div>
-                </div>
-                <div style={{ flex: "0 0 50%", borderLeft: "1px solid var(--d-border)", paddingLeft: 18 }}>
-                  <ChartStickiness data={data.wauMau} height={200} />
-                </div>
-              </div>
+            <Card
+              span={4}
+              title="Activité en démo"
+              sub="Recettes ajoutées par les visiteurs démo · 30 j — consolidé chaque nuit avant la purge"
+            >
+              <ChartDemoActivity data={data.demoActivityDaily} height={210} />
+            </Card>
+            <Card span={4} title="Frictions en démo" sub="Ce que les visiteurs font — et n'obtiennent pas · 30 j">
+              <BigStats
+                stats={[
+                  {
+                    value: String(data.demoFrictions.aiCalls),
+                    label: "appels IA en démo",
+                    hint: `${data.demoFrictions.recipesAdded} recettes ajoutées puis purgées`,
+                  },
+                  {
+                    value: String(data.demoFrictions.frozenHits),
+                    label: "blocages « monde gelé » (403)",
+                    hint: "actions carnet/profil tentées depuis la démo",
+                    warn: data.demoFrictions.frozenHits > 0,
+                  },
+                ]}
+              />
             </Card>
           </div>
         </div>
 
-        {/* 02 — Croissance */}
+        {/* 02 — Personnes actives */}
         <div className="section">
-          <SectionHead n="02" title="Croissance" meta="L'usage progresse-t-il dans le temps ?" />
+          <SectionHead n="02" title="Personnes actives" meta="Grain owner — l'ancienne série « appareils » reste en filigrane" />
           <div className="cards">
+            <Card
+              span={8}
+              title="Personnes actives — WAU / MAU"
+              sub={`Fenêtre glissante 7 j / 30 j, échantillonnée par jour · ${periodSpan}`}
+              badge="grain owner"
+              footer={
+                <>
+                  <LegendInline
+                    items={[
+                      { label: "MAU personnes", color: P.olive },
+                      { label: "WAU personnes", color: P.terracotta },
+                      { label: "MAU appareils (ancienne métrique)", color: P.faint, dash: true },
+                    ]}
+                  />
+                  {data.activityMarker && (
+                    <div className="chart-note">
+                      Repère <b>➀ {data.activityMarker}</b> : correctif du heartbeat + modèle owners — avant ➀, les jours
+                      actifs sont sous-capturés et la série « personnes » est un <b>majorant</b> (identités fantômes non
+                      fusionnables).
+                    </div>
+                  )}
+                </>
+              }
+            >
+              <ChartWauMau data={data.wauMau} marker={data.activityMarker} height={260} />
+            </Card>
+            <Card span={4} title="Stickiness" sub="Ratio WAU / MAU — fidélité d'usage">
+              <ChartStickiness data={data.wauMau} height={260} />
+            </Card>
+            <Card span={4} title="Fréquence d'usage" sub="Jours actifs / mois / personne (avant : par appareil)">
+              <ChartBins data={data.loginFrequency} name="Personnes" height={220} />
+            </Card>
+            <Card span={4} title="Appareils par personne" sub="Mesure directe du bruit « fantômes » et du multi-appareil réel">
+              <ChartBins data={data.devicesPerOwner} name="Personnes" color={P.ochre} height={220} />
+            </Card>
+            <Card span={4} title="Profondeur d'usage" sub="Recettes ajoutées par jour-personne actif">
+              <BigStats
+                stats={[
+                  { value: String(data.depth.toFixed(1)).replace(".", ","), label: "recettes / jour actif" },
+                  { value: String(data.dormantCarnets), label: "carnets dormants (+30 j)", warn: data.dormantCarnets > 0 },
+                ]}
+              />
+            </Card>
             <Card
               span={12}
               title="Évolution du parc — totaux cumulés"
-              sub="Foyers, appareils et recettes accumulés depuis le lancement"
-              badge="North star"
+              sub="Personnes et carnets accumulés depuis le lancement · les recettes cumulées (échelle incomparable) sont en section 04"
+              badge="North star · global"
               footer={
                 <LegendInline
                   items={[
-                    { label: "Appareils (total)", color: P.olive },
-                    { label: "Foyers (total)", color: P.sage },
-                    { label: "Recettes (total)", color: P.terracotta, dash: true },
+                    { label: "Personnes (total)", color: P.olive },
+                    { label: "Carnets (total)", color: P.sage },
                   ]}
                 />
               }
@@ -267,58 +353,9 @@ export default async function DashboardPage({
             </Card>
             <Card
               span={8}
-              title="Nouveaux appareils & foyers"
-              sub="Acquisition quotidienne (flux, non cumulé)"
-              footer={
-                <LegendInline
-                  items={[
-                    { label: "Nouveaux appareils", color: P.olive },
-                    { label: "Nouveaux foyers", color: P.ochre, dash: true },
-                  ]}
-                />
-              }
-            >
-              <ChartAcquisition data={data.acquisition} height={250} />
-            </Card>
-            <Card span={4} title="Taille des foyers" sub="Nb d'appareils par foyer">
-              <ChartHouseholdSize data={data.householdSize} height={250} />
-            </Card>
-          </div>
-        </div>
-
-        {/* 03 — Contenu */}
-        <div className="section">
-          <SectionHead n="03" title="Contenu — recettes" meta="Comment les foyers remplissent l'app" />
-          <div className="cards">
-            <Card span={7} title="Volume de création de recettes" sub="Tendance quotidienne">
-              <ChartRecipeCreation data={data.recipeCreation} height={250} />
-            </Card>
-            <Card span={5} title="Recettes par foyer" sub="Distribution">
-              <ChartRecipesPerHousehold data={data.recipesPerHousehold} height={250} />
-            </Card>
-            <Card span={4} title="Méthodes d'ajout" sub="Répartition globale">
-              <ChartAddMethods data={data.addMethods} height={210} />
-            </Card>
-            <Card span={4} title="Évolution du mix des méthodes" sub="L'import URL prend-il de l'ampleur ?">
-              <ChartMethodMix data={data.addMethodsOverTime} height={210} />
-            </Card>
-            <Card span={4} title="Top foyers" sub="Classement par nb de recettes">
-              <ChartTopHouseholds data={data.topHouseholds} height={250} />
-            </Card>
-          </div>
-        </div>
-
-        {/* 04 — Engagement & activation */}
-        <div className="section">
-          <SectionHead n="04" title="Engagement & activation" meta="Vue cohorte légère" />
-          <div className="cards">
-            <Card span={3} title="Activation 7 jours" sub="% nouveaux foyers ≥ 1 recette">
-              <GaugeRadial value={data.activationPct} color={P.olive} height={190} label="à 7 j" big />
-            </Card>
-            <Card
-              span={9}
               title="Rétention par cohorte"
-              sub="% de foyers encore actifs N semaines après création"
+              sub="% de personnes encore actives N semaines après leur arrivée (avant : cohortes de foyers)"
+              badge="grain owner"
               footer={
                 <LegendInline
                   items={data.retentionCohorts.map((c, i) => ({
@@ -331,17 +368,164 @@ export default async function DashboardPage({
             >
               <ChartRetention data={data.retention} cohorts={data.retentionCohorts} height={250} />
             </Card>
+            <Card span={4} title="Activation 7 jours" sub="% de nouvelles personnes avec ≥ 1 recette dans les 7 j (8 dernières cohortes)">
+              <GaugeRadial value={data.activationPct} color={P.olive} height={220} label="à 7 j" big />
+            </Card>
           </div>
         </div>
 
-        {/* 05 — Qualité & coût IA */}
+        {/* 03 — Carnets & cercles */}
         <div className="section">
-          <SectionHead n="05" title="Qualité & coût IA" meta="Pipeline d'enrichissement & dépense OpenAI — spécifique Mijote" />
+          <SectionHead n="03" title="Carnets & cercles" meta="Le carnet mesuré pour lui-même : rôles, partage, multi-carnet" />
           <div className="cards">
-            <Card span={8} title="Coût IA / jour par usage" sub="Dépense OpenAI quotidienne, empilée par type d'appel (USD)" badge="USD">
+            <Card
+              span={4}
+              title="Carnets par personne"
+              sub="Adoption du multi-carnet (Lot 4)"
+              footer={
+                <div className="chart-note">
+                  <b>{data.multiCarnetPct} %</b> des personnes ont plus d&apos;un carnet.
+                </div>
+              }
+            >
+              <ChartBins data={data.carnetsPerOwner} name="Personnes" height={210} />
+            </Card>
+            <Card
+              span={4}
+              title="Personnes par carnet"
+              sub="Membres et invités par carnet (avant : nb d'appareils par foyer)"
+              footer={
+                <LegendInline
+                  items={[
+                    { label: "Membres", color: P.olive },
+                    { label: "Invités", color: P.ochre },
+                  ]}
+                />
+              }
+            >
+              <ChartPeoplePerCarnet data={data.peoplePerCarnet} height={210} />
+            </Card>
+            <Card span={4} title="Adoption du rôle invité" sub="Feature du Lot 3 — lecture seule">
+              <BigStats
+                stats={[
+                  {
+                    value: `${data.guestAdoption.withGuestPct} %`,
+                    label: "des carnets ont ≥ 1 invité",
+                    hint: `${data.guestAdoption.guestsTotal} invité${data.guestAdoption.guestsTotal > 1 ? "s" : ""} au total`,
+                  },
+                  {
+                    value: String(data.sharing.moves),
+                    label: "recettes déplacées entre carnets · 30 j",
+                  },
+                ]}
+              />
+            </Card>
+            <Card
+              span={12}
+              title="Top 20 carnets"
+              sub="Par nombre de recettes · dernière activité via les membres (memberships)"
+            >
+              <ChartTopHouseholds data={data.topHouseholds} height={Math.max(250, data.topHouseholds.length * 28)} />
+            </Card>
+          </div>
+        </div>
+
+        {/* 04 — Contenu & partage */}
+        <div className="section">
+          <SectionHead n="04" title="Contenu & partage" meta="Comment les carnets se remplissent — et circulent" />
+          <div className="cards">
+            <Card span={7} title="Volume de création de recettes" sub={`Tendance quotidienne · ${periodSpan}`}>
+              <ChartRecipeCreation data={data.recipeCreation} height={250} />
+            </Card>
+            <Card span={5} title="Méthodes d'ajout" sub="Répartition globale — inclut les copies de partage (« Partagée »)">
+              <ChartAddMethods data={data.addMethods} height={230} />
+            </Card>
+            <Card
+              span={4}
+              title="Partage de recettes"
+              sub="Liens émis (cumul) vs recettes copiées par les destinataires (30 j)"
+              footer={
+                data.sharing.links > 0 ? (
+                  <div className="chart-note">
+                    Taux de reprise : <b>{data.sharing.uptakePct} %</b> des liens partagés ont abouti à ≥ 1 copie (30 j).
+                  </div>
+                ) : undefined
+              }
+            >
+              <HBarList
+                height={130}
+                colors={[P.olive, P.ochre]}
+                rows={[
+                  { label: "Liens de partage émis", value: data.sharing.links },
+                  { label: "Copiées par un destinataire", value: data.sharing.copies },
+                ]}
+              />
+            </Card>
+            <Card span={4} title="Recettes par carnet" sub="Distribution">
+              <ChartBins data={data.recipesPerHousehold} name="Carnets" height={220} />
+            </Card>
+            <Card span={4} title="Évolution du mix des méthodes" sub="L'import URL prend-il de l'ampleur ?">
+              <ChartMethodMix data={data.addMethodsOverTime} height={220} />
+            </Card>
+          </div>
+        </div>
+
+        {/* 05 — Compte & sécurité */}
+        <div className="section">
+          <SectionHead n="05" title="Compte & sécurité" meta="Récupération d'accès (#14), profils, fusions" />
+          <div className="cards">
+            <Card
+              span={4}
+              title="Filet de sécurité"
+              sub="% de personnes avec un email de récupération"
+              footer={
+                <div className="chart-note">
+                  Les personnes sans email <b>perdent tout</b> si elles perdent leur session ({data.recovery.withEmail}
+                  {" "}/ {data.recovery.ownersTotal} en ont un).
+                </div>
+              }
+            >
+              <GaugeRadial
+                value={data.recovery.withEmailPct}
+                color={data.recovery.withEmailPct < 50 ? P.terracotta : P.olive}
+                height={200}
+                label="ont un email"
+              />
+            </Card>
+            <Card span={4} title="Funnel de récupération" sub="login_tokens émis → consommés · 90 j (consolidé chaque nuit)">
+              <HBarList
+                height={200}
+                colors={[P.olive, P.oliveDeep, "#C9C2B2", P.terracotta]}
+                rows={data.recovery.funnel}
+              />
+            </Card>
+            <Card span={4} title="Profils & identités" sub="Santé du hub « Toi + tes carnets » (Lot 1)">
+              <BigStats
+                stats={[
+                  {
+                    value: `${data.recovery.namedPct} %`,
+                    label: "de profils nommés",
+                    hint: "les autres gardent leur surnom auto",
+                  },
+                  {
+                    value: String(data.recovery.merges),
+                    label: "fusions d'identités réussies",
+                    hint: "via email déjà pris (Lot 2) · 90 j",
+                  },
+                ]}
+              />
+            </Card>
+          </div>
+        </div>
+
+        {/* 06 — Qualité & coût IA */}
+        <div className="section">
+          <SectionHead n="06" title="Qualité & coût IA" meta="Pipeline d'enrichissement & dépense OpenAI — part démo isolée" />
+          <div className="cards">
+            <Card span={8} title="Coût IA / jour par usage" sub="Dépense OpenAI quotidienne, empilée par type d'appel — la démo en gris" badge="USD">
               <ChartAiCostTrend data={data.aiCost.daily} height={230} />
             </Card>
-            <Card span={4} title="Répartition par usage" sub="Part de la dépense — 30 j">
+            <Card span={4} title="Répartition par usage" sub="Part de la dépense réelle (hors démo) — 30 j">
               <ChartCostByType data={data.aiCost.byType} height={200} />
             </Card>
             <Card
@@ -351,8 +535,8 @@ export default async function DashboardPage({
               footer={
                 <div className="cost-recon">
                   {data.aiCost.billed30d != null
-                    ? `Facturé OpenAI (org.) : ${money(data.aiCost.billed30d)} · instrumenté : ${money(data.aiCost.total30d)}`
-                    : `Total instrumenté : ${money(data.aiCost.total30d)}`}
+                    ? `Facturé OpenAI (org.) : ${money(data.aiCost.billed30d)} · instrumenté : ${money(data.aiCost.total30d + data.aiCost.demo30d)} (dont démo ${money(data.aiCost.demo30d)})`
+                    : `Total instrumenté : ${money(data.aiCost.total30d + data.aiCost.demo30d)} (dont démo ${money(data.aiCost.demo30d)})`}
                 </div>
               }
             >
@@ -374,16 +558,16 @@ export default async function DashboardPage({
             <Card span={4} title="Pipeline d'enrichissement" sub="Taux de succès / échec des appels">
               <ChartAiPipeline data={data.aiPipeline} success={data.aiPipeline[0]?.value ?? 0} height={200} />
             </Card>
-            <Card span={4} title="Couverture" sub="Recettes enrichies vs brutes">
+            <Card span={4} title="Couverture" sub="Recettes enrichies vs brutes (les copies partagées comptent)">
               <GaugeRadial value={data.coveragePct} color={P.sage} height={190} label="enrichies" />
             </Card>
-            <Card span={4} title="Répartition par plateforme" sub="Angle de lecture transverse">
+            <Card span={12} title="Répartition par plateforme" sub="Angle de lecture transverse — plateforme de l'appareil créateur des recettes">
               <ChartPlatforms data={data.platforms} height={200} />
             </Card>
             <Card
               span={12}
               title="Échecs d'enrichissement"
-              sub="Recettes dont le pipeline IA a échoué (20 dernières) — relancer via batch-enrich"
+              sub="Recettes dont le pipeline IA a échoué (20 dernières, hors démo/test) — relancer via batch-enrich"
               badge={data.enrichmentFailures.length > 0 ? String(data.enrichmentFailures.length) : undefined}
             >
               {data.enrichmentFailures.length === 0 ? (
@@ -392,7 +576,7 @@ export default async function DashboardPage({
                 <div className="fail-table">
                   <div className="fail-row fail-head">
                     <span>Recette</span>
-                    <span>Foyer</span>
+                    <span>Carnet</span>
                     <span>Échec</span>
                     <span>Dernière activité</span>
                   </div>

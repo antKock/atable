@@ -8,6 +8,7 @@ import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
 import { resolveOwnerContext } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
+import { resolveDemoTrialStart } from '@/lib/queries/demo-conversion'
 import { enforceHouseholdCreateQuota } from '@/lib/import-quota'
 import { aliasForOwner } from '@/lib/alias'
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     if (existingOwner && !isDemoOwner(existingOwner)) {
       const { data: addHousehold, error: addHouseholdError } = await supabase
         .from('households')
-        .insert({ name, join_code: joinCode, guest_join_code: guestJoinCode })
+        .insert({ name, join_code: joinCode, guest_join_code: guestJoinCode, origin: 'additif' })
         .select('id')
         .single()
       if (addHouseholdError || !addHousehold) {
@@ -74,6 +75,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: true, redirect: '/home', added: true })
     }
 
+    // Marqueur de conversion démo → carnet (dashboard v2, migration 032).
+    const demoTrialStartedAt = await resolveDemoTrialStart(supabase, existingOwner)
+
     // Step 1: Insert owner — the abstract identity the household belongs to
     // (chantier foyer #14/#15); the device session below just points at it.
     // On génère l'id côté app pour figer le surnom (alias) dès l'insertion
@@ -81,7 +85,7 @@ export async function POST(request: NextRequest) {
     const ownerId = crypto.randomUUID()
     const { error: ownerError } = await supabase
       .from('owners')
-      .insert({ id: ownerId, alias: aliasForOwner(ownerId) })
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId), demo_trial_started_at: demoTrialStartedAt })
 
     if (ownerError) {
       throw new Error(ownerError.message ?? 'Failed to create owner')
@@ -90,7 +94,12 @@ export async function POST(request: NextRequest) {
     // Step 2: Insert household
     const { data: household, error: householdError } = await supabase
       .from('households')
-      .insert({ name, join_code: joinCode, guest_join_code: guestJoinCode })
+      .insert({
+        name,
+        join_code: joinCode,
+        guest_join_code: guestJoinCode,
+        origin: demoTrialStartedAt ? 'demo_conversion' : 'landing',
+      })
       .select('id')
       .single()
 

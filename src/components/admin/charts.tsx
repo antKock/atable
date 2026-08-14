@@ -19,6 +19,7 @@ import {
   Tooltip,
   RadialBar,
   PolarAngleAxis,
+  ReferenceLine,
 } from "recharts";
 import { PALETTE as P, FONT, MONO, axisTick, axisProps, gridProps } from "@/lib/admin/palette";
 
@@ -120,10 +121,88 @@ export function Sparkline({ data, color = P.olive, height = 34 }: { data: any[];
   );
 }
 
-/* ==================== 01 — ACTIVITÉ & FIDÉLITÉ ==================== */
+/* ==================== 01 — FUNNEL DÉMO → CARNET ==================== */
 
-export function ChartWauMau({ data, height = 260 }: { data: any[]; height?: number }) {
-  if (sum(data, ["wau", "mau"]) === 0) return <ChartEmpty height={height} sub="WAU/MAU se construit dès que les appareils reviennent (post-déploiement du ping)." />;
+/**
+ * Liste de barres horizontales HTML (funnel démo, partage, funnel de
+ * récupération) : quelques valeurs étiquetées, pas besoin de Recharts.
+ */
+export function HBarList({
+  rows,
+  colors,
+  height,
+}: {
+  rows: { label: string; value: number; hint?: string }[];
+  colors?: string[];
+  height?: number;
+}) {
+  const max = Math.max(1, ...rows.map((r) => r.value));
+  const defaultColors = [P.oliveSoft, P.olive, P.oliveDeep, P.terracotta];
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14, minHeight: height, justifyContent: "center", padding: "4px 0" }}>
+      {rows.map((r, i) => (
+        <div key={r.label} style={{ display: "grid", gridTemplateColumns: "minmax(120px, 40%) 1fr", gap: 10, alignItems: "center" }}>
+          <div style={{ fontFamily: FONT, fontSize: 12, color: P.muted, textAlign: "right", lineHeight: 1.25 }}>{r.label}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <div
+              style={{
+                width: `${Math.max(3, (r.value / max) * 100)}%`,
+                maxWidth: "calc(100% - 64px)",
+                height: 18,
+                borderRadius: 4,
+                background: (colors ?? defaultColors)[i % (colors ?? defaultColors).length],
+              }}
+            />
+            <span style={{ fontFamily: MONO, fontSize: 13.5, fontWeight: 500, color: P.ink, whiteSpace: "nowrap" }}>
+              {fr(r.value)}
+              {r.hint && <span style={{ fontFamily: FONT, fontSize: 10.5, color: P.faint, marginLeft: 6 }}>{r.hint}</span>}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Essais démo (barres) + conversions en 1er carnet (ligne).
+export function ChartTrialsDaily({ data, height = 240 }: { data: any[]; height?: number }) {
+  if (sum(data, ["trials", "conversions"]) === 0)
+    return <ChartEmpty height={height} sub="Les essais démo apparaissent dès la première session « Essayer l'app »." />;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <ComposedChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
+        <YAxis {...axisProps} width={36} allowDecimals={false} />
+        <Tooltip content={<Tip />} />
+        <Bar dataKey="trials" name="Essais démo" fill={P.oliveSoft} radius={[2, 2, 0, 0]} maxBarSize={10} />
+        <Line type="monotone" dataKey="conversions" name="Conversions" stroke={P.terracotta} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
+// Recettes ajoutées en démo par jour (agrégat 032, consolidé chaque nuit).
+export function ChartDemoActivity({ data, height = 210 }: { data: any[]; height?: number }) {
+  if (sum(data, ["recettes"]) === 0)
+    return <ChartEmpty height={height} sub="Se remplit à mesure que le rollup nocturne consolide l'activité démo (migration 032)." />;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
+        <YAxis {...axisProps} width={36} allowDecimals={false} />
+        <Tooltip content={<Tip />} cursor={{ fill: "rgba(110,122,56,0.06)" }} />
+        <Bar dataKey="recettes" name="Recettes ajoutées en démo" fill={P.sage} radius={[3, 3, 0, 0]} maxBarSize={16} />
+      </BarChart>
+    </ResponsiveContainer>
+  );
+}
+
+/* ==================== 02 — PERSONNES ACTIVES ==================== */
+
+export function ChartWauMau({ data, marker, height = 260 }: { data: any[]; marker?: string | null; height?: number }) {
+  if (sum(data, ["wau", "mau"]) === 0) return <ChartEmpty height={height} sub="WAU/MAU se construit dès que les personnes reviennent (heartbeat)." />;
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
@@ -137,8 +216,19 @@ export function ChartWauMau({ data, height = 260 }: { data: any[]; height?: numb
         <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={44} />
         <Tooltip content={<Tip />} />
-        <Area type="monotone" dataKey="mau" name="MAU" stroke={P.olive} strokeWidth={2} fill="url(#gMau)" dot={false} activeDot={{ r: 4 }} />
-        <Line type="monotone" dataKey="wau" name="WAU" stroke={P.terracotta} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+        {/* Ancienne métrique appareils en filigrane : l'écart avec MAU personnes
+            visualise le bruit des identités fantômes. */}
+        <Line type="monotone" dataKey="mauDevices" name="MAU appareils (ancienne métrique)" stroke={P.faint} strokeWidth={1.6} strokeDasharray="4 5" dot={false} activeDot={{ r: 3 }} />
+        <Area type="monotone" dataKey="mau" name="MAU personnes" stroke={P.olive} strokeWidth={2.2} fill="url(#gMau)" dot={false} activeDot={{ r: 4 }} />
+        <Line type="monotone" dataKey="wau" name="WAU personnes" stroke={P.terracotta} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+        {marker && (
+          <ReferenceLine
+            x={marker}
+            stroke={P.faint}
+            strokeDasharray="3 4"
+            label={{ value: "➀", position: "top", fontSize: 12, fill: P.muted }}
+          />
+        )}
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -165,80 +255,87 @@ export function ChartStickiness({ data, height = 172 }: { data: any[]; height?: 
   );
 }
 
-export function ChartLoginFreq({ data, height = 220 }: { data: any[]; height?: number }) {
-  if (sum(data, ["devices"]) === 0) return <ChartEmpty height={height} sub="La distribution se diversifie avec les jours actifs récurrents." />;
+/**
+ * Distribution générique en barres verticales sur {bin, value} — fréquence
+ * d'usage, appareils/personne, carnets/personne, recettes/carnet.
+ */
+export function ChartBins({
+  data,
+  name,
+  color = P.olive,
+  height = 220,
+  emptySub,
+}: {
+  data: any[];
+  name: string;
+  color?: string;
+  height?: number;
+  emptySub?: string;
+}) {
+  if (sum(data, ["value"]) === 0) return <ChartEmpty height={height} sub={emptySub ?? "La distribution se remplit avec l'usage réel."} />;
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
         <CartesianGrid {...gridProps} />
         <XAxis dataKey="bin" {...axisProps} />
-        <YAxis {...axisProps} width={44} />
+        <YAxis {...axisProps} width={44} allowDecimals={false} />
         <Tooltip content={<Tip />} cursor={{ fill: "rgba(110,122,56,0.06)" }} />
-        <Bar dataKey="devices" name="Appareils" fill={P.olive} radius={[5, 5, 0, 0]} maxBarSize={54} />
+        <Bar dataKey="value" name={name} fill={color} radius={[5, 5, 0, 0]} maxBarSize={54} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
-/* ==================== 02 — CROISSANCE ==================== */
-
-export function ChartAcquisition({ data, height = 250 }: { data: any[]; height?: number }) {
-  return (
-    <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-        <CartesianGrid {...gridProps} />
-        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
-        <YAxis {...axisProps} width={36} />
-        <Tooltip content={<Tip />} />
-        <Line type="monotone" dataKey="devices" name="Nouveaux appareils" stroke={P.olive} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-        <Line type="monotone" dataKey="foyers" name="Nouveaux foyers" stroke={P.ochre} strokeWidth={2} strokeDasharray="4 3" dot={false} activeDot={{ r: 4 }} />
-      </LineChart>
-    </ResponsiveContainer>
-  );
-}
-
+// Parc cumulé — personnes + carnets, une seule échelle (mêmes ordres de
+// grandeur). Les recettes cumulées, d'échelle incomparable, vivent en
+// section 04 (décision maquette v2 : pas de double axe).
 export function ChartParc({ data, height = 280 }: { data: any[]; height?: number }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
         <defs>
-          <linearGradient id="gParcDev" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="gParcOwn" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={P.olive} stopOpacity={0.18} />
             <stop offset="100%" stopColor={P.olive} stopOpacity={0.02} />
           </linearGradient>
-          <linearGradient id="gParcFoy" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id="gParcCar" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={P.sage} stopOpacity={0.2} />
             <stop offset="100%" stopColor={P.sage} stopOpacity={0.02} />
           </linearGradient>
         </defs>
         <CartesianGrid {...gridProps} />
         <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
-        <YAxis yAxisId="count" {...axisProps} width={48} />
-        <YAxis yAxisId="recipes" orientation="right" {...axisProps} width={52} tickFormatter={(v: number) => `${Math.round(v / 1000)}k`} />
+        <YAxis {...axisProps} width={48} allowDecimals={false} />
         <Tooltip content={<Tip />} />
-        <Area yAxisId="count" type="monotone" dataKey="appareils" name="Appareils (total)" stroke={P.olive} strokeWidth={2} fill="url(#gParcDev)" dot={false} activeDot={{ r: 4 }} />
-        <Area yAxisId="count" type="monotone" dataKey="foyers" name="Foyers (total)" stroke={P.sage} strokeWidth={2} fill="url(#gParcFoy)" dot={false} activeDot={{ r: 4 }} />
-        <Line yAxisId="recipes" type="monotone" dataKey="recettes" name="Recettes (total)" stroke={P.terracotta} strokeWidth={2} strokeDasharray="4 3" dot={false} activeDot={{ r: 4 }} />
+        <Area type="monotone" dataKey="personnes" name="Personnes (total)" stroke={P.olive} strokeWidth={2.2} fill="url(#gParcOwn)" dot={false} activeDot={{ r: 4 }} />
+        <Area type="monotone" dataKey="carnets" name="Carnets (total)" stroke={P.sage} strokeWidth={2} fill="url(#gParcCar)" dot={false} activeDot={{ r: 4 }} />
       </ComposedChart>
     </ResponsiveContainer>
   );
 }
 
-export function ChartHouseholdSize({ data, height = 250 }: { data: any[]; height?: number }) {
+/* ==================== 03 — CARNETS & CERCLES ==================== */
+
+// Personnes par carnet, empilées membre/invité (remplace la « taille des
+// foyers » qui comptait des cookie jars).
+export function ChartPeoplePerCarnet({ data, height = 220 }: { data: any[]; height?: number }) {
+  if (sum(data, ["membres", "invites"]) === 0)
+    return <ChartEmpty height={height} sub="Se remplit avec les memberships (modèle owners, Lot 0)." />;
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
         <CartesianGrid {...gridProps} />
         <XAxis dataKey="bin" {...axisProps} />
-        <YAxis {...axisProps} width={40} />
+        <YAxis {...axisProps} width={40} allowDecimals={false} />
         <Tooltip content={<Tip />} cursor={{ fill: "rgba(110,122,56,0.06)" }} />
-        <Bar dataKey="foyers" name="Foyers" fill={P.sage} radius={[5, 5, 0, 0]} maxBarSize={48} />
+        <Bar dataKey="membres" name="Membres" stackId="p" fill={P.olive} maxBarSize={48} />
+        <Bar dataKey="invites" name="Invités" stackId="p" fill={P.ochre} maxBarSize={48} radius={[5, 5, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
   );
 }
 
-/* ==================== 03 — CONTENU ==================== */
+/* ==================== 04 — CONTENU & PARTAGE ==================== */
 
 export function ChartRecipeCreation({ data, height = 250 }: { data: any[]; height?: number }) {
   return (
@@ -256,20 +353,6 @@ export function ChartRecipeCreation({ data, height = 250 }: { data: any[]; heigh
         <Tooltip content={<Tip />} />
         <Area type="monotone" dataKey="total" name="Recettes créées" stroke={P.olive} strokeWidth={2} fill="url(#gCreate)" dot={false} activeDot={{ r: 4 }} />
       </AreaChart>
-    </ResponsiveContainer>
-  );
-}
-
-export function ChartRecipesPerHousehold({ data, height = 250 }: { data: any[]; height?: number }) {
-  return (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
-        <CartesianGrid {...gridProps} />
-        <XAxis dataKey="bin" {...axisProps} />
-        <YAxis {...axisProps} width={40} />
-        <Tooltip content={<Tip />} cursor={{ fill: "rgba(110,122,56,0.06)" }} />
-        <Bar dataKey="foyers" name="Foyers" fill={P.olive} radius={[5, 5, 0, 0]} maxBarSize={54} />
-      </BarChart>
     </ResponsiveContainer>
   );
 }
@@ -308,6 +391,7 @@ export function ChartMethodMix({ data, height = 210 }: { data: any[]; height?: n
         <Bar dataKey="url" name="Import URL" stackId="m" fill={P.ochre} maxBarSize={40} />
         <Bar dataKey="photo" name="Photo" stackId="m" fill={P.terracotta} maxBarSize={40} />
         <Bar dataKey="voice" name="Vocal" stackId="m" fill={P.sage} maxBarSize={40} />
+        <Bar dataKey="shared" name="Partagée" stackId="m" fill={P.clay} maxBarSize={40} />
         <Bar dataKey="unknown" name="Indéterminé" stackId="m" fill="#C9C2B2" maxBarSize={40} radius={[3, 3, 0, 0]} />
       </BarChart>
     </ResponsiveContainer>
@@ -328,7 +412,7 @@ export function ChartTopHouseholds({ data, height = 250 }: { data: any[]; height
   );
 }
 
-/* ==================== 04 — ENGAGEMENT ==================== */
+/* ==================== Rétention & jauges ==================== */
 
 export function ChartRetention({ data, cohorts, height = 250 }: { data: any[]; cohorts: string[]; height?: number }) {
   const colors = [P.olive, P.ochre, P.clay];
@@ -397,7 +481,7 @@ export function GaugeRadial({ value, color = P.olive, height = 190, label, big }
   );
 }
 
-/* ==================== 05 — QUALITÉ & COÛT IA ==================== */
+/* ==================== 06 — QUALITÉ & COÛT IA ==================== */
 
 export function ChartAiPipeline({ data, success, height = 200 }: { data: any[]; success: number; height?: number }) {
   if (sum(data, ["value"]) === 0) return <ChartEmpty height={height} sub="Aucune recette enrichie pour l'instant." />;
@@ -444,6 +528,7 @@ export function ChartAiCostTrend({ data, height = 230 }: { data: any[]; height?:
         <Area type="monotone" dataKey="import_instagram" name="Import Instagram" stackId="c" stroke={P.olive} fill={P.olive} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
         <Area type="monotone" dataKey="import_crawler" name="Import web (anti-blocage)" stackId="c" stroke={P.oliveSoft} fill={P.oliveSoft} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
         <Area type="monotone" dataKey="import_voice" name="Import vocal" stackId="c" stroke={P.oliveDeep} fill={P.oliveDeep} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
+        <Area type="monotone" dataKey="demo" name="Démo (toutes catégories)" stackId="c" stroke="#C9C2B2" fill="#C9C2B2" fillOpacity={0.35} strokeWidth={1.5} dot={false} />
       </AreaChart>
     </ResponsiveContainer>
   );

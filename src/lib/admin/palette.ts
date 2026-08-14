@@ -19,12 +19,14 @@ export const PALETTE = {
   border: "#E8E0CC",
 } as const;
 
-// Add-method series colours (keyed by recipes.source).
+// Add-method series colours (keyed by recipes.source). 'shared' = copie d'une
+// recette partagée (026) — absente de la palette jusqu'à la v2 du dashboard.
 export const METHOD_COLORS = {
-  manual: "#6E7A38",
-  url: "#C0922F",
-  photo: "#B85C3D",
-  voice: "#5E8B7A",
+  manual: PALETTE.olive,
+  url: PALETTE.ochre,
+  photo: PALETTE.terracotta,
+  voice: PALETTE.sage,
+  shared: PALETTE.clay,
   unknown: "#C9C2B2",
 } as const;
 
@@ -34,6 +36,7 @@ export const METHOD_LABELS = {
   url: "Import URL",
   photo: "Photo",
   voice: "Vocal",
+  shared: "Partagée",
   unknown: "Indéterminé",
 } as const;
 

@@ -13,8 +13,8 @@ const PLATFORMS: { key: "ios" | "android" | "web"; label: string }[] = [
 ];
 
 /**
- * Common filter bar. Period, platform and foyer(s) all drive the server query
- * live via search params (`period`, `platform`, `hh`). The household list is
+ * Common filter bar. Period, platform and carnet(s) all drive the server query
+ * live via search params (`period`, `platform`, `hh`). The carnet list is
  * passed in from the (server) page so the picker can resolve ids → names.
  */
 export default function FilterBar({ households }: { households: HouseholdOption[] }) {
@@ -88,7 +88,7 @@ export default function FilterBar({ households }: { households: HouseholdOption[
       </div>
       <div className="fdivider" />
       <div className="fgroup">
-        <span className="flabel">Foyer(s)</span>
+        <span className="flabel">Carnet(s)</span>
         {selected.map((h) => (
           <span key={h.id} className="chip on" title={h.name}>
             {h.name}
@@ -105,8 +105,8 @@ export default function FilterBar({ households }: { households: HouseholdOption[
         <div className="fpicker">
           <input
             className="fsearch"
-            placeholder={selected.length ? "Ajouter…" : "Filtrer par foyer…"}
-            aria-label="Filtrer par foyer"
+            placeholder={selected.length ? "Ajouter…" : "Filtrer par carnet…"}
+            aria-label="Filtrer par carnet"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);

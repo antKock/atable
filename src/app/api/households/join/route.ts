@@ -9,6 +9,7 @@ import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
 import { resolveOwnerContext, roleForHousehold, planRoleMerge } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
+import { resolveDemoTrialStart } from '@/lib/queries/demo-conversion'
 import { aliasForOwner } from '@/lib/alias'
 import { t } from '@/lib/i18n/fr'
 
@@ -91,10 +92,14 @@ export async function POST(request: NextRequest) {
 
     // Device neuf (aucune session) OU sortie de démo : owner + membership + session.
     // Id généré côté app pour figer le surnom (alias) dès l'insertion (031).
+    // Sortir de la démo en REJOIGNANT un carnet existant est une conversion au
+    // même titre que la création (dashboard v2, 032).
+    const demoTrialStartedAt = await resolveDemoTrialStart(supabase, existingOwner)
+
     const ownerId = crypto.randomUUID()
     const { error: ownerError } = await supabase
       .from('owners')
-      .insert({ id: ownerId, alias: aliasForOwner(ownerId) })
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId), demo_trial_started_at: demoTrialStartedAt })
 
     if (ownerError) {
       throw new Error(ownerError.message ?? 'Failed to create owner')

@@ -35,7 +35,10 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
   });
 
   it("resets the demo household with the correct token", async () => {
-    supa.queueResult({ count: 3, error: null });
+    supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
+      { count: 3, error: null }, // delete recettes non-seed
+    ]);
     const res = await GET(request("Bearer test-cron-secret"));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
@@ -47,8 +50,31 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     });
   });
 
+  it("consolide les stats démo (rollup 032) AVANT la purge des recettes", async () => {
+    supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup
+      { count: 0, error: null }, // delete recettes
+    ]);
+    await GET(request("Bearer test-cron-secret"));
+    const rollupIdx = supa.calls.findIndex((c) => c.table === "rpc:demo_stats_rollup");
+    const deleteIdx = supa.calls.findIndex((c) => c.table === "recipes");
+    expect(rollupIdx).toBeGreaterThanOrEqual(0);
+    expect(deleteIdx).toBeGreaterThan(rollupIdx);
+  });
+
+  it("un échec du rollup n'empêche pas le reset (best-effort)", async () => {
+    supa.queueResults([
+      { data: null, error: { message: "rollup failed" } }, // rpc demo_stats_rollup
+      { count: 2, error: null }, // delete recettes
+    ]);
+    const res = await GET(request("Bearer test-cron-secret"));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ reset: true, deleted: 2 });
+  });
+
   it("purge les owners démo périmés, sauf ceux ayant un membership hors démo", async () => {
     supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
       { count: 0, error: null }, // delete recettes non-seed
       { data: [{ owner_id: "owner-old" }, { owner_id: "owner-multi" }], error: null }, // candidats périmés
       { data: [{ owner_id: "owner-multi" }], error: null }, // garde-fou : membership hors démo
@@ -73,6 +99,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
 
   it("ne touche pas aux owners quand aucun candidat n'est périmé", async () => {
     supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
       { count: 0, error: null },
       { data: [], error: null },
     ]);
@@ -83,7 +110,10 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
   });
 
   it("deletes only is_seed=false rows", async () => {
-    supa.queueResult({ count: 0, error: null });
+    supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
+      { count: 0, error: null },
+    ]);
     await GET(request("Bearer test-cron-secret"));
     const recipesCall = supa.calls.find((c) => c.table === "recipes")!;
     expect(recipesCall.ops.some((op) => op.method === "delete")).toBe(true);
@@ -96,7 +126,10 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
   });
 
   it("returns 500 when the delete fails", async () => {
-    supa.queueResult({ count: null, error: { message: "db error" } });
+    supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
+      { count: null, error: { message: "db error" } },
+    ]);
     const res = await GET(request("Bearer test-cron-secret"));
     expect(res.status).toBe(500);
   });

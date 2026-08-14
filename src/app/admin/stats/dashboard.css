@@ -231,6 +231,24 @@
 .mijote-dash .fail-title { font-weight: 600; color: var(--d-foreground); }
 .mijote-dash .fail-part { font-family: var(--d-mono); font-size: 11px; color: var(--d-neg); }
 
+/* Big-stat tiles (profondeur, frictions démo, adoption invité, profils) */
+.mijote-dash .big-stats {
+  display: flex; flex-direction: column; justify-content: center;
+  gap: 16px; flex: 1; padding: 6px 2px;
+}
+.mijote-dash .big-stat .bs-val {
+  font-family: var(--d-mono); font-size: 32px; font-weight: 500; line-height: 1;
+}
+.mijote-dash .big-stat .bs-lab { font-size: 12.5px; color: var(--d-muted); margin-top: 5px; }
+.mijote-dash .big-stat .bs-hint { font-size: 11px; color: var(--d-faint); margin-top: 2px; }
+.mijote-dash .hr { height: 1px; background: var(--d-border); }
+
+/* Footnote under a chart (repères, limites de mesure) */
+.mijote-dash .chart-note {
+  margin-top: 10px; font-size: 11px; color: var(--d-faint); line-height: 1.45;
+}
+.mijote-dash .chart-note b { color: var(--d-muted); font-weight: 600; }
+
 /* AI cost — unit economics tile */
 .mijote-dash .cost-stats { display: flex; flex-direction: column; gap: 14px; padding: 6px 2px 2px; }
 .mijote-dash .cost-stat { display: flex; flex-direction: column; gap: 2px; }

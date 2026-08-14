@@ -12,7 +12,8 @@ import {
 // AI-cost usage groups — labels + colours. The single "import" bucket is split
 // into its distinct voies so the dashboard tracks direct / Instagram / crawler
 // URL imports separately (plus voice). Keys match analytics_ai_cost_summary's
-// `<key>_usd` columns and the ChartAiCostTrend dataKeys.
+// `<key>_usd` columns and the ChartAiCostTrend dataKeys. 'demo' aggregates the
+// demo household's whole spend (excluded from the real groups since 019).
 const COST_GROUPS = [
   { key: "ocr", label: "Lecture OCR", color: PALETTE.ochre },
   { key: "metadata", label: "Métadonnées", color: PALETTE.sage },
@@ -39,12 +40,14 @@ function costGroup(callType: string): CostGroupKey {
 const usd = (n: number) => `$${n.toFixed(2)}`;
 
 // ---------------------------------------------------------------------------
-// Server-side data layer for the usage dashboard. Calls the analytics_* RPC
-// functions in parallel and shapes the rows into the structures the chart
-// components expect. Demo/seed exclusion happens inside the SQL functions.
+// Server-side data layer for the usage dashboard v2. Calls the analytics_* RPC
+// functions (033: owner grain + demo funnel) in parallel and shapes the rows
+// into the structures the chart components expect. Demo/seed exclusion happens
+// inside the SQL functions; the demo funnel has its own dedicated functions.
 //
-// Filters: period (from/to), platform, household IDs. The all-time KPI totals
-// are intentionally NOT period-filtered (parc).
+// Filters: period (from/to), platform, carnet IDs. The all-time KPI totals are
+// intentionally NOT period-filtered (parc). Cards whose RPC ignores the
+// platform/carnet filters are badged « global » in the page.
 // ---------------------------------------------------------------------------
 
 export type DashboardFilters = {
@@ -55,9 +58,9 @@ export type DashboardFilters = {
 
 export type HouseholdOption = { id: string; name: string };
 
-// Households for the filter-bar picker — real foyers only (demo/test excluded),
+// Carnets for the filter-bar picker — real carnets only (demo/test excluded),
 // alphabetical. Kept separate from getDashboardData since the list is filter-
-// independent (you always pick from every household).
+// independent (you always pick from every carnet).
 export async function getHouseholdsForPicker(): Promise<HouseholdOption[]> {
   const supabase = createServerClient();
   const { data, error } = await supabase
@@ -84,6 +87,8 @@ export type KpiCard = {
 
 export type Signal = { value: string; label: string; hint: string; warn?: boolean };
 
+export type FunnelStep = { label: string; value: number; pct: number };
+
 export type EnrichmentFailure = {
   id: string;
   title: string;
@@ -99,9 +104,16 @@ const pct = (num: number, den: number) => (den > 0 ? (num / den) * 100 : 0);
 // Hard ceiling on the resolved "Depuis le début" window, so a stray early
 // timestamp can't blow up the per-day generate_series in the RPCs (~3 years).
 const MAX_DAYS = 1100;
-// Unit-economics windows (AI cost summary, billed spend) stay a trailing 30 d
-// snapshot regardless of the selected period — their cards are labelled "30 j".
+// Unit-economics & funnel-summary windows stay a trailing 30 d snapshot
+// regardless of the selected period — their cards are labelled "30 j".
 const COST_DAYS = 30;
+// Recovery funnel window (tokens live in stats_daily — see 032).
+const RECOVERY_DAYS = 90;
+// Vertical marker on activity charts: 2026-07-10 = correctif du heartbeat
+// (PR #96) ET arrivée du modèle owners (027) en prod, le même jour. Avant ce
+// repère, la série « personnes » est un majorant (fantômes) et les jours
+// actifs sont sous-capturés.
+const ACTIVITY_MARKER_DAY = "2026-07-10";
 
 function shortLabel(isoDay: string): string {
   const d = new Date(isoDay + "T00:00:00Z");
@@ -113,7 +125,24 @@ function monthLabel(isoDay: string): string {
   return d.toLocaleDateString("fr-FR", { month: "short", timeZone: "UTC" });
 }
 
+// Median time-to-convert, human-readable ("— " when no conversion yet).
+function formatHours(hours: number | null): string {
+  if (hours == null || Number.isNaN(hours)) return "—";
+  if (hours < 1) return "< 1 h";
+  if (hours < 48) return `${Math.round(hours)} h`;
+  return `${(hours / 24).toFixed(1).replace(".", ",")} j`;
+}
+
 const spark = (vals: number[]) => vals.slice(-14).map((v) => ({ v }));
+
+// Oldest→newest ISO day grid for zero-filling sparse per-day series.
+function dayGrid(days: number, today: Date): string[] {
+  return Array.from({ length: days }, (_, i) => {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - (days - 1 - i));
+    return ISO(d);
+  });
+}
 
 type Row = Record<string, unknown>;
 
@@ -131,7 +160,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const today = new Date();
 
   // Resolve the selected period into a concrete day window. "Depuis le début"
-  // (days = null) is resolved to the age of the oldest real household.
+  // (days = null) is resolved to the age of the oldest real carnet.
   const period = resolvePeriod(filters.period);
   let days = period.days;
   if (days == null) {
@@ -148,14 +177,17 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   }
   const months = Math.max(1, Math.ceil(days / 30));
 
-  // Period window start, and a ≥60 d window for the recipe-creation series so
-  // the "Recettes créées 30 j" KPI keeps its 30-vs-prior-30 delta even at 1 mois.
+  // Period window start, and ≥60 d windows so the 30-vs-prior-30 deltas keep
+  // working even at « 1 mois ». Activation KPI reads the last 8 weekly cohorts.
   const from60 = new Date(today);
   from60.setUTCDate(from60.getUTCDate() - 60);
   const fromPeriod = new Date(today);
   fromPeriod.setUTCDate(fromPeriod.getUTCDate() - days);
   const fromRecipes = new Date(today);
   fromRecipes.setUTCDate(fromRecipes.getUTCDate() - Math.max(days, 60));
+  const fromActivation = new Date(today);
+  fromActivation.setUTCDate(fromActivation.getUTCDate() - 56);
+  const funnelDays = Math.max(days, 60);
 
   const [
     kpisRow,
@@ -165,7 +197,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     activeDaily,
     cumulative,
     acquisition,
-    householdSize,
+    carnetPeople,
     recipesPerHH,
     sourceMix,
     sourceMixMonthly,
@@ -178,30 +210,43 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     aiCostDailyRows,
     aiCostSummaryRows,
     billedSpend,
+    demoFunnelRows,
+    demoSummaryRows,
+    ttcRows,
+    carnetsPerOwnerRows,
+    devicesPerOwnerRows,
+    guestRows,
+    recoveryRows,
+    sharingRows,
+    aiCostDemoRows,
+    demoActivityRows,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
     rpc("analytics_recipes_created_daily", { p_from: ISO(fromRecipes), p_household_ids: hh, p_platform: plat }),
     rpc("analytics_enrichment", { p_household_ids: hh }),
-    rpc("analytics_activation", {}),
+    rpc("analytics_activation", { p_from: ISO(fromActivation) }),
     rpc("analytics_active_daily", { p_days: days, p_platform: plat, p_household_ids: hh }),
     rpc("analytics_cumulative_parc_daily", { p_days: days }),
     rpc("analytics_acquisition_daily", { p_days: days }),
-    rpc("analytics_household_size_dist", {}),
+    rpc("analytics_carnet_people_dist", {}),
     rpc("analytics_recipes_per_household_dist", { p_household_ids: hh }),
     rpc("analytics_source_mix", { p_from: ISO(fromPeriod), p_household_ids: hh, p_platform: plat }),
     rpc("analytics_source_mix_monthly", { p_months: months, p_household_ids: hh }),
-    rpc("analytics_top_households", { p_limit: 8 }),
+    rpc("analytics_top_households", { p_limit: 20 }),
     rpc("analytics_retention_cohorts", { p_cohorts: 3, p_max_week: 8 }),
     rpc("analytics_login_frequency", { p_days: days, p_platform: plat, p_household_ids: hh }),
     rpc<number>("analytics_depth", { p_days: days, p_household_ids: hh }),
     rpc("analytics_recipes_by_platform", { p_household_ids: hh }),
     // Direct table read (no RPC): recipes whose AI pipeline failed, so the
-    // dashboard surfaces what would otherwise only live in Sentry.
+    // dashboard surfaces what would otherwise only live in Sentry. Demo/test
+    // carnets excluded (v2 fix — this was the only block without the filter).
     supabase
       .from("recipes")
-      .select("id, title, enrichment_status, image_status, updated_at, households(name)")
+      .select("id, title, enrichment_status, image_status, updated_at, households!inner(name, is_demo)")
       .or("enrichment_status.eq.failed,image_status.eq.failed")
       .eq("is_seed", false)
+      .eq("households.is_demo", false)
+      .not("households.name", "ilike", "test%")
       .order("updated_at", { ascending: false })
       .limit(20)
       .then(({ data, error }) => {
@@ -213,29 +258,103 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     // Org-wide billed spend (USD, 30d) from the Costs API — null if no admin
     // key. Reconciles against the instrumented total to catch untracked spend.
     getBilledOpenAiSpend(COST_DAYS),
+    rpc("analytics_demo_funnel", { p_days: funnelDays }),
+    rpc("analytics_demo_summary", { p_days: COST_DAYS }),
+    rpc("analytics_demo_time_to_convert", {}),
+    rpc("analytics_carnets_per_owner", {}),
+    rpc("analytics_devices_per_owner", {}),
+    rpc("analytics_guest_adoption", {}),
+    rpc("analytics_recovery", { p_days: RECOVERY_DAYS }),
+    rpc("analytics_sharing", { p_days: COST_DAYS }),
+    rpc("analytics_ai_cost_demo_daily", { p_days: days }),
+    // Demo activity per day (recipes added before the nightly purge) — direct
+    // read of the 032 rollup table; today's rows appear after the next rollup.
+    supabase
+      .from("stats_daily")
+      .select("day, demo_recipes_added")
+      .gte("day", ISO(fromPeriod))
+      .order("day", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) throw new Error(`stats_daily: ${error.message}`);
+        return (data ?? []) as Row[];
+      }),
   ]);
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
+  const demoSum = (demoSummaryRows[0] ?? {}) as Record<string, number | null>;
+  const rec = (recoveryRows[0] ?? {}) as Record<string, number>;
+  const guest = (guestRows[0] ?? {}) as Record<string, number>;
+  const sharing = (sharingRows[0] ?? {}) as Record<string, number>;
 
-  // ---- AI cost (USD) ----
-  type CostDay = Record<CostGroupKey, number>;
+  // ---- funnel démo → carnet ----
+  const demoDaily = (demoFunnelRows as Row[]).map((r) => ({
+    day: r.day as string,
+    label: shortLabel(r.day as string),
+    trials: Number(r.trials),
+    conversions: Number(r.conversions),
+  }));
+  // The RPC window is ≥60 d for deltas; the chart shows the selected period.
+  const demoDailyChart = demoDaily.slice(-days);
+
+  const trials30 = Number(demoSum.trials ?? 0);
+  const conversions30 = Number(demoSum.conversions ?? 0);
+  const conversionPct = demoSum.conversion_pct == null ? null : Number(demoSum.conversion_pct);
+  const funnel: FunnelStep[] = [
+    { label: "Essais démo", value: trials30, pct: 100 },
+    { label: "Conversions — 1er carnet", value: conversions30, pct: pct(conversions30, trials30) },
+    {
+      label: "Activés — ≥ 1 recette à 7 j",
+      value: Number(demoSum.activated_7d ?? 0),
+      pct: pct(Number(demoSum.activated_7d ?? 0), trials30),
+    },
+  ];
+
+  const ttc = (ttcRows as Row[]).map((r) => ({ bin: r.bin as string, value: Number(r.owners) }));
+
+  const demoActivityByDay = new Map<string, number>();
+  for (const r of demoActivityRows as Row[]) {
+    demoActivityByDay.set(String(r.day), Number(r.demo_recipes_added) || 0);
+  }
+  const demoActivityDaily = dayGrid(Math.min(days, 30), today).map((iso) => ({
+    label: shortLabel(iso),
+    recettes: demoActivityByDay.get(iso) ?? 0,
+  }));
+
+  // 30-vs-prior-30 deltas for the funnel KPIs (needs the ≥60 d RPC window).
+  const sumRange = (rows: typeof demoDaily, from: number, to: number, key: "trials" | "conversions") =>
+    rows.slice(from, to).reduce((s, r) => s + r[key], 0);
+  const n = demoDaily.length;
+  const trialsPrev30 = n >= 60 ? sumRange(demoDaily, n - 60, n - 30, "trials") : 0;
+  const trialsDelta =
+    trialsPrev30 >= 5 ? +(((trials30 - trialsPrev30) / trialsPrev30) * 100).toFixed(0) : undefined;
+  const convPrev30 = n >= 60 ? sumRange(demoDaily, n - 60, n - 30, "conversions") : 0;
+  const convPctPrev = trialsPrev30 > 0 ? pct(convPrev30, trialsPrev30) : null;
+  const convDelta =
+    conversionPct != null && convPctPrev != null && trialsPrev30 >= 5
+      ? +(conversionPct - convPctPrev).toFixed(1)
+      : undefined;
+
+  // ---- AI cost (USD) — real usage + demo overlay ----
+  type CostDay = Record<CostGroupKey | "demo", number>;
   const emptyCostDay = (): CostDay =>
-    Object.fromEntries(COST_GROUPS.map((g) => [g.key, 0])) as CostDay;
+    Object.fromEntries([...COST_GROUPS.map((g) => [g.key, 0]), ["demo", 0]]) as CostDay;
   const costByDay = new Map<string, CostDay>();
   for (const r of aiCostDailyRows as Row[]) {
     const day = r.day as string;
     if (!costByDay.has(day)) costByDay.set(day, emptyCostDay());
     costByDay.get(day)![costGroup(r.call_type as string)] += Number(r.cost_usd) || 0;
   }
-  const aiCostDaily = Array.from({ length: days }, (_, i) => {
-    const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - (days - 1 - i));
-    const iso = ISO(d);
+  for (const r of aiCostDemoRows as Row[]) {
+    const day = r.day as string;
+    if (!costByDay.has(day)) costByDay.set(day, emptyCostDay());
+    costByDay.get(day)!.demo += Number(r.cost_usd) || 0;
+  }
+  const aiCostDaily = dayGrid(days, today).map((iso) => {
     const c = costByDay.get(iso) ?? emptyCostDay();
     return {
       label: shortLabel(iso),
       ...c,
-      total: +COST_GROUPS.reduce((s, g) => s + c[g.key], 0).toFixed(4),
+      total: +[...COST_GROUPS.map((g) => c[g.key]), c.demo].reduce((s, v) => s + v, 0).toFixed(4),
     };
   });
 
@@ -248,10 +367,25 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     value: +csNum(`${g.key}_usd`).toFixed(4),
   })).filter((d) => d.value > 0);
 
+  // Demo spend share over the same trailing window as the real summary
+  // (analytics_ai_cost_summary: created_at::date >= current_date - 30) —
+  // date-only comparison, sinon l'heure du rendu exclut le jour de bord.
+  const costCutoffIso = (() => {
+    const d = new Date(today);
+    d.setUTCDate(d.getUTCDate() - COST_DAYS);
+    return ISO(d);
+  })();
+  const demoCost30 = (aiCostDemoRows as Row[])
+    .filter((r) => String(r.day) >= costCutoffIso)
+    .reduce((s, r) => s + (Number(r.cost_usd) || 0), 0);
+  const totalWithDemo30 = csNum("total_usd") + demoCost30;
+
   const aiCost = {
     daily: aiCostDaily,
     byType: aiCostByType,
     total30d: csNum("total_usd"),
+    demo30d: demoCost30,
+    demoSharePct: Math.round(pct(demoCost30, totalWithDemo30)),
     costPerRecipe: csNum("cost_per_recipe"),
     costPerImage: csNum("cost_per_image"),
     recipesCosted: csNum("recipes_costed"),
@@ -262,23 +396,29 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
 
   // ---- time series (one point per day) ----
   const wauMau = (activeDaily as Row[]).map((r) => ({
+    day: r.day as string,
     label: shortLabel(r.day as string),
     wau: Number(r.wau),
     mau: Number(r.mau),
+    mauDevices: Number(r.mau_devices),
     stickiness: r.stickiness == null ? 0 : Number(r.stickiness),
   }));
+  // Reference marker (correctif ping + modèle owners) — only when in window.
+  const activityMarker = wauMau.some((w) => w.day === ACTIVITY_MARKER_DAY)
+    ? shortLabel(ACTIVITY_MARKER_DAY)
+    : null;
 
   const parc = (cumulative as Row[]).map((r) => ({
     label: shortLabel(r.day as string),
-    foyers: Number(r.foyers),
-    appareils: Number(r.appareils),
-    recettes: Number(r.recettes),
+    personnes: Number(r.owners),
+    carnets: Number(r.carnets),
   }));
 
   const acquisitionSeries = (acquisition as Row[]).map((r) => ({
     label: shortLabel(r.day as string),
-    devices: Number(r.devices),
-    foyers: Number(r.foyers),
+    personnes: Number(r.new_owners),
+    carnets: Number(r.new_carnets),
+    premiers: Number(r.first_carnets),
   }));
 
   // daily recipe creation (analytics_recipes_created_daily is already per-day,
@@ -287,30 +427,41 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   for (const r of recipesDaily as Row[]) {
     recipeByDay.set(r.day as string, Number(r.recipes));
   }
-  const recipeCreation = Array.from({ length: days }, (_, i) => {
-    const d = new Date(today);
-    d.setUTCDate(d.getUTCDate() - (days - 1 - i));
-    const iso = ISO(d);
-    return { label: shortLabel(iso), total: recipeByDay.get(iso) ?? 0 };
-  });
+  const recipeCreation = dayGrid(days, today).map((iso) => ({
+    label: shortLabel(iso),
+    total: recipeByDay.get(iso) ?? 0,
+  }));
 
-  // ---- distributions ----
-  const sizeBins = { "1": 0, "2": 0, "3": 0, "4": 0, "5+": 0 };
-  for (const r of householdSize as Row[]) {
-    const s = Number(r.size);
-    const key = s >= 5 ? "5+" : String(s);
-    if (key in sizeBins) sizeBins[key as keyof typeof sizeBins] += Number(r.households);
-  }
-  const householdSizeDist = Object.entries(sizeBins).map(([bin, foyers]) => ({ bin, foyers }));
+  // ---- distributions (grain personne / carnet) ----
+  const loginFrequency = (loginFreq as Row[]).map((r) => ({
+    bin: r.bin as string,
+    value: Number(r.owners),
+  }));
+
+  const carnetsPerOwner = (carnetsPerOwnerRows as Row[]).map((r) => ({
+    bin: `${r.bucket}${r.bucket === "1" ? " carnet" : " carnets"}`,
+    value: Number(r.owners),
+  }));
+  const multiCarnetOwners = (carnetsPerOwnerRows as Row[])
+    .filter((r) => r.bucket !== "1")
+    .reduce((s, r) => s + Number(r.owners), 0);
+  const carnetOwnersTotal = (carnetsPerOwnerRows as Row[]).reduce((s, r) => s + Number(r.owners), 0);
+  const multiCarnetPct = Math.round(pct(multiCarnetOwners, carnetOwnersTotal));
+
+  const devicesPerOwner = (devicesPerOwnerRows as Row[]).map((r) => ({
+    bin: r.bucket as string,
+    value: Number(r.owners),
+  }));
+
+  const peoplePerCarnet = (carnetPeople as Row[]).map((r) => ({
+    bin: `${r.bucket}${r.bucket === "1" ? " pers." : ""}`,
+    membres: Number(r.members),
+    invites: Number(r.guests),
+  }));
 
   const recipesPerHousehold = (recipesPerHH as Row[]).map((r) => ({
     bin: r.bucket as string,
-    foyers: Number(r.households),
-  }));
-
-  const loginFrequency = (loginFreq as Row[]).map((r) => ({
-    bin: r.bin as string,
-    devices: Number(r.devices),
+    value: Number(r.households),
   }));
 
   // ---- method mix (donut) ----
@@ -352,6 +503,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
         url: share("url"),
         photo: share("photo"),
         voice: share("voice"),
+        shared: share("shared"),
         unknown: share("unknown"),
       };
     });
@@ -368,7 +520,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     };
   });
 
-  // ---- top households ----
+  // ---- top carnets ----
   const topHouseholdsList = (topHouseholds as Row[]).map((r) => ({
     name: r.name as string,
     recettes: Number(r.recipes),
@@ -393,32 +545,28 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const retentionCohorts = cohortLabels.map((c) => cohortName(c));
 
   // ---- enrichment / coverage ----
+  // 'done' (posé par la copie de recette partagée, 026) compte comme un succès :
+  // la recette copiée arrive déjà enrichie. C'était le trou qui diluait la
+  // couverture IA en v1.
   const enrichRows = enrichment as Row[];
-  const enr = (kind: string, status: string) =>
+  const enr = (kind: string, statuses: string[]) =>
     enrichRows
-      .filter((r) => r.kind === kind && r.status === status)
+      .filter((r) => r.kind === kind && statuses.includes(r.status as string))
       .reduce((s, r) => s + Number(r.recipes), 0);
   const enrTotal = enrichRows.filter((r) => r.kind === "enrichment").reduce((s, r) => s + Number(r.recipes), 0);
-  const enrSuccess = enr("enrichment", "enriched");
-  const enrFailed = enr("enrichment", "failed");
+  const enrSuccess = enr("enrichment", ["enriched", "done"]);
+  const enrFailed = enr("enrichment", ["failed"]);
   const coveragePct = Math.round(pct(enrSuccess, enrTotal));
   const aiPipeline = [
     { name: "Succès", value: +pct(enrSuccess, enrSuccess + enrFailed).toFixed(1), color: METHOD_COLORS.manual },
     { name: "Échec", value: +pct(enrFailed, enrSuccess + enrFailed).toFixed(1), color: PLATFORM_COLORS.web },
   ];
 
-  // ---- activation (overall, recent cohorts) ----
+  // ---- activation (owner grain, last 8 weekly cohorts) ----
   const actRows = activation as Row[];
-  const actHouseholds = actRows.reduce((s, r) => s + Number(r.households), 0);
+  const actOwners = actRows.reduce((s, r) => s + Number(r.owners), 0);
   const actActivated = actRows.reduce((s, r) => s + Number(r.activated), 0);
-  const activationPct = Math.round(pct(actActivated, actHouseholds));
-
-  // ---- réactivation J1 (devices active on >1 day) from login frequency ----
-  const totalDevices = loginFrequency.reduce((s, b) => s + b.devices, 0);
-  const returningDevices = loginFrequency
-    .filter((b) => b.bin !== "1 j")
-    .reduce((s, b) => s + b.devices, 0);
-  const reactivationPct = Math.round(pct(returningDevices, totalDevices));
+  const activationPct = Math.round(pct(actActivated, actOwners));
 
   // ---- recipes created: current vs previous 30d (value + delta) ----
   const cutoff30 = new Date(today);
@@ -434,52 +582,57 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   // tiny volumes produce absurd percentages (e.g. 1 → 14 recipes = +1300 %).
   const recipesDelta = recipesPrev >= 5 ? +(((recipesCur - recipesPrev) / recipesPrev) * 100).toFixed(1) : undefined;
 
-  const lastActive = wauMau[wauMau.length - 1] ?? { mau: 0, wau: 0, stickiness: 0 };
+  const lastActive = wauMau[wauMau.length - 1] ?? { mau: 0, wau: 0, mauDevices: 0, stickiness: 0 };
 
-  // ---- KPIs ----
+  // ---- KPIs — ordre du parcours : acquisition → conversion → activation →
+  // engagement → contenu → qualité ----
   const kpis: KpiCard[] = [
     {
-      id: "foyers",
-      label: "Foyers actifs",
-      sub: "30 j",
-      value: fr(k.active_households_30d ?? 0),
-      total: fr(k.households_total ?? 0),
-      spark: spark(parc.map((p) => p.foyers)),
+      id: "trials",
+      label: "Essais démo",
+      sub: "acquisition — sessions démo · 30 j",
+      value: fr(trials30),
+      delta: trialsDelta,
+      positive: trialsDelta == null ? undefined : trialsDelta >= 0,
+      spark: spark(demoDailyChart.map((d) => d.trials)),
     },
     {
-      id: "devices",
-      label: "Appareils actifs",
-      sub: "MAU",
+      id: "conversion",
+      label: "Conversion démo → carnet",
+      sub: `30 j · ${fr(conversions30)} conversion${conversions30 > 1 ? "s" : ""} / ${fr(trials30)} essais`,
+      value: conversionPct == null ? "—" : `${String(conversionPct).replace(".", ",")} %`,
+      suffix: "pts",
+      delta: convDelta,
+      positive: convDelta == null ? undefined : convDelta >= 0,
+      spark: spark(demoDailyChart.map((d) => d.conversions)),
+    },
+    {
+      id: "activation",
+      label: "Activation 7 j",
+      sub: "% personnes ≥ 1 recette après 1er carnet",
+      value: `${activationPct} %`,
+      suffix: "pts",
+    },
+    {
+      id: "mau",
+      label: "Personnes actives",
+      sub: "MAU — grain owner",
       value: fr(lastActive.mau),
-      total: fr(k.devices_total ?? 0),
-      spark: spark(parc.map((p) => p.appareils)),
+      total: fr(k.owners_total ?? 0),
+      spark: spark(wauMau.map((w) => w.mau)),
     },
     {
       id: "sticky",
       label: "Stickiness",
-      sub: "WAU / MAU",
+      sub: "WAU / MAU personnes",
       value: `${String(lastActive.stickiness).replace(".", ",")} %`,
       suffix: "pts",
       spark: spark(wauMau.map((w) => w.stickiness)),
     },
     {
-      id: "reactiv",
-      label: "Réactivation J1",
-      sub: "appareils revenus après J1",
-      value: `${reactivationPct} %`,
-      suffix: "pts",
-    },
-    {
-      id: "activation",
-      label: "Activation 7 j",
-      sub: "≥ 1 recette",
-      value: `${activationPct} %`,
-      suffix: "pts",
-    },
-    {
       id: "recipes",
       label: "Recettes créées",
-      sub: "30 j",
+      sub: "contenu — 30 j",
       value: fr(recipesCur),
       total: fr(k.recipes_total ?? 0),
       delta: recipesDelta,
@@ -489,39 +642,78 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     {
       id: "coverage",
       label: "Couverture IA",
-      sub: "recettes enrichies",
+      sub: "qualité — recettes enrichies",
       value: `${coveragePct} %`,
       suffix: "pts",
     },
   ];
 
   // ---- signals ----
-  const newFoyersWeek = acquisitionSeries.slice(-7).reduce((s, d) => s + d.foyers, 0);
+  const newCarnetsWeek = acquisitionSeries.slice(-7).reduce((s, d) => s + d.carnets, 0);
+  const firstCarnetsWeek = acquisitionSeries.slice(-7).reduce((s, d) => s + d.premiers, 0);
   const signals: Signal[] = [
     {
-      value: fr(k.dormant_households ?? 0),
-      label: "Foyers dormants",
-      hint: "actifs il y a +30 j, silencieux depuis",
+      value: fr(k.dormant_carnets ?? 0),
+      label: "Carnets dormants",
+      hint: "actifs il y a +30 j, silencieux depuis (activité via memberships)",
       warn: true,
     },
     {
-      value: String((Number(depth) || 0).toFixed(1)).replace(".", ","),
-      label: "Recettes / jour actif",
-      hint: "profondeur d'usage moyenne",
+      value: formatHours(demoSum.median_hours_to_convert == null ? null : Number(demoSum.median_hours_to_convert)),
+      label: "Délai démo → carnet (médian)",
+      hint: `time-to-convert des ${fr(conversions30)} conversions · 30 j`,
     },
     {
-      value: fr(newFoyersWeek),
-      label: "Nouveaux foyers / sem.",
-      hint: "total des 7 derniers jours",
+      value: fr(newCarnetsWeek),
+      label: "Nouveaux carnets / sem.",
+      hint: `dont ${fr(firstCarnetsWeek)} premier${firstCarnetsWeek > 1 ? "s" : ""} carnet${firstCarnetsWeek > 1 ? "s" : ""} (7 derniers jours)`,
     },
     {
-      value: usd(aiCost.total30d),
+      value: usd(totalWithDemo30),
       label: "Coût IA / 30 j",
-      hint: aiCost.billed30d != null
-        ? `facturé OpenAI : ${usd(aiCost.billed30d)} (org. entière)`
-        : "somme instrumentée des appels OpenAI",
+      hint:
+        aiCost.demoSharePct > 0
+          ? `dont ${aiCost.demoSharePct} % consommé par la démo`
+          : aiCost.billed30d != null
+            ? `facturé OpenAI : ${usd(aiCost.billed30d)} (org. entière)`
+            : "somme instrumentée des appels OpenAI",
     },
   ];
+
+  // ---- compte & sécurité (#14) ----
+  const tokensSent = Number(rec.recovery_tokens_sent ?? 0) + Number(rec.merge_tokens_sent ?? 0);
+  const tokensUsed = Number(rec.recovery_tokens_used ?? 0) + Number(rec.merge_tokens_used ?? 0);
+  const tokensBurned = Number(rec.tokens_burned ?? 0);
+  // « Expirés » par soustraction : les tokens encore dans leur fenêtre de
+  // validité (pending) en sont retirés, sinon toute demande en cours
+  // s'afficherait en échec pendant ses 15 minutes de vie.
+  const tokensPending = Number(rec.tokens_pending ?? 0);
+  const recovery = {
+    ownersTotal: Number(rec.owners_total ?? 0),
+    withEmail: Number(rec.owners_with_email ?? 0),
+    withEmailPct: Math.round(pct(Number(rec.owners_with_email ?? 0), Number(rec.owners_total ?? 0))),
+    namedPct: Math.round(pct(Number(rec.owners_named ?? 0), Number(rec.owners_total ?? 0))),
+    merges: Number(rec.merge_tokens_used ?? 0),
+    funnel: [
+      { label: "Tokens émis", value: tokensSent },
+      { label: "Consommés (accès récupéré)", value: tokensUsed },
+      { label: "Expirés sans usage", value: Math.max(0, tokensSent - tokensUsed - tokensBurned - tokensPending) },
+      { label: "Brûlés (5 essais)", value: tokensBurned },
+    ],
+  };
+
+  const guestAdoption = {
+    carnetsTotal: Number(guest.carnets_total ?? 0),
+    withGuestPct: Math.round(pct(Number(guest.carnets_with_guest ?? 0), Number(guest.carnets_total ?? 0))),
+    guestsTotal: Number(guest.guests_total ?? 0),
+  };
+
+  const sharingStats = {
+    links: Number(sharing.links_total ?? 0),
+    copies: Number(sharing.copies ?? 0),
+    moves: Number(sharing.moves ?? 0),
+    uptakePct: Math.round(pct(Number(sharing.copies ?? 0), Number(sharing.links_total ?? 0))),
+  };
 
   const enrichmentFailures: EnrichmentFailure[] = (enrichmentFailureRows as Row[]).map((r) => {
     const meta = r.enrichment_status === "failed";
@@ -541,23 +733,45 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     kpis,
     signals,
     enrichmentFailures,
+    // 01 — funnel démo → carnet
+    funnel,
+    demoDaily: demoDailyChart,
+    ttc,
+    demoActivityDaily,
+    demoFrictions: {
+      aiCalls: Number(demoSum.demo_ai_calls ?? 0),
+      frozenHits: Number(demoSum.frozen_hits ?? 0),
+      recipesAdded: Number(demoSum.demo_recipes ?? 0),
+    },
+    // 02 — personnes actives
     wauMau,
+    activityMarker,
     parc,
-    acquisition: acquisitionSeries,
-    recipeCreation,
-    householdSize: householdSizeDist,
-    recipesPerHousehold,
     loginFrequency,
-    addMethods,
-    addMethodsOverTime,
-    platforms,
-    topHouseholds: topHouseholdsList,
+    devicesPerOwner,
     retention,
     retentionCohorts,
-    aiPipeline,
     activationPct,
-    coveragePct,
     depth: Number(depth) || 0,
+    dormantCarnets: Number(k.dormant_carnets ?? 0),
+    // 03 — carnets & cercles
+    carnetsPerOwner,
+    multiCarnetPct,
+    peoplePerCarnet,
+    guestAdoption,
+    topHouseholds: topHouseholdsList,
+    // 04 — contenu & partage
+    recipeCreation,
+    recipesPerHousehold,
+    addMethods,
+    addMethodsOverTime,
+    sharing: sharingStats,
+    // 05 — compte & sécurité
+    recovery,
+    // 06 — qualité & coût IA
+    platforms,
+    aiPipeline,
+    coveragePct,
     aiCost,
   };
 }

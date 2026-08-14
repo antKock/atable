@@ -86,9 +86,14 @@ export const PATCH = withOwnerAuth(
     );
 
     // 2) Mettre à jour la recette (foyer + éventuelle nouvelle URL de photo).
+    // last_moved_at : trace du déplacement pour le dashboard (032) — seul le
+    // dernier déplacement est conservé, suffisant pour un compteur macro. Même
+    // timestamp que updated_at : un déplacement EST la dernière modification.
+    const movedAt = new Date().toISOString();
     const update: Record<string, unknown> = {
       household_id: destHid,
-      updated_at: new Date().toISOString(),
+      updated_at: movedAt,
+      last_moved_at: movedAt,
     };
     if (relocated) update.photo_url = relocated.url;
 
