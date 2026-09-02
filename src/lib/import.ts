@@ -1,5 +1,5 @@
 import openai from "@/lib/openai";
-import { AI_MODELS, TEXT_MODEL_EXTRA_PARAMS } from "@/lib/ai-models";
+import { AI_MODELS, withEffortFallback } from "@/lib/ai-models";
 import { withRetry } from "@/lib/retry";
 import { recordAiCost, textCostUsd, type AiCallType } from "@/lib/ai-cost";
 import {
@@ -283,21 +283,23 @@ export async function extractRecipeFromVoice(
 
   // Step 2: Structure transcription into recipe JSON
   return withRetry(async () => {
-    const response = await openai.chat.completions.create({
-      model: AI_MODELS.text,
-      ...TEXT_MODEL_EXTRA_PARAMS,
-      response_format: {
-        type: "json_schema",
-        json_schema: IMPORT_JSON_SCHEMA,
-      },
-      messages: [
-        { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Extrais la recette depuis cette transcription orale. Attention : peut contenir des hésitations, répétitions, ou corrections ('ah non, 200g pas 300') — utilise toujours la dernière valeur donnée :\n\n${transcription}`,
+    const response = await withEffortFallback((effortParams) =>
+      openai.chat.completions.create({
+        model: AI_MODELS.text,
+        ...effortParams,
+        response_format: {
+          type: "json_schema",
+          json_schema: IMPORT_JSON_SCHEMA,
         },
-      ],
-    });
+        messages: [
+          { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `Extrais la recette depuis cette transcription orale. Attention : peut contenir des hésitations, répétitions, ou corrections ('ah non, 200g pas 300') — utilise toujours la dernière valeur donnée :\n\n${transcription}`,
+          },
+        ],
+      }),
+    );
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
@@ -328,21 +330,23 @@ async function structureRecipeFromText(
   opts: { callType: AiCallType; meta?: ImportMeta },
 ): Promise<ImportedRecipeData> {
   return withRetry(async () => {
-    const response = await openai.chat.completions.create({
-      model: AI_MODELS.text,
-      ...TEXT_MODEL_EXTRA_PARAMS,
-      response_format: {
-        type: "json_schema",
-        json_schema: IMPORT_JSON_SCHEMA,
-      },
-      messages: [
-        { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: `Extrais la recette depuis ce contenu :\n\n${text}`,
+    const response = await withEffortFallback((effortParams) =>
+      openai.chat.completions.create({
+        model: AI_MODELS.text,
+        ...effortParams,
+        response_format: {
+          type: "json_schema",
+          json_schema: IMPORT_JSON_SCHEMA,
         },
-      ],
-    });
+        messages: [
+          { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+          {
+            role: "user",
+            content: `Extrais la recette depuis ce contenu :\n\n${text}`,
+          },
+        ],
+      }),
+    );
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");

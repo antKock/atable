@@ -219,7 +219,9 @@ const ENRICH_RECIPES = [
 // reasoning_effort : les gpt-5.x raisonnent par défaut ; pour de l'extraction
 // JSON on veut l'effort minimal. La valeur acceptée varie selon la génération —
 // on essaie dans l'ordre et on retient la première acceptée.
-const EFFORT_CANDIDATES = ["minimal", "none", "low"];
+// « none » d'abord : le 2026-09-02, Luna a basculé de la gamme minimal/… à la
+// gamme none/low/…/xhigh en cours de journée.
+const EFFORT_CANDIDATES = ["none", "minimal", "low"];
 const effortByModel = new Map();
 
 function isReasoningModel(model) {
