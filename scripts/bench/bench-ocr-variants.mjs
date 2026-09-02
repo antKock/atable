@@ -17,6 +17,7 @@ const TOKEN_PRICING = {
   "gpt-4o": { input: 2.5, output: 10 },
   "gpt-5.6-luna": { input: 0.2, output: 1.2 },
   "gpt-5.6-terra": { input: 2, output: 12 },
+  "gpt-5-mini": { input: 0.25, output: 2 },
 };
 
 const VALID_SEASONS = ["printemps", "ete", "automne", "hiver"];
@@ -57,8 +58,8 @@ const IMPORT_JSON_SCHEMA = {
   },
 };
 
-// Terra ne connaît pas « minimal » (gamme none/low/medium/high/xhigh).
-const VARIANTS = [{ key: "gpt-5.6-terra@none", model: "gpt-5.6-terra", effort: "none" }];
+// Round 3 : gpt-5-mini, entre Luna et gpt-4o en prix.
+const VARIANTS = [{ key: "gpt-5-mini@minimal", model: "gpt-5-mini", effort: "minimal" }];
 const CASES = ["marmiton-ratatouille", "cuisineaz-sauce-pommes", "750g-tarte-pommes"];
 
 async function runOcr(variant, slug) {
@@ -147,13 +148,23 @@ async function judge(caseLabel, source, candidates) {
 }
 
 const prior = JSON.parse(await readFile(path.join(OUT, "results.json"), "utf8"));
-// Sorties Luna@low du run précédent (si présentes), pour un jugement à 4.
+// Sorties des runs précédents (si présentes), pour un jugement à 4 candidats :
+// gpt-4o + Luna@low + Terra@none + le nouveau venu. Luna@minimal (dominé par
+// Luna@low) sort du panel pour rester ≤ 4.
 let lunaLow = [];
 try {
   lunaLow = JSON.parse(await readFile(path.join(OUT, "ocr-variants.json"), "utf8"))
     .newRuns.filter((r) => r.model === "gpt-5.6-luna@low" && !r.error);
 } catch {
   /* premier run */
+}
+try {
+  lunaLow.push(
+    ...JSON.parse(await readFile(path.join(OUT, "ocr-variants2.json"), "utf8"))
+      .newRuns.filter((r) => r.model === "gpt-5.6-terra@none" && !r.error),
+  );
+} catch {
+  /* round 2 absent */
 }
 const newRuns = [];
 for (const variant of VARIANTS) {
@@ -168,7 +179,7 @@ const judgements = [];
 for (const slug of CASES) {
   const source = await readFile(path.join(FIX, "text", `${slug}.txt`), "utf8");
   const candidates = [
-    ...prior.ocr.filter((r) => r.label === slug && !r.error).map((r) => ({ model: r.model === "gpt-5.6-luna" ? "gpt-5.6-luna@minimal" : r.model, output: r.output })),
+    ...prior.ocr.filter((r) => r.label === slug && !r.error && r.model === "gpt-4o").map((r) => ({ model: r.model, output: r.output })),
     ...lunaLow.filter((r) => r.label === slug).map((r) => ({ model: r.model, output: r.output })),
     ...newRuns.filter((r) => r.label === slug && !r.error).map((r) => ({ model: r.model, output: r.output })),
   ];
@@ -177,7 +188,7 @@ for (const slug of CASES) {
   console.log(`juge ${slug} — ${j.error ?? j.ranking?.join(" > ")}`);
 }
 
-await writeFile(path.join(OUT, "ocr-variants2.json"), JSON.stringify({ newRuns, judgements }, null, 2));
+await writeFile(path.join(OUT, "ocr-variants3.json"), JSON.stringify({ newRuns, judgements }, null, 2));
 
 const norm = (s) => (s.match(/[A-D]$/) || [s])[0];
 const byModel = {};
