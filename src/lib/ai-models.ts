@@ -22,9 +22,39 @@ export const AI_MODELS = {
 } as const;
 
 // Les gpt-5.x raisonnent par défaut et facturent ces tokens en sortie ; pour de
-// l'extraction JSON on force l'effort minimal (0 token de raisonnement mesuré au
-// bench). À spreader dans tout appel chat.completions du modèle texte. Vaut {}
-// pour un modèle non-raisonneur. NB : Luna accepte « minimal », Terra exige
-// « none » — ajuster si on change de modèle.
-export const TEXT_MODEL_EXTRA_PARAMS: { reasoning_effort?: "minimal" } =
-  AI_MODELS.text.startsWith("gpt-5") ? { reasoning_effort: "minimal" } : {};
+// l'extraction JSON on force l'effort le plus bas (0 token de raisonnement
+// mesuré au bench). À spreader dans tout appel chat.completions du modèle
+// texte. Vaut {} pour un modèle non-raisonneur.
+// ⚠ Gamme instable côté OpenAI : le 2026-09-02, Luna acceptait « minimal » le
+// matin puis a basculé sur la gamme none/low/…/xhigh dans la journée (Sentry
+// 6df59580 en prod). D'où la valeur « none » ET le fallback ci-dessous.
+export const TEXT_MODEL_EXTRA_PARAMS: { reasoning_effort?: "none" } =
+  AI_MODELS.text.startsWith("gpt-5") ? { reasoning_effort: "none" } : {};
+
+function isUnsupportedEffortError(err: unknown): boolean {
+  return (
+    (err as { status?: number })?.status === 400 &&
+    String((err as Error)?.message ?? "").includes("reasoning_effort")
+  );
+}
+
+/**
+ * Exécute un appel chat du modèle texte en lui passant TEXT_MODEL_EXTRA_PARAMS ;
+ * si l'API rejette la valeur de reasoning_effort (OpenAI a déjà renommé la gamme
+ * en cours de journée), retente une fois SANS le paramètre : l'appel garde
+ * l'effort par défaut du modèle — plus lent et un peu plus cher, mais il aboutit
+ * au lieu de faire échouer un import ou un enrichissement utilisateur.
+ */
+export async function withEffortFallback<T>(
+  call: (extra: typeof TEXT_MODEL_EXTRA_PARAMS) => Promise<T>,
+): Promise<T> {
+  try {
+    return await call(TEXT_MODEL_EXTRA_PARAMS);
+  } catch (err) {
+    if (Object.keys(TEXT_MODEL_EXTRA_PARAMS).length > 0 && isUnsupportedEffortError(err)) {
+      console.warn("[ai-models] reasoning_effort rejeté par l'API — retry sans le paramètre");
+      return call({});
+    }
+    throw err;
+  }
+}

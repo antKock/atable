@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import openai from "@/lib/openai";
-import { AI_MODELS, TEXT_MODEL_EXTRA_PARAMS } from "@/lib/ai-models";
+import { AI_MODELS, withEffortFallback } from "@/lib/ai-models";
 import { withRetry } from "@/lib/retry";
 import { recordAiCost, textCostUsd, imageCostUsd } from "@/lib/ai-cost";
 import { createServerClient } from "@/lib/supabase/server";
@@ -85,30 +85,32 @@ async function generateImagePrompt(
   },
   ctx?: { householdId: string; recipeId: string },
 ): Promise<string> {
-  const response = await openai.chat.completions.create({
-    model: AI_MODELS.text,
-    ...TEXT_MODEL_EXTRA_PARAMS,
-    response_format: {
-      type: "json_schema",
-      json_schema: {
-        name: "image_prompt",
-        strict: true,
-        schema: {
-          type: "object",
-          properties: { imagePrompt: { type: "string" } },
-          required: ["imagePrompt"],
-          additionalProperties: false,
+  const response = await withEffortFallback((effortParams) =>
+    openai.chat.completions.create({
+      model: AI_MODELS.text,
+      ...effortParams,
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "image_prompt",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: { imagePrompt: { type: "string" } },
+            required: ["imagePrompt"],
+            additionalProperties: false,
+          },
         },
       },
-    },
-    messages: [
-      {
-        role: "system",
-        content: `Tu es un assistant culinaire expert. ${IMAGE_PROMPT_INSTRUCTION}\n\nRéponds UNIQUEMENT avec le JSON structuré { "imagePrompt": "..." }.`,
-      },
-      { role: "user", content: recipeUserContent(recipe) },
-    ],
-  });
+      messages: [
+        {
+          role: "system",
+          content: `Tu es un assistant culinaire expert. ${IMAGE_PROMPT_INSTRUCTION}\n\nRéponds UNIQUEMENT avec le JSON structuré { "imagePrompt": "..." }.`,
+        },
+        { role: "user", content: recipeUserContent(recipe) },
+      ],
+    }),
+  );
 
   const content = response.choices[0].message.content;
   if (!content) throw new Error("Empty image-prompt response");
@@ -285,39 +287,41 @@ export async function enrichRecipe(
       console.log(`[enrichment] ${recipeId} — calling text model ${AI_MODELS.text}`);
       try {
         result = await withRetry(async () => {
-          const response = await openai.chat.completions.create({
-            model: AI_MODELS.text,
-            ...TEXT_MODEL_EXTRA_PARAMS,
-            response_format: {
-              type: "json_schema",
-              json_schema: {
-                name: "enrichment",
-                strict: true,
-                schema: {
-                  type: "object",
-                  properties: {
-                    tags: { type: "array", items: { type: "string" }, maxItems: 10 },
-                    seasons: {
-                      type: "array",
-                      items: { type: "string", enum: [...VALID_SEASONS] },
+          const response = await withEffortFallback((effortParams) =>
+            openai.chat.completions.create({
+              model: AI_MODELS.text,
+              ...effortParams,
+              response_format: {
+                type: "json_schema",
+                json_schema: {
+                  name: "enrichment",
+                  strict: true,
+                  schema: {
+                    type: "object",
+                    properties: {
+                      tags: { type: "array", items: { type: "string" }, maxItems: 10 },
+                      seasons: {
+                        type: "array",
+                        items: { type: "string", enum: [...VALID_SEASONS] },
+                      },
+                      prepTime: { type: "string", enum: [...VALID_PREP_TIMES] },
+                      cookTime: { type: "string", enum: [...VALID_COOK_TIMES] },
+                      cost: { type: "string", enum: [...VALID_COST_LEVELS] },
+                      complexity: { type: "string", enum: [...VALID_COMPLEXITY_LEVELS] },
+                      servings: { type: ["integer", "null"] },
+                      imagePrompt: { type: "string" },
                     },
-                    prepTime: { type: "string", enum: [...VALID_PREP_TIMES] },
-                    cookTime: { type: "string", enum: [...VALID_COOK_TIMES] },
-                    cost: { type: "string", enum: [...VALID_COST_LEVELS] },
-                    complexity: { type: "string", enum: [...VALID_COMPLEXITY_LEVELS] },
-                    servings: { type: ["integer", "null"] },
-                    imagePrompt: { type: "string" },
+                    required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "servings", "imagePrompt"],
+                    additionalProperties: false,
                   },
-                  required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "servings", "imagePrompt"],
-                  additionalProperties: false,
                 },
               },
-            },
-            messages: [
-              { role: "system", content: buildSystemPrompt(predefinedTags ?? []) },
-              { role: "user", content: recipeUserContent(recipe) },
-            ],
-          });
+              messages: [
+                { role: "system", content: buildSystemPrompt(predefinedTags ?? []) },
+                { role: "user", content: recipeUserContent(recipe) },
+              ],
+            }),
+          );
 
           const content = response.choices[0].message.content;
           if (!content) throw new Error("Empty response from text model");

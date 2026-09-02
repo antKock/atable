@@ -67,7 +67,7 @@ async function classifyDiet(recipe) {
       // Garder aligné sur AI_MODELS.text (src/lib/ai-models.ts) — .mjs standalone,
       // ne peut pas importer le TS.
       model: "gpt-5.6-luna",
-      reasoning_effort: "minimal",
+      reasoning_effort: "none",
       response_format: {
         type: "json_schema",
         json_schema: {
