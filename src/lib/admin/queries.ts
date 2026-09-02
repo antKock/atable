@@ -2,6 +2,12 @@ import { createServerClient } from "@/lib/supabase/server";
 import { getBilledOpenAiSpend } from "@/lib/admin/openai-costs";
 import { resolvePeriod, type PeriodKey } from "@/lib/admin/periods";
 import {
+  METRIC_EPOCHS,
+  clampWindow,
+  windowLabel,
+  windowPredatesEpoch,
+} from "@/lib/admin/epochs";
+import {
   PALETTE,
   METHOD_LABELS,
   METHOD_COLORS,
@@ -109,11 +115,6 @@ const MAX_DAYS = 1100;
 const COST_DAYS = 30;
 // Recovery funnel window (tokens live in stats_daily — see 032).
 const RECOVERY_DAYS = 90;
-// Vertical marker on activity charts: 2026-07-10 = correctif du heartbeat
-// (PR #96) ET arrivée du modèle owners (027) en prod, le même jour. Avant ce
-// repère, la série « personnes » est un majorant (fantômes) et les jours
-// actifs sont sous-capturés.
-const ACTIVITY_MARKER_DAY = "2026-07-10";
 
 function shortLabel(isoDay: string): string {
   const d = new Date(isoDay + "T00:00:00Z");
@@ -189,6 +190,12 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   fromActivation.setUTCDate(fromActivation.getUTCDate() - 56);
   const funnelDays = Math.max(days, 60);
 
+  // Fenêtre du taux de conversion clampée à la naissance du marqueur (032) :
+  // sans clamp, les jours d'essais antérieurs au marqueur gonflent le
+  // dénominateur alors qu'aucune conversion n'y était mesurable — le taux
+  // serait mécaniquement sous-estimé jusqu'à ce que 30 j de mesure existent.
+  const convWindow = clampWindow(COST_DAYS, "conversionMarker", today);
+
   const [
     kpisRow,
     recipesDaily,
@@ -219,6 +226,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     recoveryRows,
     sharingRows,
     aiCostDemoRows,
+    adoptionRows,
     demoActivityRows,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
@@ -259,7 +267,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     // key. Reconciles against the instrumented total to catch untracked spend.
     getBilledOpenAiSpend(COST_DAYS),
     rpc("analytics_demo_funnel", { p_days: funnelDays }),
-    rpc("analytics_demo_summary", { p_days: COST_DAYS }),
+    rpc("analytics_demo_summary", { p_days: convWindow.days }),
     rpc("analytics_demo_time_to_convert", {}),
     rpc("analytics_carnets_per_owner", {}),
     rpc("analytics_devices_per_owner", {}),
@@ -267,6 +275,13 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     rpc("analytics_recovery", { p_days: RECOVERY_DAYS }),
     rpc("analytics_sharing", { p_days: COST_DAYS }),
     rpc("analytics_ai_cost_demo_daily", { p_days: days }),
+    // Adoption sur la cohorte EXPOSÉE : personnes/carnets créés depuis les
+    // Lots 1-4 (email, profil, invité, multi-carnet) — le % global mélange
+    // les utilisateurs d'avant la feature et masque sa vraie santé.
+    rpc("analytics_adoption_since", {
+      p_owners_since: METRIC_EPOCHS.foyerFeatures,
+      p_carnets_since: METRIC_EPOCHS.foyerFeatures,
+    }),
     // Demo activity per day (recipes added before the nightly purge) — direct
     // read of the 032 rollup table; today's rows appear after the next rollup.
     supabase
@@ -285,6 +300,17 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const rec = (recoveryRows[0] ?? {}) as Record<string, number>;
   const guest = (guestRows[0] ?? {}) as Record<string, number>;
   const sharing = (sharingRows[0] ?? {}) as Record<string, number>;
+  const adopt = (adoptionRows[0] ?? {}) as Record<string, number>;
+
+  // Libellés de fenêtre honnêtes (« 30 j » ou « depuis le 14 août ») pour les
+  // métriques nées avec la 032 — la valeur, elle, est toujours juste (rien
+  // n'existait avant), seul le libellé surpromettrait.
+  const epochShort = (e: keyof typeof METRIC_EPOCHS) => shortLabel(METRIC_EPOCHS[e]);
+  const windows = {
+    conversion: windowLabel(COST_DAYS, "conversionMarker", today),
+    tokens: windowLabel(RECOVERY_DAYS, "conversionMarker", today),
+    moves: windowLabel(COST_DAYS, "conversionMarker", today),
+  };
 
   // ---- funnel démo → carnet ----
   const demoDaily = (demoFunnelRows as Row[]).map((r) => ({
@@ -310,6 +336,18 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   ];
 
   const ttc = (ttcRows as Row[]).map((r) => ({ bin: r.bin as string, value: Number(r.owners) }));
+  const ttcTotal = ttc.reduce((s, b) => s + b.value, 0);
+
+  // Repères/zones du graphe essais & conversions : barre à la naissance du
+  // marqueur de conversion, zone « non mesuré » avant le début du comptage des
+  // essais (rollup) — seulement si la fenêtre affichée les contient.
+  const windowStartIso = demoDailyChart[0]?.day ?? ISO(today);
+  const demoConversionMarker =
+    METRIC_EPOCHS.conversionMarker >= windowStartIso ? epochShort("conversionMarker") : null;
+  const demoNotMeasured =
+    windowStartIso < METRIC_EPOCHS.demoTrials
+      ? { from: demoDailyChart[0].label, to: epochShort("demoTrials") }
+      : null;
 
   const demoActivityByDay = new Map<string, number>();
   for (const r of demoActivityRows as Row[]) {
@@ -320,15 +358,19 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     recettes: demoActivityByDay.get(iso) ?? 0,
   }));
 
-  // 30-vs-prior-30 deltas for the funnel KPIs (needs the ≥60 d RPC window).
+  // 30-vs-prior-30 deltas for the funnel KPIs — seulement quand la fenêtre
+  // précédente est ENTIÈREMENT mesurée (60 j depuis la naissance de la
+  // métrique), sinon on comparerait de la mesure à du vide.
   const sumRange = (rows: typeof demoDaily, from: number, to: number, key: "trials" | "conversions") =>
     rows.slice(from, to).reduce((s, r) => s + r[key], 0);
   const n = demoDaily.length;
-  const trialsPrev30 = n >= 60 ? sumRange(demoDaily, n - 60, n - 30, "trials") : 0;
+  const trialsMeasured60 = !windowPredatesEpoch(60, "demoTrials", today);
+  const convMeasured60 = !windowPredatesEpoch(60, "conversionMarker", today);
+  const trialsPrev30 = trialsMeasured60 && n >= 60 ? sumRange(demoDaily, n - 60, n - 30, "trials") : 0;
   const trialsDelta =
     trialsPrev30 >= 5 ? +(((trials30 - trialsPrev30) / trialsPrev30) * 100).toFixed(0) : undefined;
-  const convPrev30 = n >= 60 ? sumRange(demoDaily, n - 60, n - 30, "conversions") : 0;
-  const convPctPrev = trialsPrev30 > 0 ? pct(convPrev30, trialsPrev30) : null;
+  const convPrev30 = convMeasured60 && n >= 60 ? sumRange(demoDaily, n - 60, n - 30, "conversions") : 0;
+  const convPctPrev = convMeasured60 && trialsPrev30 > 0 ? pct(convPrev30, trialsPrev30) : null;
   const convDelta =
     conversionPct != null && convPctPrev != null && trialsPrev30 >= 5
       ? +(conversionPct - convPctPrev).toFixed(1)
@@ -404,9 +446,23 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     stickiness: r.stickiness == null ? 0 : Number(r.stickiness),
   }));
   // Reference marker (correctif ping + modèle owners) — only when in window.
-  const activityMarker = wauMau.some((w) => w.day === ACTIVITY_MARKER_DAY)
-    ? shortLabel(ACTIVITY_MARKER_DAY)
+  const activityMarker = wauMau.some((w) => w.day === METRIC_EPOCHS.ownerGrain)
+    ? epochShort("ownerGrain")
     : null;
+
+  // Zone « non mesuré » du coût IA (table ai_costs née le 2026-06-16) — pour
+  // les longues périodes qui remontent avant.
+  const costWindowStartIso = ISO(
+    (() => {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - (days - 1));
+      return d;
+    })(),
+  );
+  const aiCostNotMeasured =
+    costWindowStartIso < METRIC_EPOCHS.aiCosts
+      ? { from: shortLabel(costWindowStartIso), to: epochShort("aiCosts") }
+      : null;
 
   const parc = (cumulative as Row[]).map((r) => ({
     label: shortLabel(r.day as string),
@@ -590,7 +646,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     {
       id: "trials",
       label: "Essais démo",
-      sub: "acquisition — sessions démo · 30 j",
+      sub: `acquisition — sessions démo · ${windows.conversion}`,
       value: fr(trials30),
       delta: trialsDelta,
       positive: trialsDelta == null ? undefined : trialsDelta >= 0,
@@ -599,7 +655,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     {
       id: "conversion",
       label: "Conversion démo → carnet",
-      sub: `30 j · ${fr(conversions30)} conversion${conversions30 > 1 ? "s" : ""} / ${fr(trials30)} essais`,
+      sub: `${windows.conversion} · ${fr(conversions30)} conversion${conversions30 > 1 ? "s" : ""} / ${fr(trials30)} essais`,
       value: conversionPct == null ? "—" : `${String(conversionPct).replace(".", ",")} %`,
       suffix: "pts",
       delta: convDelta,
@@ -708,6 +764,25 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     guestsTotal: Number(guest.guests_total ?? 0),
   };
 
+  // Adoption sur la cohorte exposée (arrivée depuis les Lots 1-4) — le chiffre
+  // qui pilote ; le % global mesure la dette du passé.
+  const aOwners = Number(adopt.owners_since ?? 0);
+  const aCarnets = Number(adopt.carnets_since ?? 0);
+  const adoption = {
+    sinceLabel: epochShort("foyerFeatures"),
+    owners: aOwners,
+    withEmail: Number(adopt.with_email_since ?? 0),
+    withEmailPct: Math.round(pct(Number(adopt.with_email_since ?? 0), aOwners)),
+    namedPct: Math.round(pct(Number(adopt.named_since ?? 0), aOwners)),
+    multiCarnetPct: Math.round(pct(Number(adopt.multi_carnet_since ?? 0), aOwners)),
+    carnets: aCarnets,
+    withGuestPct: Math.round(pct(Number(adopt.carnets_with_guest_since ?? 0), aCarnets)),
+  };
+
+  // La fenêtre « méthodes d'ajout » remonte-t-elle avant l'enregistrement de
+  // recipes.source (2026-05-30) ? Si oui, « Indéterminé » gonfle par construction.
+  const methodsPredateSource = ISO(fromPeriod) < METRIC_EPOCHS.recipeSource;
+
   const sharingStats = {
     links: Number(sharing.links_total ?? 0),
     copies: Number(sharing.copies ?? 0),
@@ -736,7 +811,10 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     // 01 — funnel démo → carnet
     funnel,
     demoDaily: demoDailyChart,
+    demoConversionMarker,
+    demoNotMeasured,
     ttc,
+    ttcTotal,
     demoActivityDaily,
     demoFrictions: {
       aiCalls: Number(demoSum.demo_ai_calls ?? 0),
@@ -768,11 +846,16 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     sharing: sharingStats,
     // 05 — compte & sécurité
     recovery,
+    adoption,
     // 06 — qualité & coût IA
     platforms,
     aiPipeline,
     coveragePct,
     aiCost,
+    aiCostNotMeasured,
+    // Fenêtres & époques (libellés honnêtes)
+    windows,
+    methodsPredateSource,
   };
 }
 

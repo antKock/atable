@@ -20,6 +20,7 @@ import {
   RadialBar,
   PolarAngleAxis,
   ReferenceLine,
+  ReferenceArea,
 } from "recharts";
 import { PALETTE as P, FONT, MONO, axisTick, axisProps, gridProps } from "@/lib/admin/palette";
 
@@ -83,6 +84,22 @@ export function ChartEmpty({ height = 220, sub }: { height?: number; sub?: strin
 
 const sum = (arr: any[], keys: string[]) =>
   arr.reduce((s, r) => s + keys.reduce((a, k) => a + (Number(r[k]) || 0), 0), 0);
+
+/* ---------- repères d'époque partagés ----------
+   Barre verticale = changement de définition/mesure (un avant/après à garder
+   en tête en lisant la courbe). Zone grisée = période NON mesurée (rien à lire
+   du tout). Les libellés vivent dans les notes de bas de carte, pas sur le
+   tracé. NB : Recharts ne reconnaît que ses propres éléments comme enfants —
+   d'où des props inline dans chaque chart plutôt qu'un composant wrapper. */
+export type NotMeasuredRange = { from: string; to: string } | null | undefined;
+
+const epochMarkerProps = (glyph: string) => ({
+  stroke: P.faint,
+  strokeDasharray: "3 4",
+  label: { value: glyph, position: "top" as const, fontSize: 12, fill: P.muted },
+});
+
+const notMeasuredProps = { fill: P.grid, fillOpacity: 0.35, stroke: "none" } as const;
 
 /* ---------- donut side legend ---------- */
 function LegendList({ items, unit = "" }: { items: any[]; unit?: string }) {
@@ -165,7 +182,17 @@ export function HBarList({
 }
 
 // Essais démo (barres) + conversions en 1er carnet (ligne).
-export function ChartTrialsDaily({ data, height = 240 }: { data: any[]; height?: number }) {
+export function ChartTrialsDaily({
+  data,
+  marker,
+  notMeasuredBefore,
+  height = 240,
+}: {
+  data: any[];
+  marker?: string | null;
+  notMeasuredBefore?: NotMeasuredRange;
+  height?: number;
+}) {
   if (sum(data, ["trials", "conversions"]) === 0)
     return <ChartEmpty height={height} sub="Les essais démo apparaissent dès la première session « Essayer l'app »." />;
   return (
@@ -175,8 +202,10 @@ export function ChartTrialsDaily({ data, height = 240 }: { data: any[]; height?:
         <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={36} allowDecimals={false} />
         <Tooltip content={<Tip />} />
+        {notMeasuredBefore && <ReferenceArea x1={notMeasuredBefore.from} x2={notMeasuredBefore.to} {...notMeasuredProps} />}
         <Bar dataKey="trials" name="Essais démo" fill={P.oliveSoft} radius={[2, 2, 0, 0]} maxBarSize={10} />
         <Line type="monotone" dataKey="conversions" name="Conversions" stroke={P.terracotta} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+        {marker && <ReferenceLine x={marker} {...epochMarkerProps("➁")} />}
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -221,20 +250,13 @@ export function ChartWauMau({ data, marker, height = 260 }: { data: any[]; marke
         <Line type="monotone" dataKey="mauDevices" name="MAU appareils (ancienne métrique)" stroke={P.faint} strokeWidth={1.6} strokeDasharray="4 5" dot={false} activeDot={{ r: 3 }} />
         <Area type="monotone" dataKey="mau" name="MAU personnes" stroke={P.olive} strokeWidth={2.2} fill="url(#gMau)" dot={false} activeDot={{ r: 4 }} />
         <Line type="monotone" dataKey="wau" name="WAU personnes" stroke={P.terracotta} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
-        {marker && (
-          <ReferenceLine
-            x={marker}
-            stroke={P.faint}
-            strokeDasharray="3 4"
-            label={{ value: "➀", position: "top", fontSize: 12, fill: P.muted }}
-          />
-        )}
+        {marker && <ReferenceLine x={marker} {...epochMarkerProps("➀")} />}
       </ComposedChart>
     </ResponsiveContainer>
   );
 }
 
-export function ChartStickiness({ data, height = 172 }: { data: any[]; height?: number }) {
+export function ChartStickiness({ data, marker, height = 172 }: { data: any[]; marker?: string | null; height?: number }) {
   if (sum(data, ["stickiness"]) === 0) return <ChartEmpty height={height} sub="Le ratio WAU/MAU apparaît avec les premiers retours d'appareils." />;
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -250,6 +272,7 @@ export function ChartStickiness({ data, height = 172 }: { data: any[]; height?: 
         <YAxis {...axisProps} width={36} domain={[0, 100]} tickFormatter={(v: number) => `${v}%`} />
         <Tooltip content={<Tip suffix=" %" />} />
         <Area type="monotone" dataKey="stickiness" name="Stickiness" stroke={P.sage} strokeWidth={2} fill="url(#gSticky)" dot={false} activeDot={{ r: 4 }} />
+        {marker && <ReferenceLine x={marker} {...epochMarkerProps("➀")} />}
       </AreaChart>
     </ResponsiveContainer>
   );
@@ -289,7 +312,7 @@ export function ChartBins({
 // Parc cumulé — personnes + carnets, une seule échelle (mêmes ordres de
 // grandeur). Les recettes cumulées, d'échelle incomparable, vivent en
 // section 04 (décision maquette v2 : pas de double axe).
-export function ChartParc({ data, height = 280 }: { data: any[]; height?: number }) {
+export function ChartParc({ data, marker, height = 280 }: { data: any[]; marker?: string | null; height?: number }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <ComposedChart data={data} margin={{ top: 8, right: 4, left: -8, bottom: 0 }}>
@@ -309,6 +332,7 @@ export function ChartParc({ data, height = 280 }: { data: any[]; height?: number
         <Tooltip content={<Tip />} />
         <Area type="monotone" dataKey="personnes" name="Personnes (total)" stroke={P.olive} strokeWidth={2.2} fill="url(#gParcOwn)" dot={false} activeDot={{ r: 4 }} />
         <Area type="monotone" dataKey="carnets" name="Carnets (total)" stroke={P.sage} strokeWidth={2} fill="url(#gParcCar)" dot={false} activeDot={{ r: 4 }} />
+        {marker && <ReferenceLine x={marker} {...epochMarkerProps("➀")} />}
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -511,7 +535,15 @@ export function ChartAiPipeline({ data, success, height = 200 }: { data: any[]; 
 }
 
 // Daily OpenAI spend (USD), stacked by usage type.
-export function ChartAiCostTrend({ data, height = 230 }: { data: any[]; height?: number }) {
+export function ChartAiCostTrend({
+  data,
+  notMeasuredBefore,
+  height = 230,
+}: {
+  data: any[];
+  notMeasuredBefore?: NotMeasuredRange;
+  height?: number;
+}) {
   if (sum(data, ["total"]) === 0)
     return <ChartEmpty height={height} sub="Le coût IA se remplit dès le prochain import ou enrichissement (en USD)." />;
   return (
@@ -521,6 +553,7 @@ export function ChartAiCostTrend({ data, height = 230 }: { data: any[]; height?:
         <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={48} tickFormatter={(v: number) => `$${v}`} />
         <Tooltip content={<Tip suffix=" $" />} />
+        {notMeasuredBefore && <ReferenceArea x1={notMeasuredBefore.from} x2={notMeasuredBefore.to} {...notMeasuredProps} />}
         <Area type="monotone" dataKey="ocr" name="Lecture OCR" stackId="c" stroke={P.ochre} fill={P.ochre} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
         <Area type="monotone" dataKey="metadata" name="Métadonnées" stackId="c" stroke={P.sage} fill={P.sage} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
         <Area type="monotone" dataKey="image" name="Génération image" stackId="c" stroke={P.terracotta} fill={P.terracotta} fillOpacity={0.25} strokeWidth={1.5} dot={false} />
