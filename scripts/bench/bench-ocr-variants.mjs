@@ -58,15 +58,25 @@ const IMPORT_JSON_SCHEMA = {
   },
 };
 
-// Round 3 : gpt-5-mini, entre Luna et gpt-4o en prix.
-const VARIANTS = [{ key: "gpt-5-mini@minimal", model: "gpt-5-mini", effort: "minimal" }];
+// Round 4 : impact du paramètre `detail` des images sur gpt-4o (pas de
+// reasoning_effort sur cette génération — le levier vision, c'est detail).
+const VARIANTS = [
+  { key: "gpt-4o@detail-low", model: "gpt-4o", detail: "low" },
+  { key: "gpt-4o@detail-high", model: "gpt-4o", detail: "high" },
+];
 const CASES = ["marmiton-ratatouille", "cuisineaz-sauce-pommes", "750g-tarte-pommes"];
 
 async function runOcr(variant, slug) {
   const images = [];
   for (const n of [1, 2]) {
     const buf = await readFile(path.join(FIX, "images", `${slug}-${n}.png`));
-    images.push({ type: "image_url", image_url: { url: `data:image/png;base64,${buf.toString("base64")}` } });
+    images.push({
+      type: "image_url",
+      image_url: {
+        url: `data:image/png;base64,${buf.toString("base64")}`,
+        ...(variant.detail ? { detail: variant.detail } : {}),
+      },
+    });
   }
   const started = Date.now();
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -74,7 +84,7 @@ async function runOcr(variant, slug) {
     headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       model: variant.model,
-      reasoning_effort: variant.effort,
+      ...(variant.effort ? { reasoning_effort: variant.effort } : {}),
       response_format: { type: "json_schema", json_schema: IMPORT_JSON_SCHEMA },
       messages: [
         { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
@@ -158,14 +168,7 @@ try {
 } catch {
   /* premier run */
 }
-try {
-  lunaLow.push(
-    ...JSON.parse(await readFile(path.join(OUT, "ocr-variants2.json"), "utf8"))
-      .newRuns.filter((r) => r.model === "gpt-5.6-terra@none" && !r.error),
-  );
-} catch {
-  /* round 2 absent */
-}
+// (Terra du round 2 sort du panel : dominé en prix, et 4 candidats max.)
 const newRuns = [];
 for (const variant of VARIANTS) {
   for (const slug of CASES) {
@@ -188,7 +191,7 @@ for (const slug of CASES) {
   console.log(`juge ${slug} — ${j.error ?? j.ranking?.join(" > ")}`);
 }
 
-await writeFile(path.join(OUT, "ocr-variants3.json"), JSON.stringify({ newRuns, judgements }, null, 2));
+await writeFile(path.join(OUT, "ocr-variants4.json"), JSON.stringify({ newRuns, judgements }, null, 2));
 
 const norm = (s) => (s.match(/[A-D]$/) || [s])[0];
 const byModel = {};
