@@ -53,3 +53,7 @@ temp/
 
 # JetBrains IDE (Android Studio / IntelliJ / WebStorm) — machine-specific
 .idea/
+
+# Banc d'essai modèles IA — fixtures téléchargées/générées + résultats
+scripts/bench/fixtures/
+scripts/bench/results/

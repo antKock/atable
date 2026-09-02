@@ -7,6 +7,7 @@ import {
   ImportError,
 } from "./import";
 import { chatCompletion, importResult } from "@/test/openai-mock";
+import { AI_MODELS } from "@/lib/ai-models";
 
 vi.mock("@/lib/openai", () => ({
   default: {
@@ -46,11 +47,11 @@ describe("extractRecipeFromImages", () => {
     expect(result.seasons).toEqual(["automne"]);
   });
 
-  it("calls gpt-4o with image_url content", async () => {
+  it("calls the vision model with image_url content", async () => {
     mockChat.mockResolvedValue(chatCompletion(importResult()));
     await extractRecipeFromImages(["base64data"]);
     const request = mockChat.mock.calls[0][0];
-    expect(request.model).toBe("gpt-4o");
+    expect(request.model).toBe(AI_MODELS.vision);
     const userContent = request.messages[1].content;
     expect(userContent.some((p: { type: string }) => p.type === "image_url")).toBe(
       true,
@@ -201,11 +202,11 @@ describe("extractRecipeFromVoice", () => {
     mockChat.mockResolvedValue(chatCompletion(importResult()));
     const result = await extractRecipeFromVoice(audioFile());
     expect(result.title).toBe("Tarte aux pommes");
-    expect(mockTranscribe.mock.calls[0][0].model).toBe("whisper-1");
+    expect(mockTranscribe.mock.calls[0][0].model).toBe(AI_MODELS.transcription);
     // La langue ne doit PAS être figée : Whisper auto-détecte (sinon une dictée
     // en portugais, etc. échoue). Régression #10.
     expect(mockTranscribe.mock.calls[0][0].language).toBeUndefined();
-    expect(mockChat.mock.calls[0][0].model).toBe("gpt-4o-mini");
+    expect(mockChat.mock.calls[0][0].model).toBe(AI_MODELS.text);
   });
 
   it("ne force aucune langue Whisper (auto-détection, ex. portugais)", async () => {
@@ -258,11 +259,11 @@ describe("extractRecipeFromUrl", () => {
     expect(userContent).toContain("Ma Recette");
   });
 
-  it("uses gpt-4o-mini", async () => {
+  it("uses the text model", async () => {
     mockFetch().mockResolvedValue(new Response("<h1>R</h1>", { status: 200 }));
     mockChat.mockResolvedValue(chatCompletion(importResult()));
     await extractRecipeFromUrl("https://marmiton.org/r/1");
-    expect(mockChat.mock.calls[0][0].model).toBe("gpt-4o-mini");
+    expect(mockChat.mock.calls[0][0].model).toBe(AI_MODELS.text);
   });
 
   it("throws SITE_BLOCKED on HTTP 403", async () => {
