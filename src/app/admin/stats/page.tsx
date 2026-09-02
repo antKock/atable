@@ -224,12 +224,12 @@ export default async function DashboardPage({
           <div className="cards">
             <Card
               span={5}
-              title="Funnel des 30 derniers jours"
+              title={`Funnel — ${data.windows.conversion}`}
               sub="Chaque essai = une session démo créée (« Essayer l'app »)"
               footer={
                 <div className="chart-note">
-                  Historique disponible depuis la pose du marqueur de conversion (migration 032) —{" "}
-                  <b>aucun rattrapage du passé possible</b>.
+                  Fenêtre alignée sur la naissance du marqueur de conversion (14 août) : avant, les conversions
+                  n&apos;étaient pas mesurables — <b>aucun rattrapage du passé possible</b>.
                 </div>
               }
             >
@@ -248,17 +248,43 @@ export default async function DashboardPage({
               sub={`Volume d'essais démo (barres) et conversions en 1er carnet (ligne) · ${periodSpan}`}
               badge="global"
               footer={
-                <LegendInline
-                  items={[
-                    { label: "Essais démo / jour", color: P.oliveSoft },
-                    { label: "Conversions / jour", color: P.terracotta },
-                  ]}
-                />
+                <>
+                  <LegendInline
+                    items={[
+                      { label: "Essais démo / jour", color: P.oliveSoft },
+                      { label: "Conversions / jour", color: P.terracotta },
+                    ]}
+                  />
+                  {(data.demoConversionMarker || data.demoNotMeasured) && (
+                    <div className="chart-note">
+                      {data.demoConversionMarker && (
+                        <>Repère <b>➁ {data.demoConversionMarker}</b> : naissance du marqueur de conversion — avant, la ligne conversions est structurellement à zéro. </>
+                      )}
+                      {data.demoNotMeasured && <>Zone grisée : essais non mesurés (avant le premier rollup).</>}
+                    </div>
+                  )}
+                </>
               }
             >
-              <ChartTrialsDaily data={data.demoDaily} height={240} />
+              <ChartTrialsDaily
+                data={data.demoDaily}
+                marker={data.demoConversionMarker}
+                notMeasuredBefore={data.demoNotMeasured}
+                height={240}
+              />
             </Card>
-            <Card span={4} title="Délai avant conversion" sub="Temps entre la 1ʳᵉ session démo et la création du carnet (toutes conversions)">
+            <Card
+              span={4}
+              title="Délai avant conversion"
+              sub="Temps entre la 1ʳᵉ session démo et la création du carnet (toutes conversions)"
+              footer={
+                data.ttcTotal > 0 ? (
+                  <div className="chart-note">
+                    Sur <b>{data.ttcTotal} conversion{data.ttcTotal > 1 ? "s" : ""}</b> marquée{data.ttcTotal > 1 ? "s" : ""} — effectif encore faible, lire la tendance, pas les pourcentages.
+                  </div>
+                ) : undefined
+              }
+            >
               <ChartBins data={data.ttc} name="Conversions" height={210} emptySub="Se remplit avec les premières conversions marquées (032)." />
             </Card>
             <Card
@@ -318,8 +344,17 @@ export default async function DashboardPage({
             >
               <ChartWauMau data={data.wauMau} marker={data.activityMarker} height={260} />
             </Card>
-            <Card span={4} title="Stickiness" sub="Ratio WAU / MAU — fidélité d'usage">
-              <ChartStickiness data={data.wauMau} height={260} />
+            <Card
+              span={4}
+              title="Stickiness"
+              sub="Ratio WAU / MAU — fidélité d'usage"
+              footer={
+                data.activityMarker ? (
+                  <div className="chart-note">➀ {data.activityMarker} — bascule de mesure (voir carte WAU/MAU).</div>
+                ) : undefined
+              }
+            >
+              <ChartStickiness data={data.wauMau} marker={data.activityMarker} height={260} />
             </Card>
             <Card span={4} title="Fréquence d'usage" sub="Jours actifs / mois / personne (avant : par appareil)">
               <ChartBins data={data.loginFrequency} name="Personnes" height={220} />
@@ -349,7 +384,7 @@ export default async function DashboardPage({
                 />
               }
             >
-              <ChartParc data={data.parc} height={280} />
+              <ChartParc data={data.parc} marker={data.activityMarker} height={280} />
             </Card>
             <Card
               span={8}
@@ -384,7 +419,8 @@ export default async function DashboardPage({
               sub="Adoption du multi-carnet (Lot 4)"
               footer={
                 <div className="chart-note">
-                  <b>{data.multiCarnetPct} %</b> des personnes ont plus d&apos;un carnet.
+                  <b>{data.multiCarnetPct} %</b> des personnes ont plus d&apos;un carnet — <b>{data.adoption.multiCarnetPct} %</b>{" "}
+                  parmi celles arrivées depuis la feature ({data.adoption.sinceLabel}, {data.adoption.owners} pers.).
                 </div>
               }
             >
@@ -411,11 +447,11 @@ export default async function DashboardPage({
                   {
                     value: `${data.guestAdoption.withGuestPct} %`,
                     label: "des carnets ont ≥ 1 invité",
-                    hint: `${data.guestAdoption.guestsTotal} invité${data.guestAdoption.guestsTotal > 1 ? "s" : ""} au total`,
+                    hint: `${data.adoption.withGuestPct} % des carnets créés depuis la feature (${data.adoption.sinceLabel}) · ${data.guestAdoption.guestsTotal} invité${data.guestAdoption.guestsTotal > 1 ? "s" : ""} au total`,
                   },
                   {
                     value: String(data.sharing.moves),
-                    label: "recettes déplacées entre carnets · 30 j",
+                    label: `recettes déplacées entre carnets · ${data.windows.moves}`,
                   },
                 ]}
               />
@@ -437,7 +473,19 @@ export default async function DashboardPage({
             <Card span={7} title="Volume de création de recettes" sub={`Tendance quotidienne · ${periodSpan}`}>
               <ChartRecipeCreation data={data.recipeCreation} height={250} />
             </Card>
-            <Card span={5} title="Méthodes d'ajout" sub="Répartition globale — inclut les copies de partage (« Partagée »)">
+            <Card
+              span={5}
+              title="Méthodes d'ajout"
+              sub="Répartition globale — inclut les copies de partage (« Partagée »)"
+              footer={
+                data.methodsPredateSource ? (
+                  <div className="chart-note">
+                    La période remonte avant l&apos;enregistrement de la méthode (30 mai) : les recettes antérieures
+                    gonflent « Indéterminé » par construction.
+                  </div>
+                ) : undefined
+              }
+            >
               <ChartAddMethods data={data.addMethods} height={230} />
             </Card>
             <Card
@@ -447,7 +495,8 @@ export default async function DashboardPage({
               footer={
                 data.sharing.links > 0 ? (
                   <div className="chart-note">
-                    Taux de reprise : <b>{data.sharing.uptakePct} %</b> des liens partagés ont abouti à ≥ 1 copie (30 j).
+                    Ratio indicatif : copies des 30 derniers jours / liens émis <b>depuis toujours</b> ({data.sharing.uptakePct} %)
+                    — l&apos;émission de lien n&apos;est pas datée en base, les deux fenêtres ne sont pas comparables.
                   </div>
                 ) : undefined
               }
@@ -481,7 +530,9 @@ export default async function DashboardPage({
               footer={
                 <div className="chart-note">
                   Les personnes sans email <b>perdent tout</b> si elles perdent leur session ({data.recovery.withEmail}
-                  {" "}/ {data.recovery.ownersTotal} en ont un).
+                  {" "}/ {data.recovery.ownersTotal} en ont un). Cohorte exposée à la feature (arrivées depuis le{" "}
+                  {data.adoption.sinceLabel}) : <b>{data.adoption.withEmailPct} %</b> ({data.adoption.withEmail}/{data.adoption.owners})
+                  — le chiffre qui pilote ; le global porte la dette du parc d&apos;avant.
                 </div>
               }
             >
@@ -492,7 +543,7 @@ export default async function DashboardPage({
                 label="ont un email"
               />
             </Card>
-            <Card span={4} title="Funnel de récupération" sub="login_tokens émis → consommés · 90 j (consolidé chaque nuit)">
+            <Card span={4} title="Funnel de récupération" sub={`login_tokens émis → consommés · ${data.windows.tokens}`}>
               <HBarList
                 height={200}
                 colors={[P.olive, P.oliveDeep, "#C9C2B2", P.terracotta]}
@@ -505,7 +556,7 @@ export default async function DashboardPage({
                   {
                     value: `${data.recovery.namedPct} %`,
                     label: "de profils nommés",
-                    hint: "les autres gardent leur surnom auto",
+                    hint: `${data.adoption.namedPct} % parmi les arrivées depuis la feature (${data.adoption.sinceLabel}) · les autres gardent leur surnom auto`,
                   },
                   {
                     value: String(data.recovery.merges),
@@ -522,8 +573,18 @@ export default async function DashboardPage({
         <div className="section">
           <SectionHead n="06" title="Qualité & coût IA" meta="Pipeline d'enrichissement & dépense OpenAI — part démo isolée" />
           <div className="cards">
-            <Card span={8} title="Coût IA / jour par usage" sub="Dépense OpenAI quotidienne, empilée par type d'appel — la démo en gris" badge="USD">
-              <ChartAiCostTrend data={data.aiCost.daily} height={230} />
+            <Card
+              span={8}
+              title="Coût IA / jour par usage"
+              sub="Dépense OpenAI quotidienne, empilée par type d'appel — la démo en gris"
+              badge="USD"
+              footer={
+                data.aiCostNotMeasured ? (
+                  <div className="chart-note">Zone grisée : coûts non mesurés (table ai_costs née le 16 juin).</div>
+                ) : undefined
+              }
+            >
+              <ChartAiCostTrend data={data.aiCost.daily} notMeasuredBefore={data.aiCostNotMeasured} height={230} />
             </Card>
             <Card span={4} title="Répartition par usage" sub="Part de la dépense réelle (hors démo) — 30 j">
               <ChartCostByType data={data.aiCost.byType} height={200} />
