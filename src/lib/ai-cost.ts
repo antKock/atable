@@ -14,21 +14,29 @@ import { createServerClient } from "@/lib/supabase/server";
 
 // What a call was for. The dashboard groups these into OCR / metadata / image /
 // import for display (see analytics_ai_cost_* RPCs).
+// Models per role live in ai-models.ts (AI_MODELS.text/vision/transcription/image).
 export type AiCallType =
-  | "ocr" // screenshot extraction (gpt-4o vision)
-  | "metadata" // recipe enrichment: tags, times, cost, seasons (gpt-4o-mini)
-  | "image" // dish image generation (gpt-image-1.5)
-  | "image_prompt" // image-prompt authoring before generation (gpt-4o-mini)
-  | "import_url" // recipe parse from a directly-fetched web page (gpt-4o-mini)
-  | "import_instagram" // recipe parse from an Instagram caption (gpt-4o-mini); also an Apify scrape row
-  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (gpt-4o-mini); also an Apify scrape row
-  | "import_voice" // recipe parse from a voice transcription (gpt-4o-mini)
-  | "transcription"; // voice → text (whisper-1)
+  | "ocr" // screenshot extraction (vision model)
+  | "metadata" // recipe enrichment: tags, times, cost, seasons (text model)
+  | "image" // dish image generation (image model)
+  | "image_prompt" // image-prompt authoring before generation (text model)
+  | "import_url" // recipe parse from a directly-fetched web page (text model)
+  | "import_instagram" // recipe parse from an Instagram caption (text model); also an Apify scrape row
+  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (text model); also an Apify scrape row
+  | "import_voice" // recipe parse from a voice transcription (text model)
+  | "transcription"; // voice → text (transcription model)
 
-// USD per 1M tokens, for token-billed models.
+// USD per 1M tokens, for token-billed models. Keep an entry for every model
+// referenced in ai-models.ts (current or candidate) — unknown models price at 0
+// and silently under-report spend in the dashboard.
 const TOKEN_PRICING: Record<string, { input: number; output: number }> = {
   "gpt-4o": { input: 2.5, output: 10 },
   "gpt-4o-mini": { input: 0.15, output: 0.6 },
+  "gpt-5.6-sol": { input: 4, output: 20 },
+  "gpt-5.6-terra": { input: 2, output: 12 },
+  "gpt-5.6-luna": { input: 0.2, output: 1.2 },
+  "gpt-5-mini": { input: 0.25, output: 2 },
+  "gpt-5-nano": { input: 0.05, output: 0.4 },
 };
 
 // Flat USD per generated image, keyed by `quality:size`. Grounded in observed

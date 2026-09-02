@@ -1,4 +1,5 @@
 import openai from "@/lib/openai";
+import { AI_MODELS, TEXT_MODEL_EXTRA_PARAMS } from "@/lib/ai-models";
 import { withRetry } from "@/lib/retry";
 import { recordAiCost, textCostUsd, type AiCallType } from "@/lib/ai-cost";
 import {
@@ -207,7 +208,7 @@ export async function extractRecipeFromImages(
     }));
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o",
+      model: AI_MODELS.vision,
       response_format: {
         type: "json_schema",
         json_schema: IMPORT_JSON_SCHEMA,
@@ -234,10 +235,10 @@ export async function extractRecipeFromImages(
       await recordAiCost({
         householdId: meta.householdId,
         callType: "ocr",
-        model: "gpt-4o",
+        model: AI_MODELS.vision,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd("gpt-4o", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(AI_MODELS.vision, response.usage?.prompt_tokens, response.usage?.completion_tokens),
       });
     }
     return toFormData(parsed);
@@ -253,11 +254,11 @@ export async function extractRecipeFromVoice(
   // Step 1: Transcribe audio with Whisper
   const transcription = await withRetry(async () => {
     const result = await openai.audio.transcriptions.create({
-      model: "whisper-1",
+      model: AI_MODELS.transcription,
       file: audioFile,
       // Pas de `language` figé : Whisper auto-détecte la langue parlée. Le forcer
       // à "fr" faisait échouer/mal transcrire les dictées dans une autre langue
-      // (ex. portugais). L'étape de structuration (gpt-4o-mini) reste tolérante
+      // (ex. portugais). L'étape de structuration (modèle texte) reste tolérante
       // à la langue de la transcription.
       response_format: "text",
     });
@@ -275,7 +276,7 @@ export async function extractRecipeFromVoice(
     await recordAiCost({
       householdId: meta.householdId,
       callType: "transcription",
-      model: "whisper-1",
+      model: AI_MODELS.transcription,
       costUsd: 0,
     });
   }
@@ -283,7 +284,8 @@ export async function extractRecipeFromVoice(
   // Step 2: Structure transcription into recipe JSON
   return withRetry(async () => {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: AI_MODELS.text,
+      ...TEXT_MODEL_EXTRA_PARAMS,
       response_format: {
         type: "json_schema",
         json_schema: IMPORT_JSON_SCHEMA,
@@ -304,10 +306,10 @@ export async function extractRecipeFromVoice(
       await recordAiCost({
         householdId: meta.householdId,
         callType: "import_voice",
-        model: "gpt-4o-mini",
+        model: AI_MODELS.text,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
       });
     }
     return toFormData(parsed);
@@ -318,7 +320,7 @@ export async function extractRecipeFromVoice(
 
 /**
  * Structure a free-text recipe (cleaned HTML, Instagram caption, crawler
- * markdown) into form data via gpt-4o-mini. Shared by all URL-derived import
+ * markdown) into form data via le modèle texte. Shared by all URL-derived import
  * paths; `callType` attributes the cost to the right voie in the dashboard.
  */
 async function structureRecipeFromText(
@@ -327,7 +329,8 @@ async function structureRecipeFromText(
 ): Promise<ImportedRecipeData> {
   return withRetry(async () => {
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: AI_MODELS.text,
+      ...TEXT_MODEL_EXTRA_PARAMS,
       response_format: {
         type: "json_schema",
         json_schema: IMPORT_JSON_SCHEMA,
@@ -348,10 +351,10 @@ async function structureRecipeFromText(
       await recordAiCost({
         householdId: opts.meta.householdId,
         callType: opts.callType,
-        model: "gpt-4o-mini",
+        model: AI_MODELS.text,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
       });
     }
     return toFormData(parsed);

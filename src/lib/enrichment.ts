@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import openai from "@/lib/openai";
+import { AI_MODELS, TEXT_MODEL_EXTRA_PARAMS } from "@/lib/ai-models";
 import { withRetry } from "@/lib/retry";
 import { recordAiCost, textCostUsd, imageCostUsd } from "@/lib/ai-cost";
 import { createServerClient } from "@/lib/supabase/server";
@@ -85,7 +86,8 @@ async function generateImagePrompt(
   ctx?: { householdId: string; recipeId: string },
 ): Promise<string> {
   const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: AI_MODELS.text,
+    ...TEXT_MODEL_EXTRA_PARAMS,
     response_format: {
       type: "json_schema",
       json_schema: {
@@ -119,10 +121,10 @@ async function generateImagePrompt(
       householdId: ctx.householdId,
       recipeId: ctx.recipeId,
       callType: "image_prompt",
-      model: "gpt-4o-mini",
+      model: AI_MODELS.text,
       inputTokens: response.usage?.prompt_tokens ?? null,
       outputTokens: response.usage?.completion_tokens ?? null,
-      costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+      costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
     });
   }
   return parsed.imagePrompt;
@@ -139,7 +141,7 @@ async function generateAndUploadImage(
   const IMAGE_SIZE = "1024x1024";
   // Generate with gpt-image-1
   const imageResponse = await openai.images.generate({
-    model: "gpt-image-1.5",
+    model: AI_MODELS.image,
     prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting. Show only the dish exactly as described above, plated simply and without any added garnish or decoration.`,
     n: 1,
     size: IMAGE_SIZE,
@@ -154,7 +156,7 @@ async function generateAndUploadImage(
     householdId,
     recipeId,
     callType: "image",
-    model: "gpt-image-1.5",
+    model: AI_MODELS.image,
     inputTokens: imageResponse.usage?.input_tokens ?? null,
     outputTokens: imageResponse.usage?.output_tokens ?? null,
     costUsd: imageCostUsd(IMAGE_QUALITY, IMAGE_SIZE),
@@ -277,14 +279,15 @@ export async function enrichRecipe(
       .select("name, description")
       .eq("is_predefined", true);
 
-    // 4. Call GPT-4o-mini (only if metadata or tags are missing)
+    // 4. Call the text model (only if metadata or tags are missing)
     let result: EnrichmentResponse | null = null;
     if (needsMetadata) {
-      console.log(`[enrichment] ${recipeId} — calling GPT-4o-mini`);
+      console.log(`[enrichment] ${recipeId} — calling text model ${AI_MODELS.text}`);
       try {
         result = await withRetry(async () => {
           const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: AI_MODELS.text,
+            ...TEXT_MODEL_EXTRA_PARAMS,
             response_format: {
               type: "json_schema",
               json_schema: {
@@ -317,22 +320,22 @@ export async function enrichRecipe(
           });
 
           const content = response.choices[0].message.content;
-          if (!content) throw new Error("Empty response from GPT-4o-mini");
+          if (!content) throw new Error("Empty response from text model");
           const enrichResult = EnrichmentResponseSchema.parse(JSON.parse(content));
           await recordAiCost({
             householdId: recipe.household_id,
             recipeId,
             callType: "metadata",
-            model: "gpt-4o-mini",
+            model: AI_MODELS.text,
             inputTokens: response.usage?.prompt_tokens ?? null,
             outputTokens: response.usage?.completion_tokens ?? null,
-            costUsd: textCostUsd("gpt-4o-mini", response.usage?.prompt_tokens, response.usage?.completion_tokens),
+            costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
           });
           return enrichResult;
         });
       } catch (error) {
         Sentry.captureException(error);
-        console.error("[enrichment] GPT-4o-mini failed after retries:", error);
+        console.error("[enrichment] Text model failed after retries:", error);
         await supabase
           .from("recipes")
           .update({ enrichment_status: "failed" })

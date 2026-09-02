@@ -5,6 +5,7 @@ import { enrichRecipe, regenerateImage, sanitizeDietTags } from "./enrichment";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 import { chatCompletion, enrichmentResult, imageResponse } from "@/test/openai-mock";
 import { recipeDbRow } from "@/test/fixtures";
+import { AI_MODELS } from "@/lib/ai-models";
 
 vi.mock("@/lib/openai", () => ({
   default: {
@@ -96,7 +97,7 @@ describe("enrichRecipe — full enrichment", () => {
 
     await enrichRecipe("recipe-1");
 
-    expect(mockChat.mock.calls[0][0].model).toBe("gpt-4o-mini");
+    expect(mockChat.mock.calls[0][0].model).toBe(AI_MODELS.text);
     const updates = updatePayloads("recipes");
     const metadataUpdate = updates.find((u) => "enrichment_status" in u)!;
     expect(metadataUpdate.prep_time).toBe("20-30 min");
