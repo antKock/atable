@@ -278,6 +278,45 @@ export function ChartStickiness({ data, marker, height = 172 }: { data: any[]; m
   );
 }
 
+// MAU décomposé par ancienneté (« layer cake ») : aires empilées, somme = MAU
+// personnes. Rampe séquentielle olive à 4 pas (clair = < 1 mois, foncé =
+// 3 mois +), les fidèles à la BASE de la pile — la lecture est l'épaisseur de
+// cette couche. Rampe dérivée de la palette brand, lightness monotone.
+export const TENURE_COLORS = {
+  plus3m: "#49551F",
+  m3: P.olive,
+  m2: "#93A163",
+  m1: "#C2CBA4",
+} as const;
+
+export function ChartMauTenure({
+  data,
+  marker,
+  height = 260,
+}: {
+  data: any[];
+  marker?: string | null;
+  height?: number;
+}) {
+  if (sum(data, ["plus3m", "m3", "m2", "m1"]) === 0)
+    return <ChartEmpty height={height} sub="Se remplit avec les jours actifs des personnes (heartbeat)." />;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
+        <YAxis {...axisProps} width={44} allowDecimals={false} />
+        <Tooltip content={<Tip />} />
+        <Area type="monotone" dataKey="plus3m" name="3 mois +" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.plus3m} fillOpacity={0.85} dot={false} />
+        <Area type="monotone" dataKey="m3" name="2–3 mois" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.m3} fillOpacity={0.8} dot={false} />
+        <Area type="monotone" dataKey="m2" name="1–2 mois" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.m2} fillOpacity={0.8} dot={false} />
+        <Area type="monotone" dataKey="m1" name="< 1 mois" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.m1} fillOpacity={0.85} dot={false} />
+        {marker && <ReferenceLine x={marker} {...epochMarkerProps("➀")} />}
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
 /**
  * Distribution générique en barres verticales sur {bin, value} — fréquence
  * d'usage, appareils/personne, carnets/personne, recettes/carnet.
