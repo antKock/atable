@@ -11,6 +11,8 @@ import {
   ChartTrialsDaily,
   ChartDemoActivity,
   ChartWauMau,
+  ChartMauTenure,
+  TENURE_COLORS,
   ChartStickiness,
   ChartBins,
   ChartParc,
@@ -355,6 +357,30 @@ export default async function DashboardPage({
               }
             >
               <ChartStickiness data={data.wauMau} marker={data.activityMarker} height={260} />
+            </Card>
+            <Card
+              span={12}
+              title="MAU par ancienneté des personnes"
+              sub="Le même MAU, empilé par ancienneté au jour observé — cumul des générations ou seau percé ?"
+              footer={
+                <>
+                  <LegendInline
+                    items={[
+                      { label: "3 mois +", color: TENURE_COLORS.plus3m },
+                      { label: "2–3 mois", color: TENURE_COLORS.m3 },
+                      { label: "1–2 mois", color: TENURE_COLORS.m2 },
+                      { label: "< 1 mois", color: TENURE_COLORS.m1 },
+                    ]}
+                  />
+                  <div className="chart-note">
+                    Lecture : si les couches du bas (foncées, <b>anciennes</b>) épaississent avec le temps, la
+                    croissance cumule les générations ; si la pile reste dominée par <b>&lt; 1 mois</b>, c&apos;est du
+                    sang neuf qui ne revient pas. La somme des quatre bandes = le MAU personnes ci-dessus.
+                  </div>
+                </>
+              }
+            >
+              <ChartMauTenure data={data.mauTenure} marker={data.activityMarker} height={260} />
             </Card>
             <Card span={4} title="Fréquence d'usage" sub="Jours actifs / mois / personne (avant : par appareil)">
               <ChartBins data={data.loginFrequency} name="Personnes" height={220} />

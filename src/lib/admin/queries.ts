@@ -202,6 +202,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     enrichment,
     activation,
     activeDaily,
+    activeTenure,
     cumulative,
     acquisition,
     carnetPeople,
@@ -234,6 +235,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     rpc("analytics_enrichment", { p_household_ids: hh }),
     rpc("analytics_activation", { p_from: ISO(fromActivation) }),
     rpc("analytics_active_daily", { p_days: days, p_platform: plat, p_household_ids: hh }),
+    rpc("analytics_active_daily_tenure", { p_days: days, p_platform: plat, p_household_ids: hh }),
     rpc("analytics_cumulative_parc_daily", { p_days: days }),
     rpc("analytics_acquisition_daily", { p_days: days }),
     rpc("analytics_carnet_people_dist", {}),
@@ -449,6 +451,18 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   const activityMarker = wauMau.some((w) => w.day === METRIC_EPOCHS.ownerGrain)
     ? epochShort("ownerGrain")
     : null;
+
+  // MAU décomposé par ancienneté (« layer cake ») : la somme des quatre bandes
+  // mensuelles = le MAU personnes. Fidèles en bas de pile — si cette couche
+  // épaissit, la croissance cumule les générations ; si tout reste « < 1 mois »,
+  // c'est du sang neuf qui ne revient pas.
+  const mauTenure = (activeTenure as Row[]).map((r) => ({
+    label: shortLabel(r.day as string),
+    plus3m: Number(r.mau_old),
+    m3: Number(r.mau_m3),
+    m2: Number(r.mau_m2),
+    m1: Number(r.mau_m1),
+  }));
 
   // Zone « non mesuré » du coût IA (table ai_costs née le 2026-06-16) — pour
   // les longues périodes qui remontent avant.
@@ -823,6 +837,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     },
     // 02 — personnes actives
     wauMau,
+    mauTenure,
     activityMarker,
     parc,
     loginFrequency,
