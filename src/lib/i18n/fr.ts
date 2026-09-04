@@ -215,6 +215,12 @@ export const t = {
   // Generic actions
   retry: "Réessayer",
 
+  // 404
+  notFound: {
+    body: "Cette page n'existe pas.",
+    backToLanding: "Retour à l'accueil",
+  },
+
   // Import
   import: {
     title: "Nouvelle recette",

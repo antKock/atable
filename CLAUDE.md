@@ -5,7 +5,7 @@
 Le contexte projet complet (produit, architecture, environnements, mobile, ops, historique)
 est documenté dans le vault Obsidian d'Anthony :
 
-**`~/projects/anthony-os/Conseil/Perso/Mijote/Contexte codebase (généré)/`** — point d'entrée : `Mijote.md`.
+**`~/projects/anthony-os/Perso/Mijote/Contexte codebase (généré)/`** — point d'entrée : `Mijote.md`.
 
 - Ces notes sont **dérivées de cette codebase** et servent de base de connaissance PM.
 - **À mettre à jour à chaque jalon** (release, incident, décision structurante, changement
@@ -16,7 +16,7 @@ est documenté dans le vault Obsidian d'Anthony :
 
 ## Backlog — specs par ID
 
-Les specs backlog sont dans **`~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/`** :
+Les specs backlog sont dans **`~/projects/anthony-os/Perso/Mijote/Backlog/`** :
 une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zone`, `type`,
 `origine`, `voix`, `prio`, `statut`).
 

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 
 export default function Error({
   error,
@@ -11,6 +11,7 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useT();
   useEffect(() => {
     Sentry.captureException(error);
     console.error(error);

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 import CreateHouseholdForm from './CreateHouseholdForm'
 import CodeEntryForm from './CodeEntryForm'
@@ -13,6 +13,7 @@ import RecoverFlow from './RecoverFlow'
 type View = 'menu' | 'create' | 'join' | 'joinCode' | 'recover'
 
 export default function LandingScreen() {
+  const t = useT()
   const [view, setView] = useState<View>('menu')
   const [demoLoading, setDemoLoading] = useState(false)
   const [demoError, setDemoError] = useState<string | null>(null)
@@ -24,12 +25,12 @@ export default function LandingScreen() {
       const response = await fetch('/api/demo/session', { method: 'POST' })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
-        throw new Error((data as { error?: string }).error ?? 'Erreur serveur')
+        throw new Error((data as { error?: string }).error ?? t.household.leaveError)
       }
       dropSwrCache() // entering the demo: previous session's cache is stale
       window.location.href = (data as { redirect?: string }).redirect ?? '/home'
     } catch (err) {
-      setDemoError(err instanceof Error ? err.message : 'Erreur serveur')
+      setDemoError(err instanceof Error ? err.message : t.household.leaveError)
       setDemoLoading(false)
     }
   }

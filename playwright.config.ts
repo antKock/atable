@@ -30,6 +30,8 @@ export default defineConfig({
     url: `${BASE_URL}/api/version`,
     reuseExistingServer: true,
     timeout: 120_000,
-    env: { ...process.env, ...testEnv, NEXT_DIST_DIR: ".next-e2e" },
+    // I18N_PREVIEW_COOKIE : 16-i18n.spec.ts force `en` via le cookie
+    // mijote_locale ; la locale par défaut du harnais reste fr (specs FR).
+    env: { ...process.env, ...testEnv, NEXT_DIST_DIR: ".next-e2e", I18N_PREVIEW_COOKIE: "1" },
   },
 });
