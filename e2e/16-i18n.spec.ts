@@ -55,3 +55,18 @@ test("i18n : la page 404 suit la locale", async ({ browser }) => {
   await expect(page.getByRole("link", { name: "Back to home" })).toBeVisible();
   await context.close();
 });
+
+test("i18n : un appareil EN atterrit sur le foyer démo EN (recettes anglaises)", async ({ browser }) => {
+  const { context, page } = await newVisitor(browser);
+  await context.addCookies([{ name: "mijote_locale", value: "en", url: "http://127.0.0.1:3100" }]);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Try the app" }).click();
+  await page.waitForURL(/\/home/);
+  await expect(page.getByText("You're exploring a demo account")).toBeVisible();
+  await expect(page.getByText("Chocolate Mousse").first()).toBeVisible();
+  await expect(page.getByText("Mousse au chocolat")).toHaveCount(0);
+  // Le foyer EN est gelé comme le FR : renommer → 403
+  await page.goto("/household");
+  await expect(page.getByText("Demo", { exact: true })).toBeVisible();
+  await context.close();
+});

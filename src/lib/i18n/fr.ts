@@ -645,6 +645,7 @@ export const t = {
     viewMyHousehold: "Voir mon carnet",
     alreadyOwned: "Déjà dans ton carnet",
     addError: "Impossible d'ajouter la recette. Réessaie.",
+    ogFallback: "Une recette sur Mijote",
     notFoundTitle: "Recette introuvable",
     notFoundBody: "Ce lien de partage n'est plus valide.",
   },

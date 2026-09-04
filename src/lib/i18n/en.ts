@@ -611,6 +611,7 @@ export const en: Dictionary = {
     viewMyHousehold: "View my cookbook",
     alreadyOwned: "Already in your cookbook",
     addError: "Couldn't add the recipe. Try again.",
+    ogFallback: "A recipe on Mijote",
     notFoundTitle: "Recipe not found",
     notFoundBody: "This share link is no longer valid.",
   },

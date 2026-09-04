@@ -1,0 +1,803 @@
+[
+  {
+    "id": "00000000-0000-0000-0000-00000000e001",
+    "source_fr_id": "00000000-0000-0000-0000-000000000013",
+    "source_title_fr": "Blanquette de veau",
+    "title": "Veal Blanquette",
+    "ingredients": "800 g veal shoulder\n2 carrots\n1 onion\n1 clove\n1 bouquet garni\n50 g butter\n50 g flour\n1 egg yolk\n10 cl heavy cream\n1 lemon\nSalt, pepper",
+    "steps": "Cut the veal into large cubes and place it in a Dutch oven with cold water.\nBring to a boil, skim, then add the carrots, the onion studded with the clove, and the bouquet garni.\nSimmer over low heat for 1 hour 30 minutes.\nMake a white roux with the butter and flour, then whisk in the cooking broth.\nOff the heat, thicken the sauce with the egg yolk and cream.\nAdd a splash of lemon juice, adjust the seasoning, and coat the meat with the sauce.",
+    "notes": null,
+    "prep_time": "30-45 min",
+    "cook_time": "1h - 2h",
+    "cost": "€€",
+    "complexity": "moyen",
+    "seasons": [
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully presented Veal Blanquette in a white ceramic bowl, featuring tender veal chunks coated in a creamy, pale sauce. The dish is garnished with sliced carrots and a sprinkle of finely chopped parsley. The bowl is set on a rustic wooden table, highlighting the warmth of the dish. The background is softly blurred, emphasizing the creamy texture and inviting appearance of the veal.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000013/ai-image.webp",
+    "tags": [
+      "Française",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e002",
+    "source_fr_id": "ea9ce007-bf10-4cce-a354-39a73b2c88cf",
+    "source_title_fr": "Bœuf bourguignon",
+    "title": "Beef Bourguignon",
+    "ingredients": "1 kg beef (chuck or cheek)\n750 ml Burgundy red wine\n200 g lardons\n250 g button mushrooms\n2 onions\n2 carrots\n3 garlic cloves\nBouquet garni\nFlour\nOil, butter",
+    "steps": "Marinate the beef in the wine with the vegetables and bouquet garni overnight.\nThe next day, drain and pat the meat dry. Set the marinade aside.\nSauté the lardons, then set them aside.\nBrown the pieces of beef in the Dutch oven.\nSprinkle with 2 spoonfuls of flour and mix well.\nAdd the strained marinade and lardons, and cook for 3 hours over low heat.\nAdd the mushrooms 30 minutes before the end of cooking.",
+    "notes": null,
+    "prep_time": "> 45 min",
+    "cook_time": "1h - 2h",
+    "cost": "€€",
+    "complexity": "moyen",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A beautiful bowl of beef bourguignon, rich in deep red wine sauce, garnished with finely chopped parsley. The dish features tender chunks of beef, lardons, and sliced mushrooms, with a glossy finish from the sauce. The vibrant colors of the carrots and onions peek through, set against a rustic wooden table background, captured from a top-down angle.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/ea9ce007-bf10-4cce-a354-39a73b2c88cf/ai-image.webp",
+    "tags": [
+      "Bœuf",
+      "En batch",
+      "Française",
+      "Comfort food",
+      "Plat principal",
+      "Repas de fête"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e003",
+    "source_fr_id": "00000000-0000-0000-0000-000000000017",
+    "source_title_fr": "Burger maison",
+    "title": "Homemade Burgers",
+    "ingredients": "4 burger buns\n4 ground beef patties\n4 slices cheddar cheese\n1 red onion\n4 lettuce leaves\n2 tomatoes\nKetchup and mustard\nSalt, pepper",
+    "steps": "Shape and season the ground beef patties.\nCook them in a skillet for 3 to 4 minutes on each side.\nPlace a slice of cheddar cheese on each patty at the end of cooking to melt it.\nLightly toast the buns.\nAssemble with lettuce, tomato, onion, patty, and sauces.\nClose the burgers and serve immediately.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "15-30 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "ete"
+    ],
+    "servings": null,
+    "image_prompt": "A delicious homemade burger displayed on a wooden board. The burger features a golden toasted bun, a perfectly cooked beef patty with melted cheddar cheese on top. Fresh green lettuce, sliced red onion, and juicy red tomato slices are visible, adding vibrant colors. Ketchup and mustard are artistically drizzled on the side of the plate. The burger is presented in an inviting manner, ready to be enjoyed.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000017/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Américaine",
+      "Comfort food",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e004",
+    "source_fr_id": "00000000-0000-0000-0000-000000000015",
+    "source_title_fr": "Chili con carne",
+    "title": "Chili Con Carne",
+    "ingredients": "500 g ground beef\n1 can kidney beans\n1 can crushed tomatoes\n1 onion\n2 garlic cloves\n1 red bell pepper\n1 tsp cumin\n1 tsp paprika\n1 pinch chili pepper\nOlive oil, salt",
+    "steps": "Sauté the sliced onion, garlic, and bell pepper in the oil.\nAdd the ground beef and brown it.\nStir in the spices.\nAdd the crushed tomatoes and simmer for 20 minutes.\nAdd the drained kidney beans and continue cooking for 15 minutes.\nAdjust the seasoning and serve piping hot.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "hiver",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A hearty bowl of Chili con carne with ground beef, kidney beans, and diced tomatoes. The dish is garnished with bits of red bell pepper and a sprinkle of spices. The bowl is rustic and set on a wooden table with a warm, inviting color palette of reds and browns. The dish is steaming slightly, suggesting it's hot and freshly made, viewed from a slight angle to capture the textures and colors.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000015/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Méditerranéenne",
+      "Bœuf",
+      "Rapide",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e005",
+    "source_fr_id": "00000000-0000-0000-0000-000000000030",
+    "source_title_fr": "Cookies aux pépites de chocolat",
+    "title": "Chocolate Chip Cookies",
+    "ingredients": "250 g flour\n125 g softened butter\n100 g brown sugar\n1 egg\n200 g chocolate chips\n1/2 packet baking powder\n1 pinch salt",
+    "steps": "Mix the softened butter with the sugar.\nAdd the egg and mix.\nStir in the flour, baking powder, and salt.\nAdd the chocolate chips.\nShape into balls on a baking sheet.\nBake at 180°C for 12 minutes.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A close-up view of freshly baked chocolate chip cookies arranged neatly on a baking tray, golden brown edges with gooey chocolate chips melting slightly, warm and inviting with a soft texture. The background is lightly blurred to focus on the cookies, emphasizing their texture and color.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000030/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Dessert"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e006",
+    "source_fr_id": "00000000-0000-0000-0000-000000000016",
+    "source_title_fr": "Couscous poulet-merguez",
+    "title": "Chicken and Merguez Couscous",
+    "ingredients": "4 chicken thighs\n8 merguez sausages\n2 carrots\n2 zucchini\n1 can chickpeas\n2 turnips\n1 onion\n2 tbsp ras el hanout\n300 g couscous\nOlive oil, salt",
+    "steps": "Brown the chicken and onion in a large Dutch oven.\nAdd the spices, then the vegetables cut into large pieces.\nCover with water, add the chickpeas, and simmer for 45 minutes.\nGrill the merguez sausages in a skillet.\nPrepare the couscous by letting it swell with hot water and a drizzle of oil.\nServe the couscous with the vegetables, broth, chicken, and merguez sausages.",
+    "notes": null,
+    "prep_time": "30-45 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€€",
+    "complexity": "moyen",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A vibrant dish featuring golden chicken thighs and grilled merguez sausages on a bed of fluffy couscous. The couscous is topped with a colorful medley of chunky carrots, zucchini, turnips, and chickpeas, all bathed in a fragrant broth. The scene is garnished with spices, emphasizing the dish's robust flavors, presented in a large rustic bowl, from a slightly elevated angle.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000016/ai-image.webp",
+    "tags": [
+      "Africaine",
+      "Végétarien",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e007",
+    "source_fr_id": "f3b3410e-1670-4443-880a-40ee5b8d88ef",
+    "source_title_fr": "Crêpes bretonnes",
+    "title": "Breton Crêpes",
+    "ingredients": "250 g flour\n3 eggs\n500 ml milk\n1 tbsp melted butter\n1 pinch salt\nButter for cooking",
+    "steps": "Mix the flour and salt in a mixing bowl.\nMake a well in the center, crack in the eggs, and mix.\nGradually incorporate the milk to prevent lumps.\nAdd the melted butter and let the batter rest for 1 hour.\nCook each crêpe for 1 minute on each side in a buttered skillet.\nServe with butter and sugar, or jam.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A stack of golden-brown Breton crêpes served on a rustic wooden plate, drizzled with melted butter and dusted with sugar. A small jar of strawberry jam is placed beside the plate, adding a pop of red color. The scene is slightly top-down, showcasing the texture of the crêpes and the inviting presentation on a textured linen tablecloth.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/f3b3410e-1670-4443-880a-40ee5b8d88ef/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Végétarien",
+      "Petit-déjeuner",
+      "Plat principal",
+      "Dessert"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e008",
+    "source_fr_id": "00000000-0000-0000-0000-000000000022",
+    "source_title_fr": "Curry de pois chiches",
+    "title": "Chickpea Curry",
+    "ingredients": "2 cans chickpeas\n1 can coconut milk\n1 can crushed tomatoes\n1 onion\n2 garlic cloves\n1 piece ginger\n2 tbsp curry powder\nFresh cilantro\nOil, salt",
+    "steps": "Sauté the chopped onion, garlic, and ginger.\nAdd the curry powder and stir to release the aromas.\nStir in the tomatoes and coconut milk.\nAdd the drained chickpeas.\nSimmer for 20 minutes over low heat.\nServe with chopped cilantro and rice.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A vibrant bowl of chickpea curry featuring creamy coconut milk and vibrant red tomatoes. The curry is garnished with fresh chopped cilantro, and you can see pieces of onion, garlic, and ginger. The dish is served in a rustic bowl with a side of fluffy white rice and a wooden spoon, all sitting on a simple, textured tablecloth. The colors are warm and inviting, with hints of yellow from the curry, green from the cilantro, and red from the tomatoes.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000022/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Végétarien",
+      "Comfort food",
+      "Végan",
+      "Plat principal",
+      "Indienne"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e009",
+    "source_fr_id": "00000000-0000-0000-0000-000000000021",
+    "source_title_fr": "Gnocchis à la crème",
+    "title": "Gnocchi with Cream Sauce",
+    "ingredients": "500 g gnocchi\n20 cl heavy cream\n100 g grated Parmesan\n2 garlic cloves\nNutmeg\nOlive oil\nSalt and pepper",
+    "steps": "Cook the gnocchi in salted boiling water until they float to the surface.\nSauté the garlic in olive oil.\nAdd the cream and Parmesan, and heat gently.\nSeason with a pinch of nutmeg, salt, and pepper.\nDrain the gnocchi and toss them with the sauce.\nServe immediately with a little Parmesan.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A delicious plate of creamy gnocchi, topped with grated parmesan cheese, served in a shallow white dish. The gnocchi are plump and coated in a smooth white cream sauce, flecked with golden bits of sautéed garlic. A sprinkle of grated nutmeg adds a touch of warmth, while a drizzle of olive oil glistens on the surface. The plate is set on a rustic wooden table, with a few scattered cheese shavings around it.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000021/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Française",
+      "Comfort food",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e010",
+    "source_fr_id": "427ab9ca-440c-4de5-830c-9aee3bcd473a",
+    "source_title_fr": "Gratin dauphinois",
+    "title": "Gratin Dauphinois",
+    "ingredients": "1 kg firm-fleshed potatoes\n50 cl heavy cream\n2 garlic cloves\nNutmeg\nSalt, pepper\nButter for the dish",
+    "steps": "Preheat the oven to 160°C.\nPeel and slice the potatoes into thin rounds (2 mm).\nRub the gratin dish with the garlic, then butter it.\nArrange the slices in layers, seasoning each with salt, pepper, and nutmeg.\nPour in the heavy cream; it should almost cover the potatoes.\nBake for 1 hour 30 minutes, until the top is golden and a knife blade slides in easily.",
+    "notes": null,
+    "prep_time": "30-45 min",
+    "cook_time": "1h - 2h",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A golden-brown gratin dauphinois served in a rustic ceramic dish, with layers of creamy potato slices visible, garnished with a sprinkle of nutmeg on top. The dish is placed on a wooden table, with some fresh herbs around for decoration, and soft light highlighting its creamy texture.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/427ab9ca-440c-4de5-830c-9aee3bcd473a/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Française",
+      "Accompagnement",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e011",
+    "source_fr_id": "00000000-0000-0000-0000-000000000019",
+    "source_title_fr": "Lasagnes à la bolognaise",
+    "title": "Bolognese Lasagna",
+    "ingredients": "12 lasagna sheets\n500 g ground beef\n1 can crushed tomatoes\n1 onion\n2 garlic cloves\n50 cl béchamel sauce\n100 g grated Parmesan\nOlive oil\nSalt, pepper",
+    "steps": "Sauté the onion and garlic, then add the meat and brown it.\nAdd the tomatoes and simmer for 20 minutes to make the Bolognese sauce.\nIn a baking dish, alternate layers of Bolognese sauce, lasagna sheets, and béchamel sauce.\nFinish with béchamel sauce and Parmesan.\nBake at 180°C for 35 minutes.\nLet rest for 5 minutes before serving.",
+    "notes": null,
+    "prep_time": "30-45 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "hiver",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A rectangular dish of lasagna freshly baked, with layers visible of rich meaty bolognese sauce and creamy béchamel. Topped with a golden, bubbly layer of grated parmesan. The lasagna is garnished with a light drizzle of olive oil, served on a wooden surface. The dish is presented at a slight angle to emphasize the layers, inviting and hearty, with warm shades of orange and brown.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000019/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Bœuf",
+      "Rapide",
+      "Italienne",
+      "Comfort food",
+      "Plat principal",
+      "À congeler"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e012",
+    "source_fr_id": "00000000-0000-0000-0000-000000000014",
+    "source_title_fr": "Magret de canard, sauce au miel",
+    "title": "Duck Breast With Honey Sauce",
+    "ingredients": "2 duck breasts\n3 tbsp honey\n2 tbsp balsamic vinegar\n10 cl chicken stock\nSalt, pepper",
+    "steps": "Score the skin of the duck breasts with a knife.\nSear them skin-side down in a cold skillet for 6 to 8 minutes, until the fat renders.\nTurn them over and cook for 3 to 4 minutes on the meat side for medium-rare.\nSet the duck breasts aside and drain the fat from the skillet.\nDeglaze with the vinegar, add the honey and stock, and let reduce to a syrupy sauce.\nSlice the duck breasts and spoon the honey sauce over them.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully plated duck breast with crispy skin, sliced to show its pink interior, drizzled with a glossy honey sauce. The dish is presented on a white plate, with the rich brown sauce pooling around the duck. The colors are warm and inviting, with the golden hue of the honey contrasting against the dark, savory tones of the duck. The setting is simple and elegant, shot from a slightly elevated angle.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000014/ai-image.webp",
+    "tags": [
+      "Sauce / Condiment",
+      "Française",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e013",
+    "source_fr_id": "d18fbb9d-1943-4e1c-a144-de46e15a753c",
+    "source_title_fr": "Mousse au chocolat",
+    "title": "Chocolate Mousse",
+    "ingredients": "200 g dark chocolate (70%)\n6 eggs\n1 pinch of salt\n2 tbsp sugar",
+    "steps": "Melt the chocolate in a double boiler and let it cool slightly.\nSeparate the egg whites from the yolks.\nStir the yolks into the melted chocolate, one at a time.\nBeat the egg whites until stiff peaks form with the salt.\nAdd the sugar to the egg whites halfway through.\nGently fold the egg whites into the chocolate mixture in three batches.\nRefrigerate for at least 2 hours before serving.",
+    "notes": null,
+    "prep_time": "20-30 min",
+    "cook_time": "Aucune",
+    "cost": "€€€",
+    "complexity": "moyen",
+    "seasons": [
+      "ete"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully plated chocolate mousse in a glass serving dish, showcasing a rich dark chocolate color topped with a light dusting of cocoa powder. The mousse is fluffy and airy, with a smooth texture. Garnished with a sprig of mint and small chocolate shavings on the top. The background is softly blurred, emphasizing the dessert, with natural light illuminating the glass.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/d18fbb9d-1943-4e1c-a144-de46e15a753c/ai-image.webp",
+    "tags": [
+      "Rapide",
+      "Végétarien",
+      "Dessert"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e014",
+    "source_fr_id": "00000000-0000-0000-0000-000000000027",
+    "source_title_fr": "Omelette aux fines herbes",
+    "title": "Herb Omelet",
+    "ingredients": "6 eggs\n1 tbsp. parsley\n1 tbsp. chives\n1 pat of butter\nSalt, pepper",
+    "steps": "Beat the eggs with salt and pepper.\nAdd the finely chopped herbs.\nMelt the butter in a skillet.\nPour in the eggs and cook over medium heat.\nFold the omelet while it is still slightly runny.\nServe immediately.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A close-up view of a fluffy omelette folded over, filled with vibrant green chopped herbs like parsley and chives. The omelette is golden yellow with a slight sheen from the butter, resting on a clean white plate. The background is softly blurred, emphasizing the texture and colors of the omelette with a hint of seasoning visible.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000027/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Petit-déjeuner",
+      "Œufs"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e015",
+    "source_fr_id": "00000000-0000-0000-0000-000000000020",
+    "source_title_fr": "Pad thaï aux crevettes",
+    "title": "Shrimp Pad Thai",
+    "ingredients": "200 g rice noodles\n250 g peeled shrimp\n2 eggs\n100 g bean sprouts\n2 tbsp fish sauce\n1 tbsp soy sauce\n1 lime\n50 g peanuts\n2 green onions",
+    "steps": "Rehydrate the rice noodles in hot water.\nStir-fry the shrimp in a wok, then set aside.\nScramble the eggs in the wok.\nAdd the noodles, sauces, and lime juice.\nAdd the shrimp and bean sprouts, and stir-fry for 2 minutes.\nServe with crushed peanuts and green onions.",
+    "notes": null,
+    "prep_time": "20-30 min",
+    "cook_time": "< 15 min",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "ete"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully arranged plate of Pad Thaï with shrimp, showcasing the rice noodles stir-fried with vegetables. The dish is garnished with crushed peanuts and sliced green onions. The vibrant colors of the white noodles, pink shrimp, and green sprouts are prominent. The lime is cut in half, placed beside the dish for freshness. The scene is viewed from the top angle, making it eye-catching and appetizing.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000020/ai-image.webp",
+    "tags": [
+      "Asiatique",
+      "Végan",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e016",
+    "source_fr_id": "84ec4b1e-f8fa-4e7f-9370-f91e390f7f22",
+    "source_title_fr": "Poulet rôti aux herbes",
+    "title": "Herb-Roasted Chicken",
+    "ingredients": "1 whole chicken (1.5 kg)\n4 garlic cloves\n1 lemon\nFresh thyme\nFresh rosemary\n3 tbsp olive oil\nSalt, pepper",
+    "steps": "Preheat the oven to 200°C.\nMix the olive oil with the crushed garlic, thyme, and rosemary.\nRub the chicken with the mixture, then season generously with salt and pepper.\nPlace the halved lemon in the cavity.\nRoast for 1 hour 15 minutes, basting every 20 minutes.\nLet rest for 10 minutes before carving.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "1h - 2h",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully roasted whole chicken with golden-brown skin, garnished with fresh herbs like rosemary and thyme. There are two lemon halves inside the cavity, and the chicken is resting on a wooden cutting board, surrounded by sprigs of herbs. The background features a rustic kitchen setting with warm lighting, creating a cozy atmosphere.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/84ec4b1e-f8fa-4e7f-9370-f91e390f7f22/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Poulet",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e017",
+    "source_fr_id": "8cdc69bc-bd3e-42c6-901d-dd82319aa578",
+    "source_title_fr": "Quiche lorraine",
+    "title": "Quiche Lorraine",
+    "ingredients": "1 shortcrust pastry crust\n200 g smoked bacon lardons\n3 eggs\n30 cl heavy cream\n10 cl milk\nNutmeg\nSalt and pepper",
+    "steps": "Preheat the oven to 180°C.\nLine a tart pan with the pastry and prick the bottom with a fork.\nCook the lardons in a skillet without adding fat.\nBeat the eggs with the cream, milk, nutmeg, salt, and pepper.\nSpread the lardons over the pastry.\nPour the egg mixture over them.\nBake for 35 minutes, until the quiche is nicely golden.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A freshly baked Quiche Lorraine on a wooden table, golden-brown crust with crispy lardons visible on the top, garnished with a sprinkle of fresh herbs. The slice of quiche reveals a creamy filling with a hint of nutmeg. The dish is presented on a rustic ceramic pie plate, with a fork and a side salad in the background. Natural light enhances the colors of the ingredients.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/8cdc69bc-bd3e-42c6-901d-dd82319aa578/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e018",
+    "source_fr_id": "c3802e3e-3021-47ab-85da-6c28be765526",
+    "source_title_fr": "Ratatouille provençale",
+    "title": "Ratatouille",
+    "ingredients": "2 zucchini\n2 eggplants\n3 tomatoes\n2 bell peppers (red and green)\n2 onions\n4 cloves garlic\nHerbes de Provence\nOlive oil\nSalt, pepper",
+    "steps": "Cut all the vegetables into evenly sized cubes.\nSauté the onions and garlic in the olive oil.\nAdd the eggplant and cook for 10 minutes.\nAdd the bell peppers and cook for 5 more minutes.\nAdd the zucchini, then the tomatoes.\nSeason with the Herbes de Provence, salt, and pepper.\nSimmer covered for 30 minutes over low heat.",
+    "notes": null,
+    "prep_time": "< 10 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A colorful ratatouille served in a rustic bowl, showcasing vibrant diced zucchini, eggplant, tomatoes, red and green bell peppers, and onions. The dish is garnished with fresh herbs, with a drizzle of olive oil. The background features a wooden table and a small bouquet of Provençal herbs to enhance the rustic French aesthetic.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/c3802e3e-3021-47ab-85da-6c28be765526/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Méditerranéenne",
+      "En batch",
+      "Rapide",
+      "Végétarien",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e019",
+    "source_fr_id": "593f2f0f-3289-4186-8dcf-5c2fb99ba853",
+    "source_title_fr": "Risotto aux champignons",
+    "title": "Mushroom Risotto",
+    "ingredients": "300 g Arborio rice\n400 g white mushrooms\n1 onion\n2 garlic cloves\n15 cl dry white wine\n1 liter hot chicken broth\n50 g grated Parmesan\n30 g butter\nOlive oil\nFresh parsley",
+    "steps": "Sauté the onion and garlic in olive oil.\nAdd the sliced mushrooms and cook for 5 minutes.\nStir in the rice and toast until translucent for 2 minutes.\nDeglaze with the white wine and let it absorb.\nAdd the hot broth one ladleful at a time, stirring constantly.\nAfter 18 minutes, finish with the butter and Parmesan.\nSprinkle with parsley and serve immediately.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A creamy mushroom risotto served in a white bowl, with a sprinkle of freshly chopped parsley on top. The risotto is rich and creamy, highlighting the earthy tones of the mushrooms. In the background, a rustic wooden table adds warmth to the scene, while a glass of white wine sits gracefully beside the bowl. The angle of view is slightly above to capture the texture and color of the dish.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/593f2f0f-3289-4186-8dcf-5c2fb99ba853/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Végétarien",
+      "Italienne",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e020",
+    "source_fr_id": "00000000-0000-0000-0000-000000000026",
+    "source_title_fr": "Salade de chèvre chaud",
+    "title": "Warm Goat Cheese Salad",
+    "ingredients": "1 log of goat cheese\n4 slices of country bread\nMixed greens\nHoney\nWalnut halves\nBalsamic vinegar\nOlive oil",
+    "steps": "Cut the goat cheese log into rounds.\nPlace them on the slices of bread.\nBroil in the oven for 5 minutes.\nPrepare a vinaigrette with oil and balsamic vinegar.\nArrange the salad on the plates.\nAdd the warm toasts, a drizzle of honey, and the walnuts.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A visually appealing presentation of a warm goat cheese salad. Featuring toasted slices of rustic country bread topped with golden-brown rounds of goat cheese, drizzled with honey. Surrounding the bread is a vibrant mix of fresh greens, with scattered walnut halves adding texture. A light drizzle of balsamic vinaigrette glistens on the salad. The scene is shot from above, showcasing the contrast of colors and textures, with a warm wooden table in the background.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000026/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Végétarien",
+      "Entrée",
+      "Française",
+      "Salade"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e021",
+    "source_fr_id": "a3f604fe-f0c4-4816-bf3c-f8e9cde75508",
+    "source_title_fr": "Salade niçoise",
+    "title": "Salade Niçoise",
+    "ingredients": "200 g canned tuna\n4 hard-boiled eggs\n200 g cooked green beans\n2 tomatoes\n1 red bell pepper\n1 cucumber\nBlack olives\nAnchovies (optional)\nOlive oil, wine vinegar\nBasil",
+    "steps": "Cook the green beans for 7 minutes in salted boiling water, then drain.\nCut the tomatoes, cucumber, and bell pepper.\nArrange all the raw vegetables in a large serving dish.\nAdd the flaked tuna, quartered eggs, and olives.\nPrepare the vinaigrette with the olive oil and vinegar.\nSeason and garnish with basil.",
+    "notes": null,
+    "prep_time": "< 10 min",
+    "cook_time": "< 15 min",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "ete"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully arranged Niçoise salad on a large white plate. The salad features vibrant colors: bright green haricots verts, rich red tomatoes, crisp yellow and green bell peppers, and the deep blue-black of olives. There are quarters of hard-boiled eggs and chunks of canned tuna scattered throughout. Garnished with fresh basil leaves, the dish is drizzled with light olive oil and vinegar. The angle of view is slightly elevated to capture the full spectrum of colors and textures.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/a3f604fe-f0c4-4816-bf3c-f8e9cde75508/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Végétarien",
+      "Entrée",
+      "Salade"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e022",
+    "source_fr_id": "00000000-0000-0000-0000-000000000018",
+    "source_title_fr": "Saumon en papillote",
+    "title": "Salmon en Papillote",
+    "ingredients": "4 salmon fillets\n1 lemon\n2 zucchini\n1 shallot\nFresh dill\nOlive oil\nSalt, pepper",
+    "steps": "Preheat the oven to 200°C.\nPlace each fillet on a sheet of parchment paper.\nAdd zucchini slices, thinly sliced shallot, and lemon slices.\nDrizzle with olive oil, season with salt and pepper, and sprinkle with dill.\nSeal the packets tightly.\nBake for 15 to 18 minutes and serve immediately.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "< 15 min",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully arranged plate of salmon fillets wrapped in parchment paper, with vibrant green spiralized zucchini, thinly sliced onion, and bright lemon segments peeking out. The salmon has a light glaze of olive oil and is garnished with fresh dill. The scene is well-lit and presented from a top-down view, focusing on the fresh, colorful ingredients, accentuated with a soft, neutral background.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000018/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Poisson",
+      "Végétarien",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e023",
+    "source_fr_id": "00000000-0000-0000-0000-000000000025",
+    "source_title_fr": "Soupe à l'oignon gratinée",
+    "title": "French Onion Soup With Cheese",
+    "ingredients": "6 onions\n50 g butter\n1 tbsp flour\n1 l beef broth\n1 glass white wine\n4 slices bread\n150 g grated Gruyère",
+    "steps": "Thinly slice the onions and gently cook them in the butter for 20 minutes.\nSprinkle with the flour and stir.\nAdd the white wine and broth.\nSimmer for 20 minutes.\nPour into bowls, top with a slice of bread and the Gruyère.\nBroil in the oven until golden brown.",
+    "notes": null,
+    "prep_time": "20-30 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A bowl of French onion soup topped with a golden-brown layer of melted gruyère cheese, with crisped bread slices peeking out. The soup is rich and caramel-colored, filled with sliced onions. The presentation is inviting, showcasing the bubbling cheese with a rustic wooden table background.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000025/ai-image.webp",
+    "tags": [
+      "Française",
+      "Plat principal",
+      "Soupe"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e024",
+    "source_fr_id": "d961a749-ff1f-4739-89f1-68d209bd34a2",
+    "source_title_fr": "Soupe de lentilles corail",
+    "title": "Red Lentil Soup",
+    "ingredients": "250 g red lentils\n1 onion\n2 carrots\n1 tsp cumin\n1 tsp turmeric\n1 liter vegetable broth\nOlive oil\nSalt, pepper",
+    "steps": "Sauté the finely chopped onion in the olive oil for 5 minutes.\nAdd the sliced carrots, cumin, and turmeric.\nStir in the rinsed lentils and broth.\nSimmer for 25 minutes over low heat.\nBlend until smooth and velvety.\nAdjust the seasoning.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "hiver",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A creamy orange-red lentil soup served in a rustic bowl, garnished with a sprinkle of cumin and a drizzle of olive oil. The bowl is surrounded by a few fresh carrots and an onion, with a wooden spoon resting next to it. The background is softly blurred to highlight the soup, with warm, inviting colors.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/d961a749-ff1f-4739-89f1-68d209bd34a2/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Rapide",
+      "Légumineuses",
+      "Végétarien",
+      "Soupe"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e025",
+    "source_fr_id": "17ab1bb8-725b-49f9-9c91-a5364b0358e3",
+    "source_title_fr": "Taboulé libanais",
+    "title": "Lebanese Tabbouleh",
+    "ingredients": "100 g fine bulgur\n4 tomatoes\n1 large bunch flat-leaf parsley\n1 bunch fresh mint\n3 green onions\nJuice of 2 lemons\n4 tbsp olive oil\nSalt",
+    "steps": "Soak the bulgur in cold water for 15 minutes, then drain.\nFinely chop the parsley, mint, and green onions.\nCut the tomatoes into very small dice.\nMix all the ingredients in a large bowl.\nSeason with the lemon juice, olive oil, and salt.\nRefrigerate for 1 hour to allow the flavors to develop.",
+    "notes": null,
+    "prep_time": "20-30 min",
+    "cook_time": "Aucune",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "printemps",
+      "ete",
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A vibrant and fresh Lebanese tabbouleh, featuring finely chopped parsley, mint, and onions mixed with diced tomatoes and bulgur. The dish is presented in a large white bowl, garnished with lemon wedges and a drizzle of olive oil, on a rustic wooden table. The colors include deep green from the herbs, bright red from the tomatoes, and golden yellow from the lemon. The photo is taken from a top-down angle.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/17ab1bb8-725b-49f9-9c91-a5364b0358e3/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Libanaise / Orientale",
+      "Salade",
+      "Léger"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e026",
+    "source_fr_id": "a1d05662-13ae-438a-ace5-3d3d873ebccc",
+    "source_title_fr": "Tarte aux pommes grand-mère",
+    "title": "Grandma's Apple Tart",
+    "ingredients": "1 shortcrust pastry crust\n5 apples (Golden or Reine des Reinettes)\n3 eggs\n150 g sugar\n20 cl heavy cream\n1 packet vanilla sugar\nCinnamon",
+    "steps": "Preheat the oven to 180°C.\nRoll out the pastry in a tart pan. Prick the bottom.\nPeel and cut the apples into wedges, then arrange them over the pastry.\nBeat the eggs with the sugar, cream, and vanilla.\nPour the mixture over the apples and sprinkle with cinnamon.\nBake for 35 to 40 minutes, until golden brown.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A golden-brown apple tart presented on a rustic wooden table. The tart is sliced, revealing layers of sweet apples arranged on a creamy custard base, lightly dusted with cinnamon. The edges of the pastry are perfectly crisp, and a few whole apples are artistically placed around for decoration. Warm light highlights the tart's texture and colors.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/a1d05662-13ae-438a-ace5-3d3d873ebccc/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Française",
+      "Comfort food",
+      "Dessert"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e027",
+    "source_fr_id": "00000000-0000-0000-0000-000000000028",
+    "source_title_fr": "Tarte Tatin",
+    "title": "Tarte Tatin",
+    "ingredients": "6 apples\n1 shortcrust pastry crust\n100 g sugar\n50 g butter\n1 tsp cinnamon",
+    "steps": "Make a caramel with the sugar and butter in a pan.\nArrange the apple wedges tightly over the caramel.\nSprinkle with cinnamon.\nCover with the pastry, tucking in the edges.\nBake at 190°C for 35 minutes.\nUnmold while warm by turning the tart over.",
+    "notes": null,
+    "prep_time": "20-30 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "automne"
+    ],
+    "servings": null,
+    "image_prompt": "A beautifully presented Tarte Tatin, featuring caramelized apples arranged in a circular pattern on top of a golden-brown pastry crust. The apples are glossy and glistening with caramel, with rich shades of amber and brown. The tart is displayed on a rustic wooden table, viewed from a slight angle to emphasize the height and layers of the tart. The background is softly blurred to focus on the dessert.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000028/ai-image.webp",
+    "tags": [
+      "Végétarien",
+      "Française",
+      "Comfort food",
+      "Dessert"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e028",
+    "source_fr_id": "00000000-0000-0000-0000-000000000023",
+    "source_title_fr": "Tartiflette",
+    "title": "Tartiflette",
+    "ingredients": "1 kg potatoes\n1 reblochon cheese\n200 g lardons\n2 onions\n10 cl dry white wine\n20 cl crème fraîche\nPepper",
+    "steps": "Boil the potatoes in water, then slice them.\nSauté the sliced onions and lardons.\nDeglaze with the white wine.\nCombine the potatoes, lardons, onions, and cream in a baking dish.\nCut the reblochon in half and place it rind-side up.\nBake at 200°C for 25 minutes.",
+    "notes": null,
+    "prep_time": "30-45 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€€",
+    "complexity": "moyen",
+    "seasons": [
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A golden-brown tartiflette baked in a round dish, with visible layers of creamy potato, crispy bacon, and melted reblochon cheese on top, glistening with a rich golden hue. The dish is placed on a rustic wooden table, surrounded by a light scattering of coarse black pepper. The angle is slightly overhead, allowing a clear view of the bubbling cheese and the crown of crispy edges.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000023/ai-image.webp",
+    "tags": [
+      "Française",
+      "Comfort food",
+      "Plat principal"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e029",
+    "source_fr_id": "00000000-0000-0000-0000-000000000029",
+    "source_title_fr": "Tiramisu",
+    "title": "Tiramisu",
+    "ingredients": "3 eggs\n250 g mascarpone\n100 g sugar\n24 ladyfingers\n30 cl strong coffee\nCocoa powder",
+    "steps": "Separate the egg whites from the yolks.\nBeat the egg yolks with the sugar until pale, then add the mascarpone.\nWhip the egg whites until stiff and gently fold them in.\nDip the ladyfingers in the coffee.\nAlternate layers of ladyfingers and cream in a dish.\nRefrigerate for 4 hours and sprinkle with cocoa before serving.",
+    "notes": null,
+    "prep_time": "30-45 min",
+    "cook_time": "Aucune",
+    "cost": "€€",
+    "complexity": "facile",
+    "seasons": [
+      "ete",
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A completed tiramisu in a rectangular glass dish, showcasing alternating layers of coffee-soaked ladyfingers and creamy mascarpone mixture. The top is dusted with a generous layer of cocoa powder, with a rich, dark color contrasting against the light, fluffy cream. The dish is placed on a wooden table, with a few cocoa powder sprinkles around, capturing an inviting and decadent appearance.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000029/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Française",
+      "Comfort food",
+      "Dessert"
+    ]
+  },
+  {
+    "id": "00000000-0000-0000-0000-00000000e030",
+    "source_fr_id": "00000000-0000-0000-0000-000000000024",
+    "source_title_fr": "Velouté de potimarron",
+    "title": "Kabocha Squash Soup",
+    "ingredients": "1 kabocha squash\n1 potato\n1 onion\n50 cl vegetable broth\n10 cl heavy cream\nNutmeg\nOlive oil\nSalt, pepper",
+    "steps": "Cut the kabocha squash and potato into pieces.\nSauté the sliced onion in the oil.\nAdd the vegetables and broth.\nCook for 25 minutes, until everything is tender.\nBlend until smooth with the cream.\nSeason with nutmeg, salt, and pepper.",
+    "notes": null,
+    "prep_time": "10-20 min",
+    "cook_time": "30 min - 1h",
+    "cost": "€",
+    "complexity": "facile",
+    "seasons": [
+      "automne",
+      "hiver"
+    ],
+    "servings": null,
+    "image_prompt": "A creamy pumpkin soup in a rustic bowl, vibrant orange color, garnished subtly with a sprinkle of nutmeg, served with a drizzle of cream. The bowl is placed on a wooden table with a linen napkin beside it, captured from a slightly elevated angle.",
+    "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000024/ai-image.webp",
+    "tags": [
+      "Facile",
+      "Végétarien",
+      "Soupe"
+    ]
+  }
+]

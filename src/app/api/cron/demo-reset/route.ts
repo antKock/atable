@@ -16,6 +16,12 @@ export async function GET(request: NextRequest) {
   if (!demoHouseholdId) {
     return NextResponse.json({ error: 'Demo not configured' }, { status: 503 })
   }
+  // Version EN (Lot 3) : second foyer démo, même traitement. Le rollup stats
+  // est appelé par foyer (upsert GREATEST : on garde le max FR/EN, pas la
+  // somme — limitation documentée dans docs/specs/i18n/04-lot3-contenu.md).
+  const demoHouseholdIds = [demoHouseholdId, process.env.DEMO_HOUSEHOLD_ID_EN].filter(
+    (id): id is string => Boolean(id),
+  )
 
   const supabase = createServerClient()
 
@@ -24,21 +30,23 @@ export async function GET(request: NextRequest) {
     // AVANT toute purge — les recettes démo supprimées ci-dessous et les owners
     // purgés à 30 j sont la seule source de ces compteurs. Best-effort : un
     // échec du rollup ne doit pas empêcher le reset de la démo.
-    const { error: rollupError } = await supabase.rpc('demo_stats_rollup', {
-      p_demo_household: demoHouseholdId,
-      p_days: 30,
-    })
-    if (rollupError) {
-      Sentry.captureException(
-        new Error(`[cron/demo-reset] stats rollup failed: ${rollupError.message}`)
-      )
+    for (const hid of demoHouseholdIds) {
+      const { error: rollupError } = await supabase.rpc('demo_stats_rollup', {
+        p_demo_household: hid,
+        p_days: 30,
+      })
+      if (rollupError) {
+        Sentry.captureException(
+          new Error(`[cron/demo-reset] stats rollup failed (${hid}): ${rollupError.message}`)
+        )
+      }
     }
 
     // Step 1: Delete non-seed demo recipes (user-added during demo)
     const { count: deleted, error: deleteError } = await supabase
       .from('recipes')
       .delete({ count: 'exact' })
-      .eq('household_id', demoHouseholdId)
+      .in('household_id', demoHouseholdIds)
       .eq('is_seed', false)
 
     if (deleteError) {
@@ -52,19 +60,25 @@ export async function GET(request: NextRequest) {
     // ALERTER (Sentry) si le foyer démo est amputé. Le seuil est le nombre de
     // seed attendu (DEMO_SEED_MIN, 30 en prod). Best-effort, n'empêche rien.
     const seedMin = Number(process.env.DEMO_SEED_MIN ?? 30)
-    const { count: seedCount, error: seedCountError } = await supabase
-      .from('recipes')
-      .select('id', { count: 'exact', head: true })
-      .eq('household_id', demoHouseholdId)
-      .eq('is_seed', true)
-    if (seedCountError) {
-      Sentry.captureException(
-        new Error(`[cron/demo-reset] seed count failed: ${seedCountError.message}`)
-      )
-    } else if ((seedCount ?? 0) < seedMin) {
-      const msg = `[cron/demo-reset] ALERTE démo amputée : ${seedCount ?? 0} recettes seed < ${seedMin} attendues — relancer scripts/restore-demo-from-staging.mjs`
-      console.error(msg)
-      Sentry.captureException(new Error(msg), { level: 'fatal' })
+    let seedCount = 0
+    for (const hid of demoHouseholdIds) {
+      const { count, error: seedCountError } = await supabase
+        .from('recipes')
+        .select('id', { count: 'exact', head: true })
+        .eq('household_id', hid)
+        .eq('is_seed', true)
+      if (seedCountError) {
+        Sentry.captureException(
+          new Error(`[cron/demo-reset] seed count failed (${hid}): ${seedCountError.message}`)
+        )
+        continue
+      }
+      seedCount += count ?? 0
+      if ((count ?? 0) < seedMin) {
+        const msg = `[cron/demo-reset] ALERTE démo amputée (${hid}) : ${count ?? 0} recettes seed < ${seedMin} attendues — relancer scripts/restore-demo-from-staging.mjs (FR) ou scripts/demo-en/demo-en.mjs apply (EN)`
+        console.error(msg)
+        Sentry.captureException(new Error(msg), { level: 'fatal' })
+      }
     }
 
     // Step 2: Mark all seed recipes as not soft-deleted (restore visibility)
@@ -86,7 +100,7 @@ export async function GET(request: NextRequest) {
     const { data: demoMembers, error: demoMembersError } = await supabase
       .from('memberships')
       .select('owner_id, owners!inner(created_at)')
-      .eq('household_id', demoHouseholdId)
+      .in('household_id', demoHouseholdIds)
       .lt('owners.created_at', cutoff)
 
     if (demoMembersError) {
@@ -103,7 +117,7 @@ export async function GET(request: NextRequest) {
         .from('memberships')
         .select('owner_id')
         .in('owner_id', candidateIds)
-        .neq('household_id', demoHouseholdId)
+        .not('household_id', 'in', `(${demoHouseholdIds.join(',')})`)
 
       if (outsideError) {
         Sentry.captureException(
@@ -149,7 +163,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       reset: true,
       deleted: deleted ?? 0,
-      seedCount: seedCount ?? 0,
+      seedCount,
       restored: 0,
       purgedOwners,
       purgedTokens,

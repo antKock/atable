@@ -44,7 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL("https://mijote.anthonykocken.fr"),
     title: t.appName,
     description,
-    manifest: "/manifest.json",
+    manifest: "/manifest.webmanifest",
     appleWebApp: {
       capable: true,
       statusBarStyle: "default",

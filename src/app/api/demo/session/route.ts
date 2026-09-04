@@ -10,8 +10,12 @@ export async function POST(request: NextRequest) {
   const t = await getT()
   console.log(`[demo/session] POST start`)
   try {
-    const demoHouseholdId = process.env.DEMO_HOUSEHOLD_ID
-    console.log(`[demo/session] DEMO_HOUSEHOLD_ID present=${!!demoHouseholdId}`)
+    // Version EN (Lot 3) : un appareil anglais atterrit sur le foyer démo EN
+    // s'il est configuré, sinon sur le FR (dégradé mais jamais vide).
+    const locale = await getLocale()
+    const demoHouseholdId =
+      (locale === 'en' && process.env.DEMO_HOUSEHOLD_ID_EN) || process.env.DEMO_HOUSEHOLD_ID
+    console.log(`[demo/session] DEMO_HOUSEHOLD_ID present=${!!demoHouseholdId} locale=${locale}`)
     if (!demoHouseholdId) {
       return NextResponse.json({ error: 'Demo not configured' }, { status: 503 })
     }
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest) {
     const ownerId = crypto.randomUUID()
     const { error: ownerError } = await supabase
       .from('owners')
-      .insert({ id: ownerId, alias: aliasForOwner(ownerId, await getLocale()) })
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId, locale) })
 
     if (ownerError) {
       throw new Error(ownerError.message ?? 'Failed to create demo owner')
