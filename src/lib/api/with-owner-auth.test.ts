@@ -4,8 +4,7 @@ import {
   withOwnerAuth,
   requireMember,
   assertNotDemoMutation,
-  resolveWriteHousehold,
-} from "./with-owner-auth";
+  resolveWriteHousehold, assertNotDemoSeedMutation } from "./with-owner-auth";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { t } from "@/lib/i18n/fr";
 
@@ -106,6 +105,23 @@ describe("assertNotDemoMutation", () => {
 
   it("null sans membership (requireMember porte ce cas)", async () => {
     expect(await assertNotDemoMutation(ownerContext(), "household-other")).toBeNull();
+  });
+});
+
+describe("assertNotDemoSeedMutation (incident démo 2026-09)", () => {
+  const demo = ownerContext({
+    memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
+  });
+  it("403 sur une recette seed du foyer démo", async () => {
+    const res = await assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: true });
+    expect(res?.status).toBe(403);
+    expect(await res!.json()).toEqual({ error: t.demo.frozen });
+  });
+  it("null pour une recette ajoutée par le visiteur démo (non seed)", async () => {
+    expect(await assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: false })).toBeNull();
+  });
+  it("null pour une recette seed hors démo (flag vestigial)", async () => {
+    expect(await assertNotDemoSeedMutation(ownerContext(), { household_id: "household-1", is_seed: true })).toBeNull();
   });
 });
 

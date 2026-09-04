@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
-import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 
@@ -54,7 +54,7 @@ export const POST = withOwnerAuth(
     // Storage reste rangé par foyer.
     const { data: existing } = await supabase
       .from("recipes")
-      .select("id, household_id")
+      .select("id, household_id, is_seed")
       .eq("id", id)
       .in("household_id", householdIds(owner))
       .single();
@@ -65,6 +65,8 @@ export const POST = withOwnerAuth(
 
     const forbidden = requireMember(owner, existing.household_id);
     if (forbidden) return forbidden;
+    const frozen = await assertNotDemoSeedMutation(owner, existing);
+    if (frozen) return frozen;
     const householdId = existing.household_id;
 
     const path = `${householdId}/${id}/photo.${ext}`;

@@ -107,6 +107,24 @@ export async function assertNotDemoMutation(
 }
 
 /**
+ * Incident 2026-09 (les 30 recettes seed de la démo prod supprimées par un
+ * visiteur) : une recette SEED du foyer démo est intouchable — pas d'édition,
+ * de suppression, de déplacement ni de photo. Les recettes ajoutées par les
+ * visiteurs restent libres (purgées par le cron). 403 « monde gelé ».
+ */
+export async function assertNotDemoSeedMutation(
+  owner: OwnerContext,
+  recipe: { household_id: string; is_seed?: boolean | null },
+): Promise<NextResponse | null> {
+  if (!recipe.is_seed) return null;
+  const membership = owner.memberships.find((m) => m.householdId === recipe.household_id);
+  if (!membership?.isDemo) return null;
+  trackStat("demo_frozen_hits");
+  const t = await getT();
+  return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
+}
+
+/**
  * Un owner « démo » = au moins un membership sur le foyer démo (stratégie C).
  * Prédicat owner-level unique, partagé par l'UI (hub gelé, profil masqué) et
  * les gardes de mutation owner-level (profil), pour ne pas réécrire la règle à
