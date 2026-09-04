@@ -22,7 +22,7 @@ import {
   ReferenceLine,
   ReferenceArea,
 } from "recharts";
-import { PALETTE as P, FONT, MONO, axisTick, axisProps, gridProps } from "@/lib/admin/palette";
+import { PALETTE as P, FONT, MONO, axisTick, axisProps, gridProps, cohortColor } from "@/lib/admin/palette";
 
 const fr = (n: unknown) => (typeof n === "number" ? n.toLocaleString("fr-FR") : String(n ?? ""));
 
@@ -278,27 +278,22 @@ export function ChartStickiness({ data, marker, height = 172 }: { data: any[]; m
   );
 }
 
-// MAU décomposé par ancienneté (« layer cake ») : aires empilées, somme = MAU
-// personnes. Rampe séquentielle olive à 4 pas (clair = < 1 mois, foncé =
-// 3 mois +), les fidèles à la BASE de la pile — la lecture est l'épaisseur de
-// cette couche. Rampe dérivée de la palette brand, lightness monotone.
-export const TENURE_COLORS = {
-  plus3m: "#49551F",
-  m3: P.olive,
-  m2: "#93A163",
-  m1: "#C2CBA4",
-} as const;
-
-export function ChartMauTenure({
+// MAU par génération (« layer cake » de cohortes) : aires empilées, une strate
+// par mois d'arrivée, somme = MAU personnes. La couleur suit la GÉNÉRATION
+// (les plus anciennes foncées, à la base) — on regarde chaque strate persister
+// ou s'évaporer. Rampe cohortColor dans palette.ts (module partagé serveur).
+export function ChartMauCohorts({
   data,
+  cohorts,
   marker,
   height = 260,
 }: {
   data: any[];
+  cohorts: string[]; // libellés, de la plus ancienne à la plus récente
   marker?: string | null;
   height?: number;
 }) {
-  if (sum(data, ["plus3m", "m3", "m2", "m1"]) === 0)
+  if (sum(data, cohorts) === 0)
     return <ChartEmpty height={height} sub="Se remplit avec les jours actifs des personnes (heartbeat)." />;
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -307,10 +302,20 @@ export function ChartMauTenure({
         <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
         <YAxis {...axisProps} width={44} allowDecimals={false} />
         <Tooltip content={<Tip />} />
-        <Area type="monotone" dataKey="plus3m" name="3 mois +" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.plus3m} fillOpacity={0.85} dot={false} />
-        <Area type="monotone" dataKey="m3" name="2–3 mois" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.m3} fillOpacity={0.8} dot={false} />
-        <Area type="monotone" dataKey="m2" name="1–2 mois" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.m2} fillOpacity={0.8} dot={false} />
-        <Area type="monotone" dataKey="m1" name="< 1 mois" stackId="t" stroke={P.surface} strokeWidth={1.5} fill={TENURE_COLORS.m1} fillOpacity={0.85} dot={false} />
+        {cohorts.map((c, i) => (
+          <Area
+            key={c}
+            type="monotone"
+            dataKey={c}
+            name={c}
+            stackId="g"
+            stroke={P.surface}
+            strokeWidth={1.5}
+            fill={cohortColor(i)}
+            fillOpacity={0.85}
+            dot={false}
+          />
+        ))}
         {marker && <ReferenceLine x={marker} {...epochMarkerProps("➀")} />}
       </AreaChart>
     </ResponsiveContainer>

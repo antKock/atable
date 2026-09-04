@@ -55,6 +55,22 @@ export const PLATFORM_LABELS = {
   unknown: "Indéterminé",
 } as const;
 
+// Rampe séquentielle olive pour les strates de cohortes (MAU par génération) —
+// lightness monotone, la plus ancienne génération la plus foncée. Module
+// partagé (sans "use client") : utilisée par le chart ET la légende serveur.
+export const COHORT_RAMP = [
+  "#39431A", "#4E5A24", "#64712F", "#7C8A47", "#93A163", "#A8B490", "#C2CBA4", "#DCE1C8",
+] as const;
+
+/** Couleur d'une cohorte, ancrée sur la PLUS ANCIENNE (pas le plus foncé) :
+ *  l'index d'une génération ne change jamais quand de nouvelles s'ajoutent —
+ *  chaque strate garde sa couleur à vie. Au-delà de la rampe, les plus
+ *  récentes saturent sur le pas le plus clair (le passage au trimestre est
+ *  prévu avant). */
+export function cohortColor(index: number): string {
+  return COHORT_RAMP[Math.min(index, COHORT_RAMP.length - 1)];
+}
+
 // Fonts — map the design's roles onto the app's loaded next/font variables.
 export const FONT = "var(--font-inter), system-ui, sans-serif";
 export const MONO = "var(--font-dm-mono), ui-monospace, monospace";

@@ -202,7 +202,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     enrichment,
     activation,
     activeDaily,
-    activeTenure,
+    activeCohorts,
     cumulative,
     acquisition,
     carnetPeople,
@@ -235,7 +235,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     rpc("analytics_enrichment", { p_household_ids: hh }),
     rpc("analytics_activation", { p_from: ISO(fromActivation) }),
     rpc("analytics_active_daily", { p_days: days, p_platform: plat, p_household_ids: hh }),
-    rpc("analytics_active_daily_tenure", { p_days: days, p_platform: plat, p_household_ids: hh }),
+    rpc("analytics_active_daily_cohorts", { p_days: days, p_platform: plat, p_household_ids: hh }),
     rpc("analytics_cumulative_parc_daily", { p_days: days }),
     rpc("analytics_acquisition_daily", { p_days: days }),
     rpc("analytics_carnet_people_dist", {}),
@@ -452,17 +452,28 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     ? epochShort("ownerGrain")
     : null;
 
-  // MAU décomposé par ancienneté (« layer cake ») : la somme des quatre bandes
-  // mensuelles = le MAU personnes. Fidèles en bas de pile — si cette couche
-  // épaissit, la croissance cumule les générations ; si tout reste « < 1 mois »,
-  // c'est du sang neuf qui ne revient pas.
-  const mauTenure = (activeTenure as Row[]).map((r) => ({
-    label: shortLabel(r.day as string),
-    plus3m: Number(r.mau_old),
-    m3: Number(r.mau_m3),
-    m2: Number(r.mau_m2),
-    m1: Number(r.mau_m1),
-  }));
+  // MAU par génération (« layer cake » de cohortes) : chaque strate = les
+  // personnes arrivées le même mois — une strate qui persiste = génération
+  // retenue, une strate qui s'évapore = churn. Format long en SQL (nombre de
+  // cohortes dynamique), pivot ici ; somme des strates = MAU personnes.
+  // Passage au regroupement trimestriel quand les strates seront trop
+  // nombreuses (~12 mois de vie).
+  const cohortLabel = (iso: string) =>
+    new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" });
+  const mauCohortKeys = [...new Set((activeCohorts as Row[]).map((r) => r.cohort as string))].sort();
+  const mauCohortLabels = mauCohortKeys.map(cohortLabel);
+  const cohortByDay = new Map<string, Record<string, number>>();
+  for (const r of activeCohorts as Row[]) {
+    const day = r.day as string;
+    if (!cohortByDay.has(day)) cohortByDay.set(day, {});
+    cohortByDay.get(day)![cohortLabel(r.cohort as string)] = Number(r.mau);
+  }
+  const mauCohorts = dayGrid(days, today).map((iso) => {
+    const values = cohortByDay.get(iso) ?? {};
+    const point: Record<string, number | string> = { label: shortLabel(iso) };
+    for (const l of mauCohortLabels) point[l] = values[l] ?? 0;
+    return point;
+  });
 
   // Zone « non mesuré » du coût IA (table ai_costs née le 2026-06-16) — pour
   // les longues périodes qui remontent avant.
@@ -837,7 +848,8 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     },
     // 02 — personnes actives
     wauMau,
-    mauTenure,
+    mauCohorts,
+    mauCohortLabels,
     activityMarker,
     parc,
     loginFrequency,

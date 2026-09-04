@@ -3,7 +3,7 @@ import { isAdminForHouseholds } from "@/lib/admin/auth";
 import { getOwnerContext, householdIds as ownerHouseholdIds } from "@/lib/auth/owner-context";
 import { getDashboardData, getHouseholdsForPicker, type KpiCard, type Signal } from "@/lib/admin/queries";
 import { resolvePeriod, isPeriodKey } from "@/lib/admin/periods";
-import { PALETTE as P } from "@/lib/admin/palette";
+import { PALETTE as P, cohortColor } from "@/lib/admin/palette";
 import FilterBar from "@/components/admin/FilterBar";
 import {
   Sparkline,
@@ -11,8 +11,7 @@ import {
   ChartTrialsDaily,
   ChartDemoActivity,
   ChartWauMau,
-  ChartMauTenure,
-  TENURE_COLORS,
+  ChartMauCohorts,
   ChartStickiness,
   ChartBins,
   ChartParc,
@@ -360,27 +359,31 @@ export default async function DashboardPage({
             </Card>
             <Card
               span={12}
-              title="MAU par ancienneté des personnes"
-              sub="Le même MAU, empilé par ancienneté au jour observé — cumul des générations ou seau percé ?"
+              title="MAU par génération"
+              sub="Une strate par mois d'arrivée — chaque génération garde sa couleur : on la voit persister ou s'évaporer"
               footer={
                 <>
                   <LegendInline
-                    items={[
-                      { label: "3 mois +", color: TENURE_COLORS.plus3m },
-                      { label: "2–3 mois", color: TENURE_COLORS.m3 },
-                      { label: "1–2 mois", color: TENURE_COLORS.m2 },
-                      { label: "< 1 mois", color: TENURE_COLORS.m1 },
-                    ]}
+                    items={data.mauCohortLabels.map((c, i) => ({
+                      label: c,
+                      color: cohortColor(i),
+                    }))}
                   />
                   <div className="chart-note">
-                    Lecture : si les couches du bas (foncées, <b>anciennes</b>) épaississent avec le temps, la
-                    croissance cumule les générations ; si la pile reste dominée par <b>&lt; 1 mois</b>, c&apos;est du
-                    sang neuf qui ne revient pas. La somme des quatre bandes = le MAU personnes ci-dessus.
+                    Lecture : une strate qui garde son épaisseur au fil des mois = génération retenue ; une strate qui
+                    s&apos;amincit = churn de cette génération. Si les strates s&apos;empilent, la croissance cumule ;
+                    si seule la plus claire vit, c&apos;est le seau percé. Somme des strates = MAU personnes ci-dessus.
+                    Passage en trimestres quand les strates mensuelles seront trop nombreuses.
                   </div>
                 </>
               }
             >
-              <ChartMauTenure data={data.mauTenure} marker={data.activityMarker} height={260} />
+              <ChartMauCohorts
+                data={data.mauCohorts}
+                cohorts={data.mauCohortLabels}
+                marker={data.activityMarker}
+                height={260}
+              />
             </Card>
             <Card span={4} title="Fréquence d'usage" sub="Jours actifs / mois / personne (avant : par appareil)">
               <ChartBins data={data.loginFrequency} name="Personnes" height={220} />
