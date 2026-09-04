@@ -30,8 +30,8 @@ test("i18n : ?lang=en pose le cookie de prévisualisation et bascule la landing 
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page).toHaveTitle("Mijote");
   await expect(page.getByRole("button", { name: "Try the app" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Create a recipe book" })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Open a recipe book" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Create a cookbook" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Open a cookbook" })).toBeVisible();
   const cookie = (await context.cookies()).find((c) => c.name === "mijote_locale");
   expect(cookie?.value).toBe("en");
 

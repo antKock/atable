@@ -2,8 +2,10 @@ import type { Dictionary } from "./types";
 
 // English (en-US) dictionary. Same shape as `fr.ts`, enforced by `Dictionary`:
 // a missing or extra key fails `tsc`. Casual "you" register mirrors the French
-// tutoiement. A « carnet » (household) is a "recipe book" — the App Store
-// wording — shortened to "book" where space is tight.
+// tutoiement. A « carnet » (household) is a "cookbook": the word the
+// social-first competitors (ReciMe, Pestle, Whisk) use for the user's own
+// collection, and the standard en-US term — decided 2026-09-04 after a wording
+// survey (docs/specs/i18n/00-socle.md, décision 7).
 export const en: Dictionary = {
   // App
   appName: "Mijote",
@@ -183,7 +185,7 @@ export const en: Dictionary = {
     regime: "Diet",
     duree: "Time",
     cout: "Cost",
-    foyer: "Book",
+    foyer: "Cookbook",
     lt30min: "< 30 min",
     "30to60": "30 min - 1h",
     gt60: "> 1h",
@@ -192,7 +194,7 @@ export const en: Dictionary = {
 
   // Empty states
   empty: {
-    libraryTitle: "Your book is empty",
+    libraryTitle: "Your cookbook is empty",
     libraryBody: "Add your first recipe to fill it.",
     searchTitle: "No results",
     searchBody: "Try another title, ingredient or tag.",
@@ -300,15 +302,15 @@ export const en: Dictionary = {
     tagline: "Your recipes",
     subtitle: "Gathered as if by magic",
     tryApp: "Try the app",
-    createHousehold: "Create a recipe book",
-    joinHousehold: "Open a recipe book",
+    createHousehold: "Create a cookbook",
+    joinHousehold: "Open a cookbook",
   },
 
   // Join via invite link
   joinLink: {
     hero: (name: string) => `Open “${name}”?`,
     confirm: "Open",
-    notFound: "This link doesn't match any recipe book",
+    notFound: "This link doesn't match any cookbook",
     backToLanding: "Back to home",
     guestNote: "Read-only, live",
   },
@@ -319,7 +321,7 @@ export const en: Dictionary = {
     placeholder: "OLIVE-4821",
     preview: (name: string) => `Found “${name}” — Open it?`,
     confirm: "Open",
-    notFound: "This code doesn't match any recipe book",
+    notFound: "This code doesn't match any cookbook",
     rateLimited: "Too many attempts, try again later",
     invalidFormat: "Invalid format — e.g. OLIVE-4821",
     searching: "Searching…",
@@ -327,48 +329,48 @@ export const en: Dictionary = {
 
   // Household
   household: {
-    created: "Recipe book created",
+    created: "Cookbook created",
     code: "Code",
     copy: "Copy",
     copied: "Copied!",
     namePlaceholder: "E.g. Family recipes, Our kitchen…",
-    nameLabel: "Book name",
-    createTitle: "Create a recipe book",
-    createError: "Couldn't create the recipe book. Try again.",
-    menu: "Book & profile",
-    menuButton: "Book & profile",
-    shareCode: "Book code",
+    nameLabel: "Cookbook name",
+    createTitle: "Create a cookbook",
+    createError: "Couldn't create the cookbook. Try again.",
+    menu: "Cookbook & profile",
+    menuButton: "Cookbook & profile",
+    shareCode: "Cookbook code",
     inviteLink: "Invite link",
-    leaveHousehold: "Leave this book",
+    leaveHousehold: "Leave this cookbook",
     rename: "Rename",
-    renameTitle: "Rename the book",
-    renameSuccess: "Book renamed",
-    renameError: "Couldn't rename the book",
-    leaveConfirm: "Leave the book?",
+    renameTitle: "Rename the cookbook",
+    renameSuccess: "Cookbook renamed",
+    renameError: "Couldn't rename the cookbook",
+    leaveConfirm: "Leave the cookbook?",
     leaveBody: "You'll need to open it again with a code or a link to get the recipes back.",
     leaveAction: "Leave",
     demoLabel: "Demo",
-    deleteHousehold: "Delete the book",
-    deleteConfirmTitle: "Delete the book?",
-    deleteConfirmBody: "All the recipes in this book and every device's access will be deleted.",
+    deleteHousehold: "Delete the cookbook",
+    deleteConfirmTitle: "Delete the cookbook?",
+    deleteConfirmBody: "All the recipes in this cookbook and every device's access will be deleted.",
     deleteContinue: "Continue",
     deleteFinalTitle: "Confirm deletion",
     deleteFinalBody:
-      "This can't be undone. The book and all its recipes will be permanently lost.",
+      "This can't be undone. The cookbook and all its recipes will be permanently lost.",
     deleteFinalAction: "Delete permanently",
     leaveError: "Something went wrong. Try again.",
-    // Hub "You + Your books"
+    // Hub "You + Your cookbooks"
     sectionYou: "You",
-    sectionHouseholds: "Your books",
+    sectionHouseholds: "Your cookbooks",
     accessSaved: "Access saved",
     accessToSave: "Save my access",
-    createOrJoin: "Create or open a recipe book",
+    createOrJoin: "Create or open a cookbook",
     homeFoyers: {
       section: "Display",
-      entry: "Books shown on Home",
+      entry: "Cookbooks shown on Home",
       title: "Shown on Home",
-      note: "Choose which books' recipes appear on Home.",
-      minWarning: "At least one book must stay shown.",
+      note: "Choose which cookbooks' recipes appear on Home.",
+      minWarning: "At least one cookbook must stay shown.",
       done: "Done",
       summaryAll: "All",
       summaryCount: (shown: number, total: number) => `${shown} of ${total}`,
@@ -391,11 +393,11 @@ export const en: Dictionary = {
       subtitleGuest: "Guest · read-only",
       toGuest: "Make guest (read-only)",
       toMember: "Make member (can edit)",
-      remove: "Remove from the book",
+      remove: "Remove from the cookbook",
       removeBody: "Removing them cuts their access immediately.",
       roleError: "Couldn't change the role. Try again.",
       removeError: "Couldn't remove this member. Try again.",
-      lastMember: "Not possible: they're the last member of the book.",
+      lastMember: "Not possible: they're the last member of the cookbook.",
     },
     roles: {
       member: "member",
@@ -408,28 +410,28 @@ export const en: Dictionary = {
     peopleCount: (n: number) => `${n} ${n > 1 ? "people" : "person"}`,
     recipeCount: (n: number) => `${n} recipe${n > 1 ? "s" : ""}`,
     join: {
-      alreadyMember: "You already have access to this book.",
+      alreadyMember: "You already have access to this cookbook.",
       added: (name: string) => `You now have access to “${name}”.`,
-      upgraded: "You're now a member of this book.",
+      upgraded: "You're now a member of this cookbook.",
     },
     picker: {
-      saveTitle: "Which book?",
+      saveTitle: "Which cookbook?",
       moveTitle: "Move to…",
-      lockNote: "Books where you're a guest are read-only.",
+      lockNote: "Cookbooks where you're a guest are read-only.",
       current: "Current",
-      required: "Choose a destination book.",
+      required: "Choose a destination cookbook.",
       moveError: "Couldn't move the recipe. Try again.",
       moved: (name: string) => `Recipe moved to “${name}”.`,
-      readOnlyDestination: "This book is read-only.",
+      readOnlyDestination: "This cookbook is read-only.",
     },
   },
 
   // "Create or open" screen (from the hub)
   switchHousehold: {
     title: "Create or open",
-    body: "The book will be added to your books. You keep access to all the ones you've already opened.",
-    create: "Create a recipe book",
-    join: "Open a recipe book",
+    body: "The cookbook will be added to your cookbooks. You keep access to all the ones you've already opened.",
+    create: "Create a cookbook",
+    join: "Open a cookbook",
   },
 
   // Profile ("You")
@@ -437,7 +439,7 @@ export const en: Dictionary = {
     title: "Your profile",
     nameLabel: "Your name",
     nameHint:
-      "Your name is shown to the other members of your books. Leave it empty and you'll get a default alias.",
+      "Your name is shown to the other members of your cookbooks. Leave it empty and you'll get a default alias.",
     saved: "Profile updated",
     saveError: "Couldn't save your profile. Try again.",
     nameInvalid: "Invalid name — 50 characters max.",
@@ -449,19 +451,19 @@ export const en: Dictionary = {
     emailInvalid: "Invalid email address.",
     logout: "Log out",
     logoutConfirmTitle: "Log out?",
-    logoutConfirmBody: "This device will be logged out. You can get your books back with your recovery email.",
+    logoutConfirmBody: "This device will be logged out. You can get your cookbooks back with your recovery email.",
     logoutConfirmBodyNoEmail:
-      "This device will be logged out. Without a recovery email you may lose access to your books — consider adding one first.",
+      "This device will be logged out. Without a recovery email you may lose access to your cookbooks — consider adding one first.",
     logoutAction: "Log out",
   },
 
   // Owner merge (#14 §5)
   merge: {
-    title: "Bringing your books together",
+    title: "Bringing your cookbooks together",
     body: (email: string) =>
       `This email is already used by another profile. Enter the code we just sent to ${email} to merge both accesses into one identity.`,
     codeLabel: "Code received by email",
-    success: "Your books are now together",
+    success: "Your cookbooks are now together",
     codeInvalid: "Invalid or expired code. Try again, or resend an email.",
   },
 
@@ -471,7 +473,7 @@ export const en: Dictionary = {
     forkCode: "I have an invite code",
     forkEmail: "Recover with my email",
     title: "Recover my access",
-    body: "Enter the email you had saved. We'll send you a link to get your book back on this device.",
+    body: "Enter the email you had saved. We'll send you a link to get your cookbook back on this device.",
     emailPlaceholder: "you@email.com",
     send: "Send the link",
     sendError: "Couldn't send the link. Try again.",
@@ -489,7 +491,7 @@ export const en: Dictionary = {
     consuming: "Signing in…",
     consumeErrorTitle: "This link is no longer valid",
     consumeErrorBody:
-      "It may have expired (15 minutes) or already been used. Request a new one from “Open a recipe book”.",
+      "It may have expired (15 minutes) or already been used. Request a new one from “Open a cookbook”.",
     backToLanding: "Back to home",
   },
 
@@ -497,12 +499,12 @@ export const en: Dictionary = {
   hints: {
     share: {
       title: "Cook together",
-      body: "Share your book: everyone's recipes end up in the same place, live.",
+      body: "Share your cookbook: everyone's recipes end up in the same place, live.",
       cta: "Invite someone",
     },
     email: {
       title: "Save your access",
-      body: "Add an email and you'll get this book back even if you change devices. No account, no password.",
+      body: "Add an email and you'll get this cookbook back even if you change devices. No account, no password.",
       cta: "Add an email",
       dismissToast: "You'll find this in your profile",
     },
@@ -516,8 +518,8 @@ export const en: Dictionary = {
   // Demo
   demo: {
     title: "You're exploring a demo account",
-    body: "Recipes added here aren't kept. Create your own recipe book to keep yours.",
-    cta: "Create my book",
+    body: "Recipes added here aren't kept. Create your own cookbook to keep yours.",
+    cta: "Create my cookbook",
     frozen: "This action isn't available in the demo.",
   },
 
@@ -528,12 +530,12 @@ export const en: Dictionary = {
     shareError: "Sharing failed",
     save: "Save this recipe",
     reminderLabel: "Recipe to save",
-    haveHousehold: "I already have a book — open it",
-    addToHousehold: "Add to my book",
+    haveHousehold: "I already have a cookbook — open it",
+    addToHousehold: "Add to my cookbook",
     adding: "Adding…",
-    added: "Added to your book",
-    viewMyHousehold: "View my book",
-    alreadyOwned: "Already in your book",
+    added: "Added to your cookbook",
+    viewMyHousehold: "View my cookbook",
+    alreadyOwned: "Already in your cookbook",
     addError: "Couldn't add the recipe. Try again.",
     notFoundTitle: "Recipe not found",
     notFoundBody: "This share link is no longer valid.",
@@ -542,7 +544,7 @@ export const en: Dictionary = {
   // Install-app banner (iOS web users)
   installBanner: {
     codeTitle: "One more step",
-    codeBody: "Open Mijote and enter this code to get your book back:",
+    codeBody: "Open Mijote and enter this code to get your cookbook back:",
     reopenStore: "Reopen the App Store",
     codeCopied: "Code copied",
     copyCode: "Copy the code",

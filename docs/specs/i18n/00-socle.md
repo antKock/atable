@@ -28,7 +28,12 @@ sans rien changer pour la base installée française. Cadré le 2026-09-04.
 6. **Pas de routes `/en/…`.** Les deep links (`/r/[token]`, `/join/CODE`, Universal
    Links, Share Extension, `allowNavigation`) sont partagés entre langues. Le SEO
    web EN n'est pas un objectif (acquisition = stores, localisés par storefront).
-7. **Aucun test manuel par Anthony.** Chaque lot est vérifié par la session Claude
+7. **« Carnet » se dit « cookbook »** (décidé 2026-09-04 après relevé du vocabulaire
+   concurrent : ReciMe, Pestle, Whisk/Samsung Food, Recipe Keeper, Mela, Saffron
+   disent « cookbook » pour la collection personnelle ; « recipe book » est le
+   mot des templates Notion/GoodNotes et de la fiche ASO, « recipe box » est
+   marginal). Un carnet = *a cookbook*, plusieurs = *your cookbooks*.
+8. **Aucun test manuel par Anthony.** Chaque lot est vérifié par la session Claude
    avec Playwright (copy en contexte + captures) ; les doutes sont remontés
    explicitement. Seul livrable à relecture humaine : la traduction des pages
    légales (Lot 3).
