@@ -22,7 +22,7 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
 
 - Quand Anthony dit « la #N » ou « spec N », il désigne la note dont le frontmatter
   contient `id: N`. La retrouver :
-  `grep -l "^id: N$" ~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/*.md`
+  `grep -l "^id: N$" ~/projects/anthony-os/Perso/Mijote/Backlog/*.md`
 - Lire aussi `Stratégie.md` (dossier parent) quand la spec y renvoie.
 
 ## Chantier en cours — Foyer (#14 + #15)
