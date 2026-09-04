@@ -3,15 +3,22 @@ import { NextRequest } from "next/server";
 import { GET } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import * as Sentry from "@sentry/nextjs";
 
 vi.mock("@/lib/supabase/server");
+vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 
 let supa: SupabaseMock;
 
 beforeEach(() => {
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
+  vi.mocked(Sentry.captureException).mockClear();
 });
+
+// Step 1b (incident 2026-09) : après la purge des non-seed, le cron compte
+// les seed restantes — un résultat de plus à queuer dans chaque scénario.
+const SEED_OK = { count: 30, error: null };
 
 function request(auth?: string): NextRequest {
   const headers: Record<string, string> = {};
@@ -38,12 +45,14 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResults([
       { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
       { count: 3, error: null }, // delete recettes non-seed
+      SEED_OK,
     ]);
     const res = await GET(request("Bearer test-cron-secret"));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({
       reset: true,
       deleted: 3,
+      seedCount: 30,
       restored: 0,
       purgedOwners: 0,
       purgedTokens: 0,
@@ -54,6 +63,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResults([
       { data: null, error: null }, // rpc demo_stats_rollup
       { count: 0, error: null }, // delete recettes
+      SEED_OK,
     ]);
     await GET(request("Bearer test-cron-secret"));
     const rollupIdx = supa.calls.findIndex((c) => c.table === "rpc:demo_stats_rollup");
@@ -66,6 +76,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResults([
       { data: null, error: { message: "rollup failed" } }, // rpc demo_stats_rollup
       { count: 2, error: null }, // delete recettes
+      SEED_OK,
     ]);
     const res = await GET(request("Bearer test-cron-secret"));
     expect(res.status).toBe(200);
@@ -76,6 +87,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResults([
       { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
       { count: 0, error: null }, // delete recettes non-seed
+      SEED_OK,
       { data: [{ owner_id: "owner-old" }, { owner_id: "owner-multi" }], error: null }, // candidats périmés
       { data: [{ owner_id: "owner-multi" }], error: null }, // garde-fou : membership hors démo
       { count: 1, error: null }, // delete owners
@@ -101,6 +113,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResults([
       { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
       { count: 0, error: null },
+      SEED_OK,
       { data: [], error: null },
     ]);
     const res = await GET(request("Bearer test-cron-secret"));
@@ -113,6 +126,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     supa.queueResults([
       { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
       { count: 0, error: null },
+      SEED_OK,
     ]);
     await GET(request("Bearer test-cron-secret"));
     const recipesCall = supa.calls.find((c) => c.table === "recipes")!;
@@ -132,5 +146,35 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     ]);
     const res = await GET(request("Bearer test-cron-secret"));
     expect(res.status).toBe(500);
+  });
+
+  it("alerte Sentry (fatal) quand les recettes seed passent sous le seuil — incident 2026-09", async () => {
+    supa.queueResults([
+      { data: null, error: null }, // rpc demo_stats_rollup (Step 0)
+      { count: 0, error: null }, // delete recettes non-seed
+      { count: 12, error: null }, // seed restantes < 30
+    ]);
+    const res = await GET(request("Bearer test-cron-secret"));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toMatchObject({ seedCount: 12 });
+    const call = vi.mocked(Sentry.captureException).mock.calls.find(
+      ([err]) => err instanceof Error && err.message.includes("démo amputée"),
+    );
+    expect(call).toBeTruthy();
+    expect(call?.[1]).toMatchObject({ level: "fatal" });
+  });
+
+  it("pas d'alerte quand les 30 seed sont là", async () => {
+    supa.queueResults([
+      { data: null, error: null },
+      { count: 0, error: null },
+      SEED_OK,
+    ]);
+    await GET(request("Bearer test-cron-secret"));
+    expect(
+      vi.mocked(Sentry.captureException).mock.calls.some(
+        ([err]) => err instanceof Error && err.message.includes("démo amputée"),
+      ),
+    ).toBe(false);
   });
 });
