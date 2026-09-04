@@ -30,6 +30,8 @@ function buildSystemPrompt(predefinedTags: PredefinedTag[]): string {
     .join("\n");
   return `Tu es un assistant culinaire expert. Analyse la recette et retourne un JSON structuré.
 
+La recette peut être écrite dans n'importe quelle langue (français, anglais, portugais…) : analyse-la telle quelle. Les TAGS et les valeurs énumérées ci-dessous sont des codes en français à reprendre EXACTEMENT tels quels, même si la recette est dans une autre langue.
+
 TAGS — choisis uniquement parmi cette liste, en respectant strictement la définition de chaque tag :
 ${tagLines}
 

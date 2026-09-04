@@ -25,3 +25,8 @@ export function complexityLabel(t: Dictionary, value: string | null | undefined)
   const labels = t.complexity as Record<string, string>;
   return labels[value] ?? value;
 }
+
+/** Libellé d'un tag : traduit s'il est prédéfini, tel quel sinon (tag libre). */
+export function tagLabel(t: Dictionary, name: string): string {
+  return (t.tagNames as Record<string, string>)[name] ?? name;
+}

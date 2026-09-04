@@ -87,7 +87,7 @@ Convention d'usage :
 |---|---|---|---|
 | 0 | `01-lot0-socle.md` | Plomberie ci-dessus, `en.ts` complet, layout racine, pilote `LandingScreen` + pages d'erreur, spec E2E `16-i18n` | staging |
 | 1 | `02-lot1-interface.md` | Migration des 73 imports statiques, extraction des chaînes en dur (52 fichiers hors admin), énumérations, alias EN, messages d'erreur API, emails | staging |
-| 2 | `03-lot2-ia-donnees.md` | Prompts « langue source conservée », mapping libellés des tags prédéfinis, vérification par le bench `scripts/bench/` | à faire |
+| 2 | `03-lot2-ia-donnees.md` | Prompts « langue source conservée », mapping libellés des tags prédéfinis, vérification par le bench `scripts/bench/` | staging |
 | 3 | `04-lot3-contenu.md` | Foyer démo EN, landing/support/join/recover/`/r`, légal (relecture Anthony), `offline.html` | à faire |
 | 4 | `05-lot4-natif-stores.md` | `en.lproj` + `InfoPlist.strings` (3 permissions), titre Share Extension, Android optionnel, captures, fiches stores, `I18N_EN_ENABLED=1` en prod | à faire |
 

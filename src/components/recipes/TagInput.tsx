@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useT } from "@/lib/i18n/client";
+import { tagLabel } from "@/lib/i18n/labels";
 import Chip from "./Chip";
 import type { Tag } from "@/types/recipe";
 
@@ -48,7 +49,10 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
   const normalizedQuery = normalize(query);
 
   const filtered = allTags.filter(
-    (tag) => !selectedIds.has(tag.id) && normalize(tag.name).includes(normalizedQuery)
+    (tag) =>
+      !selectedIds.has(tag.id) &&
+      (normalize(tag.name).includes(normalizedQuery) ||
+        normalize(tagLabel(t, tag.name)).includes(normalizedQuery))
   );
 
   // Group by category
@@ -79,7 +83,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
   }
 
   const hasExactMatch = allTags.some(
-    (tag) => normalize(tag.name) === normalizedQuery
+    (tag) => normalize(tag.name) === normalizedQuery || normalize(tagLabel(t, tag.name)) === normalizedQuery
   );
   const showCreateOption = query.trim().length > 0 && !hasExactMatch;
   if (showCreateOption) {
@@ -184,7 +188,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
           {selectedTags.map((tag) => (
             <Chip
               key={tag.id}
-              label={tag.name}
+              label={tagLabel(t, tag.name)}
               editable
               onRemove={() => onRemove(tag.id)}
             />
@@ -292,7 +296,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                             >
                               <path d="M20 6 9 17l-5-5" />
                             </svg>
-                            {tag.name}
+                            {tagLabel(t, tag.name)}
                           </li>
                         );
                       })}
@@ -338,7 +342,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                     >
                       <path d="M20 6 9 17l-5-5" />
                     </svg>
-                    Créer &lsquo;{query.trim()}&rsquo;
+                    {t.tags.create(query.trim())}
                   </li>
                 )}
               </>

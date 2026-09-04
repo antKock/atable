@@ -3,7 +3,7 @@
 import { ChevronDown, Check } from "lucide-react";
 import { Popover } from "radix-ui";
 import { useT } from "@/lib/i18n/client";
-import { costLabel } from "@/lib/i18n/labels";
+import { costLabel, tagLabel } from "@/lib/i18n/labels";
 import type { Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
 import {
@@ -191,7 +191,7 @@ export default function FilterBar({
             }}
           >
             {selected && <Check size={12} strokeWidth={2.5} />}
-            {tag.name}
+            {tagLabel(t, tag.name)}
           </button>
         );
       });
