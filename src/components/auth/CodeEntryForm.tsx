@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 
 type Props = {
@@ -16,6 +16,7 @@ type Props = {
 }
 
 export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props) {
+  const t = useT()
   const [code, setCode] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -99,9 +100,9 @@ export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props
             lineHeight: 1.05,
           }}
         >
-          Entre le code
+          {t.join.enterHeading[0]}
           <br />
-          de ton carnet
+          {t.join.enterHeading[1]}
         </h1>
 
         <p
@@ -114,8 +115,7 @@ export default function CodeEntryForm({ onCancel, onSuccess, headerSlot }: Props
             maxWidth: '320px',
           }}
         >
-          Demande à un membre du carnet son code d&apos;invitation.
-          Tu accéderas instantanément aux recettes partagées.
+          {t.join.enterBody}
         </p>
 
         <div className="relative" style={{ marginTop: '28px' }}>

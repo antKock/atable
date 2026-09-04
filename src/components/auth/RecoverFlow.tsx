@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Mail } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 import RecoveryCodeInput from './RecoveryCodeInput'
 
@@ -19,6 +19,7 @@ const RESEND_DELAY_S = 60
 // énumération) avec repli code 6 chiffres pour les mails lus sur un autre
 // appareil (jar WKWebView ≠ Safari).
 export default function RecoverFlow({ onBack }: Props) {
+  const t = useT()
   const [step, setStep] = useState<Step>('email')
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
-import { RecipeCreateSchema } from "@/lib/schemas/recipe";
+import { buildRecipeCreateSchema } from "@/lib/schemas/recipe";
 import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import { enrichRecipe } from "@/lib/enrichment";
 import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import { enforceRecipeCreateQuota } from "@/lib/import-quota";
+import { getT } from "@/lib/i18n/server";
 
 export const maxDuration = 60;
 
@@ -61,12 +62,13 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
 
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, owner) => {
+    const t = await getT();
     const body = await request.json();
 
     // Foyer cible explicite (dialog de choix, multi-foyer) OU repli mono-foyer.
     // Validé MEMBRE : un invité (lecture seule) est refusé, et un foyer où
     // l'owner n'est pas membre ne peut pas recevoir de recette.
-    const target = resolveWriteHousehold(owner, body?.householdId);
+    const target = await resolveWriteHousehold(owner, body?.householdId);
     if (target instanceof NextResponse) return target;
     const { householdId } = target;
 
@@ -75,7 +77,7 @@ export const POST = withOwnerAuth(
     const quotaResponse = await enforceRecipeCreateQuota(householdId);
     if (quotaResponse) return quotaResponse;
 
-    const result = RecipeCreateSchema.safeParse(body);
+    const result = buildRecipeCreateSchema(t).safeParse(body);
 
     if (!result.success) {
       return NextResponse.json(

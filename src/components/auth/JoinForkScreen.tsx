@@ -1,7 +1,7 @@
 'use client'
 
 import { KeyRound, Mail } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 
 type Props = {
   onCode: () => void
@@ -13,6 +13,7 @@ type Props = {
 // device neuf, rejoindre un proche OU retrouver son propre foyer passe par
 // ici, au lieu de recréer un owner. Copy volontairement générique.
 export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
+  const t = useT()
   return (
     <div className="bg-sage-radial fixed inset-0 flex flex-col text-background">
       <button

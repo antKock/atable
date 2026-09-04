@@ -1,10 +1,13 @@
+'use client'
+
 import { Eye } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 
 // Pill de rôle (chantier foyer) : membre = olive/accent, invité = neutre + œil.
 // Posé au Lot 1, réutilisé aux Lots 3/4 (membres, invitations).
 export default function RolePill({ role }: { role: MembershipRole }) {
+  const t = useT()
   const isGuest = role === 'guest'
   return (
     <span

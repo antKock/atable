@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import Chip from "./Chip";
 import type { Tag } from "@/types/recipe";
 
@@ -24,6 +24,7 @@ interface TagInputProps {
 }
 
 export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProps) {
+  const t = useT();
   const [allTags, setAllTags] = useState<Tag[]>([]);
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -211,7 +212,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
           if (query || allTags.length > 0) setIsOpen(true);
         }}
         onKeyDown={handleKeyDown}
-        placeholder="Ajouter un tag…"
+        placeholder={t.tags.addPlaceholder}
         autoComplete="off"
         className="h-12 w-full rounded-[10px] border border-border bg-surface px-3 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
@@ -229,7 +230,11 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
             return (
               <>
                 {sortedGroups.map(([category, tags]) => (
-                  <li key={category} role="group" aria-label={category}>
+                  <li
+                    key={category}
+                    role="group"
+                    aria-label={t.tagCategories[category as keyof typeof t.tagCategories] ?? category}
+                  >
                     <div
                       className="px-3 pt-2 pb-1"
                       style={{
@@ -242,7 +247,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                         letterSpacing: "-0.005em",
                       }}
                     >
-                      {category}
+                      {t.tagCategories[category as keyof typeof t.tagCategories] ?? category}
                     </div>
                     <ul role="group">
                       {tags.map((tag) => {

@@ -7,7 +7,7 @@ import {
   requireMember,
   assertNotDemoMutation,
 } from '@/lib/api/with-owner-auth'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 type RouteContext = { params: Promise<{ id: string; ownerId: string }> }
 
@@ -37,11 +37,12 @@ async function countMembers(
 // PATCH : changer le rôle d'un membre (membre ⇄ invité).
 export const PATCH = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT()
     const { id, ownerId } = await params
 
     const forbidden = requireMember(owner, id)
     if (forbidden) return forbidden
-    const demo = assertNotDemoMutation(owner, id)
+    const demo = await assertNotDemoMutation(owner, id)
     if (demo) return demo
 
     let body: unknown
@@ -102,11 +103,12 @@ export const PATCH = withOwnerAuth(
 // DELETE : retirer un membre (suppression du membership = accès coupé immédiat).
 export const DELETE = withOwnerAuth(
   async (_request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT()
     const { id, ownerId } = await params
 
     const forbidden = requireMember(owner, id)
     if (forbidden) return forbidden
-    const demo = assertNotDemoMutation(owner, id)
+    const demo = await assertNotDemoMutation(owner, id)
     if (demo) return demo
 
     const supabase = createServerClient()

@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
 import { AlignLeft, ChevronRight } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { haptics } from "@/lib/haptics";
 import { resizeImageToBase64 } from "@/lib/image-resize";
 import ScreenshotImporter from "./import/ScreenshotImporter";
@@ -36,6 +36,7 @@ export default function ImportSelector({
   onManual,
   autoImportUrl,
 }: ImportSelectorProps) {
+  const t = useT();
   const [expanded, setExpanded] = useState<ExpandedCard>(null);
   // Démarre déjà en loading si un auto-import est prévu (partage / deep link) :
   // évite de peindre le sélecteur de cartes une fraction de seconde avant que

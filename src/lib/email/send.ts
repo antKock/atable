@@ -13,6 +13,11 @@
 // tables + styles inline ; le dégradé du bouton retombe sur l'olive plein là
 // où linear-gradient n'est pas supporté (Outlook) ; aucune webfont embarquée.
 
+import type { Dictionary } from "@/lib/i18n/types";
+import { t as fr } from "@/lib/i18n/fr";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { LOCALE_TAGS } from "@/lib/i18n/locale";
+
 export type RecoveryEmailKind = "recovery" | "merge";
 
 export type RecoveryEmailPayload = {
@@ -21,45 +26,34 @@ export type RecoveryEmailPayload = {
   kind: RecoveryEmailKind;
 };
 
-const COPY: Record<
-  RecoveryEmailKind,
-  { subject: string; title: string; body: string; cta: string }
-> = {
-  recovery: {
-    subject: "Retrouve ton carnet sur Mijote",
-    title: "Retrouve ton carnet",
-    body: "Pour retrouver ton carnet Mijote sur un nouvel appareil, appuie sur le bouton, et c'est tout.",
-    cta: "Ouvrir Mijote",
-  },
-  merge: {
-    subject: "On réunit tes carnets",
-    title: "On réunit tes carnets",
-    body: "Tu as saisi cet email depuis ton profil. Confirme pour réunir tes deux accès en une seule identité.",
-    cta: "Réunir mes carnets",
-  },
-};
-
-export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
+// Copy localisée (chantier i18n) : `t.email.*` — la langue est celle de la
+// requête qui déclenche l'envoi (l'appareil qui demande la récupération).
+export function renderRecoveryEmail(
+  payload: RecoveryEmailPayload,
+  t: Dictionary = fr,
+  lang = "fr",
+): {
   subject: string;
   html: string;
   text: string;
 } {
   const { magicLink, code, kind } = payload;
-  const copy = COPY[kind];
+  const copy = t.email[kind];
+  const e = t.email;
 
   const text = [
     copy.title,
     "",
-    `${copy.body} Ouvre ce lien : ${magicLink}`,
+    `${copy.body} ${e.openLink} ${magicLink}`,
     "",
-    `Tu lis ce mail sur un autre appareil ? Saisis plutôt ce code dans Mijote : ${code}`,
+    `${e.otherDevice} ${e.useCode} ${code}`,
     "",
-    "Ce lien et ce code expirent dans 15 minutes.",
-    "Tu n'as rien demandé ? Ignore ce mail — ton carnet reste bien au chaud.",
+    e.expires,
+    e.notYou,
   ].join("\n");
 
   const html = `<!DOCTYPE html>
-<html lang="fr">
+<html lang="${lang}">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
 <body style="margin:0;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F1E8;">
@@ -97,8 +91,8 @@ export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
                   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                     <tr>
                       <td align="center" style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:13px; line-height:1.5; color:#1A1A18; padding:0 0 10px;">
-                        <strong>Tu lis ce mail sur un autre appareil&nbsp;?</strong><br>
-                        <span style="color:#6B6E68;">Saisis plutôt ce code dans Mijote&nbsp;:</span>
+                        <strong>${nbsp(e.otherDevice)}</strong><br>
+                        <span style="color:#6B6E68;">${nbsp(e.useCode)}</span>
                       </td>
                     </tr>
                     <tr>
@@ -111,7 +105,7 @@ export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
               </tr>
               <tr>
                 <td align="center" style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:12.5px; color:#6B6E68; padding:18px 0 0;">
-                  Ce lien et ce code expirent dans 15&nbsp;minutes.
+                  ${nbsp(e.expires)}
                 </td>
               </tr>
             </table>
@@ -119,7 +113,7 @@ export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
         </tr>
         <tr>
           <td align="center" style="font-family:-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size:12px; line-height:1.6; color:#6B6E68; padding:22px 24px 0;">
-            Tu n'as rien demandé&nbsp;? Ignore ce mail — ton carnet reste bien au chaud.<br>
+            ${nbsp(e.notYou)}<br>
             <a href="https://mijote.anthonykocken.fr" style="color:#6E7A38; text-decoration:none;">mijote.anthonykocken.fr</a>
           </td>
         </tr>
@@ -131,6 +125,12 @@ export function renderRecoveryEmail(payload: RecoveryEmailPayload): {
 </html>`;
 
   return { subject: copy.subject, html, text };
+}
+
+// Espaces insécables typographiques du HTML : devant « ? » / « : » (FR) et
+// dans « 15 minutes », comme dans le gabarit d'origine.
+function nbsp(str: string): string {
+  return str.replace(/ ([?:!;])/g, "&nbsp;$1").replace(/(\d+) (minutes)/, "$1&nbsp;$2");
 }
 
 export async function sendRecoveryEmail(
@@ -150,7 +150,8 @@ export async function sendRecoveryEmail(
     throw new Error("email: EMAIL_FROM manquant alors que RESEND_API_KEY est défini");
   }
 
-  const { subject, html, text } = renderRecoveryEmail(payload);
+  const [t, locale] = await Promise.all([getT(), getLocale()]);
+  const { subject, html, text } = renderRecoveryEmail(payload, t, LOCALE_TAGS[locale].slice(0, 2));
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

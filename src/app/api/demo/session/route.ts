@@ -4,8 +4,10 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
 import { aliasForOwner } from '@/lib/alias'
+import { getLocale, getT } from '@/lib/i18n/server'
 
 export async function POST(request: NextRequest) {
+  const t = await getT()
   console.log(`[demo/session] POST start`)
   try {
     const demoHouseholdId = process.env.DEMO_HOUSEHOLD_ID
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
     const ownerId = crypto.randomUUID()
     const { error: ownerError } = await supabase
       .from('owners')
-      .insert({ id: ownerId, alias: aliasForOwner(ownerId) })
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId, await getLocale()) })
 
     if (ownerError) {
       throw new Error(ownerError.message ?? 'Failed to create demo owner')
@@ -71,6 +73,6 @@ export async function POST(request: NextRequest) {
     // generic message rather than leaking the raw DB error to the client.
     Sentry.captureException(err)
     console.error(`[demo/session] caught error:`, err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: t.api.serverError }, { status: 500 })
   }
 }

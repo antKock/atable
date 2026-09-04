@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 
 type Props = {
   code: string
 }
 
 export default function CodeDisplay({ code }: Props) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
 
   async function handleCopy() {

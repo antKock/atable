@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, KeyRound, Plus } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import CreateHouseholdForm from '@/components/auth/CreateHouseholdForm'
 import CodeEntryForm from '@/components/auth/CodeEntryForm'
 
@@ -16,6 +16,7 @@ type View = 'menu' | 'create' | 'join'
 // défaut suit le `redirect` renvoyé (vers le hub / le nouveau foyer), sans
 // réécrire le cookie.
 export default function SwitchHouseholdScreen() {
+  const t = useT()
   const [view, setView] = useState<View>('menu')
 
   if (view === 'create') {

@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { generateShareToken } from "@/lib/auth/share-token";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
+import { getT } from "@/lib/i18n/server";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -13,6 +14,7 @@ const MAX_ATTEMPTS = 5;
 // the caller's household owns, and returns the public share URL.
 export const POST = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT();
     const { id } = await params;
     const supabase = createServerClient();
 
@@ -30,7 +32,7 @@ export const POST = withOwnerAuth(
       .single();
 
     if (error || !recipe) {
-      return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
 
     const householdId = recipe.household_id;

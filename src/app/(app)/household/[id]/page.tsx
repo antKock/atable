@@ -2,6 +2,7 @@ import { notFound, redirect } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOwnerContext, type MembershipRole } from '@/lib/auth/owner-context'
 import { aliasForOwner } from '@/lib/alias'
+import { getLocale } from '@/lib/i18n/server'
 import HouseholdDetailContent from '@/components/household/HouseholdDetailContent'
 
 type Props = { params: Promise<{ id: string }> }
@@ -23,6 +24,7 @@ type Member = {
 export default async function HouseholdDetailPage({ params }: Props) {
   const { id } = await params
   const owner = await getOwnerContext()
+  const locale = await getLocale()
   if (!owner) redirect('/')
 
   // Accès refusé si le foyer n'est pas dans les memberships du viewer.
@@ -44,7 +46,7 @@ export default async function HouseholdDetailPage({ params }: Props) {
   }
   if (!household) notFound()
 
-  const viewerName = owner.ownerName ?? owner.ownerAlias ?? aliasForOwner(owner.ownerId)
+  const viewerName = owner.ownerName ?? owner.ownerAlias ?? aliasForOwner(owner.ownerId, locale)
   let members: Member[]
 
   if (membership.isDemo) {
@@ -68,7 +70,7 @@ export default async function HouseholdDetailPage({ params }: Props) {
     members = ((memberData ?? []) as unknown as MemberRow[]).map((row) => ({
       ownerId: row.owner_id,
       // Nom choisi > alias stocké (031) > alias dérivé (repli pré-backfill).
-      displayName: row.owners?.name ?? row.owners?.alias ?? aliasForOwner(row.owner_id),
+      displayName: row.owners?.name ?? row.owners?.alias ?? aliasForOwner(row.owner_id, locale),
       role: (row.role === 'guest' ? 'guest' : 'member') as MembershipRole,
       isViewer: row.owner_id === owner.ownerId,
     }))

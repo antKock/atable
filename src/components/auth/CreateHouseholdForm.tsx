@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, type FormEvent, type ReactNode } from 'react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 
 type Props = {
@@ -19,6 +19,7 @@ type Props = {
 }
 
 export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, secondary }: Props) {
+  const t = useT()
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
@@ -101,9 +102,9 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             lineHeight: 1.05,
           }}
         >
-          Donne un nom
+          {t.household.createHeading[0]}
           <br />
-          à ton carnet
+          {t.household.createHeading[1]}
         </h1>
 
         <p
@@ -116,8 +117,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             maxWidth: '320px',
           }}
         >
-          Un carnet à partager avec tes proches.
-          Vos recettes s&apos;y retrouvent, réunies au même endroit.
+          {t.household.createBody}
         </p>
 
         <div className="relative" style={{ marginTop: '28px' }}>
@@ -195,7 +195,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             letterSpacing: '-0.005em',
           }}
         >
-          {submitting ? '…' : 'Créer le carnet'}
+          {submitting ? '…' : t.household.createSubmit}
         </button>
 
         <button

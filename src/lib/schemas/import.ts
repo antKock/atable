@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { Dictionary } from "@/lib/i18n/types";
+import { t as fr } from "@/lib/i18n/fr";
 import {
   VALID_SEASONS,
   VALID_PREP_TIMES,
@@ -11,19 +13,27 @@ import {
 // 10 MB file ≈ ~14M base64 chars (with data URI prefix)
 const MAX_BASE64_LENGTH = 15_000_000;
 
-export const ImportScreenshotSchema = z.object({
-  images: z
-    .array(z.string().min(1).max(MAX_BASE64_LENGTH, "Image trop volumineuse"))
-    .min(1, "Au moins une image est requise")
-    .max(5, "Maximum 5 images"),
-});
+// Messages localisés (chantier i18n) : factories + défaut FR.
+export function buildImportScreenshotSchema(t: Dictionary) {
+  return z.object({
+    images: z
+      .array(z.string().min(1).max(MAX_BASE64_LENGTH, t.validation.imageTooLarge))
+      .min(1, t.validation.imageRequired)
+      .max(5, t.validation.imagesMax),
+  });
+}
 
-export const ImportUrlSchema = z.object({
-  url: z
-    .string()
-    .url("URL invalide")
-    .refine((u) => u.startsWith("https://"), "Seules les URLs HTTPS sont acceptées"),
-});
+export function buildImportUrlSchema(t: Dictionary) {
+  return z.object({
+    url: z
+      .string()
+      .url(t.validation.urlInvalid)
+      .refine((u) => u.startsWith("https://"), t.validation.httpsOnly),
+  });
+}
+
+export const ImportScreenshotSchema = buildImportScreenshotSchema(fr);
+export const ImportUrlSchema = buildImportUrlSchema(fr);
 
 export const ImportResultSchema = z.object({
   title: z.string(),

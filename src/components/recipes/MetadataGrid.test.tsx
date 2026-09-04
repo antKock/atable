@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
+import { t } from "@/lib/i18n/fr";
 import MetadataGrid from "./MetadataGrid";
 
 afterEach(() => cleanup());
@@ -31,7 +32,8 @@ describe("MetadataGrid", () => {
     expect(screen.getByText("10-20 min")).not.toBeNull();
     expect(screen.getByText("< 15 min")).not.toBeNull();
     expect(screen.getByText("€")).not.toBeNull();
-    expect(screen.getByText("facile")).not.toBeNull();
+    // Valeur stockée « facile » → libellé de la langue courante (défaut fr)
+    expect(screen.getByText(t.complexity.facile)).not.toBeNull();
   });
 
   it("shows shimmer blocks when loading", () => {

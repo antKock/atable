@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { haptics } from '@/lib/haptics'
 import { dropSwrCache } from '@/lib/swr'
 import { Button } from '@/components/ui/button'
@@ -31,6 +31,7 @@ type Props = {
 type Step = null | 'leave' | 'delete-1' | 'delete-2'
 
 export default function LeaveHouseholdDialog({ householdId, canDelete = true, canLeave = true }: Props) {
+  const t = useT()
   const [step, setStep] = useState<Step>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 

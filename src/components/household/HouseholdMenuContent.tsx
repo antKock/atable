@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ChevronRight, Plus, ShieldCheck } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 import RolePill from './RolePill'
 import HomeFoyersSetting from './HomeFoyersSetting'
@@ -28,13 +28,14 @@ type Props = {
 // construite pour N foyers et les rôles. En démo (stratégie C) : vue gelée —
 // pas de ligne « Toi », pas de « Créer ou rejoindre » ; la bannière démo reste
 // le chemin de conversion.
-export default function HouseholdMenuContent({
+export default async function HouseholdMenuContent({
   ownerDisplayName,
   households,
   isDemo,
   hasRecoveryEmail,
   hiddenFoyerIds,
 }: Props) {
+  const t = await getT()
   // Réglage « affichés sur l'accueil » : pertinent seulement à partir de 2 foyers.
   const showHomeFoyersSetting = !isDemo && households.length >= 2
   return (

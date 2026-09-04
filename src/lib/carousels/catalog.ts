@@ -1,4 +1,4 @@
-import { t } from "@/lib/i18n/fr";
+import type { Dictionary } from "@/lib/i18n/types";
 
 // Les noms de tags doivent matcher EXACTEMENT la table `tags` (migration 004),
 // espaces autour des « / » compris : « Libanaise / Orientale », pas
@@ -32,7 +32,10 @@ function category(key: string, title: string, predicate: CarouselPredicate): Car
 // Ajouter/retirer un carrousel = éditer cette liste, zéro logique ailleurs.
 // L'éligibilité (≥ 1 recette) + les tiers + le plancher élaguent tout seuls :
 // un grand catalogue est sans risque.
-export const CAROUSEL_CATALOG: CarouselDef[] = [
+// Les titres viennent du dictionnaire de la langue courante (chantier i18n) ;
+// les prédicats, eux, référencent les noms canoniques FR de la table `tags`.
+export function buildCarouselCatalog(t: Dictionary): CarouselDef[] {
+  return [
   // --- Groupe A — algorithmiques ---
   {
     key: "recentes",
@@ -115,4 +118,10 @@ export const CAROUSEL_CATALOG: CarouselDef[] = [
   category("onePot", t.carousels.onePot, { type: "tag", tag: "One-pot" }),
   category("sansCuisson", t.carousels.sansCuisson, { type: "tag", tag: "Sans cuisson" }),
   category("aCongeler", t.carousels.aCongeler, { type: "tag", tag: "À congeler" }),
-];
+  ];
+}
+
+// Catalogue FR figé — uniquement pour les scripts hors requête
+// (scripts/spec9-compare-carousels.ts). Le serveur passe par buildCarouselCatalog.
+import { t as fr } from "@/lib/i18n/fr";
+export const CAROUSEL_CATALOG: CarouselDef[] = buildCarouselCatalog(fr);

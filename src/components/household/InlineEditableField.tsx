@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { Pencil, Check, X } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 
 type Props = {
   value: string
@@ -11,6 +11,7 @@ type Props = {
 }
 
 export default function InlineEditableField({ value, onSave, readOnly = false }: Props) {
+  const t = useT()
   const [mode, setMode] = useState<'display' | 'edit'>('display')
   const [editValue, setEditValue] = useState(value)
   const [error, setError] = useState<string | null>(null)
@@ -42,7 +43,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
   const handleSave = async () => {
     const trimmed = editValue.trim()
     if (!trimmed) {
-      setError('Le nom ne peut pas être vide')
+      setError(t.household.nameEmpty)
       return
     }
     setIsSaving(true)

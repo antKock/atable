@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { ChevronLeft, Users, Eye } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 import CodeDisplay from './CodeDisplay'
 import InviteLinkDisplay from './InviteLinkDisplay'
 
@@ -13,7 +13,8 @@ type Props = {
 // Écran plein « Inviter » (maquette 2.1, Lot 3). Deux blocs de même grammaire
 // (icône + rôle + description, puis lien + code + copier), un par rôle. La
 // grammaire lien/code réutilise InviteLinkDisplay + CodeDisplay du Lot 1.
-export default function InviteScreen({ householdId, joinCode, guestJoinCode }: Props) {
+export default async function InviteScreen({ householdId, joinCode, guestJoinCode }: Props) {
+  const t = await getT()
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
       <Link

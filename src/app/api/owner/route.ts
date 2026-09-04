@@ -3,13 +3,14 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { withOwnerAuth, assertNotDemoOwner } from '@/lib/api/with-owner-auth'
 import { OwnerNameSchema } from '@/lib/schemas/household'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 export const PUT = withOwnerAuth(
   async (request: NextRequest, _context: unknown, owner) => {
+    const t = await getT()
     // Stratégie C (« monde gelé ») : le profil d'une session démo est
     // inaccessible — la règle est owner-level, pas foyer-level.
-    const denied = assertNotDemoOwner(owner)
+    const denied = await assertNotDemoOwner(owner)
     if (denied) return denied
 
     // Un corps non-JSON (ou `null`) est une entrée invalide, pas une panne :

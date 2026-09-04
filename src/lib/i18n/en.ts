@@ -50,6 +50,14 @@ export const en: Dictionary = {
     servingsDecrease: "Fewer people",
     servingsIncrease: "More people",
     servingsInput: "Number of people",
+    // Form acts (RecipeForm)
+    essentials: "The essentials",
+    details: "The details",
+    detailsHint: "Mijote fills in whatever you leave empty",
+    // Stored value "Aucune" of cook time (VALID_COOK_TIMES)
+    cookTimeNone: "None",
+    required: "required",
+    optional: "optional",
   },
 
   // Recipe detail
@@ -72,6 +80,8 @@ export const en: Dictionary = {
     deleteError: "Couldn't delete the recipe. Try again.",
     photoError: "The photo couldn't be added",
     loadError: "Couldn't load the recipes. Check your connection.",
+    photoSaveError: "The photo couldn't be saved",
+    photoTooLarge: "The photo is too large",
   },
 
   // Metadata labels
@@ -122,14 +132,18 @@ export const en: Dictionary = {
     error: "Error",
   },
 
-  // Tag categories
+  // Tag categories — keys = canonical `tags.category` values in DB (French,
+  // never translated), values = displayed label.
   tagCategories: {
-    dishType: "Dish type",
-    diet: "Diet",
-    protein: "Main protein",
-    cuisine: "Cuisine",
-    occasion: "Occasion",
-    features: "Features",
+    "Type de plat": "Dish type",
+    "Régime alimentaire": "Diet",
+    "Protéine principale": "Main protein",
+    Cuisine: "Cuisine",
+    Occasion: "Occasion",
+    Caractéristiques: "Features",
+  },
+  tags: {
+    addPlaceholder: "Add a tag…",
   },
 
   // Carousels
@@ -288,6 +302,7 @@ export const en: Dictionary = {
     regenerateAriaLabel: "Regenerate the image",
     replaceAriaLabel: "Replace the photo",
     removeAriaLabel: "Delete the photo",
+    orGenerated: "or Mijote will generate one",
   },
 
   // Photo picker
@@ -325,6 +340,8 @@ export const en: Dictionary = {
     rateLimited: "Too many attempts, try again later",
     invalidFormat: "Invalid format — e.g. OLIVE-4821",
     searching: "Searching…",
+    enterHeading: ["Enter your", "cookbook code"],
+    enterBody: "Ask a member of the cookbook for their invite code. You'll get instant access to the shared recipes.",
   },
 
   // Household
@@ -337,6 +354,10 @@ export const en: Dictionary = {
     nameLabel: "Cookbook name",
     createTitle: "Create a cookbook",
     createError: "Couldn't create the cookbook. Try again.",
+    createSubmit: "Create the cookbook",
+    createHeading: ["Name your", "cookbook"],
+    createBody: "A cookbook to share with the people close to you. Your recipes end up together, in one place.",
+    nameEmpty: "The name can't be empty",
     menu: "Cookbook & profile",
     menuButton: "Cookbook & profile",
     shareCode: "Cookbook code",
@@ -549,6 +570,75 @@ export const en: Dictionary = {
     codeCopied: "Code copied",
     copyCode: "Copy the code",
     dismiss: "Later",
+  },
+
+  // Import loading screen (ImportLoading)
+  importLoading: {
+    phrases: [
+      "Simmering…",
+      "Bubbling away in the pot…",
+      "Smells good already…",
+      "Something's sizzling in there…",
+      "Magic happening on low heat…",
+      "Almost done…",
+      "Hang on, dinner's nearly served…",
+    ],
+    subline: "Putting the ingredients and steps in the right place",
+    ariaLabel: "Import in progress",
+  },
+
+  // API route error messages (sent to the client as is)
+  api: {
+    serverError: "Server error",
+    invalidData: "Invalid data",
+    codeInvalidFormat: "Invalid code format",
+    demoNotDeletable: "The demo cookbook can't be deleted.",
+    leaveFailed: "Couldn't leave the cookbook",
+    deleteFailed: "Couldn't delete the cookbook",
+    photoRequired: "Photo required",
+    photoTooLarge: "Photo too large (4 MB max)",
+    imageFormatUnsupported: "Unsupported image format",
+    audioRequired: "Audio file required",
+    audioTooLarge: "Audio file too large (10 MB max)",
+    audioFormatUnsupported: "Unsupported audio format",
+    screenshotExtractFailed: "Couldn't extract the recipe from the images",
+    tokenMissing: "Missing token",
+    recipeNotFound: "Recipe not found",
+    targetHouseholdMissing: "Missing destination cookbook",
+  },
+
+  // Zod validation messages (schemas/recipe.ts, schemas/import.ts)
+  validation: {
+    titleRequired: "Title is required",
+    titleTooLong: "Title is too long (200 characters max)",
+    textTooLong: "Text is too long (10,000 characters max)",
+    servingsInvalid: "Invalid number of people",
+    imageTooLarge: "Image too large",
+    imageRequired: "At least one image is required",
+    imagesMax: "5 images max",
+    urlInvalid: "Invalid URL",
+    httpsOnly: "Only HTTPS URLs are accepted",
+  },
+
+  // Access-recovery emails (#14)
+  email: {
+    recovery: {
+      subject: "Get your cookbook back on Mijote",
+      title: "Get your cookbook back",
+      body: "To get your Mijote cookbook back on a new device, tap the button — that's it.",
+      cta: "Open Mijote",
+    },
+    merge: {
+      subject: "Bringing your cookbooks together",
+      title: "Bringing your cookbooks together",
+      body: "You entered this email from your profile. Confirm to merge your two accesses into one identity.",
+      cta: "Merge my cookbooks",
+    },
+    openLink: "Open this link:",
+    otherDevice: "Reading this on another device?",
+    useCode: "Enter this code in Mijote instead:",
+    expires: "This link and code expire in 15 minutes.",
+    notYou: "Didn't ask for this? Ignore this email — your cookbook is safe and sound.",
   },
 
   // Accessibility

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getT } from "@/lib/i18n/server";
 
 const BUCKET = "recipe-photos";
 
@@ -40,15 +41,16 @@ async function duplicateImage(
 // by members of another household adding a friend's recipe.
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, owner) => {
+    const t = await getT();
     const body = await request.json().catch(() => ({}));
     const token = typeof body.token === "string" ? body.token.trim() : "";
     if (!token) {
-      return NextResponse.json({ error: "Token manquant" }, { status: 422 });
+      return NextResponse.json({ error: t.api.tokenMissing }, { status: 422 });
     }
 
     // Copie = écriture : foyer cible explicite (multi-foyer) ou repli mono-foyer,
     // toujours un foyer où l'owner est membre.
-    const target = resolveWriteHousehold(owner, body?.householdId);
+    const target = await resolveWriteHousehold(owner, body?.householdId);
     if (target instanceof NextResponse) return target;
     const { householdId } = target;
     const sessionId = owner.sessionId;
@@ -65,7 +67,7 @@ export const POST = withOwnerAuth(
       .single();
 
     if (sourceError || !source) {
-      return NextResponse.json({ error: "Recette introuvable" }, { status: 404 });
+      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
 
     // Already in the caller's household — point them at the original, no copy.

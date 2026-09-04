@@ -1,13 +1,14 @@
 "use client";
 
 import { WifiOff } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 
 // Shown when the recipe list request itself failed (offline Capacitor launch,
 // expired session, server error). Deliberately separate from the empty state:
 // "you have no recipes" and "we couldn't load your recipes" must never be
 // confused.
 export default function LoadErrorState({ onRetry }: { onRetry: () => void }) {
+  const t = useT();
   return (
     <div className="mx-auto mt-16 max-w-xs px-4 text-center">
       <div className="mb-5 flex justify-center text-muted-foreground">

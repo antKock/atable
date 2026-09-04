@@ -4,8 +4,10 @@ import { extractRecipeFromVoice, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { memberHouseholdIds } from "@/lib/auth/owner-context";
+import { getT } from "@/lib/i18n/server";
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+  const t = await getT();
   // Quota/coût IA rattachés au premier foyer membre (l'import précède le choix
   // du foyer). Invité (lecture seule) refusé.
   const memberIds = memberHouseholdIds(owner);
@@ -23,14 +25,14 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
 
     if (!audio || !(audio instanceof File)) {
       return NextResponse.json(
-        { error: "Fichier audio requis" },
+        { error: t.api.audioRequired },
         { status: 400 },
       );
     }
 
     if (audio.size > MAX_VOICE_FILE_SIZE) {
       return NextResponse.json(
-        { error: "Fichier audio trop volumineux (max 10 Mo)" },
+        { error: t.api.audioTooLarge },
         { status: 400 },
       );
     }
@@ -38,7 +40,7 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
     const mimeBase = audio.type.split(";")[0];
     if (!VALID_VOICE_MIME_TYPES.includes(mimeBase as typeof VALID_VOICE_MIME_TYPES[number])) {
       return NextResponse.json(
-        { error: "Format audio non supporté" },
+        { error: t.api.audioFormatUnsupported },
         { status: 400 },
       );
     }

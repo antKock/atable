@@ -4,8 +4,9 @@ import {
   recipeCreateRateLimit,
   householdCreateRateLimit,
 } from "@/lib/redis";
-import { t } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import type { Ratelimit } from "@upstash/ratelimit";
+import type { Dictionary } from "@/lib/i18n/types";
 
 /**
  * Shared quota check: returns a 429 response when the limit is exhausted,
@@ -15,13 +16,13 @@ import type { Ratelimit } from "@upstash/ratelimit";
 async function enforceQuota(
   limiter: Ratelimit,
   key: string,
-  message: string,
+  message: (t: Dictionary) => string,
   code: string,
 ): Promise<NextResponse | null> {
   try {
     const { success } = await limiter.limit(key);
     if (!success) {
-      return NextResponse.json({ error: message, code }, { status: 429 });
+      return NextResponse.json({ error: message(await getT()), code }, { status: 429 });
     }
   } catch (err) {
     console.error(`[quota:${code}] check failed (Redis down?), failing open:`, err);
@@ -31,15 +32,15 @@ async function enforceQuota(
 
 /** Daily AI-import quota (url/screenshot/voice), keyed by household. */
 export function enforceImportQuota(householdId: string): Promise<NextResponse | null> {
-  return enforceQuota(importRateLimit, householdId, t.import.errorImportQuota, "IMPORT_QUOTA");
+  return enforceQuota(importRateLimit, householdId, (t) => t.import.errorImportQuota, "IMPORT_QUOTA");
 }
 
 /** Recipe creation quota (each create triggers AI enrichment), keyed by household. */
 export function enforceRecipeCreateQuota(householdId: string): Promise<NextResponse | null> {
-  return enforceQuota(recipeCreateRateLimit, householdId, t.join.rateLimited, "RECIPE_QUOTA");
+  return enforceQuota(recipeCreateRateLimit, householdId, (t) => t.join.rateLimited, "RECIPE_QUOTA");
 }
 
 /** Household creation quota, keyed by IP (the route is unauthenticated). */
 export function enforceHouseholdCreateQuota(ip: string): Promise<NextResponse | null> {
-  return enforceQuota(householdCreateRateLimit, ip, t.join.rateLimited, "HOUSEHOLD_QUOTA");
+  return enforceQuota(householdCreateRateLimit, ip, (t) => t.join.rateLimited, "HOUSEHOLD_QUOTA");
 }

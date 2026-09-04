@@ -44,7 +44,7 @@ export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   // dans le formulaire avant le choix du foyer de destination : on le rattache
   // au premier foyer membre (le tag reste résolu à l'affichage via recipe_tags,
   // quel que soit le foyer de la recette).
-  const target = resolveWriteHousehold(owner, undefined);
+  const target = await resolveWriteHousehold(owner, undefined);
   const householdId =
     target instanceof NextResponse ? memberHouseholdIds(owner)[0] : target.householdId;
   if (!householdId) {

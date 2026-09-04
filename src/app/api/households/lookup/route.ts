@@ -4,14 +4,15 @@ import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
 import { resolveInviteCode } from '@/lib/auth/invite-code'
 import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 export async function GET(request: NextRequest) {
+  const t = await getT()
   const code = request.nextUrl.searchParams.get('code') ?? ''
 
   const result = JoinCodeSchema.safeParse(code)
   if (!result.success) {
-    return NextResponse.json({ error: 'Format de code invalide' }, { status: 400 })
+    return NextResponse.json({ error: t.api.codeInvalidFormat }, { status: 400 })
   }
 
   // Rate limiting
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
 
   if (!invite) {
     return NextResponse.json(
-      { error: 'Ce code ne correspond à aucun carnet' },
+      { error: t.join.notFound },
       { status: 404 }
     )
   }

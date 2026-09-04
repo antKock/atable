@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import ImportCard from "./ImportCard";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
@@ -82,6 +82,7 @@ export default function ScreenshotImporter({
   onError,
   onSubmit,
 }: ScreenshotImporterProps) {
+  const t = useT();
   const [fileEntries, setFileEntries] = useState<FileWithKey[]>([]);
   const [sourceDialogOpen, setSourceDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);

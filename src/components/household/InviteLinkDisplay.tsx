@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Copy, Check } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { haptics } from '@/lib/haptics'
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
 }
 
 export default function InviteLinkDisplay({ joinCode }: Props) {
+  const t = useT()
   const [copied, setCopied] = useState(false)
 
   const inviteUrl =

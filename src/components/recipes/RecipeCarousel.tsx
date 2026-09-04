@@ -1,4 +1,6 @@
-import { t } from "@/lib/i18n/fr";
+"use client";
+
+import { useT } from "@/lib/i18n/client";
 import RecipeCard from "./RecipeCard";
 import type { CarouselRecipeItem } from "@/lib/queries/carousels";
 
@@ -8,6 +10,7 @@ interface RecipeCarouselProps {
 }
 
 export default function RecipeCarousel({ title, recipes }: RecipeCarouselProps) {
+  const t = useT();
   if (recipes.length === 0) return null;
 
   return (

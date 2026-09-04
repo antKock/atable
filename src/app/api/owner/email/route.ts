@@ -7,7 +7,7 @@ import { RecoveryEmailSchema } from '@/lib/schemas/household'
 import { recoveryEmailRateLimit, recoveryIpRateLimit } from '@/lib/redis'
 import { createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 // Email de secours (#14, maquette 0.3) : saisi au profil, AUCUN envoi à la
 // saisie. Seule exception : la collision — email déjà porté par un autre
@@ -16,9 +16,10 @@ import { t } from '@/lib/i18n/fr'
 // (décision n°6) ; l'anti-énumération stricte ne vaut que pour la récup.
 export const PUT = withOwnerAuth(
   async (request: NextRequest, _context: unknown, owner) => {
+    const t = await getT()
     // Stratégie C : profil gelé pour les sessions démo — owner-level, comme
     // PUT /api/owner.
-    const denied = assertNotDemoOwner(owner)
+    const denied = await assertNotDemoOwner(owner)
     if (denied) return denied
 
     let body: unknown

@@ -4,6 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { getT } from "@/lib/i18n/server";
 
 const BUCKET = "recipe-photos";
 
@@ -43,11 +44,12 @@ async function relocateFoyerScopedImage(
 // (recipe_tags) sont rattachés à la recette, pas au foyer → ils suivent.
 export const PATCH = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT();
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const destHid = typeof body?.householdId === "string" ? body.householdId : "";
     if (!destHid) {
-      return NextResponse.json({ error: "Carnet cible manquant" }, { status: 422 });
+      return NextResponse.json({ error: t.api.targetHouseholdMissing }, { status: 422 });
     }
 
     const supabase = createServerClient();
@@ -61,7 +63,7 @@ export const PATCH = withOwnerAuth(
       .single();
 
     if (!recipe) {
-      return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
     const sourceHid = recipe.household_id as string;
 

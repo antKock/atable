@@ -10,7 +10,7 @@ import {
 } from '@/lib/queries/recovery'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 const CODE_REGEX = /^\d{6}$/
 
@@ -22,6 +22,7 @@ const CODE_REGEX = /^\d{6}$/
 // expiré/brûlé) : cette route ne doit pas servir d'oracle d'existence.
 // Pas de fusion ici : simple reconnexion à l'owner (décision n°6).
 export async function POST(request: NextRequest) {
+  const t = await getT()
   try {
     let body: unknown
     try {
@@ -67,6 +68,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     Sentry.captureException(err)
     console.error('[recovery/verify] caught error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: t.api.serverError }, { status: 500 })
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, Lock } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import {
   Dialog,
   DialogContent,
@@ -45,6 +45,7 @@ export default function HouseholdPickerDialog({
   busy = false,
   note,
 }: Props) {
+  const t = useT();
   return (
     <Dialog open={open} onOpenChange={(next) => !busy && onOpenChange(next)}>
       <DialogContent showCloseButton={!busy}>

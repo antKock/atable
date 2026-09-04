@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { Mic, Square, Loader2 } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import ImportCard from "./ImportCard";
 
@@ -34,6 +34,7 @@ export default function VoiceImporter({
   onBlobReady,
   onStopRequested,
 }: VoiceImporterProps) {
+  const t = useT();
   const voice = useVoiceRecorder();
 
   // Submit voice recording when audioBlob is ready

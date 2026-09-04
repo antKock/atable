@@ -2,7 +2,8 @@
 
 import { ChevronDown, Check } from "lucide-react";
 import { Popover } from "radix-ui";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
+import { costLabel } from "@/lib/i18n/labels";
 import type { Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
 import {
@@ -26,6 +27,7 @@ export default function FilterBar({
   onFiltersChange,
   foyers = [],
 }: FilterBarProps) {
+  const t = useT();
   const showFoyerPill = foyers.length > 1;
 
   const toggleSeason = () => {
@@ -139,7 +141,7 @@ export default function FilterBar({
             }}
           >
             {selected && <Check size={12} strokeWidth={2.5} />}
-            {opt.label}
+            {costLabel(t, opt.id)}
           </button>
         );
       });

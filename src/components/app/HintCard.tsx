@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ArrowRight, ShieldCheck, Users, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import CreateHouseholdForm from '@/components/auth/CreateHouseholdForm'
 
 const DISMISS_MAX_AGE = 60 * 60 * 24 * 180 // 180 jours, comme install
@@ -42,6 +42,7 @@ const COOKIES = {
 // plein écran (conversion démo → owner neuf via POST /api/households) au lieu
 // de renvoyer sur l'accueil.
 export default function HintCard({ variant, title, body, cta, href, dismissToast }: Props) {
+  const t = useT()
   const [hidden, setHidden] = useState(false)
   const [creating, setCreating] = useState(false)
   const Icon = ICONS[variant]

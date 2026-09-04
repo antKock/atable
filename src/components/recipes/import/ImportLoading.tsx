@@ -2,24 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { CocotteLoader } from "./CocotteLoader";
+import { useT } from "@/lib/i18n/client";
 
 // Full-screen loading state shown while any recipe import is in flight (link,
 // photo, voice, or the iOS share sheet). A rotating playful headline over a
 // fixed factual subline, an animated cocotte, and an indeterminate simmer bar.
 // Styling/motion lives in globals.css (.loading-screen / .loading-phrase / …).
 
-// Playful headline — ambiance only; the "what's happening" lives in the subline.
-const PHRASES = [
-  "Ça mijote…",
-  "Ça frémit dans la cocotte…",
-  "Ça sent déjà bon…",
-  "Ça frétille là-dedans…",
-  "La magie opère à feu doux…",
-  "Presque à point…",
-  "Patience, c'est bientôt servi…",
-] as const;
-
-const SUBLINE = "On range les ingrédients et les étapes au bon endroit";
+// Accroches + sous-titre : t.importLoading (ambiance FR/EN distincte).
 const PHRASE_INTERVAL_MS = 2400;
 
 function shuffle<T>(arr: readonly T[]): T[] {
@@ -32,8 +22,12 @@ function shuffle<T>(arr: readonly T[]): T[] {
 }
 
 export default function ImportLoading() {
+  const t = useT();
+  const PHRASES = t.importLoading.phrases;
+  const SUBLINE = t.importLoading.subline;
   // Shuffle once on mount so phrases appear in a random order each time.
-  const order = useMemo(() => shuffle(PHRASES.map((_, i) => i)), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- longueur fixe par langue
+  const order = useMemo(() => shuffle(PHRASES.map((_, i) => i)), [PHRASES.length]);
   const [step, setStep] = useState(0);
 
   useEffect(() => {
@@ -58,7 +52,7 @@ export default function ImportLoading() {
         <p className="loading-subline">{SUBLINE}</p>
       </div>
 
-      <div className="simmer-bar" role="progressbar" aria-label="Import en cours">
+      <div className="simmer-bar" role="progressbar" aria-label={t.importLoading.ariaLabel}>
         <span className="simmer-fill" />
       </div>
     </div>
