@@ -47,6 +47,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Reset failed' }, { status: 500 })
     }
 
+    // Step 1b (incident 2026-09-04 : démo vidée par un visiteur, détectée par
+    // hasard 3 jours plus tard) : compter les recettes seed restantes et
+    // ALERTER (Sentry) si le foyer démo est amputé. Le seuil est le nombre de
+    // seed attendu (DEMO_SEED_MIN, 30 en prod). Best-effort, n'empêche rien.
+    const seedMin = Number(process.env.DEMO_SEED_MIN ?? 30)
+    const { count: seedCount, error: seedCountError } = await supabase
+      .from('recipes')
+      .select('id', { count: 'exact', head: true })
+      .eq('household_id', demoHouseholdId)
+      .eq('is_seed', true)
+    if (seedCountError) {
+      Sentry.captureException(
+        new Error(`[cron/demo-reset] seed count failed: ${seedCountError.message}`)
+      )
+    } else if ((seedCount ?? 0) < seedMin) {
+      const msg = `[cron/demo-reset] ALERTE démo amputée : ${seedCount ?? 0} recettes seed < ${seedMin} attendues — relancer scripts/restore-demo-from-staging.mjs`
+      console.error(msg)
+      Sentry.captureException(new Error(msg), { level: 'fatal' })
+    }
+
     // Step 2: Mark all seed recipes as not soft-deleted (restore visibility)
     // Seed recipes already exist with is_seed=true; nothing to restore unless deleted.
     // In this implementation, seed recipes are preserved (only non-seed are deleted).
@@ -129,6 +149,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       reset: true,
       deleted: deleted ?? 0,
+      seedCount: seedCount ?? 0,
       restored: 0,
       purgedOwners,
       purgedTokens,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
-import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
@@ -55,7 +55,7 @@ export const PATCH = withOwnerAuth(
     // La recette doit exister dans un foyer de l'owner ; on lit son foyer source.
     const { data: recipe } = await supabase
       .from("recipes")
-      .select("id, household_id, photo_url")
+      .select("id, household_id, photo_url, is_seed")
       .eq("id", id)
       .in("household_id", householdIds(owner))
       .single();
@@ -64,6 +64,8 @@ export const PATCH = withOwnerAuth(
       return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
     }
     const sourceHid = recipe.household_id as string;
+    const frozen = assertNotDemoSeedMutation(owner, { household_id: sourceHid, is_seed: recipe.is_seed });
+    if (frozen) return frozen;
 
     // MEMBRE sur la source (déplacer = écriture) ET sur la destination (on
     // n'écrit jamais dans un foyer invité). requireMember couvre les deux.
