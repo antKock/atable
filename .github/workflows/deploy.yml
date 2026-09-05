@@ -31,7 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
     env:
-      IMAGE: ghcr.io/${{ github.repository }}
+      # Nom d'image en minuscules (le dépôt s'appelle `antKock/atable`).
+      IMAGE: ghcr.io/antkock/atable
       # Les secrets ne sont pas lisibles dans un `if:` — on passe par env.
       DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
     steps:
