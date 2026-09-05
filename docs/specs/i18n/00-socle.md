@@ -4,6 +4,8 @@
 > Ce document porte le contexte partagé et les décisions actées ; chaque lot a sa
 > spec (`01-…` à `04-…`). En cas d'écart doc ↔ code réel, **le code fait foi**.
 
+## Statut : EN PROD depuis le 2026-09-05 (soir) — `I18N_EN_ENABLED=1`, foyer démo EN, migration 038.
+
 ## Objectif
 
 Proposer Mijote en anglais (en-US) aux personnes dont l'appareil est en anglais,
@@ -85,11 +87,11 @@ Convention d'usage :
 
 | # | Spec | Contenu | Statut |
 |---|---|---|---|
-| 0 | `01-lot0-socle.md` | Plomberie ci-dessus, `en.ts` complet, layout racine, pilote `LandingScreen` + pages d'erreur, spec E2E `16-i18n` | staging |
-| 1 | `02-lot1-interface.md` | Migration des 73 imports statiques, extraction des chaînes en dur (52 fichiers hors admin), énumérations, alias EN, messages d'erreur API, emails | staging |
-| 2 | `03-lot2-ia-donnees.md` | Prompts « langue source conservée », mapping libellés des tags prédéfinis, vérification par le bench `scripts/bench/` | staging |
-| 3 | `04-lot3-contenu.md` | Foyer démo EN, landing/support/join/recover/`/r`, légal (relecture Anthony), `offline.html` | staging |
-| 4 | `05-lot4-natif-stores.md` | `en.lproj` + `InfoPlist.strings` (3 permissions), titre Share Extension, Android optionnel, captures, fiches stores, `I18N_EN_ENABLED=1` en prod | code sur staging — activation en attente |
+| 0 | `01-lot0-socle.md` | Plomberie ci-dessus, `en.ts` complet, layout racine, pilote `LandingScreen` + pages d'erreur, spec E2E `16-i18n` | done |
+| 1 | `02-lot1-interface.md` | Migration des 73 imports statiques, extraction des chaînes en dur (52 fichiers hors admin), énumérations, alias EN, messages d'erreur API, emails | done |
+| 2 | `03-lot2-ia-donnees.md` | Prompts « langue source conservée », mapping libellés des tags prédéfinis, vérification par le bench `scripts/bench/` | done |
+| 3 | `04-lot3-contenu.md` | Foyer démo EN, landing/support/join/recover/`/r`, légal (relecture Anthony), `offline.html` | done |
+| 4 | `05-lot4-natif-stores.md` | `en.lproj` + `InfoPlist.strings` (3 permissions), titre Share Extension, Android optionnel, captures, fiches stores, `I18N_EN_ENABLED=1` en prod | done |
 
 **À la fin de chaque lot : mettre à jour la colonne Statut** (`staging` quand
 déployé sur staging, `done` quand promu en prod — convention backlog).
