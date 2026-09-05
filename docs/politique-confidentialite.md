@@ -8,7 +8,7 @@
 > ⚠️ Document de qualité production mais non relu par un juriste : une revue
 > RGPD/CNIL reste recommandée avant communication large.
 
-**Dernière mise à jour : 29 juin 2026**
+**Dernière mise à jour : 5 septembre 2026**
 
 ---
 
@@ -30,8 +30,13 @@ Le responsable du traitement des données personnelles est :
 
 Mijote est conçue pour fonctionner **sans compte traditionnel**. Vous n'avez
 besoin de fournir **ni adresse e-mail, ni nom, ni numéro de téléphone, ni mot de
-passe**. L'accès repose sur la notion de **foyer** : un espace de recettes
-partagé, rejoint au moyen d'un **code d'invitation**.
+passe**. L'accès repose sur la notion de **carnet** : un carnet de recettes
+partagé, ouvert au moyen d'un **code d'invitation**.
+
+Deux informations sont **facultatives** et ne servent qu'à vous : un **nom de
+profil**, affiché aux autres membres de vos carnets, et un **e-mail de secours**,
+utilisé uniquement pour retrouver vos carnets si vous changez ou perdez votre
+appareil. Sans e-mail de secours, aucun e-mail ne vous est jamais envoyé.
 
 Nous nous engageons sur les principes suivants :
 
@@ -48,8 +53,21 @@ Nous nous engageons sur les principes suivants :
 
 ### 3.1 Données que vous nous fournissez
 
-- **Nom du foyer** : le libellé que vous choisissez pour votre espace partagé
+- **Nom du carnet** : le libellé que vous choisissez pour votre carnet partagé
   (ex. « Cuisine de Marie »).
+- **Nom de profil (facultatif)** : le nom que vous choisissez d'afficher aux
+  autres membres de vos carnets. Sans nom, un alias aléatoire (ex. « Lapin
+  Curieux »), dérivé d'un identifiant technique, est affiché à la place.
+- **E-mail de secours (facultatif)** : l'adresse que vous enregistrez dans votre
+  profil pour retrouver vos carnets sur un nouvel appareil. Elle est stockée
+  telle quelle (en minuscules) et n'est utilisée que pour vous envoyer, à votre
+  demande, un lien ou un code de connexion (voir sections 6 et 10). Vous pouvez
+  la retirer à tout moment depuis votre profil.
+- **Lien de partage d'une recette** : lorsque vous partagez une recette, nous
+  générons une adresse unique. Toute personne disposant de ce lien peut
+  consulter la recette (titre, ingrédients, étapes, photo) et l'enregistrer
+  dans son propre carnet, sans compte. Le lien reste valable tant que la
+  recette existe.
 - **Contenu des recettes** : titres, listes d'ingrédients, étapes de préparation,
   temps de préparation et de cuisson, coût estimé, saisons, étiquettes (tags) et
   photos que vous ajoutez.
@@ -63,16 +81,16 @@ Nous nous engageons sur les principes suivants :
 
 ### 3.2 Données collectées automatiquement
 
-- **Nom d'appareil** : lors de la connexion d'un appareil à un foyer, nous
+- **Nom d'appareil** : lors de la connexion d'un appareil à un carnet, nous
   dérivons un libellé lisible (ex. « Apple iPhone 15 · Safari ») à partir de
-  l'en-tête technique « User-Agent » de votre navigateur. Cela vous permet de
-  reconnaître et de gérer les appareils connectés à votre foyer. L'en-tête
-  brut n'est pas conservé.
+  l'en-tête technique « User-Agent » de votre navigateur. Il sert au diagnostic
+  et à la sécurité (reconnaître un appareil en cas de demande de votre part).
+  L'en-tête brut n'est pas conservé.
 - **Métadonnées de session** : des identifiants techniques aléatoires (générés
   automatiquement, sans lien avec votre identité réelle) et la date de dernière
   activité de chaque appareil.
 - **Adresse IP** : utilisée **uniquement et de façon temporaire** pour limiter
-  le nombre de tentatives de connexion à un foyer (protection contre les abus).
+  le nombre de tentatives de connexion à un carnet (protection contre les abus).
   Elle **n'est pas enregistrée dans notre base de données** et n'est pas
   associée à votre contenu.
 - **Rapports d'erreur (plantages)** : en cas d'erreur technique ou de plantage,
@@ -80,11 +98,23 @@ Nous nous engageons sur les principes suivants :
   peut contenir le message d'erreur, le type d'appareil, la version du système
   et un identifiant technique de session, afin de diagnostiquer et corriger le
   problème. Il **ne contient pas le contenu de vos recettes**.
+- **Appartenances et rôles** : la liste des carnets auxquels vous avez accès et
+  votre rôle dans chacun (membre, ou invité en lecture seule).
+- **Statistiques d'usage internes** : pour comprendre l'utilisation du Service,
+  nos serveurs enregistrent, par appareil connecté, les jours d'activité et la
+  plateforme (iOS, Android, web), des compteurs par recette (nombre de
+  consultations, dernière activité) et des agrégats quotidiens (nombre d'essais
+  de la démo, d'e-mails de récupération envoyés…). Ces statistiques sont
+  produites sans aucun outil tiers et ne contiennent ni nom ni adresse e-mail.
+- **Langue** : l'interface s'affiche dans la langue de votre appareil (en-tête
+  technique « Accept-Language ») ; cette information n'est pas conservée.
 
 ### 3.3 Données que nous ne collectons PAS
 
-Nom réel, adresse e-mail, numéro de téléphone, adresse postale, mot de passe,
-données de géolocalisation, données de santé, données bancaires ou de paiement,
+Sauf si vous les saisissez volontairement dans votre profil (nom, e-mail de
+secours), nous ne collectons aucun nom ni adresse e-mail. Nous ne collectons
+jamais : numéro de téléphone, adresse postale, mot de passe, données de
+géolocalisation, données de santé, données bancaires ou de paiement,
 identifiants publicitaires, contacts, historique de navigation.
 
 ---
@@ -93,8 +123,11 @@ identifiants publicitaires, contacts, historique de navigation.
 
 | Donnée | Finalité | Base légale (RGPD) |
 |---|---|---|
-| Nom du foyer, recettes, photos, tags | Fournir le service : créer, stocker et partager vos recettes au sein du foyer | Exécution du contrat (les conditions d'utilisation du Service) |
-| Code d'invitation, identifiants de session, nom d'appareil | Vous authentifier de manière anonyme et gérer l'accès des appareils au foyer | Exécution du contrat |
+| Nom du carnet, recettes, photos, tags | Fournir le service : créer, stocker et partager vos recettes au sein du carnet | Exécution du contrat (les conditions d'utilisation du Service) |
+| Code d'invitation, identifiants de session, nom d'appareil, appartenances et rôles | Vous authentifier de manière anonyme et gérer l'accès des appareils et des personnes aux carnets | Exécution du contrat |
+| Nom de profil | Vous identifier auprès des autres membres de vos carnets | Exécution du contrat (information facultative) |
+| E-mail de secours, liens et codes de connexion | Retrouver vos carnets sur un nouvel appareil ; réunir deux accès en un seul profil | Exécution du contrat (fonctionnalité facultative que vous activez) |
+| Statistiques d'usage internes | Mesurer l'utilisation du Service et l'améliorer | Intérêt légitime (amélioration du Service), sans profilage individuel |
 | Contenu soumis aux imports (audio, images, URL) | Réaliser l'import demandé et structurer la recette | Exécution du contrat (fonctionnalité que vous déclenchez explicitement) |
 | Adresse IP | Limiter les tentatives de connexion abusives | Intérêt légitime (sécurité du Service) |
 | Rapports d'erreur (plantages) | Diagnostiquer et corriger les dysfonctionnements, améliorer la stabilité | Intérêt légitime (qualité et sécurité du Service) |
@@ -139,6 +172,7 @@ suivants, qui agissent en qualité de **sous-traitants** pour notre compte :
 | **OpenAI** | Transcription audio, lecture d'images, structuration de texte | Contenu soumis aux imports (section 5) | États-Unis |
 | **Apify** | Récupération du contenu de pages web lors de l'import par lien (Instagram, sites protégeant l'accès automatisé) | Adresse de la page à importer | États-Unis |
 | **Sentry** | Journalisation des erreurs et rapports de plantage | Messages d'erreur, contexte technique (type d'appareil, système, identifiant de session) | États-Unis |
+| **Resend** | Envoi des e-mails de récupération d'accès | Adresse e-mail de secours, lien et code de connexion | États-Unis |
 
 Concernant **OpenAI** : les données transmises via leur interface de
 programmation (API) **ne sont pas utilisées pour entraîner leurs modèles** et
@@ -157,6 +191,7 @@ des données en dehors de l'UE :
 - **OpenAI** (imports IA) opère aux **États-Unis** ;
 - **Apify** (import par lien) opère aux **États-Unis** ;
 - **Sentry** (rapports d'erreur) opère aux **États-Unis** ;
+- **Resend** (e-mails de récupération d'accès) opère aux **États-Unis** ;
 - **Upstash** (limitation de débit) opère au **Royaume-Uni**.
 
 Ces transferts sont encadrés par des garanties appropriées au sens du RGPD :
@@ -171,14 +206,18 @@ prestataires établis aux États-Unis.
 
 | Donnée | Durée de conservation |
 |---|---|
-| Foyer, recettes, photos, sessions d'appareil | Conservés tant que le foyer existe ; supprimés lorsque vous supprimez le foyer (voir section 11) |
-| Cookie de session (`atable_session`) | 1 an (renouvelable à chaque connexion) |
+| Carnet, recettes, photos, sessions d'appareil | Conservés tant que le carnet existe ; supprimés lorsque vous supprimez le carnet (voir section 11) |
+| Nom de profil, e-mail de secours | Tant que votre profil existe ; modifiables ou retirables à tout moment depuis le profil |
+| Liens et codes de connexion | 15 minutes (stockés hachés, 5 essais maximum), purgés au plus tard 24 h après expiration |
+| Cookie de session (`atable_session`) | 180 jours, prolongés à chaque utilisation de l'Application |
 | Adresse IP (limitation de débit) | 1 heure maximum |
 | Contenu soumis aux imports, côté OpenAI | Durée limitée fixée par OpenAI, puis suppression |
 | Rapports d'erreur (Sentry) | Durée limitée fixée par Sentry (90 jours par défaut), puis suppression |
 | Journaux techniques (hébergeur) | Durée limitée, à des fins de sécurité et de diagnostic |
+| Statistiques d'usage internes | Agrégats quotidiens conservés sans limite ; jours d'activité par appareil supprimés avec le carnet |
+| Compte démo | Recettes ajoutées dans la démo supprimées chaque nuit ; identités démo purgées après 30 jours |
 
-Aucune suppression automatique des foyers inactifs n'est appliquée à ce jour :
+Aucune suppression automatique des carnets inactifs n'est appliquée à ce jour :
 vos recettes restent disponibles tant que vous ne les supprimez pas.
 
 ---
@@ -189,9 +228,10 @@ L'Application **n'utilise aucun cookie publicitaire ou de mesure d'audience**.
 Aucun bandeau de consentement aux cookies n'est donc nécessaire.
 
 - **Cookie `atable_session`** : cookie **strictement nécessaire** au
-  fonctionnement du Service. Il vous maintient connecté à votre foyer. Il est
+  fonctionnement du Service. Il vous maintient connecté à votre carnet. Il est
   sécurisé (inaccessible au JavaScript, signé cryptographiquement, transmis
-  uniquement en HTTPS) et a une durée de vie d'un an.
+  uniquement en HTTPS) et a une durée de vie de 180 jours, prolongée à chaque
+  utilisation.
 - **Stockage local du navigateur** (`localStorage`) : utilisé à des fins
   strictement fonctionnelles — accélérer l'affichage via une mémoire tampon des
   données déjà chargées, et conserver un identifiant technique aléatoire
@@ -205,11 +245,16 @@ Aucun bandeau de consentement aux cookies n'est donc nécessaire.
 Nous mettons en œuvre des mesures techniques visant à protéger vos données :
 chiffrement des échanges (HTTPS), cookie de session sécurisé et signé
 cryptographiquement, limitation des tentatives de connexion, et accès aux
-données restreint à votre foyer.
+données restreint à votre carnet.
 
-Toutefois, **le code d'invitation d'un foyer fait office de clé d'accès** :
-quiconque possède ce code peut rejoindre le foyer. Nous vous recommandons de ne
-le partager qu'avec les personnes de confiance.
+Les liens et codes de connexion envoyés à votre e-mail de secours sont à usage
+unique, valables 15 minutes, stockés hachés (SHA-256) et limités à 5 essais.
+
+Toutefois, **le code ou le lien d'invitation d'un carnet fait office de clé
+d'accès** : quiconque le possède peut ouvrir le carnet — en lecture et écriture
+avec un lien « membre », en lecture seule avec un lien « invité ». Nous vous
+recommandons de ne les partager qu'avec des personnes de confiance ; tout membre
+peut retirer une personne du carnet à tout moment.
 
 ---
 
@@ -217,14 +262,19 @@ le partager qu'avec les personnes de confiance.
 
 Vous gardez le contrôle de vos données directement depuis l'Application :
 
-- **Quitter le foyer** : déconnecte l'appareil utilisé. Les recettes du foyer
-  sont conservées pour les autres appareils.
-- **Supprimer le foyer** : supprime **définitivement** l'ensemble des recettes,
-  des étiquettes, des sessions d'appareil et le foyer lui-même.
+- **Quitter un carnet** : retire votre accès à ce carnet. Ses recettes sont
+  conservées pour les autres membres.
+- **Retirer un membre** : tout membre peut retirer une autre personne d'un
+  carnet ; son accès est coupé immédiatement.
+- **Supprimer un carnet** : supprime **définitivement** l'ensemble des recettes,
+  des étiquettes, des sessions d'appareil et le carnet lui-même.
 - **Supprimer une recette** : supprime la recette concernée et ses étiquettes
   associées.
+- **Retirer votre e-mail de secours ou votre nom** : depuis votre profil, à
+  tout moment.
+- **Se déconnecter** : efface la session de l'appareil utilisé.
 
-La suppression d'un foyer satisfait l'exigence d'un chemin clair de suppression
+La suppression d'un carnet satisfait l'exigence d'un chemin clair de suppression
 des données de l'utilisateur.
 
 ---
@@ -237,13 +287,13 @@ vos données.
 
 - Les droits de **rectification** et d'**effacement** s'exercent directement
   dans l'Application (modification ou suppression de vos recettes, suppression
-  du foyer).
+  du carnet).
 - Pour toute autre demande (accès, copie de vos données, opposition), vous
   pouvez nous contacter à l'adresse indiquée à la **section 1**.
 
-L'Application ne nous permettant pas de relier un foyer à une identité réelle,
-nous pourrons être amenés à vous demander des éléments permettant d'établir que
-vous êtes bien membre du foyer concerné avant de donner suite à une demande.
+L'Application ne nous permettant pas de relier un carnet à une identité réelle
+(hors e-mail de secours que vous auriez enregistré), nous pourrons être amenés à vous demander des éléments permettant d'établir que
+vous êtes bien membre du carnet concerné avant de donner suite à une demande.
 
 Si vous estimez que vos droits ne sont pas respectés, vous pouvez introduire une
 réclamation auprès de la **Commission nationale de l'informatique et des

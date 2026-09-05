@@ -101,22 +101,31 @@ export default function SupportEn() {
 
         <FAQ question="How do I share my cookbook with my family?">
           <p>
-            Open the <strong>Cookbook</strong> screen from the navigation bar. The{" "}
-            <strong>invite code</strong> is shown there (e.g. <code>THYME-0421</code>). Give it to
-            the person you want to add: they&apos;ll enter it on the app&apos;s home screen.
+            Open <strong>Cookbook &amp; profile</strong> from Home, pick the cookbook, then{" "}
+            <strong>Invite someone</strong>. Two links to choose from: <strong>member</strong>{" "}
+            (views and edits recipes) or <strong>guest</strong> (read-only, live). The{" "}
+            <strong>invite code</strong> (e.g. <code>THYME-0421</code>) works too: the person
+            enters it on the app&apos;s home screen.
           </p>
-          <p>⚠️ The code acts as an access key: only share it with people you trust.</p>
+          <p>
+            ⚠️ A link or code acts as an access key: only share it with people you trust. Any
+            member can remove someone from the cookbook at any time from the members list.
+          </p>
         </FAQ>
 
-        <FAQ question="I lost my invite code, how do I get my cookbook back?">
+        <FAQ question="How do I get my cookbook back on a new device?">
           <p>
-            If a device is still connected to the cookbook, open the <strong>Cookbook</strong>{" "}
-            screen: the code is always visible there.
+            If you saved a <strong>recovery email</strong> in your profile: on the home screen,{" "}
+            <strong>Open a cookbook → Recover with my email</strong>. You receive a link (or a
+            6-digit code) valid for 15 minutes that reconnects your cookbooks — no password, no
+            account.
           </p>
           <p>
-            If no device is connected anymore and you&apos;ve lost the code, the cookbook
-            unfortunately can&apos;t be recovered. That&apos;s the flip side of anonymous sign-in — we
-            store neither email nor password to verify your identity.
+            Otherwise, ask a member of the cookbook for the <strong>invite code</strong> (visible
+            in <strong>Cookbook &amp; profile</strong>). If you were alone, with no recovery email
+            and no device still connected, the cookbook unfortunately can&apos;t be recovered:
+            that&apos;s the flip side of anonymous sign-in. Consider saving a recovery email — it
+            is used for nothing else.
           </p>
         </FAQ>
 
@@ -147,8 +156,12 @@ export default function SupportEn() {
               <strong>Delete a recipe</strong>: from its page, menu&nbsp;…&nbsp;→ Delete.
             </li>
             <li>
-              <strong>Leave the cookbook</strong>: disconnects only the current device. The
+              <strong>Leave the cookbook</strong>: removes your access to that cookbook. The
               recipes stay for the other members.
+            </li>
+            <li>
+              <strong>Remove your recovery email or your name</strong>: from{" "}
+              <strong>Cookbook &amp; profile → You</strong>, at any time.
             </li>
             <li>
               <strong>Delete the cookbook</strong>: <strong>permanently</strong> deletes all the

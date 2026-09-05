@@ -19,7 +19,7 @@ export const metadataEn: Metadata = {
   },
 };
 
-const updatedAt = "June 29, 2026";
+const updatedAt = "September 5, 2026";
 const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -102,6 +102,12 @@ export default function PrivacyEn() {
           is based on the notion of a <strong>cookbook</strong>: a shared recipe collection, opened
           with an <strong>invite code</strong>.
         </P>
+        <P>
+          Two pieces of information are <strong>optional</strong> and only serve you: a{" "}
+          <strong>profile name</strong>, shown to the other members of your cookbooks, and a{" "}
+          <strong>recovery email</strong>, used solely to get your cookbooks back if you change
+          or lose your device. Without a recovery email, no email is ever sent to you.
+        </P>
         <P>We commit to the following principles:</P>
         <UL>
           <li>
@@ -128,6 +134,24 @@ export default function PrivacyEn() {
             &ldquo;Marie&apos;s kitchen&rdquo;).
           </li>
           <li>
+            <strong>Profile name (optional)</strong>: the name you choose to show to the other
+            members of your cookbooks. Without a name, a random alias (e.g. &ldquo;Curious
+            Fox&rdquo;), derived from a technical identifier, is shown instead.
+          </li>
+          <li>
+            <strong>Recovery email (optional)</strong>: the address you save in your profile to get
+            your cookbooks back on a new device. It is stored as is (lowercased) and is only used
+            to send you, at your request, a sign-in link or code (see{" "}
+            <A href="#sous-traitants">section 6</A> and <A href="#securite">section 10</A>). You
+            can remove it at any time from your profile.
+          </li>
+          <li>
+            <strong>Recipe share link</strong>: when you share a recipe, we generate a unique
+            address. Anyone with that link can view the recipe (title, ingredients, steps, photo)
+            and save it to their own cookbook, without an account. The link stays valid as long as
+            the recipe exists.
+          </li>
+          <li>
             <strong>Recipe content</strong>: titles, ingredient lists, preparation steps, prep and
             cook times, estimated cost, seasons, tags and photos you add.
           </li>
@@ -145,8 +169,8 @@ export default function PrivacyEn() {
           <li>
             <strong>Device name</strong>: when a device connects to a cookbook, we derive a
             readable label (e.g. &ldquo;Apple iPhone 15 · Safari&rdquo;) from your browser&apos;s
-            technical &ldquo;User-Agent&rdquo; header, so you can recognize and manage the devices
-            connected to your cookbook. The raw header is not kept.
+            technical &ldquo;User-Agent&rdquo; header. It is used for diagnostics and security
+            (recognizing a device if you ask us to). The raw header is not kept.
           </li>
           <li>
             <strong>Session metadata</strong>: random technical identifiers (generated
@@ -164,12 +188,29 @@ export default function PrivacyEn() {
             type, OS version and a technical session identifier, to diagnose and fix the problem.
             It <strong>does not contain the content of your recipes</strong>.
           </li>
+          <li>
+            <strong>Memberships and roles</strong>: the list of cookbooks you have access to and
+            your role in each (member, or read-only guest).
+          </li>
+          <li>
+            <strong>Internal usage statistics</strong>: to understand how the Service is used, our
+            servers record, per connected device, the days of activity and the platform (iOS,
+            Android, web), per-recipe counters (number of views, last activity) and daily
+            aggregates (number of demo trials, recovery emails sent…). These statistics are
+            produced without any third-party tool and contain neither name nor email address.
+          </li>
+          <li>
+            <strong>Language</strong>: the interface is displayed in your device&apos;s language
+            (technical &ldquo;Accept-Language&rdquo; header); this information is not kept.
+          </li>
         </UL>
 
         <H3>3.3 Data we do NOT collect</H3>
         <P>
-          Real name, email address, phone number, postal address, password, location data, health
-          data, banking or payment data, advertising identifiers, contacts, browsing history.
+          Unless you enter them voluntarily in your profile (name, recovery email), we collect no
+          name or email address. We never collect: phone number, postal address, password,
+          location data, health data, banking or payment data, advertising identifiers, contacts,
+          browsing history.
         </P>
 
         <H2 id="finalites">4. Purposes and legal bases of processing</H2>
@@ -188,9 +229,24 @@ export default function PrivacyEn() {
               <Td>Performance of the contract (the Service&apos;s terms of use)</Td>
             </tr>
             <tr>
-              <Td>Invite code, session identifiers, device name</Td>
-              <Td>Authenticating you anonymously and managing device access to the cookbook</Td>
+              <Td>Invite code, session identifiers, device name, memberships and roles</Td>
+              <Td>Authenticating you anonymously and managing device and people access to cookbooks</Td>
               <Td>Performance of the contract</Td>
+            </tr>
+            <tr>
+              <Td>Profile name</Td>
+              <Td>Identifying you to the other members of your cookbooks</Td>
+              <Td>Performance of the contract (optional information)</Td>
+            </tr>
+            <tr>
+              <Td>Recovery email, sign-in links and codes</Td>
+              <Td>Getting your cookbooks back on a new device; merging two accesses into one profile</Td>
+              <Td>Performance of the contract (optional feature you enable)</Td>
+            </tr>
+            <tr>
+              <Td>Internal usage statistics</Td>
+              <Td>Measuring how the Service is used and improving it</Td>
+              <Td>Legitimate interest (improving the Service), without individual profiling</Td>
             </tr>
             <tr>
               <Td>Content submitted to imports (audio, images, URL)</Td>
@@ -292,6 +348,12 @@ export default function PrivacyEn() {
               <Td>Error messages, technical context (device type, OS, session identifier)</Td>
               <Td>United States</Td>
             </tr>
+            <tr>
+              <Td><strong>Resend</strong></Td>
+              <Td>Sending access-recovery emails</Td>
+              <Td>Recovery email address, sign-in link and code</Td>
+              <Td>United States</Td>
+            </tr>
           </tbody>
         </Table>
         <P>
@@ -316,6 +378,10 @@ export default function PrivacyEn() {
           </li>
           <li>
             <strong>Sentry</strong> (error reports) operates in the <strong>United States</strong>;
+          </li>
+          <li>
+            <strong>Resend</strong> (access-recovery emails) operates in the{" "}
+            <strong>United States</strong>;
           </li>
           <li>
             <strong>Upstash</strong> (rate limiting) operates in the <strong>United Kingdom</strong>.
@@ -345,8 +411,16 @@ export default function PrivacyEn() {
               </Td>
             </tr>
             <tr>
+              <Td>Profile name, recovery email</Td>
+              <Td>As long as your profile exists; editable or removable at any time from the profile</Td>
+            </tr>
+            <tr>
+              <Td>Sign-in links and codes</Td>
+              <Td>15 minutes (stored hashed, 5 attempts max), purged at the latest 24 h after expiry</Td>
+            </tr>
+            <tr>
               <Td>Session cookie (<code>atable_session</code>)</Td>
-              <Td>1 year (renewed on each connection)</Td>
+              <Td>180 days, extended each time you use the App</Td>
             </tr>
             <tr>
               <Td>IP address (rate limiting)</Td>
@@ -363,6 +437,14 @@ export default function PrivacyEn() {
             <tr>
               <Td>Technical logs (host)</Td>
               <Td>Limited period, for security and diagnostics</Td>
+            </tr>
+            <tr>
+              <Td>Internal usage statistics</Td>
+              <Td>Daily aggregates kept without limit; per-device activity days deleted with the cookbook</Td>
+            </tr>
+            <tr>
+              <Td>Demo account</Td>
+              <Td>Recipes added in the demo deleted every night; demo identities purged after 30 days</Td>
             </tr>
           </tbody>
         </Table>
@@ -383,7 +465,8 @@ export default function PrivacyEn() {
             </strong>
             : a cookie <strong>strictly necessary</strong> for the Service to work. It keeps you
             connected to your cookbook. It is secured (inaccessible to JavaScript,
-            cryptographically signed, sent over HTTPS only) and lasts one year.
+            cryptographically signed, sent over HTTPS only) and lasts 180 days, extended each time
+            you use the App.
           </li>
           <li>
             <strong>Browser local storage</strong> (<code>localStorage</code>): used for strictly
@@ -400,23 +483,41 @@ export default function PrivacyEn() {
           data access restricted to your cookbook.
         </P>
         <P>
-          However, <strong>a cookbook&apos;s invite code acts as an access key</strong>: anyone who has
-          the code can open the cookbook. We recommend sharing it only with people you trust.
+          Sign-in links and codes sent to your recovery email are single-use, valid for 15
+          minutes, stored hashed (SHA-256) and limited to 5 attempts.
+        </P>
+        <P>
+          However, <strong>a cookbook&apos;s invite code or link acts as an access key</strong>:
+          anyone who has it can open the cookbook — with read and write access through a
+          &ldquo;member&rdquo; link, read-only through a &ldquo;guest&rdquo; link. We recommend
+          sharing them only with people you trust; any member can remove someone from the cookbook
+          at any time.
         </P>
 
         <H2 id="suppression">11. Deleting your data</H2>
         <P>You stay in control of your data directly from the App:</P>
         <UL>
           <li>
-            <strong>Leave the cookbook</strong>: disconnects the device in use. The cookbook&apos;s
-            recipes are kept for the other devices.
+            <strong>Leave a cookbook</strong>: removes your access to that cookbook. Its recipes
+            are kept for the other members.
           </li>
           <li>
-            <strong>Delete the cookbook</strong>: <strong>permanently</strong> deletes all the
+            <strong>Remove a member</strong>: any member can remove another person from a
+            cookbook; their access is cut immediately.
+          </li>
+          <li>
+            <strong>Delete a cookbook</strong>: <strong>permanently</strong> deletes all the
             recipes, tags, device sessions and the cookbook itself.
           </li>
           <li>
             <strong>Delete a recipe</strong>: deletes that recipe and its associated tags.
+          </li>
+          <li>
+            <strong>Remove your recovery email or your name</strong>: from your profile, at any
+            time.
+          </li>
+          <li>
+            <strong>Log out</strong>: clears the session on the device in use.
           </li>
         </UL>
         <P>Deleting a cookbook satisfies the requirement of a clear path to delete user data.</P>
@@ -438,7 +539,8 @@ export default function PrivacyEn() {
           </li>
         </UL>
         <P>
-          Since the App doesn&apos;t let us link a cookbook to a real identity, we may ask you for
+          Since the App doesn&apos;t let us link a cookbook to a real identity (apart from a
+          recovery email you may have saved), we may ask you for
           elements establishing that you are indeed a member of the cookbook concerned before
           acting on a request.
         </P>

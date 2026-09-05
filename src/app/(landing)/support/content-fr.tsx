@@ -122,29 +122,36 @@ export default function SupportFr() {
 
         <FAQ question="Comment partager mon carnet avec ma famille ?">
           <p>
-            Ouvre l&apos;écran <strong>Carnet</strong> depuis la barre de
-            navigation. Le <strong>code d&apos;invitation</strong> y est
-            affiché (ex. <code>THYME-0421</code>). Communique-le à la personne
-            que tu veux ajouter : elle l&apos;entrera sur l&apos;écran
+            Ouvre <strong>Carnet &amp; profil</strong> depuis l&apos;accueil, choisis
+            le carnet puis <strong>Inviter quelqu&apos;un</strong>. Deux liens au
+            choix : <strong>membre</strong> (consulte et modifie les recettes) ou{" "}
+            <strong>invité</strong> (lecture seule, en direct). Le{" "}
+            <strong>code d&apos;invitation</strong> (ex. <code>THYME-0421</code>)
+            fonctionne aussi : la personne l&apos;entre sur l&apos;écran
             d&apos;accueil de l&apos;application.
           </p>
           <p>
-            ⚠️ Le code fait office de clé d&apos;accès : ne le partage
-            qu&apos;avec les personnes de confiance.
+            ⚠️ Un lien ou un code fait office de clé d&apos;accès : ne le partage
+            qu&apos;avec des personnes de confiance. Tout membre peut retirer
+            quelqu&apos;un du carnet à tout moment depuis la liste des membres.
           </p>
         </FAQ>
 
-        <FAQ question="J'ai perdu mon code d'invitation, comment retrouver mon carnet ?">
+        <FAQ question="Comment retrouver mon carnet sur un nouvel appareil ?">
           <p>
-            Si un appareil est encore connecté au carnet, ouvre l&apos;écran{" "}
-            <strong>Carnet</strong> : le code y est toujours visible.
+            Si tu as enregistré un <strong>e-mail de secours</strong> dans ton
+            profil : sur l&apos;écran d&apos;accueil, <strong>Ouvrir un carnet →
+            Récupérer avec mon email</strong>. Tu reçois un lien (ou un code à
+            6 chiffres) valable 15 minutes qui reconnecte tes carnets — sans mot
+            de passe, sans compte.
           </p>
           <p>
-            Si plus aucun appareil n&apos;est connecté et que tu as perdu
-            le code, le carnet ne peut malheureusement plus être récupéré.
-            C&apos;est le revers de la médaille d&apos;une authentification
-            anonyme — nous ne stockons ni e-mail ni mot de passe pour vérifier
-            ton identité.
+            Sinon, demande le <strong>code d&apos;invitation</strong> à un membre
+            du carnet (visible dans <strong>Carnet &amp; profil</strong>). Si tu
+            étais seul·e, sans e-mail de secours ni appareil encore connecté, le
+            carnet ne peut malheureusement plus être récupéré : c&apos;est le
+            revers d&apos;une authentification anonyme. Pense à enregistrer un
+            e-mail de secours — il ne sert qu&apos;à ça.
           </p>
         </FAQ>
 
@@ -178,9 +185,12 @@ export default function SupportFr() {
               menu&nbsp;…&nbsp;→ Supprimer.
             </li>
             <li>
-              <strong>Quitter le carnet</strong> : déconnecte uniquement
-              l&apos;appareil actuel. Les recettes restent pour les autres
-              membres.
+              <strong>Quitter le carnet</strong> : retire ton accès à ce carnet.
+              Les recettes restent pour les autres membres.
+            </li>
+            <li>
+              <strong>Retirer ton e-mail de secours ou ton nom</strong> : depuis{" "}
+              <strong>Carnet &amp; profil → Toi</strong>, à tout moment.
             </li>
             <li>
               <strong>Supprimer le carnet</strong> : supprime{" "}
