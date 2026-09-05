@@ -33,9 +33,10 @@
 
 ## Limitations connues
 
-- `demo_stats_rollup` est appelé une fois par foyer démo avec un upsert
-  GREATEST : `stats_daily` garde le **max** FR/EN, pas la somme. À corriger si
-  la démo EN prend du volume (fonction SQL à passer en `uuid[]`).
+- ~~`demo_stats_rollup` par foyer (max FR/EN)~~ — corrigé le 2026-09-05 par la
+  migration 038 (variante `uuid[]`, un seul appel pour tous les foyers démo ;
+  ancienne signature conservée en alias). Appliquée sur staging ; **à appliquer
+  sur prod avant la promotion** (migration avant code).
 - La traduction de la politique de confidentialité est un texte à valeur
   juridique : **relecture d'Anthony avant l'activation EN** (checklist Lot 4).
 - La landing de campagne `/recettes-insta` (FR, hors chantier) n'est pas

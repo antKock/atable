@@ -177,4 +177,18 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
       ),
     ).toBe(false);
   });
+
+  it("appelle le rollup UNE fois avec le tableau des foyers démo (migration 038)", async () => {
+    supa.queueResults([
+      { data: null, error: null },
+      { count: 0, error: null },
+      SEED_OK,
+    ]);
+    await GET(request("Bearer test-cron-secret"));
+    const rollups = supa.calls.filter((c) => c.table === "rpc:demo_stats_rollup");
+    expect(rollups).toHaveLength(1);
+    const args = rollups[0].ops[0]?.args?.[0] as { p_demo_households?: string[] } | undefined;
+    expect(Array.isArray(args?.p_demo_households)).toBe(true);
+    expect(args?.p_demo_households).toContain("00000000-0000-0000-0000-000000000000");
+  });
 });

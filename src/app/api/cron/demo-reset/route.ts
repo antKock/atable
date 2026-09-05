@@ -16,9 +16,8 @@ export async function GET(request: NextRequest) {
   if (!demoHouseholdId) {
     return NextResponse.json({ error: 'Demo not configured' }, { status: 503 })
   }
-  // Version EN (Lot 3) : second foyer démo, même traitement. Le rollup stats
-  // est appelé par foyer (upsert GREATEST : on garde le max FR/EN, pas la
-  // somme — limitation documentée dans docs/specs/i18n/04-lot3-contenu.md).
+  // Version EN (Lot 3) : second foyer démo, même traitement (purge, alerte
+  // seed, owners) ; le rollup stats agrège les deux en un appel (038).
   const demoHouseholdIds = [demoHouseholdId, process.env.DEMO_HOUSEHOLD_ID_EN].filter(
     (id): id is string => Boolean(id),
   )
@@ -30,16 +29,16 @@ export async function GET(request: NextRequest) {
     // AVANT toute purge — les recettes démo supprimées ci-dessous et les owners
     // purgés à 30 j sont la seule source de ces compteurs. Best-effort : un
     // échec du rollup ne doit pas empêcher le reset de la démo.
-    for (const hid of demoHouseholdIds) {
-      const { error: rollupError } = await supabase.rpc('demo_stats_rollup', {
-        p_demo_household: hid,
-        p_days: 30,
-      })
-      if (rollupError) {
-        Sentry.captureException(
-          new Error(`[cron/demo-reset] stats rollup failed (${hid}): ${rollupError.message}`)
-        )
-      }
+    // Un seul appel pour TOUS les foyers démo (migration 038 : variante uuid[]) —
+    // l'upsert GREATEST de stats_daily ne sait pas additionner deux passages.
+    const { error: rollupError } = await supabase.rpc('demo_stats_rollup', {
+      p_demo_households: demoHouseholdIds,
+      p_days: 30,
+    })
+    if (rollupError) {
+      Sentry.captureException(
+        new Error(`[cron/demo-reset] stats rollup failed: ${rollupError.message}`)
+      )
     }
 
     // Step 1: Delete non-seed demo recipes (user-added during demo)
