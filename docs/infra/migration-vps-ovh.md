@@ -1,7 +1,8 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
-> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — prérequis repo faits et
-> vérifiés, VPS à commander). En cas d'écart
+> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — prérequis repo faits,
+> VPS livré et préparé, Dokploy installé ; reste la configuration des applications, la
+> validation sur domaines temporaires et la bascule DNS). En cas d'écart
 > doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
 
@@ -88,6 +89,27 @@ GitHub : environnements `staging` et `production` créés, variables `NEXT_PUBLI
 et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le jour J :
 `DOKPLOY_WEBHOOK_URL` par environnement. Clé SSH du VPS générée sur le poste :
 `~/.ssh/mijote_vps` (clé publique à déposer à la commande du VPS).
+
+## État du serveur (2026-09-06)
+
+- **VPS** : `vps-64df9538.vps.ovh.net`, VPS-1 2027 (2 vCores, 4 GB, 40 GB NVMe), Gravelines
+  (os-gra6), Debian 13, IPv4 `217.182.206.61`. Accès : `ssh mijote-vps` (entrée dans
+  `~/.ssh/config`, utilisateur `debian`, sudo sans mot de passe, clé `~/.ssh/mijote_vps`).
+- **Piège à la commande** : la clé SSH saisie sur le bon de commande n'a pas été installée
+  (aucun utilisateur n'acceptait la clé). Corrigé par une **réinstallation via l'API**
+  (`POST /vps/{name}/rebuild` avec `imageId` Debian 13 + `publicSshKey` +
+  `doNotSendPassword`), refusée tant que la tâche `deliverVm` tourne, ~3 min ensuite.
+- **Préparation** : `scripts/vps/bootstrap.sh` exécuté (mises à jour, ufw 22/80/443/3000,
+  swap 2 GB, fail2ban, Dokploy v0.30.5). Au repos après installation : ~1,4 GB de RAM
+  utilisés.
+- **DNS temporaires** (A, TTL 300, créés via `scripts/ovh.mjs`) : `staging-vps.mijote`,
+  `prod-vps.mijote`, `dokploy.mijote` → `217.182.206.61`. Les CNAME `mijote` et
+  `staging.mijote` pointent toujours vers Vercel.
+- **Dokploy** : interface sur `http://dokploy.mijote.anthonykocken.fr:3000` (compte admin
+  créé par Anthony à la première visite). Pas de webhook pour les applications « image » :
+  le workflow appelle `POST /api/application.deploy` avec `x-api-key` (secrets GitHub
+  `DOKPLOY_URL`, `DOKPLOY_TOKEN`, `DOKPLOY_APP_ID` par environnement). Le port 3000 est à
+  fermer une fois un domaine HTTPS posé sur Dokploy.
 
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 
