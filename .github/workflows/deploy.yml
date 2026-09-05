@@ -1,0 +1,80 @@
+# Build de l'image Docker et déploiement auto-hébergé (docs/infra/migration-vps-ovh.md).
+#
+# - `main`    → environnement GitHub `production`
+# - `staging` → environnement GitHub `staging`
+#
+# Chaque environnement porte ses propres *variables* (publiques, inlinées dans le
+# bundle) et *secrets* :
+#   vars    : NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SENTRY_DSN, SENTRY_ORG, SENTRY_PROJECT
+#   secrets : SENTRY_AUTH_TOKEN (optionnel, source maps), DOKPLOY_WEBHOOK_URL (optionnel)
+#
+# Tant que DOKPLOY_WEBHOOK_URL n'est pas défini, le workflow se contente de
+# construire et publier l'image sur GHCR : aucun effet sur Vercel.
+
+name: Deploy (Docker)
+
+on:
+  push:
+    branches: [main, staging]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: ${{ github.ref_name == 'main' && 'production' || 'staging' }}
+    env:
+      IMAGE: ghcr.io/${{ github.repository }}
+      # Les secrets ne sont pas lisibles dans un `if:` — on passe par env.
+      DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image tags
+        id: meta
+        run: |
+          echo "sha=${IMAGE}:${{ github.ref_name }}-${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          echo "branch=${IMAGE}:${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.sha }}
+            ${{ steps.meta.outputs.branch }}
+          build-args: |
+            NEXT_PUBLIC_SUPABASE_URL=${{ vars.NEXT_PUBLIC_SUPABASE_URL }}
+            NEXT_PUBLIC_SENTRY_DSN=${{ vars.NEXT_PUBLIC_SENTRY_DSN }}
+            NEXT_PUBLIC_SENTRY_ENVIRONMENT=${{ github.ref_name == 'main' && 'production' || 'staging' }}
+            GIT_COMMIT_SHA=${{ github.sha }}
+            SENTRY_ORG=${{ vars.SENTRY_ORG }}
+            SENTRY_PROJECT=${{ vars.SENTRY_PROJECT }}
+          secrets: |
+            SENTRY_AUTH_TOKEN=${{ secrets.SENTRY_AUTH_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # Dokploy : l'application est configurée sur le tag de branche
+      # (`ghcr.io/antkock/atable:staging` / `:main`) ; le webhook lui fait tirer
+      # la nouvelle image et redémarrer le conteneur.
+      - name: Trigger Dokploy deploy
+        if: ${{ env.DOKPLOY_WEBHOOK_URL != '' }}
+        run: curl -fsS -X POST "$DOKPLOY_WEBHOOK_URL"

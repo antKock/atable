@@ -4,11 +4,19 @@ import { withSentryConfig } from "@sentry/nextjs";
 // Build identifier baked into both the client bundle and the /api/version
 // response. A stale WebView (or PWA) compares its own frozen value against the
 // live one to detect that a new deployment shipped — see VersionWatcher.
-// Prefer the git SHA (set on Vercel git deploys); fall back to a build-time
-// timestamp so a fresh id is still produced for CLI / non-git builds.
-const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA || `t${Date.now()}`;
+// Prefer the git SHA (set by Vercel on git deploys, or passed as GIT_COMMIT_SHA
+// by the Docker build — see Dockerfile); fall back to a build-time timestamp so
+// a fresh id is still produced for CLI / non-git builds.
+const BUILD_ID =
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.GIT_COMMIT_SHA ||
+  `t${Date.now()}`;
 
 const nextConfig: NextConfig = {
+  // Self-hosting (docs/infra/migration-vps-ovh.md) : `next build` produit un
+  // serveur autonome dans `.next/standalone` (node_modules tracés uniquement),
+  // copié tel quel dans l'image Docker. Sans effet sur Vercel.
+  output: "standalone",
   // Répertoire de build alternatif pour le serveur E2E (playwright.config.ts) :
   // deux `next dev` ne peuvent pas partager le lock de .next. Défaut inchangé.
   distDir: process.env.NEXT_DIST_DIR || ".next",

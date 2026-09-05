@@ -4,7 +4,12 @@ import * as Sentry from "@sentry/nextjs";
 // errors are otherwise invisible). No-op when the DSN env var is absent.
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? "development",
+  // Inliné au build : NEXT_PUBLIC_VERCEL_ENV sur Vercel, NEXT_PUBLIC_SENTRY_ENVIRONMENT
+  // passé en build-arg par le Dockerfile (auto-hébergement).
+  environment:
+    process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ??
+    process.env.NEXT_PUBLIC_VERCEL_ENV ??
+    "development",
   tracesSampleRate: 0,
 });
 
