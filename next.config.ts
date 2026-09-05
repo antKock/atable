@@ -56,6 +56,22 @@ const nextConfig: NextConfig = {
     // Long cache so optimized variants aren't regenerated (reduces cache writes).
     minimumCacheTTL: 2678400, // 31 days
   },
+  // HSTS : Vercel l'ajoutait de lui-même ; derrière Traefik (auto-hébergement)
+  // il faut le poser nous-mêmes. Sans effet en dev (HTTP) : les navigateurs
+  // ignorent l'en-tête hors HTTPS.
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+        ],
+      },
+    ];
+  },
   // Serve the Apple App Site Association from the well-known path via the API
   // route (guarantees application/json + lets it read APPLE_APP_ID at runtime).
   async rewrites() {

@@ -1,8 +1,8 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
-> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — prérequis repo faits,
-> VPS livré et préparé, Dokploy installé ; reste la configuration des applications, la
-> validation sur domaines temporaires et la bascule DNS). En cas d'écart
+> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — VPS prêt, Dokploy en
+> HTTPS, **staging déployé et validé sur le VPS avec auto-déploiement** ; reste l'app prod
+> (après promotion vers `main`), la validation prod, le cron et la bascule DNS). En cas d'écart
 > doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
 
@@ -105,11 +105,32 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
 - **DNS temporaires** (A, TTL 300, créés via `scripts/ovh.mjs`) : `staging-vps.mijote`,
   `prod-vps.mijote`, `dokploy.mijote` → `217.182.206.61`. Les CNAME `mijote` et
   `staging.mijote` pointent toujours vers Vercel.
-- **Dokploy** : interface sur `http://dokploy.mijote.anthonykocken.fr:3000` (compte admin
-  créé par Anthony à la première visite). Pas de webhook pour les applications « image » :
-  le workflow appelle `POST /api/application.deploy` avec `x-api-key` (secrets GitHub
-  `DOKPLOY_URL`, `DOKPLOY_TOKEN`, `DOKPLOY_APP_ID` par environnement). Le port 3000 est à
-  fermer une fois un domaine HTTPS posé sur Dokploy.
+- **Dokploy** : `https://dokploy.mijote.anthonykocken.fr` (domaine + Let's Encrypt posés via
+  `settings.assignDomainServer` ; compte admin créé par Anthony à la première visite ; jeton
+  API dans `.env.local` : `DOKPLOY_URL`, `DOKPLOY_TOKEN`). Outil : `scripts/dokploy.mjs
+  <GET|POST> <procédure> [json]` ; le document OpenAPI est servi par
+  `GET settings.getOpenApiDocument` (pas `/api/openapi.json`).
+- **Port 3000** : Docker contourne ufw pour les ports publiés, donc la règle ufw ne suffit
+  pas. Bloqué par une règle `DOCKER-USER` (`iptables -I DOCKER-USER -i ens3 -p tcp -m
+  conntrack --ctorigdstport 3000 -j DROP`), rendue persistante par l'unité systemd
+  `docker-user-firewall.service`. L'interface n'est joignable qu'en HTTPS.
+- **Application staging** (projet Dokploy « Mijote », environnement `production`, id
+  `q6amHZ0Z755R83fMCJ77_`) : source Docker `ghcr.io/antkock/atable:staging`, variables
+  recopiées depuis le scope preview de Vercel (`vercel env pull`, sans `VERCEL_*`/`TURBO_*`)
+  + `SENTRY_ENVIRONMENT=staging` + `I18N_PREVIEW_COOKIE=1`, domaine
+  `https://staging-vps.mijote.anthonykocken.fr` (port interne 3000, Let's Encrypt).
+  **Validé le 2026-09-06** : pages publiques, middleware, session démo (cookie `Secure` +
+  `HttpOnly`), carrousels, bibliothèque, AASA, assetlinks, image OG, manifest, `?lang=en` ;
+  conteneur `healthy`, ~110 MB de RAM ; ~1,8 GB utilisés sur le serveur au total.
+- **Auto-déploiement vérifié** : push sur `staging` → GitHub Actions construit l'image →
+  `POST /api/application.deploy` (secrets GitHub `DOKPLOY_URL`, `DOKPLOY_TOKEN`,
+  `DOKPLOY_APP_ID` de l'environnement `staging`) → Dokploy tire le tag et redémarre.
+- **Application prod** : pas encore créée. L'image `ghcr.io/antkock/atable:main` n'existe
+  pas tant que `main` ne contient pas le `Dockerfile` et le workflow → nécessite une
+  promotion `staging` → `main` (PR + merge), qui est aussi un déploiement Vercel prod. Créer
+  ensuite l'app `mijote-prod` (variables du scope production, `SENTRY_ENVIRONMENT=production`,
+  domaine `prod-vps.mijote.anthonykocken.fr`) et poser les secrets GitHub de l'environnement
+  `production`.
 
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 
