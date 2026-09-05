@@ -45,8 +45,10 @@ se font par SSH et par l'API Dokploy.
 - [x] Workflow `.github/workflows/deploy.yml` : sur push `main` et `staging` → build de
       l'image → push `ghcr.io/antkock/atable:<branche>-<sha>` → appel API Dokploy (ou SSH)
       pour redéployer. **Repo public** : seuls les `NEXT_PUBLIC_*` passent en `build-arg` ;
-      aucun autre secret dans l'image ni dans les logs du workflow. Rendre le paquet GHCR
-      privé (500 MB de stockage privé gratuit, garder 2-3 tags).
+      aucun autre secret dans l'image ni dans les logs du workflow. Le paquet GHCR est
+      **public** (décision 2026-09-06 : l'image ne contient aucun secret, et un paquet public
+      se tire sans identifiant depuis Dokploy). Premier run réussi le 2026-09-06 :
+      `ghcr.io/antkock/atable:staging` (amd64, 86 MB compressés).
 - [x] Vérifier ce qui dépend de Vercel : `after()` fonctionne en Node standalone ; image
       OpenGraph en `runtime nodejs` ; `VERCEL_ENV` utilisé par Sentry (`environment`) → le
       remplacer par `SENTRY_ENVIRONMENT` ; `x-forwarded-for` pour les rate-limits par IP
@@ -81,6 +83,11 @@ Pièges rencontrés, déjà corrigés dans le repo :
 
 Outil : `scripts/ovh.mjs <METHOD> <path> [json]` appelle l'API OVH signée avec les clés de
 `.env.local` (droits restreints : `/me`, `/vps/*`, `/domain/zone/anthonykocken.fr/*`).
+
+GitHub : environnements `staging` et `production` créés, variables `NEXT_PUBLIC_SUPABASE_URL`
+et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le jour J :
+`DOKPLOY_WEBHOOK_URL` par environnement. Clé SSH du VPS générée sur le poste :
+`~/.ssh/mijote_vps` (clé publique à déposer à la commande du VPS).
 
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 
