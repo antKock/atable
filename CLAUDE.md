@@ -39,3 +39,6 @@ demandé. Les maquettes hi-fi sont dans `docs/specs/foyer/handoff/`.
   (re-link pour changer d'env staging ↔ prod).
 - Les gotchas connus (Vercel, Supabase, Capacitor) sont dans la note
   `Opérations & Pièges.md` du vault — la lire avant toute opération d'infra.
+- Plan de migration infra Vercel → VPS OVH + Dokploy (non déclenché, analyse coûts du
+  2026-09-05) : `docs/infra/migration-vps-ovh.md` — à lire avant tout chantier « hébergement »,
+  « coûts » ou « quitter Vercel ».

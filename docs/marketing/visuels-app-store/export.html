@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="UTF-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sage: #96A487;
+    --sage-deep: #7C8B6D;
+    --cream: #F4F1E8;
+    --cream-warm: #EFEADB;
+    --olive: #5A6B47;
+    --ink: #262B1E;
+    --white: #FDFCF8;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #E8E4D8; font-family: 'Inter', sans-serif; padding: 40px; }
+  h1 { font-family: 'Fraunces', serif; color: var(--ink); font-size: 28px; margin-bottom: 6px; }
+  .sub { color: #6b6b5e; font-size: 14px; margin-bottom: 32px; }
+  .row { display: flex; gap: 24px; align-items: flex-start; flex-wrap: wrap; }
+
+  .slide {
+    width: 340px; height: 737px;
+    border-radius: 18px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 8px 30px rgba(40,45,30,.18);
+    flex-shrink: 0;
+  }
+  .slide-note { width: 340px; font-size: 12px; color: #77776a; margin-top: 10px; line-height: 1.5; }
+  .wrap { width: 340px; }
+
+  /* Taille de titre UNIFIÉE sur les 6 slides */
+  .headline {
+    font-family: 'Fraunces', serif;
+    text-align: center;
+    padding: 44px 24px 0;
+    font-size: 29px;
+    line-height: 1.18;
+    font-weight: 700;
+    letter-spacing: -.01em;
+    position: relative; z-index: 5;
+  }
+  .headline .accent { font-style: italic; font-weight: 500; }
+  .subline {
+    text-align: center; font-size: 14px; margin-top: 12px; padding: 0 30px;
+    position: relative; z-index: 5; line-height: 1.5; font-weight: 500;
+  }
+
+  .device {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 262px; height: 566px;
+    background: #1c1c1c; border-radius: 40px; padding: 7px;
+    box-shadow: 0 18px 40px rgba(30,35,20,.35);
+    z-index: 4;
+  }
+  .device .screen { width: 100%; height: 100%; border-radius: 34px; overflow: hidden; position: relative; background: #fff; }
+  .device .screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .device .island {
+    position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+    width: 74px; height: 20px; background: #1c1c1c; border-radius: 12px; z-index: 6;
+  }
+  .device-img {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 276px; z-index: 4;
+    filter: drop-shadow(0 18px 32px rgba(30,35,20,.35));
+    border-radius: 40px;
+  }
+
+  .badge-icon {
+    position: absolute; z-index: 7; width: 74px; height: 74px; border-radius: 20px;
+    box-shadow: 0 10px 24px rgba(40,45,30,.30);
+    border: 4px solid var(--white);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .badge-icon svg { width: 42px; height: 42px; }
+
+  /* ============ S1 — hook ============ */
+  .s1 { background: linear-gradient(175deg, var(--cream) 62%, var(--sage) 62.2%); }
+  .s1 .headline { color: var(--ink); }
+  .s1 .device { top: 168px; }
+
+  /* ============ S2 — sources ============ */
+  .s2 { background: linear-gradient(12deg, var(--sage) 26%, var(--cream) 26.2%); }
+  .s2 .headline { color: var(--ink); }
+  .s2 .subline { color: #55604a; }
+  .s2 .device { top: 208px; }
+
+  /* ============ S3 — résultat ============ */
+  .s3 { background: linear-gradient(175deg, var(--sage) 58%, var(--cream) 58.2%); }
+  .s3 .headline { color: var(--white); }
+  .s3 .subline { color: #F0EEE2; }
+  .s3 .device { top: 200px; }
+
+  /* ============ S4 — livre ============ */
+  .s5 { background: linear-gradient(175deg, var(--olive) 55%, var(--cream) 55.2%); }
+  .s5 .headline { color: var(--cream); }
+  .s5 .device { top: 172px; }
+  .s5 .stars { text-align: center; margin-top: 10px; color: #D9C98A; font-size: 15px; letter-spacing: 3px; position: relative; z-index: 5; }
+
+  /* ============ S5 — gratuité ============ */
+  .s6 { background: linear-gradient(175deg, var(--cream) 45%, var(--sage) 45.2%); }
+  .s6 .headline { color: var(--ink); padding-top: 82px; }
+  .s6 .subline { color: #55604a; }
+  .s6 .cocotte { position: absolute; top: 368px; left: 50%; transform: translateX(-50%); width: 240px; z-index: 4; }
+
+  /* ============ S6 — partage ============ */
+  .s4 { background: linear-gradient(175deg, var(--cream-warm) 60%, var(--sage-deep) 60.2%); }
+  .s4 .headline { color: var(--ink); }
+  .s4 .subline { color: #55604a; }
+  .s4 .device-img { top: 200px; }
+
+  body { padding: 0; background: #fff; }
+  .export-frame { width: 1290px; height: 2796px; overflow: hidden; position: relative; }
+  .export-frame .slide { transform: scale(3.79412); transform-origin: top left; border-radius: 0; box-shadow: none; }
+</style></head><body>
+<div class="export-frame" id="01-hook"><div class="slide s1">
+      <div class="headline">Toutes tes recettes,<br><span class="accent">enfin</span> au même endroit</div>
+      <div class="device"><div class="screen"><img src="hd/mijote-2-hd.png" alt=""></div></div>
+    </div></div>
+<div class="export-frame" id="02-sources"><div class="slide s2">
+      <div class="headline">Un lien, une photo,<br>ta voix — <span class="accent">zéro saisie</span></div>
+      <div class="subline">Depuis Instagram, TikTok, Marmiton,<br>un vieux cahier ou un appel de mamie.</div>
+      <div class="device"><div class="screen"><img src="hd/mijote-3-hd.png" alt=""></div></div>
+      <div class="badge-icon" style="top: 188px; left: 8px; transform: rotate(-7deg); background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.3" fill="#fff" stroke="none"/></svg>
+      </div>
+      <div class="badge-icon" style="top: 292px; right: 4px; transform: rotate(6deg); background: #111;">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M16.6 3c.4 2.1 1.8 3.6 3.9 3.9v3.1c-1.5 0-2.8-.5-3.9-1.3v6.6c0 3.4-2.6 5.7-5.8 5.7-3.1 0-5.6-2.4-5.6-5.5 0-3.2 2.7-5.5 5.9-5.3v3.2c-1.5-.3-2.8.7-2.8 2.1 0 1.3 1.1 2.3 2.5 2.3 1.5 0 2.6-1 2.6-2.7V3h3.2z"/></svg>
+      </div>
+      <div class="badge-icon" style="top: 428px; left: 4px; transform: rotate(5deg); background: var(--olive);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.2"/></svg>
+      </div>
+      <div class="badge-icon" style="bottom: 66px; right: 10px; transform: rotate(-6deg); background: var(--sage-deep);">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="9.2" y="3" width="5.6" height="11" rx="2.8"/><path d="M6 11.5a6 6 0 0 0 12 0M12 17.5V21"/></svg>
+      </div>
+    </div></div>
+<div class="export-frame" id="03-resultat"><div class="slide s3">
+      <div class="headline">La fiche se remplit<br><span class="accent">toute seule</span></div>
+      <div class="subline">Illustration, étapes, temps, coût :<br>tout est extrait pour toi.</div>
+      <div class="device"><div class="screen"><img src="hd/mijote-4-hd.png" alt=""></div></div>
+    </div></div>
+<div class="export-frame" id="04-livre"><div class="slide s5">
+      <div class="headline">Aussi beau qu'un<br><span class="accent">vrai livre</span> de cuisine</div>
+      <div class="stars">★ ★ ★ ★ ★</div>
+      <div class="device"><div class="screen"><img src="hd/mijote-5-hd.png" alt=""></div></div>
+    </div></div>
+<div class="export-frame" id="05-partage"><div class="slide s4">
+      <div class="headline">Partage tes recettes<br><span class="accent">avec tes proches</span></div>
+      <div class="subline">À deux, en coloc ou en famille —<br>membres et invités, chacun son rôle.</div>
+      <img class="device-img" src="foyer-membre3.png" alt="">
+    </div></div>
+<div class="export-frame" id="06-gratuite"><div class="slide s6">
+      <div class="headline">Gratuit.<br>Sans pub,<br><span class="accent">sans abonnement.</span></div>
+      <div class="subline">Pas de compte, pas de piège :<br>télécharge, cuisine, partage.</div>
+      <img class="cocotte" src="cocotte-illustration.svg" alt="">
+    </div></div>
+</body></html>

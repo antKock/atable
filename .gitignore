@@ -57,3 +57,7 @@ temp/
 # Banc d'essai modèles IA — fixtures téléchargées/générées + résultats
 scripts/bench/fixtures/
 scripts/bench/results/
+
+# Visuels App Store : exports PNG/JPG lourds gardés en local seulement (les sources HTML/SVG sont versionnées)
+docs/marketing/visuels-app-store/**/*.png
+docs/marketing/visuels-app-store/**/*.jpg
