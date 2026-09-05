@@ -147,23 +147,31 @@ Mijote est gratuit, sans publicité, sans achat intégré.
 
 ### Types de données collectées
 
+> **Mise à jour 2026-09-05** (chantier foyer #14/#15) : ajout du **nom** et de
+> l'**adresse e-mail** (profil, facultatifs). À reporter dans la Play Console
+> (Règles → Sécurité des données → Gérer), sans nouveau build ; Google relit le
+> formulaire sous quelques jours. Resend (envoi des e-mails) est un sous-traitant
+> supplémentaire : toujours « partage = Non ».
+
 Pour **chaque** ligne : *Collectée = Oui*, *Partagée = Non*, *Liée à l'identité = Oui*
-(tout est rattaché au foyer persistant), *Traitement éphémère = Non*.
+(tout est rattaché au carnet/profil persistant), *Traitement éphémère = Non*.
 
 | Catégorie Google | Type | Finalité (Purpose) | Pourquoi |
 |---|---|---|---|
-| **Informations personnelles** | Identifiants utilisateur (*User IDs*) | Fonctionnalité de l'app | ID de foyer / session (compte anonyme) |
+| **Informations personnelles** | Identifiants utilisateur (*User IDs*) | Fonctionnalité de l'app | ID d'owner / carnet / session (compte anonyme) |
+| **Informations personnelles** | **Nom** | Fonctionnalité de l'app | Nom de profil facultatif, affiché aux autres membres — *ajouté 2026-09-05* |
+| **Informations personnelles** | **Adresse e-mail** | Fonctionnalité de l'app, Gestion du compte | E-mail de secours facultatif, lien/code de connexion via Resend — *ajouté 2026-09-05* |
 | **Photos et vidéos** | Photos | Fonctionnalité de l'app | Photos ajoutées aux recettes + images d'import |
 | **Fichiers audio** | Enregistrements vocaux | Fonctionnalité de l'app | Dictée vocale transmise à OpenAI |
 | **Activité dans l'app** | Autres contenus générés par l'utilisateur | Fonctionnalité de l'app | Titres, ingrédients, étapes des recettes |
-| **Activité dans l'app** | Interactions avec l'app | Fonctionnalité + Personnalisation | Compteurs de consultation (« vues récemment ») |
+| **Activité dans l'app** | Interactions avec l'app | Fonctionnalité + Personnalisation + **Analyse** | Compteurs de consultation, jours d'activité par appareil, agrégats quotidiens (statistiques internes, aucun outil tiers) |
 | **Infos et performances de l'app** | **Journaux de plantage** (*Crash logs*) | Fonctionnalité de l'app | **Sentry** — erreurs/crashs (pas de traçage perf, `tracesSampleRate: 0`) |
 
 ### À NE PAS déclarer (cohérent avec iOS)
 
 | Élément | Raison |
 |---|---|
-| Nom, e-mail, téléphone | Jamais collectés — auth 100 % anonyme |
+| Téléphone, adresse postale | Jamais collectés (nom et e-mail : déclarés depuis 2026-09-05, voir tableau) |
 | Localisation | Aucune géolocalisation |
 | Infos financières / achats | Aucun paiement, aucun achat intégré |
 | Contacts, santé, navigation | Non collectés |

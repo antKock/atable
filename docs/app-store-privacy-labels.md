@@ -21,22 +21,31 @@ déclarer.)
 
 ### Étape 1 — Types de données à déclarer
 
-Apple présente une longue liste de catégories. **Cochez uniquement les 6
+> **Mise à jour 2026-09-05** (chantier foyer #14/#15, en prod depuis juillet) :
+> deux types **Contact Info** s'ajoutent — le nom de profil et l'e-mail de
+> secours, tous deux facultatifs mais stockés côté serveur dès que l'utilisateur
+> les saisit (Apple exige de déclarer une donnée collectée même optionnelle).
+> **À reporter dans App Store Connect** (App Privacy → Edit), sans nouveau build.
+
+Apple présente une longue liste de catégories. **Cochez uniquement les 8
 ci-dessous** ; tout le reste = **non collecté**.
 
 | Catégorie Apple | Sous-type | Pourquoi |
 |---|---|---|
+| **Contact Info** | **Name** | Nom de profil facultatif (`owners.name`), affiché aux autres membres — *ajouté 2026-09-05* |
+| **Contact Info** | **Email Address** | E-mail de secours facultatif (`owners.recovery_email`), utilisé uniquement pour envoyer un lien/code de connexion via Resend — *ajouté 2026-09-05* |
 | **User Content** | **Photos or Videos** | Photos ajoutées aux recettes + images d'import |
 | **User Content** | **Audio Data** | Enregistrement de la dictée vocale (transmis à OpenAI) |
-| **User Content** | **Other User Content** | Texte des recettes : titres, ingrédients, étapes |
-| **Identifiers** | **User ID** | Identifiants de foyer et de session (compte anonyme) |
-| **Usage Data** | **Product Interaction** | Nombre de consultations et date de dernière consultation des recettes |
+| **User Content** | **Other User Content** | Texte des recettes : titres, ingrédients, étapes, notes |
+| **Identifiers** | **User ID** | Identifiants d'owner, de carnet et de session (compte anonyme) |
+| **Usage Data** | **Product Interaction** | Jours d'activité par appareil (`daily_activity`), compteurs de consultation des recettes, agrégats quotidiens — statistiques internes, aucun outil tiers |
 | **Diagnostics** | **Crash Data** | Rapports de plantage envoyés à Sentry (erreurs uniquement) |
 
 ### Étape 2 — Réponses pour CHAQUE type coché
 
-Pour chacun des 6 types ci-dessus, Apple pose 3 questions. Les réponses sont
-**identiques pour les 6** :
+Pour chacun des 8 types ci-dessus, Apple pose 3 questions. Les réponses sont
+**identiques pour les 8** (pour *Product Interaction*, ajouter le purpose
+**Analytics** — les statistiques internes servent à mesurer l'usage) :
 
 | Question Apple | Réponse | Justification |
 |---|---|---|
@@ -57,7 +66,7 @@ L'app n'utilisant pas de tracking, **aucune fenêtre App Tracking Transparency
 
 | Élément | Raison |
 |---|---|
-| Contact Info (nom, e-mail, téléphone) | Jamais collecté — auth 100 % anonyme |
+| Contact Info — téléphone, adresse postale | Jamais collectés (nom et e-mail : voir tableau ci-dessus, déclarés depuis 2026-09-05) |
 | Location | Aucune géolocalisation |
 | Financial Info / Purchases | Aucun paiement, aucun IAP |
 | Health & Fitness, Contacts, Browsing/Search History | Non collectés |
