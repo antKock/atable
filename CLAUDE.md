@@ -5,7 +5,7 @@
 Le contexte projet complet (produit, architecture, environnements, mobile, ops, historique)
 est documenté dans le vault Obsidian d'Anthony :
 
-**`~/projects/anthony-os/Conseil/Perso/Mijote/Contexte codebase (généré)/`** — point d'entrée : `Mijote.md`.
+**`~/projects/anthony-os/Perso/Mijote/Contexte codebase (généré)/`** — point d'entrée : `Mijote.md`.
 
 - Ces notes sont **dérivées de cette codebase** et servent de base de connaissance PM.
 - **À mettre à jour à chaque jalon** (release, incident, décision structurante, changement
@@ -16,13 +16,13 @@ est documenté dans le vault Obsidian d'Anthony :
 
 ## Backlog — specs par ID
 
-Les specs backlog sont dans **`~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/`** :
+Les specs backlog sont dans **`~/projects/anthony-os/Perso/Mijote/Backlog/`** :
 une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zone`, `type`,
 `origine`, `voix`, `prio`, `statut`).
 
 - Quand Anthony dit « la #N » ou « spec N », il désigne la note dont le frontmatter
   contient `id: N`. La retrouver :
-  `grep -l "^id: N$" ~/projects/anthony-os/Conseil/Perso/Mijote/Backlog/*.md`
+  `grep -l "^id: N$" ~/projects/anthony-os/Perso/Mijote/Backlog/*.md`
 - Lire aussi `Stratégie.md` (dossier parent) quand la spec y renvoie.
 
 ## Chantier en cours — Foyer (#14 + #15)
@@ -39,3 +39,6 @@ demandé. Les maquettes hi-fi sont dans `docs/specs/foyer/handoff/`.
   (re-link pour changer d'env staging ↔ prod).
 - Les gotchas connus (Vercel, Supabase, Capacitor) sont dans la note
   `Opérations & Pièges.md` du vault — la lire avant toute opération d'infra.
+- Plan de migration infra Vercel → VPS OVH + Dokploy (non déclenché, analyse coûts du
+  2026-09-05) : `docs/infra/migration-vps-ovh.md` — à lire avant tout chantier « hébergement »,
+  « coûts » ou « quitter Vercel ».

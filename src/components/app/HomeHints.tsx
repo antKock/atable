@@ -4,7 +4,7 @@ import HintCard from '@/components/app/HintCard'
 import { createServerClient } from '@/lib/supabase/server'
 import { getOwnerContext, isGuestOwner } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 // Seuil du hint principal (#14, décision n°9) : partage tant que le foyer a
 // moins de 3 recettes, puis email tant que recovery_email est absent.
@@ -21,6 +21,7 @@ const SHARE_HINT_RECIPE_THRESHOLD = 3
 // email). Tous à dismiss définitif par cookie (180 j). En démo : aucun hint —
 // la bannière démo est le seul chemin (conversion).
 export default async function HomeHints() {
+  const t = await getT()
   // getOwnerContext est mémoïsé par requête (déjà résolu par le layout + la
   // page) : pas de requête DB supplémentaire.
   const owner = await getOwnerContext()

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { Check, ChevronRight, SlidersHorizontal } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -32,6 +32,7 @@ type Props = {
 // s'applique immédiatement (cookie device-scoped) ; l'accueil la relit à sa
 // prochaine visite (SWR revalidateOnMount sur /api/carousels).
 export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [hidden, setHidden] = useState<Set<string>>(
     () => new Set(initialHiddenIds.filter((id) => foyers.some((f) => f.id === id))),

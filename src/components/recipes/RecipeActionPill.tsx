@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Pencil, FolderInput } from "lucide-react";
 import { toast } from "sonner";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import ShareButton from "./ShareButton";
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import HouseholdPickerDialog, {
@@ -37,6 +37,7 @@ export default function RecipeActionPill({
   memberFoyers,
   canManage,
 }: Props) {
+  const t = useT();
   const router = useRouter();
   const [moveOpen, setMoveOpen] = useState(false);
   const [moving, setMoving] = useState(false);

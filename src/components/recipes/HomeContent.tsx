@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import useSWR from "swr";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import RecipeCarousel from "./RecipeCarousel";
 import CarnetIllustration from "./CarnetIllustration";
@@ -58,6 +58,7 @@ function CarouselSkeleton() {
 }
 
 export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) {
+  const t = useT();
   const [pollInterval, setPollInterval] = useState(0);
   const { data: sections, isLoading, error, mutate } = useSWR<CarouselSection[]>(
     "/api/carousels",

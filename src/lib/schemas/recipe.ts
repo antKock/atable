@@ -1,4 +1,6 @@
 import { z } from "zod";
+import type { Dictionary } from "@/lib/i18n/types";
+import { t as fr } from "@/lib/i18n/fr";
 
 // How a recipe was added — the method that pre-filled the create form.
 export const RECIPE_SOURCES = ["manual", "url", "photo", "voice"] as const;
@@ -9,24 +11,32 @@ export type RecipeSource = (typeof RECIPE_SOURCES)[number];
 export const MAX_TITLE_LENGTH = 200;
 export const MAX_TEXT_LENGTH = 10_000;
 
-const titleField = z
-  .string()
-  .min(1, "Le titre est requis")
-  .max(MAX_TITLE_LENGTH, "Le titre est trop long (200 caractères max)");
-const textField = z
-  .string()
-  .max(MAX_TEXT_LENGTH, "Texte trop long (10 000 caractères max)")
-  .nullable()
-  .optional();
-const servingsField = z
-  .number()
-  .int()
-  .min(1, "Nombre de personnes invalide")
-  .max(20, "Nombre de personnes invalide")
-  .nullable()
-  .optional();
+// Messages de validation localisés (chantier i18n) : les schémas sont des
+// factories prenant le dictionnaire de la requête ; les constantes FR
+// exportées plus bas restent le défaut (tests, imports historiques).
+function fields(t: Dictionary) {
+  const titleField = z
+    .string()
+    .min(1, t.validation.titleRequired)
+    .max(MAX_TITLE_LENGTH, t.validation.titleTooLong);
+  const textField = z
+    .string()
+    .max(MAX_TEXT_LENGTH, t.validation.textTooLong)
+    .nullable()
+    .optional();
+  const servingsField = z
+    .number()
+    .int()
+    .min(1, t.validation.servingsInvalid)
+    .max(20, t.validation.servingsInvalid)
+    .nullable()
+    .optional();
+  return { titleField, textField, servingsField };
+}
 
-export const RecipeCreateSchema = z.object({
+export function buildRecipeCreateSchema(t: Dictionary) {
+  const { titleField, textField, servingsField } = fields(t);
+  return z.object({
   title: titleField,
   ingredients: textField,
   steps: textField,
@@ -45,9 +55,12 @@ export const RecipeCreateSchema = z.object({
   // this hint enrichment would generate — and bill — an AI image that the photo
   // immediately hides. When true, enrichment skips image generation.
   willUploadPhoto: z.boolean().optional(),
-});
+  });
+}
 
-export const RecipeUpdateSchema = z.object({
+export function buildRecipeUpdateSchema(t: Dictionary) {
+  const { titleField, textField, servingsField } = fields(t);
+  return z.object({
   title: titleField,
   ingredients: textField,
   steps: textField,
@@ -61,7 +74,12 @@ export const RecipeUpdateSchema = z.object({
   servings: servingsField,
   tagIds: z.array(z.string()).optional(),
   regenerateImage: z.boolean().optional(),
-});
+  });
+}
+
+// Défaut FR (tests, types)
+export const RecipeCreateSchema = buildRecipeCreateSchema(fr);
+export const RecipeUpdateSchema = buildRecipeUpdateSchema(fr);
 
 export type RecipeCreateInput = z.infer<typeof RecipeCreateSchema>;
 export type RecipeUpdateInput = z.infer<typeof RecipeUpdateSchema>;

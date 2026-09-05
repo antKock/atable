@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { t } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import LibraryContent from "@/components/recipes/LibraryContent";
 
@@ -8,6 +8,7 @@ type Props = {
 };
 
 export default async function LibraryPage({ searchParams }: Props) {
+  const t = await getT();
   const { search } = await searchParams;
 
   // Multi-foyer (Lot 4) : accès résolu via l'owner (plus de x-household-id).

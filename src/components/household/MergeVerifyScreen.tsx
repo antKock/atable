@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 import RecoveryCodeInput from '@/components/auth/RecoveryCodeInput'
 
@@ -20,6 +20,7 @@ const RESEND_DELAY_S = 60
 // la vérification fusionne les deux identités (la session courante est
 // absorbée par l'owner cible, le cookie reste valide).
 export default function MergeVerifyScreen({ email, onCancel }: Props) {
+  const t = useT()
   const [code, setCode] = useState('')
   const [verifying, setVerifying] = useState(false)
   const [error, setError] = useState<string | null>(null)

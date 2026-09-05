@@ -41,7 +41,14 @@ export class ImportError extends Error {
 
 // ---------- System prompt ----------
 
-const EXTRACTION_SYSTEM_PROMPT = `Tu es un assistant culinaire expert. Extrais les données de la recette et retourne un JSON structuré en français.
+// Langue (chantier « Version EN », décision actée le 2026-09-04) : le contenu
+// utilisateur n'est JAMAIS traduit — title/ingredients/steps/notes gardent la
+// langue de la source (dictée, page, capture). Seules les valeurs énumérées
+// (temps, coût, difficulté, saisons) restent les codes listés, quelle que soit
+// la langue.
+const EXTRACTION_SYSTEM_PROMPT = `Tu es un assistant culinaire expert. Extrais les données de la recette et retourne un JSON structuré.
+
+Langue : écris title, ingredients, steps et notes dans la langue de la source (une recette en anglais reste en anglais, en portugais reste en portugais…). Ne traduis jamais, ne mélange pas les langues. Le titre n'est jamais tout en capitales, même si la source l'écrit ainsi : utilise la casse habituelle des titres dans la langue de la source (en français : première lettre en majuscule ; en anglais : Title Case). Les valeurs énumérées ci-dessous (prepTime, cookTime, cost, complexity, seasons) sont des codes : reprends-les EXACTEMENT tels quels, quelle que soit la langue de la recette.
 
 Champs à extraire :
 - title (string, obligatoire) : le nom de la recette

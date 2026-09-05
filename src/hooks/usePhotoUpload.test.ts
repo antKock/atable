@@ -1,6 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { usePhotoUpload } from "./usePhotoUpload";
+import { uploadPhoto as uploadPhotoPure } from "./usePhotoUpload";
+import { t as fr } from "@/lib/i18n/fr";
 import { resizeImageToBlob } from "@/lib/image-resize";
 
 vi.mock("@/lib/image-resize", () => ({
@@ -33,7 +34,7 @@ describe("uploadPhoto", () => {
       }),
     );
 
-    const { uploadPhoto } = usePhotoUpload();
+    const uploadPhoto = (file: File, id: string) => uploadPhotoPure(file, id, fr);
     const result = await uploadPhoto(makeFile(), "recipe-123");
 
     expect(result).toEqual({ url: "https://cdn.example.com/img.webp?v=1" });
@@ -55,7 +56,7 @@ describe("uploadPhoto", () => {
       }),
     );
 
-    const { uploadPhoto } = usePhotoUpload();
+    const uploadPhoto = (file: File, id: string) => uploadPhotoPure(file, id, fr);
     const result = await uploadPhoto(makeFile(4, "original.jpg"), "recipe-1");
 
     expect(result).toEqual({ url: "https://cdn.example.com/raw.jpg" });
@@ -66,7 +67,7 @@ describe("uploadPhoto", () => {
   it("rejects oversized payloads without calling the API", async () => {
     vi.mocked(resizeImageToBlob).mockRejectedValue(new Error("no canvas"));
 
-    const { uploadPhoto } = usePhotoUpload();
+    const uploadPhoto = (file: File, id: string) => uploadPhotoPure(file, id, fr);
     const result = await uploadPhoto(makeFile(4 * 1024 * 1024 + 1), "recipe-1");
 
     expect(result).toEqual({ error: "La photo est trop volumineuse" });
@@ -78,7 +79,7 @@ describe("uploadPhoto", () => {
     vi.mocked(resizeImageToBlob).mockResolvedValue({ blob: resizedBlob, ext: "webp" });
     fetchMock.mockResolvedValue(new Response("{}", { status: 500 }));
 
-    const { uploadPhoto } = usePhotoUpload();
+    const uploadPhoto = (file: File, id: string) => uploadPhotoPure(file, id, fr);
     const result = await uploadPhoto(makeFile(), "recipe-1");
 
     expect(result).toEqual({ error: "La photo n'a pas pu être enregistrée" });

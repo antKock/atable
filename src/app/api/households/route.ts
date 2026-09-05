@@ -11,8 +11,10 @@ import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { resolveDemoTrialStart } from '@/lib/queries/demo-conversion'
 import { enforceHouseholdCreateQuota } from '@/lib/import-quota'
 import { aliasForOwner } from '@/lib/alias'
+import { getLocale, getT } from '@/lib/i18n/server'
 
 export async function POST(request: NextRequest) {
+  const t = await getT()
   try {
     // Unauthenticated route, and every new household gets a fresh daily
     // import quota — rate limit per IP to keep both bounded.
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
     const ownerId = crypto.randomUUID()
     const { error: ownerError } = await supabase
       .from('owners')
-      .insert({ id: ownerId, alias: aliasForOwner(ownerId), demo_trial_started_at: demoTrialStartedAt })
+      .insert({ id: ownerId, alias: aliasForOwner(ownerId, await getLocale()), demo_trial_started_at: demoTrialStartedAt })
 
     if (ownerError) {
       throw new Error(ownerError.message ?? 'Failed to create owner')
@@ -164,6 +166,6 @@ export async function POST(request: NextRequest) {
     // details (constraint and column names) to the client.
     Sentry.captureException(err)
     console.error('[households] caught error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: t.api.serverError }, { status: 500 })
   }
 }

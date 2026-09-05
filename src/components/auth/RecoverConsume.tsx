@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 // StrictMode). Fonctionne aussi dans l'app via Universal Link : c'est le
 // WebView qui navigue, donc le cookie se pose au bon endroit.
 export default function RecoverConsume({ token }: Props) {
+  const t = useT()
   const [failed, setFailed] = useState(false)
   const fired = useRef(false)
 

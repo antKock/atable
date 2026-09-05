@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { useRef, useEffect, useMemo } from "react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import CocotteIllustration from "./CocotteIllustration";
 
 interface PhotoManagerProps {
@@ -25,6 +25,7 @@ export default function PhotoManager({
   onRemove,
   regenerateRequested = false,
 }: PhotoManagerProps) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const previewUrl = useMemo(
     () => (previewFile ? URL.createObjectURL(previewFile) : null),
@@ -124,7 +125,7 @@ export default function PhotoManager({
               {t.actions.addPhoto}
             </div>
             <div className="text-xs text-muted-foreground">
-              ou Mijote en générera une
+              {t.photoManager.orGenerated}
             </div>
           </div>
           <div className="flex-none text-2xl font-light text-muted-foreground">

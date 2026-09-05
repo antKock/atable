@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { getT } from "@/lib/i18n/server";
 
-export default function NotFound() {
+export default async function NotFound() {
+  const t = await getT();
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
-      <p className="text-muted-foreground">Cette page n&apos;existe pas.</p>
+      <p className="text-muted-foreground">{t.notFound.body}</p>
       <Link href="/" className="text-sm text-accent underline underline-offset-4">
-        Retour à l&apos;accueil
+        {t.notFound.backToLanding}
       </Link>
     </div>
   );

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import useSWR from "swr";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { useRecipeSearch } from "@/hooks/useRecipeSearch";
 import { Skeleton } from "@/components/ui/skeleton";
 import FilterBar from "./FilterBar";
@@ -52,6 +52,7 @@ export default function LibraryContent({
   autoFocusSearch = false,
   isGuest = false,
 }: LibraryContentProps) {
+  const t = useT();
   const searchParams = useSearchParams();
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);

@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
-import { ImportUrlSchema } from "@/lib/schemas/import";
+import { buildImportUrlSchema } from "@/lib/schemas/import";
 import { extractRecipeFromUrl, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { memberHouseholdIds } from "@/lib/auth/owner-context";
+import { getT } from "@/lib/i18n/server";
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+  const t = await getT();
   // L'import précède le choix du foyer de destination (dialog à l'enregistrement)
   // : le quota et l'attribution de coût IA se rattachent au premier foyer où
   // l'owner est MEMBRE (un invité — lecture seule — est refusé, Lot 3).
@@ -20,7 +22,7 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
 
   try {
     const body = await request.json();
-    const parsed = ImportUrlSchema.safeParse(body);
+    const parsed = buildImportUrlSchema(t).safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(

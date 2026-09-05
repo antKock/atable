@@ -8,12 +8,13 @@ import {
   requireMember,
   assertNotDemoMutation,
 } from '@/lib/api/with-owner-auth'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
 export const PUT = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT()
     const { id } = await params
 
     // Le foyer visé est celui de l'URL, validé contre les memberships de
@@ -23,7 +24,7 @@ export const PUT = withOwnerAuth(
 
     // Le foyer démo est du contenu partagé : le readOnly de l'UI ne protège
     // rien côté serveur (leçon de l'incident 2026-06 — garde central).
-    const demo = assertNotDemoMutation(owner, id)
+    const demo = await assertNotDemoMutation(owner, id)
     if (demo) return demo
 
     let body: unknown
@@ -58,6 +59,7 @@ export const PUT = withOwnerAuth(
 
 export const DELETE = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT()
     const { id } = await params
 
     // Le foyer visé est celui de l'URL, validé contre les memberships de
@@ -101,7 +103,7 @@ export const DELETE = withOwnerAuth(
       // 2026-06 — démo effacée par ses visiteurs). « Quitter » reste possible.
       if (membership.isDemo) {
         return NextResponse.json(
-          { error: 'Le carnet démo ne peut pas être supprimé.' },
+          { error: t.api.demoNotDeletable },
           { status: 403 },
         )
       }
@@ -119,7 +121,7 @@ export const DELETE = withOwnerAuth(
           .eq('household_id', householdId)
           .eq('role', 'member')
         if (error) {
-          return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+          return NextResponse.json({ error: t.api.leaveFailed }, { status: 500 })
         }
         destroy = (count ?? 0) <= 1
       }
@@ -140,7 +142,7 @@ export const DELETE = withOwnerAuth(
         // Si le repointage échoue, ne PAS lancer la cascade : elle détruirait la
         // session (FK) et déconnecterait à tort un owner multi-foyer.
         if (repointError) {
-          return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
+          return NextResponse.json({ error: t.api.deleteFailed }, { status: 500 })
         }
       }
 
@@ -175,7 +177,7 @@ export const DELETE = withOwnerAuth(
         .delete()
         .eq('id', householdId)
       if (householdError) {
-        return NextResponse.json({ error: 'Failed to delete household' }, { status: 500 })
+        return NextResponse.json({ error: t.api.deleteFailed }, { status: 500 })
       }
     } else {
       // Retrait simple du membership du partant (le foyer et ses autres membres
@@ -186,7 +188,7 @@ export const DELETE = withOwnerAuth(
         .eq('owner_id', ownerId)
         .eq('household_id', householdId)
       if (membershipError) {
-        return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+        return NextResponse.json({ error: t.api.leaveFailed }, { status: 500 })
       }
       // Dernier foyer quitté → on supprime aussi la session de cet appareil
       // (déconnexion). S'il reste des foyers, la session survit : le foyer
@@ -197,7 +199,7 @@ export const DELETE = withOwnerAuth(
           .delete()
           .eq('id', sessionId)
         if (sessionError) {
-          return NextResponse.json({ error: 'Failed to leave household' }, { status: 500 })
+          return NextResponse.json({ error: t.api.leaveFailed }, { status: 500 })
         }
       }
     }

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Check, ArrowRight } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { Button } from "@/components/ui/button";
 import CreateHouseholdForm from "@/components/auth/CreateHouseholdForm";
 import CodeEntryForm from "@/components/auth/CodeEntryForm";
@@ -50,6 +50,7 @@ export default function ShareRecipeActions({
   recipeTitle,
   recipePhotoUrl,
 }: Props) {
+  const t = useT();
   const [flow, setFlow] = useState<Flow>("none");
   const [status, setStatus] = useState<Status>("idle");
 

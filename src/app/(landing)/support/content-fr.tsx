@@ -1,0 +1,256 @@
+import Link from "next/link";
+import type { Metadata } from "next";
+
+export const metadataFr: Metadata = {
+  title: "Support — Mijote",
+  description:
+    "Aide et contact pour l'application Mijote. Comment importer une recette, partager un carnet, supprimer ses données.",
+  alternates: { canonical: "/support" },
+  robots: { index: true, follow: true },
+};
+
+const contactEmail = "kocken.anthony@gmail.com";
+
+function H2({ id, children }: { id: string; children: React.ReactNode }) {
+  return (
+    <h2
+      id={id}
+      className="mt-10 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-foreground"
+    >
+      {children}
+    </h2>
+  );
+}
+
+function P({ children }: { children: React.ReactNode }) {
+  return <p className="my-3 leading-relaxed text-foreground/90">{children}</p>;
+}
+
+function FAQ({
+  question,
+  children,
+}: {
+  question: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <details className="group my-2 rounded-xl border border-foreground/10 bg-background/50 p-4 [&_summary::-webkit-details-marker]:hidden">
+      <summary className="flex cursor-pointer items-center justify-between gap-2 text-base font-medium text-foreground">
+        {question}
+        <span
+          aria-hidden="true"
+          className="text-foreground/40 transition-transform group-open:rotate-45"
+        >
+          +
+        </span>
+      </summary>
+      <div className="mt-3 space-y-2 text-sm leading-relaxed text-foreground/80">
+        {children}
+      </div>
+    </details>
+  );
+}
+
+export default function SupportFr() {
+  return (
+    <main className="mx-auto w-full max-w-3xl px-5 pb-16 pt-6 sm:pt-10">
+      <nav className="mb-6 text-sm">
+        <Link
+          href="/"
+          className="text-foreground/70 hover:text-foreground hover:underline"
+        >
+          ← Retour à l&apos;accueil
+        </Link>
+      </nav>
+
+      <article>
+        <h1 className="text-3xl font-bold tracking-tight text-foreground">
+          Support
+        </h1>
+        <p className="mt-2 text-foreground/70">
+          Une question, un bug, une idée ? La meilleure manière de nous joindre,
+          c&apos;est par e-mail. Réponse sous 2 jours ouvrés en général.
+        </p>
+
+        <H2 id="contact">Nous écrire</H2>
+        <P>
+          Pour toute demande — assistance, signalement de bug, suggestion,
+          exercice de tes droits RGPD :{" "}
+          <a
+            href={`mailto:${contactEmail}?subject=${encodeURIComponent("Support Mijote")}`}
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
+            {contactEmail}
+          </a>
+          .
+        </P>
+        <P>
+          Pour aider au diagnostic, merci d&apos;indiquer dans ton message :
+        </P>
+        <ul className="my-3 list-disc space-y-1 pl-6 text-foreground/90">
+          <li>Le modèle d&apos;appareil (iPhone, navigateur).</li>
+          <li>L&apos;action que tu tentais de faire.</li>
+          <li>Ce que tu vois à l&apos;écran (capture si possible).</li>
+        </ul>
+
+        <H2 id="faq">Questions fréquentes</H2>
+
+        <FAQ question="Comment ajouter une recette ?">
+          <p>
+            Depuis l&apos;écran d&apos;accueil, appuie sur le bouton{" "}
+            <strong>+ Ajouter</strong>. Trois choix :
+          </p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <strong>Photo / capture d&apos;écran</strong> — l&apos;IA extrait
+              le titre, les ingrédients et les étapes.
+            </li>
+            <li>
+              <strong>Dictée vocale</strong> — tu parles, on transcrit et on
+              structure.
+            </li>
+            <li>
+              <strong>Lien URL</strong> — colle l&apos;adresse d&apos;un blog
+              culinaire, on récupère et on met en forme.
+            </li>
+          </ul>
+          <p>
+            La recette apparaît immédiatement ; l&apos;enrichissement (tags,
+            temps, image générée) se fait en tâche de fond.
+          </p>
+        </FAQ>
+
+        <FAQ question="Comment partager mon carnet avec ma famille ?">
+          <p>
+            Ouvre <strong>Carnet &amp; profil</strong> depuis l&apos;accueil, choisis
+            le carnet puis <strong>Inviter quelqu&apos;un</strong>. Deux liens au
+            choix : <strong>membre</strong> (consulte et modifie les recettes) ou{" "}
+            <strong>invité</strong> (lecture seule, en direct). Le{" "}
+            <strong>code d&apos;invitation</strong> (ex. <code>THYME-0421</code>)
+            fonctionne aussi : la personne l&apos;entre sur l&apos;écran
+            d&apos;accueil de l&apos;application.
+          </p>
+          <p>
+            ⚠️ Un lien ou un code fait office de clé d&apos;accès : ne le partage
+            qu&apos;avec des personnes de confiance. Tout membre peut retirer
+            quelqu&apos;un du carnet à tout moment depuis la liste des membres.
+          </p>
+        </FAQ>
+
+        <FAQ question="Comment retrouver mon carnet sur un nouvel appareil ?">
+          <p>
+            Si tu as enregistré un <strong>e-mail de secours</strong> dans ton
+            profil : sur l&apos;écran d&apos;accueil, <strong>Ouvrir un carnet →
+            Récupérer avec mon email</strong>. Tu reçois un lien (ou un code à
+            6 chiffres) valable 15 minutes qui reconnecte tes carnets — sans mot
+            de passe, sans compte.
+          </p>
+          <p>
+            Sinon, demande le <strong>code d&apos;invitation</strong> à un membre
+            du carnet (visible dans <strong>Carnet &amp; profil</strong>). Si tu
+            étais seul·e, sans e-mail de secours ni appareil encore connecté, le
+            carnet ne peut malheureusement plus être récupéré : c&apos;est le
+            revers d&apos;une authentification anonyme. Pense à enregistrer un
+            e-mail de secours — il ne sert qu&apos;à ça.
+          </p>
+        </FAQ>
+
+        <FAQ question="Mon import de recette n'a pas fonctionné, que faire ?">
+          <p>L&apos;import par IA peut échouer dans quelques cas :</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <strong>Photo trop floue ou texte trop petit</strong> —
+              rapproche-toi, prends plusieurs clichés.
+            </li>
+            <li>
+              <strong>Page web protégée</strong> (paywall, JavaScript lourd) —
+              copie le texte de la recette et utilise la saisie manuelle.
+            </li>
+            <li>
+              <strong>Dictée vocale dans un endroit bruyant</strong> —
+              réessaie au calme.
+            </li>
+          </ul>
+          <p>
+            En dernier recours, tu peux créer la recette manuellement
+            depuis le bouton <strong>+ Ajouter → Saisie manuelle</strong>.
+          </p>
+        </FAQ>
+
+        <FAQ question="Comment supprimer mes données ?">
+          <p>Tu as le contrôle total depuis l&apos;application :</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>
+              <strong>Supprimer une recette</strong> : depuis sa page,
+              menu&nbsp;…&nbsp;→ Supprimer.
+            </li>
+            <li>
+              <strong>Quitter le carnet</strong> : retire ton accès à ce carnet.
+              Les recettes restent pour les autres membres.
+            </li>
+            <li>
+              <strong>Retirer ton e-mail de secours ou ton nom</strong> : depuis{" "}
+              <strong>Carnet &amp; profil → Toi</strong>, à tout moment.
+            </li>
+            <li>
+              <strong>Supprimer le carnet</strong> : supprime{" "}
+              <strong>définitivement</strong> l&apos;ensemble des recettes, des
+              tags, des sessions et le carnet lui-même. Action à double
+              confirmation, irréversible.
+            </li>
+          </ul>
+          <p>
+            Pour toute autre demande RGPD (accès, copie, portabilité),
+            contacte-nous par e-mail à l&apos;adresse plus haut.
+          </p>
+        </FAQ>
+
+        <FAQ question="L'application est-elle gratuite ?">
+          <p>
+            Oui. Pas de publicité, pas d&apos;achat intégré, pas
+            d&apos;abonnement. L&apos;application est financée par son éditeur
+            indépendant.
+          </p>
+        </FAQ>
+
+        <FAQ question="Y a-t-il une version web ?">
+          <p>
+            Oui — l&apos;application est avant tout un site web responsive
+            accessible à{" "}
+            <a
+              href="https://mijote.anthonykocken.fr"
+              className="underline underline-offset-2"
+            >
+              mijote.anthonykocken.fr
+            </a>
+            . Tu peux l&apos;utiliser depuis n&apos;importe quel
+            navigateur, et l&apos;ajouter à l&apos;écran d&apos;accueil de
+            ton téléphone (mode PWA).
+          </p>
+        </FAQ>
+
+        <H2 id="legal">Mentions et confidentialité</H2>
+        <P>
+          Politique de confidentialité complète :{" "}
+          <Link
+            href="/legal/confidentialite"
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
+            /legal/confidentialite
+          </Link>
+          .
+        </P>
+        <P>
+          Éditeur : Anthony Kocken, éditeur indépendant. Contact :{" "}
+          <a
+            href={`mailto:${contactEmail}`}
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
+            {contactEmail}
+          </a>
+          .
+        </P>
+      </article>
+    </main>
+  );
+}

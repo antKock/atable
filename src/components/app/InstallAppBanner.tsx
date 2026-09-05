@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, Copy, Smartphone, X } from "lucide-react";
 import { toast } from "sonner";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import MiniStrip from "./MiniStrip";
 
 // Canonical App Store listing for Mijote (id 6772487648).
@@ -24,6 +24,7 @@ type Props = {
 // l'app Mijote », toujours AU-DESSUS du hint principal ; step 2 (après le tap
 // install) = card avec le code du foyer pour le handoff vers la WebView.
 export default function InstallAppBanner({ code }: Props) {
+  const t = useT();
   const [hidden, setHidden] = useState(false);
   const [showCode, setShowCode] = useState(false);
   const [copied, setCopied] = useState(false);

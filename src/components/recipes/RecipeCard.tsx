@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
+import { costLabel } from "@/lib/i18n/labels";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 import { parseDurationMax } from "@/lib/filters";
@@ -40,12 +43,13 @@ export default function RecipeCard({
   variant = "carousel",
   householdName = null,
 }: RecipeCardProps) {
+  const t = useT();
   const isCarousel = variant === "carousel";
   const imageUrl = recipe.photoUrl ?? recipe.generatedImageUrl;
   const duration = formatDuration(recipe.prepTime, recipe.cookTime);
   // Always render the subtitle line with "—" placeholders so cards keep a
   // uniform height — metadata arrives ~20s later via AI enrichment.
-  const subtitle = `${duration ?? "—"} · ${recipe.cost ?? "—"}`;
+  const subtitle = `${duration ?? "—"} · ${costLabel(t, recipe.cost) ?? "—"}`;
 
   return (
     <Link

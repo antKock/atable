@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { CAROUSEL_CATALOG } from "@/lib/carousels/catalog";
+import { buildCarouselCatalog } from "@/lib/carousels/catalog";
+import { getT } from "@/lib/i18n/server";
 import { bucket } from "@/lib/carousels/bucketing";
 import { selectSections } from "@/lib/carousels/selection";
 import type { CarouselRecipeItem, CarouselSection } from "@/lib/carousels/types";
@@ -70,5 +71,5 @@ export async function fetchCarouselSections(
     .order("created_at", { ascending: false });
 
   const recipes = (data ?? []).map(mapRow);
-  return selectSections(bucket(recipes, CAROUSEL_CATALOG));
+  return selectSections(bucket(recipes, buildCarouselCatalog(await getT())));
 }

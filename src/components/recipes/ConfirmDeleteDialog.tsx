@@ -15,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 
 interface ConfirmDeleteDialogProps {
   recipeId: string;
@@ -32,6 +32,7 @@ export default function ConfirmDeleteDialog({
   triggerIconStroke,
   triggerLabel,
 }: ConfirmDeleteDialogProps) {
+  const t = useT();
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const [open, setOpen] = useState(false);

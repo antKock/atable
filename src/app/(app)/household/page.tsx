@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { getOwnerContext, type MembershipRole } from '@/lib/auth/owner-context'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { aliasForOwner } from '@/lib/alias'
+import { getLocale } from '@/lib/i18n/server'
 import { HOME_HIDDEN_FOYERS_COOKIE, parseHiddenFoyers } from '@/lib/home-foyers'
 import HouseholdMenuContent from '@/components/household/HouseholdMenuContent'
 
@@ -18,6 +19,7 @@ type HouseholdRow = {
 
 export default async function HouseholdPage() {
   const owner = await getOwnerContext()
+  const locale = await getLocale()
   if (!owner || owner.memberships.length === 0) redirect('/')
 
   const supabase = createServerClient()
@@ -58,7 +60,7 @@ export default async function HouseholdPage() {
 
   return (
     <HouseholdMenuContent
-      ownerDisplayName={owner.ownerName ?? owner.ownerAlias ?? aliasForOwner(owner.ownerId)}
+      ownerDisplayName={owner.ownerName ?? owner.ownerAlias ?? aliasForOwner(owner.ownerId, locale)}
       households={households}
       isDemo={isDemoOwner(owner)}
       hasRecoveryEmail={owner.recoveryEmail !== null}

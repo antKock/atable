@@ -87,4 +87,52 @@ const { error: recipesError } = await supabase.from('recipes').upsert(
 )
 if (recipesError) throw recipesError
 
+// 4. Foyer démo EN (chantier Version EN, Lot 3) — id aligné sur
+// DEMO_HOUSEHOLD_ID_EN de .env.test.local. Même contrat que le FR.
+const DEMO_EN_ID = env.DEMO_HOUSEHOLD_ID_EN
+if (DEMO_EN_ID) {
+  const { error: enHouseholdError } = await supabase
+    .from('households')
+    .upsert(
+      { id: DEMO_EN_ID, name: 'Mijote Demo', join_code: 'DEMO-0001', guest_join_code: 'DEMOGUEST-0001', is_demo: true },
+      { onConflict: 'id' },
+    )
+  if (enHouseholdError) throw enHouseholdError
+  const seedRecipesEn = [
+    {
+      id: '00000000-0000-0000-0000-0000000ee101',
+      title: 'Red Lentil Soup',
+      ingredients: '250 g red lentils\n1 onion\n2 carrots\n1 liter broth',
+      steps: 'Sauté the onion.\nAdd the carrots and lentils.\nSimmer 25 minutes, then blend.',
+      prep_time: '10-20 min', cook_time: '30 min - 1h', cost: '€', complexity: 'facile',
+      seasons: ['printemps', 'ete', 'automne', 'hiver'],
+    },
+    {
+      id: '00000000-0000-0000-0000-0000000ee102',
+      title: 'Chocolate Mousse',
+      ingredients: '200 g dark chocolate\n6 eggs\n1 pinch of salt',
+      steps: 'Melt the chocolate.\nWhip the egg whites.\nFold together and chill 2 hours.',
+      prep_time: '20-30 min', cook_time: 'Aucune', cost: '€€', complexity: 'moyen',
+      seasons: ['ete'],
+    },
+    {
+      id: '00000000-0000-0000-0000-0000000ee103',
+      title: 'Herb-Roasted Chicken',
+      ingredients: '1 whole chicken\n4 garlic cloves\n1 lemon\nThyme, rosemary',
+      steps: 'Preheat the oven to 200°C.\nRub the chicken with the herbs.\nRoast 1 h 15.',
+      prep_time: '10-20 min', cook_time: '1h - 2h', cost: '€€', complexity: 'facile',
+      seasons: ['automne', 'hiver'],
+    },
+  ]
+  const { error: enRecipesError } = await supabase.from('recipes').upsert(
+    seedRecipesEn.map((r) => ({
+      ...r, household_id: DEMO_EN_ID, is_seed: true, source: 'manual',
+      enrichment_status: 'enriched', image_status: 'none',
+    })),
+    { onConflict: 'id' },
+  )
+  if (enRecipesError) throw enRecipesError
+  console.log(`Seed E2E EN appliqué : foyer démo EN ${DEMO_EN_ID} + ${seedRecipesEn.length} recettes seed`)
+}
+
 console.log(`Seed E2E appliqué : foyer démo ${DEMO_ID} + ${seedRecipes.length} recettes seed`)

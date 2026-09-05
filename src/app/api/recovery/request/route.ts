@@ -5,7 +5,7 @@ import { RecoveryEmailSchema } from '@/lib/schemas/household'
 import { recoveryIpRateLimit, recoveryEmailRateLimit } from '@/lib/redis'
 import { findOwnerByEmail, createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 // Demande de récupération (#14, §4) — route PUBLIQUE (middleware).
 //
@@ -14,6 +14,7 @@ import { t } from '@/lib/i18n/fr'
 // connu » (DB, envoi) répond 200 : un 500 réservé aux adresses existantes
 // serait un oracle. Les erreurs partent dans Sentry, pas dans la réponse.
 export async function POST(request: NextRequest) {
+  const t = await getT()
   try {
     let body: unknown
     try {
@@ -67,6 +68,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     Sentry.captureException(err)
     console.error('[recovery/request] caught error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: t.api.serverError }, { status: 500 })
   }
 }

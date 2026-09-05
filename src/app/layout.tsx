@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, DM_Mono } from "next/font/google";
-import { t } from "@/lib/i18n/fr";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { LOCALE_TAGS, readI18nFlags } from "@/lib/i18n/locale";
+import { LocalePreviewSwitch, LocaleProvider } from "@/lib/i18n/client";
 import SWRProvider from "@/components/providers/SWRProvider";
 import VersionWatcher from "@/components/VersionWatcher";
 import DeepLinkHandler from "@/components/DeepLinkHandler";
@@ -32,44 +34,56 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://mijote.anthonykocken.fr"),
-  title: t.appName,
-  description: "Tes recettes, réunies comme par magie",
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Mijote",
-  },
-  icons: {
-    icon: "/icons/icon-192.png",
-    shortcut: "/icons/icon-192.png",
-    apple: "/icons/icon-192.png",
-  },
-  openGraph: {
+// Locale-aware (chantier « Version EN ») : lit Accept-Language / cookie de
+// prévisualisation via getLocale() — voir docs/specs/i18n/00-socle.md.
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  const t = await getT();
+  const description = t.landing.tagline + ", " + t.landing.subtitle.toLowerCase();
+  return {
+    metadataBase: new URL("https://mijote.anthonykocken.fr"),
     title: t.appName,
-    description: "Tes recettes, réunies comme par magie",
-    siteName: t.appName,
-    locale: "fr_FR",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
-};
+    description,
+    manifest: "/manifest.webmanifest",
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: "Mijote",
+    },
+    icons: {
+      icon: "/icons/icon-192.png",
+      shortcut: "/icons/icon-192.png",
+      apple: "/icons/icon-192.png",
+    },
+    openGraph: {
+      title: t.appName,
+      description,
+      siteName: t.appName,
+      locale: LOCALE_TAGS[locale].replace("-", "_"),
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+    },
+  };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
+  const { previewEnabled } = readI18nFlags();
   return (
-    <html lang="fr">
+    <html lang={locale}>
       <body className={`${inter.variable} ${fraunces.variable} ${dmMono.variable} font-sans antialiased`}>
-        <VersionWatcher />
-        <DeepLinkHandler />
-        <SWRProvider>{children}</SWRProvider>
+        <LocaleProvider locale={locale}>
+          {previewEnabled && <LocalePreviewSwitch />}
+          <VersionWatcher />
+          <DeepLinkHandler />
+          <SWRProvider>{children}</SWRProvider>
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { t } from "@/lib/i18n/fr";
+import { useLocale, useT } from "@/lib/i18n/client";
 
 // Last-resort boundary: catches errors thrown by the root layout itself,
 // where app/error.tsx can't render. Replaces <html>/<body>, so styles are
@@ -14,13 +14,15 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useT();
+  const locale = useLocale();
   useEffect(() => {
     Sentry.captureException(error);
     console.error(error);
   }, [error]);
 
   return (
-    <html lang="fr">
+    <html lang={locale}>
       <body
         style={{
           display: "flex",

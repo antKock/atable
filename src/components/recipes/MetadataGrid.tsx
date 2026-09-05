@@ -1,6 +1,7 @@
 "use client";
 
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
+import { complexityLabel, cookTimeLabel, costLabel } from "@/lib/i18n/labels";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface MetadataGridProps {
@@ -30,6 +31,7 @@ export default function MetadataGrid({
   complexity,
   isLoading,
 }: MetadataGridProps) {
+  const t = useT();
   return (
     <div
       className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-4 gap-y-3 rounded-lg px-4 py-3"
@@ -44,11 +46,11 @@ export default function MetadataGrid({
       <span className="text-xs font-medium text-muted-foreground">{t.metadata.prepTime}</span>
       <MetadataValue value={prepTime} isLoading={isLoading} />
       <span className="text-xs font-medium text-muted-foreground">{t.metadata.cookTime}</span>
-      <MetadataValue value={cookTime} isLoading={isLoading} />
+      <MetadataValue value={cookTimeLabel(t, cookTime)} isLoading={isLoading} />
       <span className="text-xs font-medium text-muted-foreground">{t.metadata.cost}</span>
-      <MetadataValue value={cost} isLoading={isLoading} />
+      <MetadataValue value={costLabel(t, cost)} isLoading={isLoading} />
       <span className="text-xs font-medium text-muted-foreground">{t.metadata.complexity}</span>
-      <MetadataValue value={complexity} isLoading={isLoading} />
+      <MetadataValue value={complexityLabel(t, complexity)} isLoading={isLoading} />
     </div>
   );
 }

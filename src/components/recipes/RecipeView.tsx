@@ -1,6 +1,9 @@
+"use client";
+
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
+import { tagLabel } from "@/lib/i18n/labels";
 import { Skeleton } from "@/components/ui/skeleton";
 import Chip from "@/components/recipes/Chip";
 import MetadataGrid from "@/components/recipes/MetadataGrid";
@@ -69,6 +72,7 @@ type Props = {
 // tags). Pure rendering — no data fetching, polling, or view tracking; the
 // caller wraps it with whatever behavior it needs.
 export default function RecipeView({ recipe, householdName, heroOverlay }: Props) {
+  const t = useT();
   const ingredientSections = parseSections(recipe.ingredients);
   const stepSections = parseSections(recipe.steps);
 
@@ -243,7 +247,7 @@ export default function RecipeView({ recipe, householdName, heroOverlay }: Props
             ) : (
               <>
                 {recipe.tags.map((tag) => (
-                  <Chip key={tag.id || tag.name} label={tag.name} />
+                  <Chip key={tag.id || tag.name} label={tagLabel(t, tag.name)} />
                 ))}
                 {recipe.seasons?.map((season) => (
                   <Chip

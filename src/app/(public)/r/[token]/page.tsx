@@ -7,6 +7,8 @@ import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import { resolveOwnerContext, householdIds } from "@/lib/auth/owner-context";
 import RecipeView from "@/components/recipes/RecipeView";
+import { getT } from "@/lib/i18n/server";
+import { tagLabel } from "@/lib/i18n/labels";
 import InAppBackButton from "@/components/recipes/InAppBackButton";
 import ShareRecipeActions, {
   type ViewerState,
@@ -37,10 +39,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) return {};
 
   const { recipe } = result;
+  const t = await getT();
   const description =
     recipe.tags.length > 0
-      ? recipe.tags.map((tag) => tag.name).join(", ")
-      : "Une recette sur Mijote";
+      ? recipe.tags.map((tag) => tagLabel(t, tag.name)).join(", ")
+      : t.share.ogFallback;
   const image = recipe.photoUrl ?? recipe.generatedImageUrl;
 
   return {

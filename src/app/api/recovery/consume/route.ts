@@ -10,7 +10,7 @@ import {
 import { resolveOwnerContext } from '@/lib/auth/owner-context'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, verifySession, setSessionCookie } from '@/lib/auth/session'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 // Alphabet share-token, longueur défensive large : le vrai filtre est le hash.
 const TOKEN_REGEX = /^[2-9A-HJ-NP-Za-km-np-z]{8,64}$/
@@ -25,6 +25,7 @@ const TOKEN_REGEX = /^[2-9A-HJ-NP-Za-km-np-z]{8,64}$/
 //     cible → fusion, cookie intact (sid repointé). Sans session source
 //     (mail ouvert ailleurs, session démo) : simple reconnexion à la cible.
 export async function POST(request: NextRequest) {
+  const t = await getT()
   try {
     let body: unknown
     try {
@@ -84,6 +85,6 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     Sentry.captureException(err)
     console.error('[recovery/consume] caught error:', err)
-    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+    return NextResponse.json({ error: t.api.serverError }, { status: 500 })
   }
 }

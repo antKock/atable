@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Eye } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 
@@ -15,6 +15,7 @@ type Props = {
 }
 
 export default function JoinConfirmation({ householdName, joinCode, role = 'member' }: Props) {
+  const t = useT()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

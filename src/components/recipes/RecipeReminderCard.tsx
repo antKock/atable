@@ -1,4 +1,6 @@
-import { t } from "@/lib/i18n/fr";
+"use client";
+
+import { useT } from "@/lib/i18n/client";
 import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 
 type Props = {
@@ -11,6 +13,7 @@ type Props = {
 // of the recipe being saved, placed above the title on the create/join-foyer
 // screens so the guest keeps context while signing up.
 export default function RecipeReminderCard({ recipeId, title, photoUrl }: Props) {
+  const t = useT();
   return (
     <div
       className="flex items-center gap-3 rounded-[14px] bg-white p-2.5"

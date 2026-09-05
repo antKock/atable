@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Eye, LogOut, UserCog } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { haptics } from '@/lib/haptics'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,7 @@ type Props = {
 // le rôle (membre ⇄ invité) et retirer du foyer. Les règles serveur (membre
 // only, dernier membre, self, démo) sont dans l'API — ici on route les 4xx.
 export default function MemberActionDialog({ householdId, member, onClose }: Props) {
+  const t = useT()
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   // À chaque ouverture (nouveau membre), on repart d'un état neuf. Sans ce reset,

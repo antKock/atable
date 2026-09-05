@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { usePhotoUpload } from "@/hooks/usePhotoUpload";
 import { maybeRequestReview } from "@/lib/review";
 import { notifyShareExtensionDone } from "@/lib/share-extension";
@@ -24,18 +24,14 @@ export type MemberFoyer = { id: string; name: string; recipeCount: number };
 
 const PREP_TIME_OPTIONS = ["< 10 min", "10-20 min", "20-30 min", "30-45 min", "> 45 min"];
 const COOK_TIME_OPTIONS = ["Aucune", "< 15 min", "15-30 min", "30 min - 1h", "1h - 2h", "> 2h"];
-const COST_OPTIONS = [
-  { value: "€", label: "€" },
-  { value: "€€", label: "€€" },
-  { value: "€€€", label: "€€€" },
-];
+// Valeurs stockées ; libellés résolus au rendu via t.cost (en-US : $ / $$ / $$$)
+const COST_VALUES = [
+  { value: "€", key: "low" },
+  { value: "€€", key: "medium" },
+  { value: "€€€", key: "high" },
+] as const;
 const COMPLEXITY_OPTIONS = ["facile", "moyen", "difficile"];
-const SEASON_OPTIONS = [
-  { value: "printemps", label: "Printemps" },
-  { value: "ete", label: "Été" },
-  { value: "automne", label: "Automne" },
-  { value: "hiver", label: "Hiver" },
-];
+const SEASON_VALUES = ["printemps", "ete", "automne", "hiver"] as const;
 
 // Bornes alignées sur le CHECK de la colonne servings (migration 022). Champ
 // vide par défaut : le premier clic sur +/− démarre à 2 (spec #12).
@@ -213,17 +209,18 @@ function FieldLabel({
   hint?: string;
   htmlFor?: string;
 }) {
+  const t = useT();
   const inner = (
     <>
       {children}
       {required && (
         <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-          requis
+          {t.form.required}
         </span>
       )}
       {optional && (
         <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-          optionnel
+          {t.form.optional}
         </span>
       )}
     </>
@@ -255,6 +252,7 @@ function ServingsStepper({
   value: number | null;
   onChange: (value: number | null) => void;
 }) {
+  const t = useT();
   const clamp = (v: number) => Math.min(SERVINGS_MAX, Math.max(SERVINGS_MIN, v));
   const step = (delta: number) =>
     onChange(value === null ? SERVINGS_FIRST_CLICK : clamp(value + delta));
@@ -302,6 +300,7 @@ function ServingsStepper({
 }
 
 export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension, memberFoyers = [] }: RecipeFormProps) {
+  const t = useT();
   const router = useRouter();
   const { mutate } = useSWRConfig();
   const isEdit = mode === "edit";
@@ -452,7 +451,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col">
       {/* ===== ACT 1 — L'essentiel ===== */}
-      <ActLabel>L&apos;essentiel</ActLabel>
+      <ActLabel>{t.form.essentials}</ActLabel>
 
       {/* Title */}
       <div className="mb-6">
@@ -521,7 +520,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       </div>
 
       {/* ===== ACT 2 — Les détails ===== */}
-      <ActLabel hint="Mijote complète si tu laisses vide">Les détails</ActLabel>
+      <ActLabel hint={t.form.detailsHint}>{t.form.details}</ActLabel>
 
       {/* Photo — hidden inside the Share Extension: its WebView is torn down on
           save (postMessage "done"), which would kill an in-flight photo upload.
@@ -556,7 +555,10 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       <div className="mb-6">
         <FieldLabel>{t.metadata.cookTime}</FieldLabel>
         <ChipSelector
-          options={COOK_TIME_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
+          options={COOK_TIME_OPTIONS.map((opt) => ({
+            value: opt,
+            label: opt === "Aucune" ? t.form.cookTimeNone : opt,
+          }))}
           selected={form.cookTime ?? ""}
           onChange={(v) => dispatch({ type: "setMetadata", field: "cookTime", value: (v as string) || null })}
           mode="single"
@@ -568,7 +570,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       <div className="mb-6">
         <FieldLabel>{t.metadata.cost}</FieldLabel>
         <ChipSelector
-          options={COST_OPTIONS}
+          options={COST_VALUES.map((opt) => ({ value: opt.value, label: t.cost[opt.key] }))}
           selected={form.cost ?? ""}
           onChange={(v) => dispatch({ type: "setMetadata", field: "cost", value: (v as string) || null })}
           mode="single"
@@ -605,7 +607,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
       <div className="mb-6">
         <FieldLabel>{t.metadata.seasons}</FieldLabel>
         <ChipSelector
-          options={SEASON_OPTIONS}
+          options={SEASON_VALUES.map((value) => ({ value, label: t.seasons[value] }))}
           selected={form.seasons}
           onChange={(v) => dispatch({ type: "setSeasons", seasons: v as string[] })}
           mode="multi"

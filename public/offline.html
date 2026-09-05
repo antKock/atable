@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" id="root">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
@@ -42,12 +42,26 @@
   <body>
     <main>
       <div class="logo" aria-hidden="true">🍽️</div>
-      <h1>Pas de connexion</h1>
-      <p>
+      <h1 id="title">Pas de connexion</h1>
+      <p id="body">
         Mijote a besoin d&rsquo;une connexion internet pour charger tes
         recettes. Vérifie ta connexion et réessaie.
       </p>
-      <button type="button" onclick="location.reload()">Réessayer</button>
+      <button type="button" id="retry" onclick="location.reload()">Réessayer</button>
     </main>
+    <script>
+      // Page servie localement par Capacitor (server.errorPath), donc sans
+      // Accept-Language : la langue suit celle de l'appareil, comme l'app.
+      (function () {
+        var lang = (navigator.language || "fr").toLowerCase();
+        if (lang.indexOf("fr") === 0) return;
+        document.getElementById("root").lang = "en";
+        document.title = "Offline \u2014 Mijote";
+        document.getElementById("title").textContent = "No connection";
+        document.getElementById("body").textContent =
+          "Mijote needs an internet connection to load your recipes. Check your connection and try again.";
+        document.getElementById("retry").textContent = "Try again";
+      })();
+    </script>
   </body>
 </html>

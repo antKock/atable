@@ -6,7 +6,7 @@ import {
   memberHouseholdIds,
   type OwnerContext,
 } from "@/lib/auth/owner-context";
-import { t } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 
 /**
  * Guard des routes API à contexte owner (chantier foyer #14 + #15) : résout la
@@ -35,7 +35,8 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
         `[api] ${request.method} ${new URL(request.url).pathname}:`,
         err,
       );
-      return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+      const t = await getT();
+      return NextResponse.json({ error: t.api.serverError }, { status: 500 });
     }
   };
 }
@@ -65,10 +66,10 @@ export function requireMember(
  *     le dialog de choix aurait dû fournir le foyer.
  * Retourne `{ householdId }` OU la réponse d'erreur à renvoyer.
  */
-export function resolveWriteHousehold(
+export async function resolveWriteHousehold(
   owner: OwnerContext,
   requested?: unknown,
-): { householdId: string } | NextResponse {
+): Promise<{ householdId: string } | NextResponse> {
   const memberIds = memberHouseholdIds(owner);
   if (typeof requested === "string" && requested.length > 0) {
     if (!memberIds.includes(requested)) {
@@ -80,6 +81,7 @@ export function resolveWriteHousehold(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
   if (memberIds.length > 1) {
+    const t = await getT();
     return NextResponse.json({ error: t.household.picker.required }, { status: 422 });
   }
   return { householdId: memberIds[0] };
@@ -91,13 +93,14 @@ export function resolveWriteHousehold(
  * branché sur les routes au fil des lots. Leçon de l'incident 2026-06 (démo
  * supprimée par ses visiteurs) : garde-fous serveur centralisés, pas éparpillés.
  */
-export function assertNotDemoMutation(
+export async function assertNotDemoMutation(
   owner: OwnerContext,
   householdId: string,
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const membership = owner.memberships.find((m) => m.householdId === householdId);
   if (membership?.isDemo) {
     trackStat("demo_frozen_hits");
+    const t = await getT();
     return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
   }
   return null;
@@ -109,14 +112,15 @@ export function assertNotDemoMutation(
  * de suppression, de déplacement ni de photo. Les recettes ajoutées par les
  * visiteurs restent libres (purgées par le cron). 403 « monde gelé ».
  */
-export function assertNotDemoSeedMutation(
+export async function assertNotDemoSeedMutation(
   owner: OwnerContext,
   recipe: { household_id: string; is_seed?: boolean | null },
-): NextResponse | null {
+): Promise<NextResponse | null> {
   if (!recipe.is_seed) return null;
   const membership = owner.memberships.find((m) => m.householdId === recipe.household_id);
   if (!membership?.isDemo) return null;
   trackStat("demo_frozen_hits");
+  const t = await getT();
   return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
 }
 
@@ -130,9 +134,10 @@ export function isDemoOwner(owner: OwnerContext): boolean {
   return owner.memberships.some((m) => m.isDemo);
 }
 
-export function assertNotDemoOwner(owner: OwnerContext): NextResponse | null {
+export async function assertNotDemoOwner(owner: OwnerContext): Promise<NextResponse | null> {
   if (isDemoOwner(owner)) {
     trackStat("demo_frozen_hits");
+    const t = await getT();
     return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
   }
   return null;

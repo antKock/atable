@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
+import { getT } from "@/lib/i18n/server";
 
 // Stay under Vercel's 4.5 MB function body limit; the client resizes photos
 // to ~150-300 KB WebP before upload, so this only guards the raw-file fallback.
@@ -23,16 +24,17 @@ type RouteContext = { params: Promise<{ id: string }> };
 // household, never from client input.
 export const POST = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
+    const t = await getT();
     const { id } = await params;
     const formData = await request.formData();
     const photo = formData.get("photo");
 
     if (!photo || !(photo instanceof File)) {
-      return NextResponse.json({ error: "Photo requise" }, { status: 400 });
+      return NextResponse.json({ error: t.api.photoRequired }, { status: 400 });
     }
     if (photo.size > MAX_PHOTO_BYTES) {
       return NextResponse.json(
-        { error: "Photo trop volumineuse (max 4 Mo)" },
+        { error: t.api.photoTooLarge },
         { status: 400 }
       );
     }
@@ -40,7 +42,7 @@ export const POST = withOwnerAuth(
     const ext = EXT_BY_MIME[mime];
     if (!ext) {
       return NextResponse.json(
-        { error: "Format d'image non supporté" },
+        { error: t.api.imageFormatUnsupported },
         { status: 400 }
       );
     }
@@ -58,12 +60,12 @@ export const POST = withOwnerAuth(
       .single();
 
     if (!existing) {
-      return NextResponse.json({ error: "Recipe not found" }, { status: 404 });
+      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
 
     const forbidden = requireMember(owner, existing.household_id);
     if (forbidden) return forbidden;
-    const frozen = assertNotDemoSeedMutation(owner, existing);
+    const frozen = await assertNotDemoSeedMutation(owner, existing);
     if (frozen) return frozen;
     const householdId = existing.household_id;
 

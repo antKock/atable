@@ -89,7 +89,7 @@ export type AiCostRecord = {
 export async function recordAiCost(rec: AiCostRecord): Promise<void> {
   try {
     const supabase = createServerClient();
-    const { error } = await supabase.from("ai_costs").insert({
+    const row = {
       household_id: rec.householdId,
       recipe_id: rec.recipeId ?? null,
       call_type: rec.callType,
@@ -97,7 +97,16 @@ export async function recordAiCost(rec: AiCostRecord): Promise<void> {
       input_tokens: rec.inputTokens ?? null,
       output_tokens: rec.outputTokens ?? null,
       cost_usd: rec.costUsd,
-    });
+    };
+    let { error } = await supabase.from("ai_costs").insert(row);
+    // Enrichment runs after the response (`after()`), so the user may have
+    // deleted the recipe before its image finished generating. The cost is
+    // still real: keep the row, just drop the dangling recipe_id (23503 =
+    // foreign_key_violation) instead of losing it and paging Sentry.
+    if (error?.code === "23503" && row.recipe_id) {
+      console.warn("[ai-cost] recipe gone before cost recorded — keeping row without recipe_id");
+      ({ error } = await supabase.from("ai_costs").insert({ ...row, recipe_id: null }));
+    }
     if (error) throw new Error(error.message);
   } catch (err) {
     Sentry.captureException(err);

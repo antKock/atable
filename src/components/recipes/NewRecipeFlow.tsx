@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import ImportSelector from "./ImportSelector";
 import RecipeForm, { type MemberFoyer } from "./RecipeForm";
 import type { ImportedRecipeData } from "@/lib/import";
@@ -12,6 +12,7 @@ import type { RecipeSource } from "@/lib/schemas/recipe";
 type View = "intent" | "form";
 
 export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: MemberFoyer[] }) {
+  const t = useT();
   const router = useRouter();
   const searchParams = useSearchParams();
   // The form step is a real history entry (?view=form, pushed in openForm) so

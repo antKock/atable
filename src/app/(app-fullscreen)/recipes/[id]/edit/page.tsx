@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { getOwnerContext, householdIds, roleForHousehold } from "@/lib/auth/owner-context";
-import { t } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import RecipeForm from "@/components/recipes/RecipeForm";
 
 type Props = {
@@ -14,6 +14,7 @@ type Props = {
 };
 
 export default async function EditRecipePage({ params }: Props) {
+  const t = await getT();
   const { id } = await params;
 
   // Multi-foyer (Lot 4) : la recette est cherchée dans l'union des foyers de

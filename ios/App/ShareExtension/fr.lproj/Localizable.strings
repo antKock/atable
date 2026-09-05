@@ -1,0 +1,6 @@
+/* Share Extension — chaînes visibles (chantier Version EN, Lot 4). */
+"share.title" = "Importer dans Mijote";
+"share.noLink" = "Aucun lien à importer n'a été trouvé.";
+"share.notSignedIn" = "Ouvre Mijote et connecte-toi d'abord, puis réessaie.";
+"share.badSession" = "Session illisible.";
+"share.badLink" = "Lien invalide.";

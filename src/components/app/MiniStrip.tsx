@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { X } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 
 type Props = {
   icon: ReactNode
@@ -16,6 +16,7 @@ type Props = {
 // install et la bannière démo. Purement présentationnel — le gating (cookies,
 // audience) vit dans le layout serveur.
 export default function MiniStrip({ icon, label, action, onDismiss }: Props) {
+  const t = useT()
   return (
     <div
       className="flex h-10 items-center gap-2.5 rounded-[10px] bg-surface pl-3 pr-1"

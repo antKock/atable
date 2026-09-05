@@ -4,9 +4,7 @@ import {
   withOwnerAuth,
   requireMember,
   assertNotDemoMutation,
-  assertNotDemoSeedMutation,
-  resolveWriteHousehold,
-} from "./with-owner-auth";
+  resolveWriteHousehold, assertNotDemoSeedMutation } from "./with-owner-auth";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { t } from "@/lib/i18n/fr";
 
@@ -96,17 +94,17 @@ describe("assertNotDemoMutation", () => {
     const ctx = ownerContext({
       memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
     });
-    const res = assertNotDemoMutation(ctx, "hh-demo");
+    const res = await assertNotDemoMutation(ctx, "hh-demo");
     expect(res?.status).toBe(403);
     expect(await res!.json()).toEqual({ error: t.demo.frozen });
   });
 
-  it("null (OK) pour un foyer normal", () => {
-    expect(assertNotDemoMutation(ownerContext(), "household-1")).toBeNull();
+  it("null (OK) pour un foyer normal", async () => {
+    expect(await assertNotDemoMutation(ownerContext(), "household-1")).toBeNull();
   });
 
-  it("null sans membership (requireMember porte ce cas)", () => {
-    expect(assertNotDemoMutation(ownerContext(), "household-other")).toBeNull();
+  it("null sans membership (requireMember porte ce cas)", async () => {
+    expect(await assertNotDemoMutation(ownerContext(), "household-other")).toBeNull();
   });
 });
 
@@ -115,15 +113,15 @@ describe("assertNotDemoSeedMutation (incident démo 2026-09)", () => {
     memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
   });
   it("403 sur une recette seed du foyer démo", async () => {
-    const res = assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: true });
+    const res = await assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: true });
     expect(res?.status).toBe(403);
     expect(await res!.json()).toEqual({ error: t.demo.frozen });
   });
-  it("null pour une recette ajoutée par le visiteur démo (non seed)", () => {
-    expect(assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: false })).toBeNull();
+  it("null pour une recette ajoutée par le visiteur démo (non seed)", async () => {
+    expect(await assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: false })).toBeNull();
   });
-  it("null pour une recette seed hors démo (flag vestigial)", () => {
-    expect(assertNotDemoSeedMutation(ownerContext(), { household_id: "household-1", is_seed: true })).toBeNull();
+  it("null pour une recette seed hors démo (flag vestigial)", async () => {
+    expect(await assertNotDemoSeedMutation(ownerContext(), { household_id: "household-1", is_seed: true })).toBeNull();
   });
 });
 
@@ -136,36 +134,36 @@ describe("resolveWriteHousehold (fallback householdId, Lot 4)", () => {
     ],
   });
 
-  it("foyer explicite membre → retenu", () => {
-    expect(resolveWriteHousehold(multi, "B")).toEqual({ householdId: "B" });
+  it("foyer explicite membre → retenu", async () => {
+    expect(await resolveWriteHousehold(multi, "B")).toEqual({ householdId: "B" });
   });
 
-  it("foyer explicite où l'owner n'est PAS membre (invité) → 403", () => {
-    const res = resolveWriteHousehold(multi, "C");
+  it("foyer explicite où l'owner n'est PAS membre (invité) → 403", async () => {
+    const res = await resolveWriteHousehold(multi, "C");
     expect(res).toBeInstanceOf(NextResponse);
     expect((res as NextResponse).status).toBe(403);
   });
 
-  it("foyer explicite inconnu → 403", () => {
-    expect((resolveWriteHousehold(multi, "Z") as NextResponse).status).toBe(403);
+  it("foyer explicite inconnu → 403", async () => {
+    expect(((await resolveWriteHousehold(multi, "Z")) as NextResponse).status).toBe(403);
   });
 
-  it("absent + mono-foyer membre → repli sur l'unique foyer", () => {
-    expect(resolveWriteHousehold(ownerContext(), undefined)).toEqual({
+  it("absent + mono-foyer membre → repli sur l'unique foyer", async () => {
+    expect(await resolveWriteHousehold(ownerContext(), undefined)).toEqual({
       householdId: "household-1",
     });
   });
 
-  it("absent + plusieurs foyers membres → 422 (choix requis)", () => {
-    const res = resolveWriteHousehold(multi, undefined);
+  it("absent + plusieurs foyers membres → 422 (choix requis)", async () => {
+    const res = await resolveWriteHousehold(multi, undefined);
     expect(res).toBeInstanceOf(NextResponse);
     expect((res as NextResponse).status).toBe(422);
   });
 
-  it("absent + aucun foyer membre (invité partout) → 403", () => {
+  it("absent + aucun foyer membre (invité partout) → 403", async () => {
     const guest = ownerContext({
       memberships: [{ householdId: "C", role: "guest", isDemo: false }],
     });
-    expect((resolveWriteHousehold(guest, undefined) as NextResponse).status).toBe(403);
+    expect(((await resolveWriteHousehold(guest, undefined)) as NextResponse).status).toBe(403);
   });
 });

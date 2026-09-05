@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { resolveInviteCode } from '@/lib/auth/invite-code'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 import JoinConfirmation from '@/components/auth/JoinConfirmation'
 
 const CODE_REGEX = /^[A-Z]+-\d{4}$/
@@ -44,7 +44,8 @@ export default async function JoinPage({ params }: Props) {
   )
 }
 
-function ErrorState() {
+async function ErrorState() {
+  const t = await getT()
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-4 px-6 text-center">
       <p className="text-base text-foreground">{t.joinLink.notFound}</p>

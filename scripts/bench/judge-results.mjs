@@ -62,7 +62,7 @@ async function judge(caseLabel, sourceDescription, source, candidates, rubric) {
     const h = (s) => [...(caseLabel + s)].reduce((acc, c) => (acc * 31 + c.charCodeAt(0)) >>> 0, 7);
     return h(a.model) - h(b.model);
   });
-  const letters = ["A", "B", "C", "D"];
+  const letters = ["A", "B", "C", "D", "E", "F", "G", "H"];
   const mapping = Object.fromEntries(shuffled.map((c, i) => [letters[i], c.model]));
   const blocks = shuffled
     .map((c, i) => `--- Candidat ${letters[i]} ---\n${JSON.stringify(c.output, null, 1)}`)
@@ -122,6 +122,11 @@ Termine par un classement du meilleur au moins bon (les ex æquo sont autorisés
   if (!res.ok) return { caseLabel, error: json?.error?.message ?? res.status };
   const parsed = JSON.parse(json.choices[0].message.content);
   return { caseLabel, mapping, ...parsed };
+}
+
+/** Le juge renvoie tantôt « D », tantôt « Candidat D » — on ne garde que la lettre. */
+function letterOf(raw) {
+  return String(raw ?? "").trim().match(/([A-H])\s*$/)?.[1] ?? null;
 }
 
 function collect(task, label) {
@@ -196,21 +201,21 @@ for (const [task, list] of Object.entries(judgements)) {
   for (const j of list) {
     if (j.error) continue;
     for (const s of j.scores) {
-      const model = j.mapping[s.candidate];
+      const model = j.mapping[letterOf(s.candidate)];
       if (!model) continue;
       byModel[model] ??= { total: 0, n: 0, wins: 0 };
       byModel[model].total += s.completeness + s.fidelity + s.format;
       byModel[model].n++;
-      if (j.mapping[j.ranking[0]] === model) byModel[model].wins += 1 / j.scores.length * j.scores.length;
+      if (j.mapping[letterOf(j.ranking[0])] === model) byModel[model].wins += 1 / j.scores.length * j.scores.length;
     }
-    const winner = j.mapping[j.ranking[0]];
+    const winner = j.mapping[letterOf(j.ranking[0])];
     if (winner && byModel[winner]) byModel[winner].wins = (byModel[winner].wins ?? 0);
   }
   // wins recompté proprement :
   for (const m of Object.keys(byModel)) byModel[m].wins = 0;
   for (const j of list) {
     if (j.error) continue;
-    const winner = j.mapping[j.ranking?.[0]];
+    const winner = j.mapping[letterOf(j.ranking?.[0])];
     if (winner && byModel[winner]) byModel[winner].wins++;
   }
   console.log(`  ${task}:`);

@@ -25,6 +25,18 @@ if (!OPENAI_KEY) {
   console.error("OPENAI_SERVICE_KEY introuvable dans .env.local");
   process.exit(1);
 }
+const GEMINI_KEY = envFile.match(/^GEMINI_API_KEY=(.+)$/m)?.[1]?.trim();
+if (!GEMINI_KEY) {
+  console.error("GEMINI_API_KEY introuvable dans .env.local");
+  process.exit(1);
+}
+
+// Provider déduit du nom du modèle : « gemini-* » → Google, sinon OpenAI.
+// (Les noms restent bruts dans results.json pour que judge-results.mjs et les
+// mappings aveugles A/B/C… continuent de fonctionner sans changement.)
+function providerOf(model) {
+  return model.startsWith("gemini") ? "google" : "openai";
+}
 
 // ---------- Tarifs (USD / 1M tokens ; transcription : USD / minute) ----------
 const TOKEN_PRICING = {
@@ -33,6 +45,12 @@ const TOKEN_PRICING = {
   "gpt-5.6-luna": { input: 0.2, output: 1.2 },
   "gpt-5.6-terra": { input: 2, output: 12 },
   "gpt-5-nano": { input: 0.05, output: 0.4 },
+  // Google — grille payante au 2026-09-03. Les modèles à fourchette sont
+  // facturés au tarif bas sous 200k tokens de prompt : nos cas y sont tous.
+  "gemini-3.1-flash-lite": { input: 0.25, output: 1.5 },
+  "gemini-3.5-flash-lite": { input: 0.3, output: 2.5 },
+  "gemini-3.8-flash": { input: 0.75, output: 3.75 },
+  "gemini-3.5-transcribe": { input: 2, output: 12 },
 };
 const TRANSCRIBE_PRICING_PER_MIN = {
   "whisper-1": 0.006,
@@ -40,9 +58,26 @@ const TRANSCRIBE_PRICING_PER_MIN = {
   "gpt-4o-mini-transcribe": 0.003,
 };
 
-const TEXT_MODELS = ["gpt-4o-mini", "gpt-5.6-luna", "gpt-5-nano"];
-const OCR_MODELS = ["gpt-4o", "gpt-5.6-luna"];
-const TRANSCRIBE_MODELS = ["whisper-1", "gpt-4o-mini-transcribe", "gpt-4o-transcribe"];
+// Round 5 (2026-09-03) : on compare la stack OpenAI en prod aux candidats
+// Google. Côté Google on retient les deux paliers « lite » (les seuls dont le
+// prix au token approche gpt-5.6-luna) plus un flash haut de gamme comme
+// plafond de qualité.
+const TEXT_MODELS = [
+  "gpt-5.6-luna", // en prod
+  "gemini-3.1-flash-lite",
+  "gemini-3.5-flash-lite",
+  "gemini-3.8-flash",
+];
+const OCR_MODELS = [
+  "gpt-4o", // en prod
+  "gemini-3.1-flash-lite",
+  "gemini-3.5-flash-lite",
+  "gemini-3.8-flash",
+];
+const TRANSCRIBE_MODELS = [
+  "gpt-4o-mini-transcribe", // en prod
+  "gemini-3.5-transcribe",
+];
 
 // ---------- Prompts & schémas (copie de src/lib/import.ts / enrichment.ts) ----------
 const VALID_SEASONS = ["printemps", "ete", "automne", "hiver"];
@@ -241,7 +276,178 @@ async function postJson(url, body) {
   return { ok: res.ok, status: res.status, json, ms };
 }
 
-async function callChat(model, messages, jsonSchema, label) {
+// ---------- Google Gemini ----------
+
+// Le responseSchema de Gemini est un sous-ensemble du JSON Schema d'OpenAI :
+// pas de `additionalProperties`, pas de type union — un champ nullable se
+// déclare avec `nullable: true`, et un enum nullable ne doit pas porter `null`
+// dans sa liste de valeurs. `propertyOrdering` fige l'ordre des clés (Gemini le
+// recommande pour la stabilité des sorties).
+function toGeminiSchema(node) {
+  if (Array.isArray(node)) return node.map(toGeminiSchema);
+  if (node === null || typeof node !== "object") return node;
+
+  const out = {};
+  for (const [k, v] of Object.entries(node)) {
+    if (k === "additionalProperties" || k === "strict") continue;
+    if (k === "type" && Array.isArray(v)) {
+      const types = v.filter((t) => t !== "null");
+      out.type = types[0];
+      if (v.includes("null")) out.nullable = true;
+      continue;
+    }
+    if (k === "enum" && Array.isArray(v)) {
+      const values = v.filter((e) => e !== null);
+      out.enum = values;
+      if (v.includes(null)) out.nullable = true;
+      continue;
+    }
+    if (k === "properties") {
+      out.properties = Object.fromEntries(
+        Object.entries(v).map(([pk, pv]) => [pk, toGeminiSchema(pv)]),
+      );
+      out.propertyOrdering = Object.keys(v);
+      continue;
+    }
+    out[k] = toGeminiSchema(v);
+  }
+  return out;
+}
+
+/** Traduit les messages façon OpenAI en `systemInstruction` + `contents`. */
+function toGeminiContents(messages) {
+  let systemInstruction = null;
+  const contents = [];
+  for (const m of messages) {
+    if (m.role === "system") {
+      systemInstruction = { parts: [{ text: m.content }] };
+      continue;
+    }
+    const parts = [];
+    if (typeof m.content === "string") {
+      parts.push({ text: m.content });
+    } else {
+      for (const part of m.content) {
+        if (part.type === "text") {
+          parts.push({ text: part.text });
+        } else if (part.type === "image_url") {
+          const [, mimeType, data] = part.image_url.url.match(/^data:([^;]+);base64,(.+)$/);
+          parts.push({ inlineData: { mimeType, data } });
+        }
+      }
+    }
+    contents.push({ role: m.role === "assistant" ? "model" : "user", parts });
+  }
+  return { systemInstruction, contents };
+}
+
+/** Usage → tokens comparables à OpenAI (les tokens de pensée sont facturés en sortie). */
+function geminiUsage(model, usage = {}) {
+  const inTok = usage.promptTokenCount ?? 0;
+  const thinkTok = usage.thoughtsTokenCount ?? 0;
+  const outTok = (usage.candidatesTokenCount ?? 0) + thinkTok;
+  const p = TOKEN_PRICING[model] ?? { input: 0, output: 0 };
+  return {
+    inputTokens: inTok,
+    outputTokens: outTok,
+    reasoningTokens: thinkTok,
+    costUsd: (inTok * p.input + outTok * p.output) / 1e6,
+  };
+}
+
+async function geminiGenerate(model, body) {
+  const started = Date.now();
+  const res = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+    {
+      method: "POST",
+      headers: { "x-goog-api-key": GEMINI_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(180000),
+    },
+  );
+  const ms = Date.now() - started;
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, json, ms };
+}
+
+async function callGeminiChat(model, messages, jsonSchema, label) {
+  const { systemInstruction, contents } = toGeminiContents(messages);
+  const body = {
+    contents,
+    ...(systemInstruction ? { systemInstruction } : {}),
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: toGeminiSchema(jsonSchema.schema),
+    },
+  };
+
+  let lastErr = null;
+  // 3 tentatives : les crédits fraîchement provisionnés renvoient encore des
+  // 429 intermittents, et l'API renvoie des 5xx passagers sous charge.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { ok, status, json, ms } = await geminiGenerate(model, body);
+    if (ok) {
+      const text = json.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
+      let parsed = null;
+      let parseError = null;
+      try {
+        parsed = JSON.parse(text);
+      } catch (e) {
+        parseError = String(e);
+      }
+      return {
+        label, model, effort: null, ms,
+        ...geminiUsage(model, json.usageMetadata),
+        output: parsed, parseError,
+        finishReason: json.candidates?.[0]?.finishReason ?? null,
+      };
+    }
+    lastErr = json?.error?.message ?? `HTTP ${status}`;
+    if (status === 429 || status >= 500) {
+      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
+      continue;
+    }
+    break;
+  }
+  return { label, model, error: lastErr };
+}
+
+/** Transcription Gemini : l'audio passe en inlineData sur generateContent. */
+async function callGeminiTranscribe(model, filePath, durationSec) {
+  const buf = await readFile(filePath);
+  const body = {
+    contents: [{
+      role: "user",
+      parts: [
+        // Même contrat que l'API transcription d'OpenAI : texte brut, pas de
+        // traduction, pas de commentaire — sinon la comparaison de WER est faussée.
+        { text: "Transcris intégralement et fidèlement cet enregistrement audio. Conserve la langue parlée. Ne traduis pas, n'ajoute aucun commentaire, ne corrige pas les hésitations : renvoie uniquement le texte transcrit." },
+        { inlineData: { mimeType: "audio/mp4", data: buf.toString("base64") } },
+      ],
+    }],
+  };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { ok, status, json, ms } = await geminiGenerate(model, body);
+    if (ok) {
+      // gemini-3.5-transcribe ne renvoie pas `parts[].text` mais
+      // `parts[].audioTranscription.text` — on accepte les deux formes.
+      const text = (json.candidates?.[0]?.content?.parts
+        ?.map((p) => p.audioTranscription?.text ?? p.text ?? "")
+        .join("") ?? "").trim();
+      const u = geminiUsage(model, json.usageMetadata);
+      return { model, ms, text, costUsd: u.costUsd, inputTokens: u.inputTokens, outputTokens: u.outputTokens };
+    }
+    if (status === 429 || status >= 500) {
+      await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
+      continue;
+    }
+    return { model, error: json?.error?.message ?? `HTTP ${status}` };
+  }
+  return { model, error: "retries exhausted" };
+}
+
+async function callOpenAiChat(model, messages, jsonSchema, label) {
   const base = {
     model,
     response_format: { type: "json_schema", json_schema: jsonSchema },
@@ -294,7 +500,14 @@ async function callChat(model, messages, jsonSchema, label) {
   return { label, model, error: lastErr };
 }
 
-async function callTranscribe(model, filePath, durationSec) {
+/** Point d'entrée unique : route vers le provider d'après le nom du modèle. */
+function callChat(model, messages, jsonSchema, label) {
+  return providerOf(model) === "google"
+    ? callGeminiChat(model, messages, jsonSchema, label)
+    : callOpenAiChat(model, messages, jsonSchema, label);
+}
+
+async function callOpenAiTranscribe(model, filePath, durationSec) {
   const buf = await readFile(filePath);
   const form = new FormData();
   form.append("file", new Blob([buf], { type: "audio/mp4" }), path.basename(filePath));
@@ -323,6 +536,12 @@ async function callTranscribe(model, filePath, durationSec) {
     return { model, error: `HTTP ${res.status} ${errText.slice(0, 300)}` };
   }
   return { model, error: "retries exhausted" };
+}
+
+function callTranscribe(model, filePath, durationSec) {
+  return providerOf(model) === "google"
+    ? callGeminiTranscribe(model, filePath, durationSec)
+    : callOpenAiTranscribe(model, filePath, durationSec);
 }
 
 function audioDurationSec(filePath) {

@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Eye, UserPlus } from 'lucide-react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 import InlineEditableField from './InlineEditableField'
 import LeaveHouseholdDialog from './LeaveHouseholdDialog'
@@ -32,6 +32,7 @@ type Props = {
 // rôle-aware), entrée « Inviter », quitter / supprimer. Un invité voit un
 // bandeau lecture seule, des chevrons inertes et seulement « Quitter ».
 export default function HouseholdDetailContent({ household, viewerRole, members }: Props) {
+  const t = useT()
   const [name, setName] = useState(household.name)
   const [selectedMember, setSelectedMember] = useState<MemberTarget | null>(null)
 

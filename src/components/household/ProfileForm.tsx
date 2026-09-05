@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronLeft, Mail } from 'lucide-react'
 import { toast } from 'sonner'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { Button } from '@/components/ui/button'
 import MergeVerifyScreen from './MergeVerifyScreen'
 
@@ -22,6 +22,7 @@ type Props = {
 // Saisir l'email n'envoie RIEN (décision n°1) ; s'il appartient à un autre
 // owner, le serveur répond { merge: true } → écran « On réunit tes foyers ».
 export default function ProfileForm({ initialName, alias, initialEmail }: Props) {
+  const t = useT()
   const router = useRouter()
   const [name, setName] = useState(initialName)
   const [email, setEmail] = useState(initialEmail)

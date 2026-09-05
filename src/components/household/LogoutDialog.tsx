@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { t } from '@/lib/i18n/fr'
+import { useT } from '@/lib/i18n/client'
 import { haptics } from '@/lib/haptics'
 import { dropSwrCache } from '@/lib/swr'
 import { Button } from '@/components/ui/button'
@@ -24,6 +24,7 @@ type Props = {
 // foyer » (ghost destructif + confirmation, ui/dialog). La déconnexion passe par
 // GET /api/auth/session/clear (purge du cookie + retour à la landing).
 export default function LogoutDialog({ hasRecoveryEmail }: Props) {
+  const t = useT()
   const [open, setOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 

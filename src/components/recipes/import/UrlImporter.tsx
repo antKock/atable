@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { Link2, ChevronRight } from "lucide-react";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import ImportCard from "./ImportCard";
 
 interface UrlImporterProps {
@@ -22,6 +22,7 @@ export default function UrlImporter({
   onSubmit,
   initialUrl,
 }: UrlImporterProps) {
+  const t = useT();
   const [urlValue, setUrlValue] = useState(initialUrl ?? "");
   const urlInputRef = useRef<HTMLInputElement>(null);
 

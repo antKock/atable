@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Share } from "lucide-react";
 import { toast } from "sonner";
-import { t } from "@/lib/i18n/fr";
+import { useT } from "@/lib/i18n/client";
 import { isNativeApp } from "@/lib/native";
 
 type Props = {
@@ -23,6 +23,7 @@ export default function ShareButton({
   iconSize = 14,
   iconStroke = 1.75,
 }: Props) {
+  const t = useT();
   const [loading, setLoading] = useState(false);
 
   async function handleShare() {

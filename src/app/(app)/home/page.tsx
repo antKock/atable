@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { Settings } from "lucide-react";
 import { redirect } from "next/navigation";
-import { t } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import HomeContent from "@/components/recipes/HomeContent";
 import HomeHints from "@/components/app/HomeHints";
 
 export default async function HomePage() {
+  const t = await getT();
   // Multi-foyer (Lot 4) : plus de x-household-id — l'accès et le rôle se
   // résolvent en DB via l'owner. `isGuest` = invité PARTOUT (aucun rôle membre)
   // → masque le CTA de création. getOwnerContext est mémoïsé (déjà résolu par

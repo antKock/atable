@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { ImportScreenshotSchema } from "@/lib/schemas/import";
+import { buildImportScreenshotSchema } from "@/lib/schemas/import";
 import { extractRecipeFromImages } from "@/lib/import";
-import { t } from "@/lib/i18n/fr";
+import { getT } from "@/lib/i18n/server";
 import { enforceImportQuota } from "@/lib/import-quota";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { memberHouseholdIds } from "@/lib/auth/owner-context";
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+  const t = await getT();
   // Quota/coût IA rattachés au premier foyer membre (l'import précède le choix
   // du foyer). Invité (lecture seule) refusé.
   const memberIds = memberHouseholdIds(owner);
@@ -20,11 +21,11 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
 
   try {
     const body = await request.json();
-    const parsed = ImportScreenshotSchema.safeParse(body);
+    const parsed = buildImportScreenshotSchema(t).safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "Données invalides" },
+        { error: parsed.error.issues[0]?.message ?? t.api.invalidData },
         { status: 400 },
       );
     }
@@ -41,7 +42,7 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
       );
     }
     return NextResponse.json(
-      { error: "Impossible d'extraire la recette depuis les images" },
+      { error: t.api.screenshotExtractFailed },
       { status: 422 },
     );
   }

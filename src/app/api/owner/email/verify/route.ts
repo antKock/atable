@@ -9,7 +9,7 @@ import {
   verifyLoginCode,
   executeMergeOwners,
 } from '@/lib/queries/recovery'
-import { t } from '@/lib/i18n/fr'
+import { getT } from '@/lib/i18n/server'
 
 const CODE_REGEX = /^\d{6}$/
 
@@ -19,7 +19,8 @@ const CODE_REGEX = /^\d{6}$/
 // change pas, sa session est repointée sur la cible.
 export const POST = withOwnerAuth(
   async (request: NextRequest, _context: unknown, owner) => {
-    const denied = assertNotDemoOwner(owner)
+    const t = await getT()
+    const denied = await assertNotDemoOwner(owner)
     if (denied) return denied
 
     let body: unknown
