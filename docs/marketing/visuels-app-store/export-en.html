@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="fr"><head><meta charset="UTF-8">
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -54,7 +53,10 @@
     z-index: 4;
   }
   .device .screen { width: 100%; height: 100%; border-radius: 34px; overflow: hidden; position: relative; background: #fff; }
-  .device .screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .device .screen { background: #F5F1E8; }
+  .device .screen img { position: absolute; top: 36px; left: 0; width: 100%; height: calc(100% - 36px); object-fit: cover; object-position: top; display: block; }
+  .statusbar { position: absolute; top: 0; left: 0; right: 0; height: 36px; display: flex; align-items: center; justify-content: space-between; padding: 8px 22px 0 24px; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 10.5px; color: #1c1c1c; z-index: 5; }
+  .sb-icons { display: flex; align-items: center; gap: 4px; }
   .device .island {
     position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
     width: 74px; height: 20px; background: #1c1c1c; border-radius: 12px; z-index: 6;
@@ -107,20 +109,19 @@
   .s4 { background: linear-gradient(175deg, var(--cream-warm) 60%, var(--sage-deep) 60.2%); }
   .s4 .headline { color: var(--ink); }
   .s4 .subline { color: #55604a; }
-  .s4 .device-img { top: 200px; }
+  .s4 .device { top: 200px; }
 
   body { padding: 0; background: #fff; }
   .export-frame { width: 1290px; height: 2796px; overflow: hidden; position: relative; }
   .export-frame .slide { transform: scale(3.79412); transform-origin: top left; border-radius: 0; box-shadow: none; }
-</style></head><body>
-<div class="export-frame" id="01-hook"><div class="slide s1">
+</style></head><body><div class="export-frame" id="01-hook"><div class="slide s1">
       <div class="headline">All your recipes,<br><span class="accent">finally</span> in one place</div>
-      <div class="device"><div class="screen"><img src="hd/mijote-2-hd.png" alt=""></div></div>
+      <div class="device"><div class="island"></div><div class="screen"><div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"><svg viewBox="0 0 17 11" width="15" height="10"><rect x="0" y="7" width="3" height="4" rx="0.8" fill="#1c1c1c"/><rect x="4.5" y="5" width="3" height="6" rx="0.8" fill="#1c1c1c"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.8" fill="#1c1c1c"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" fill="#1c1c1c"/></svg><svg viewBox="0 0 16 11" width="14" height="10"><path d="M8 10.5 L10.6 7.6 A3.8 3.8 0 0 0 5.4 7.6 Z" fill="#1c1c1c"/><path d="M3.2 5.3 A6.9 6.9 0 0 1 12.8 5.3" stroke="#1c1c1c" stroke-width="1.6" fill="none"/><path d="M0.9 2.9 A10.2 10.2 0 0 1 15.1 2.9" stroke="#1c1c1c" stroke-width="1.6" fill="none"/></svg><svg viewBox="0 0 27 12" width="22" height="10"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1c1c1c" stroke-opacity=".4" fill="none"/><rect x="2" y="2" width="19" height="8" rx="2" fill="#1c1c1c"/><path d="M24 4 v4 a2 2 0 0 0 0 -4z" fill="#1c1c1c" fill-opacity=".4"/></svg></span></div><img src="en-captures/home.png" alt=""></div></div>
     </div></div>
 <div class="export-frame" id="02-sources"><div class="slide s2">
       <div class="headline">Link, photo, voice&nbsp;—<br><span class="accent">zero typing</span></div>
       <div class="subline">From Instagram, TikTok, recipe sites,<br>an old notebook or grandma's call.</div>
-      <div class="device"><div class="screen"><img src="hd/mijote-3-hd.png" alt=""></div></div>
+      <div class="device"><div class="island"></div><div class="screen"><div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"><svg viewBox="0 0 17 11" width="15" height="10"><rect x="0" y="7" width="3" height="4" rx="0.8" fill="#1c1c1c"/><rect x="4.5" y="5" width="3" height="6" rx="0.8" fill="#1c1c1c"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.8" fill="#1c1c1c"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" fill="#1c1c1c"/></svg><svg viewBox="0 0 16 11" width="14" height="10"><path d="M8 10.5 L10.6 7.6 A3.8 3.8 0 0 0 5.4 7.6 Z" fill="#1c1c1c"/><path d="M3.2 5.3 A6.9 6.9 0 0 1 12.8 5.3" stroke="#1c1c1c" stroke-width="1.6" fill="none"/><path d="M0.9 2.9 A10.2 10.2 0 0 1 15.1 2.9" stroke="#1c1c1c" stroke-width="1.6" fill="none"/></svg><svg viewBox="0 0 27 12" width="22" height="10"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1c1c1c" stroke-opacity=".4" fill="none"/><rect x="2" y="2" width="19" height="8" rx="2" fill="#1c1c1c"/><path d="M24 4 v4 a2 2 0 0 0 0 -4z" fill="#1c1c1c" fill-opacity=".4"/></svg></span></div><img src="en-captures/new.png" alt=""></div></div>
       <div class="badge-icon" style="top: 188px; left: 8px; transform: rotate(-7deg); background: radial-gradient(circle at 30% 110%, #fdf497 0%, #fd5949 45%, #d6249f 60%, #285AEB 90%);">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4.2"/><circle cx="17.4" cy="6.6" r="1.3" fill="#fff" stroke="none"/></svg>
       </div>
@@ -137,21 +138,20 @@
 <div class="export-frame" id="03-resultat"><div class="slide s3">
       <div class="headline">The recipe writes<br><span class="accent">itself</span></div>
       <div class="subline">Illustration, steps, time, cost:<br>everything extracted for you.</div>
-      <div class="device"><div class="screen"><img src="hd/mijote-4-hd.png" alt=""></div></div>
+      <div class="device"><div class="island"></div><div class="screen"><div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"><svg viewBox="0 0 17 11" width="15" height="10"><rect x="0" y="7" width="3" height="4" rx="0.8" fill="#1c1c1c"/><rect x="4.5" y="5" width="3" height="6" rx="0.8" fill="#1c1c1c"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.8" fill="#1c1c1c"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" fill="#1c1c1c"/></svg><svg viewBox="0 0 16 11" width="14" height="10"><path d="M8 10.5 L10.6 7.6 A3.8 3.8 0 0 0 5.4 7.6 Z" fill="#1c1c1c"/><path d="M3.2 5.3 A6.9 6.9 0 0 1 12.8 5.3" stroke="#1c1c1c" stroke-width="1.6" fill="none"/><path d="M0.9 2.9 A10.2 10.2 0 0 1 15.1 2.9" stroke="#1c1c1c" stroke-width="1.6" fill="none"/></svg><svg viewBox="0 0 27 12" width="22" height="10"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1c1c1c" stroke-opacity=".4" fill="none"/><rect x="2" y="2" width="19" height="8" rx="2" fill="#1c1c1c"/><path d="M24 4 v4 a2 2 0 0 0 0 -4z" fill="#1c1c1c" fill-opacity=".4"/></svg></span></div><img src="en-captures/detail-grandma.png" alt=""></div></div>
     </div></div>
 <div class="export-frame" id="04-livre"><div class="slide s5">
       <div class="headline">As beautiful as<br>a <span class="accent">real cookbook</span></div>
       <div class="stars">★ ★ ★ ★ ★</div>
-      <div class="device"><div class="screen"><img src="hd/mijote-5-hd.png" alt=""></div></div>
+      <div class="device"><div class="island"></div><div class="screen"><div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"><svg viewBox="0 0 17 11" width="15" height="10"><rect x="0" y="7" width="3" height="4" rx="0.8" fill="#1c1c1c"/><rect x="4.5" y="5" width="3" height="6" rx="0.8" fill="#1c1c1c"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.8" fill="#1c1c1c"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" fill="#1c1c1c"/></svg><svg viewBox="0 0 16 11" width="14" height="10"><path d="M8 10.5 L10.6 7.6 A3.8 3.8 0 0 0 5.4 7.6 Z" fill="#1c1c1c"/><path d="M3.2 5.3 A6.9 6.9 0 0 1 12.8 5.3" stroke="#1c1c1c" stroke-width="1.6" fill="none"/><path d="M0.9 2.9 A10.2 10.2 0 0 1 15.1 2.9" stroke="#1c1c1c" stroke-width="1.6" fill="none"/></svg><svg viewBox="0 0 27 12" width="22" height="10"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1c1c1c" stroke-opacity=".4" fill="none"/><rect x="2" y="2" width="19" height="8" rx="2" fill="#1c1c1c"/><path d="M24 4 v4 a2 2 0 0 0 0 -4z" fill="#1c1c1c" fill-opacity=".4"/></svg></span></div><img src="en-captures/library.png" alt=""></div></div>
     </div></div>
 <div class="export-frame" id="05-partage"><div class="slide s4">
       <div class="headline">Share your recipes<br><span class="accent">with your loved ones</span></div>
       <div class="subline">Couples, roommates or family —<br>members and guests, each with a role.</div>
-      <img class="device-img" src="foyer-membre3.png" alt="">
+      <div class="device"><div class="island"></div><div class="screen"><div class="statusbar"><span class="sb-time">9:41</span><span class="sb-icons"><svg viewBox="0 0 17 11" width="15" height="10"><rect x="0" y="7" width="3" height="4" rx="0.8" fill="#1c1c1c"/><rect x="4.5" y="5" width="3" height="6" rx="0.8" fill="#1c1c1c"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.8" fill="#1c1c1c"/><rect x="13.5" y="0" width="3" height="11" rx="0.8" fill="#1c1c1c"/></svg><svg viewBox="0 0 16 11" width="14" height="10"><path d="M8 10.5 L10.6 7.6 A3.8 3.8 0 0 0 5.4 7.6 Z" fill="#1c1c1c"/><path d="M3.2 5.3 A6.9 6.9 0 0 1 12.8 5.3" stroke="#1c1c1c" stroke-width="1.6" fill="none"/><path d="M0.9 2.9 A10.2 10.2 0 0 1 15.1 2.9" stroke="#1c1c1c" stroke-width="1.6" fill="none"/></svg><svg viewBox="0 0 27 12" width="22" height="10"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="#1c1c1c" stroke-opacity=".4" fill="none"/><rect x="2" y="2" width="19" height="8" rx="2" fill="#1c1c1c"/><path d="M24 4 v4 a2 2 0 0 0 0 -4z" fill="#1c1c1c" fill-opacity=".4"/></svg></span></div><img src="en-captures/share.png" alt=""></div></div>
     </div></div>
 <div class="export-frame" id="06-gratuite"><div class="slide s6">
       <div class="headline">Free.<br>No ads,<br><span class="accent">no subscription.</span></div>
       <div class="subline">No account, no catch:<br>download, cook, share.</div>
       <img class="cocotte" src="cocotte-illustration.svg" alt="">
-    </div></div>
-</body></html>
+    </div></div></body></html>
