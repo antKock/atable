@@ -1,0 +1,6 @@
+/* Share Extension — user-visible strings (Version EN, Lot 4). */
+"share.title" = "Import into Mijote";
+"share.noLink" = "No link to import was found.";
+"share.notSignedIn" = "Open Mijote and sign in first, then try again.";
+"share.badSession" = "Unreadable session.";
+"share.badLink" = "Invalid link.";

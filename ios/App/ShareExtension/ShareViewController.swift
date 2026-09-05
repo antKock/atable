@@ -37,7 +37,7 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
         extractSharedURL { [weak self] sharedURL in
             guard let self = self else { return }
             guard let sharedURL = sharedURL else {
-                self.showMessage("Aucun lien à importer n'a été trouvé.")
+                self.showMessage(NSLocalizedString("share.noLink", comment: "Share sheet: no URL in the shared item"))
                 return
             }
             self.startImport(sharedURL)
@@ -60,7 +60,7 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
         navBar.scrollEdgeAppearance = appearance
         navBar.tintColor = .mijoteAccent
 
-        let item = UINavigationItem(title: "Importer dans Mijote")
+        let item = UINavigationItem(title: NSLocalizedString("share.title", comment: "Share sheet title"))
         item.leftBarButtonItem = UIBarButtonItem(
             barButtonSystemItem: .cancel, target: self, action: #selector(cancel)
         )
@@ -117,7 +117,7 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
             let token = defaults.string(forKey: sessionCookieName),
             let domain = defaults.string(forKey: "\(sessionCookieName)_domain")
         else {
-            showMessage("Ouvre Mijote et connecte-toi d'abord, puis réessaie.")
+            showMessage(NSLocalizedString("share.notSignedIn", comment: "Share sheet: no session cookie in the app group"))
             return
         }
 
@@ -128,7 +128,7 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
             .value: token,
             .secure: true,
         ]) else {
-            showMessage("Session illisible.")
+            showMessage(NSLocalizedString("share.badSession", comment: "Share sheet: cookie could not be built"))
             return
         }
 
@@ -142,7 +142,7 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
             URLQueryItem(name: "ext", value: "1"),
         ]
         guard let importURL = comps.url else {
-            showMessage("Lien invalide.")
+            showMessage(NSLocalizedString("share.badLink", comment: "Share sheet: import URL could not be built"))
             return
         }
 

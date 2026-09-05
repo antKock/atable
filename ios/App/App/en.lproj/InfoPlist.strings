@@ -1,0 +1,5 @@
+/* Localized system strings (Version EN, Lot 4). */
+"CFBundleDisplayName" = "Mijote";
+"NSCameraUsageDescription" = "Mijote uses the camera to photograph a recipe to import.";
+"NSMicrophoneUsageDescription" = "Mijote uses the microphone for voice dictation of your recipes.";
+"NSPhotoLibraryUsageDescription" = "Mijote accesses your photos to import a recipe from a screenshot.";

@@ -1,0 +1,6 @@
+/* Textes système localisés (chantier Version EN, Lot 4). Les valeurs de
+   Info.plist restent le repli ; ici la version française explicite. */
+"CFBundleDisplayName" = "Mijote";
+"NSCameraUsageDescription" = "Mijote utilise l'appareil photo pour photographier une recette à importer.";
+"NSMicrophoneUsageDescription" = "Mijote utilise le microphone pour la dictée vocale de tes recettes.";
+"NSPhotoLibraryUsageDescription" = "Mijote accède à tes photos pour importer une recette depuis une capture d'écran.";
