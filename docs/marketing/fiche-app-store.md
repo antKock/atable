@@ -31,11 +31,15 @@ Remplace « Réunies comme par magie » (aucun mot-clé recherché).
 Gratuit, sans pub, sans abonnement. Colle un lien Instagram ou TikTok, photographie un vieux cahier ou dicte : la fiche se remplit toute seule, joliment illustrée.
 ```
 
-## Champ mots-clés — 95/100 caractères
+## Champ mots-clés — 97/100 caractères
 
 ```
-carnet,cahier,scanner,instagram,tiktok,marmiton,famille,foyer,menu,repas,plat,ingrédients,vocal
+recette,carnet,cahier,scanner,instagram,tiktok,marmiton,famille,menu,repas,plat,ingrédients,vocal
 ```
+
+> Liste saisie dans App Store Connect pour la 1.3 (2026-09-06) : `foyer` retiré (le mot
+> n'existe plus dans l'app), `recette` ajouté. Cette fiche reflète ASC — toute
+> modification se fait dans ASC d'abord, puis ici.
 
 - Sans espaces après les virgules ; ne pas répéter les mots du titre/sous-titre
   (déjà indexés).
