@@ -6,10 +6,13 @@
 # Chaque environnement porte ses propres *variables* (publiques, inlinées dans le
 # bundle) et *secrets* :
 #   vars    : NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SENTRY_DSN, SENTRY_ORG, SENTRY_PROJECT
-#   secrets : SENTRY_AUTH_TOKEN (optionnel, source maps), DOKPLOY_WEBHOOK_URL (optionnel)
+#   secrets : SENTRY_AUTH_TOKEN (optionnel, source maps),
+#             DOKPLOY_URL + DOKPLOY_TOKEN + DOKPLOY_APP_ID (optionnels : déploiement)
 #
-# Tant que DOKPLOY_WEBHOOK_URL n'est pas défini, le workflow se contente de
-# construire et publier l'image sur GHCR : aucun effet sur Vercel.
+# Tant que DOKPLOY_TOKEN n'est pas défini, le workflow se contente de construire
+# et publier l'image sur GHCR : aucun effet sur Vercel. Les applications Dokploy
+# créées depuis une image n'ont pas de webhook : on appelle son API
+# `application.deploy` (x-api-key), qui tire le tag de branche et redémarre.
 
 name: Deploy (Docker)
 
@@ -34,7 +37,9 @@ jobs:
       # Nom d'image en minuscules (le dépôt s'appelle `antKock/atable`).
       IMAGE: ghcr.io/antkock/atable
       # Les secrets ne sont pas lisibles dans un `if:` — on passe par env.
-      DOKPLOY_WEBHOOK_URL: ${{ secrets.DOKPLOY_WEBHOOK_URL }}
+      DOKPLOY_URL: ${{ secrets.DOKPLOY_URL }}
+      DOKPLOY_TOKEN: ${{ secrets.DOKPLOY_TOKEN }}
+      DOKPLOY_APP_ID: ${{ secrets.DOKPLOY_APP_ID }}
     steps:
       - uses: actions/checkout@v4
 
@@ -74,8 +79,13 @@ jobs:
           cache-to: type=gha,mode=max
 
       # Dokploy : l'application est configurée sur le tag de branche
-      # (`ghcr.io/antkock/atable:staging` / `:main`) ; le webhook lui fait tirer
-      # la nouvelle image et redémarrer le conteneur.
+      # (`ghcr.io/antkock/atable:staging` / `:main`) ; l'API lui fait tirer la
+      # nouvelle image et redémarrer le conteneur.
       - name: Trigger Dokploy deploy
-        if: ${{ env.DOKPLOY_WEBHOOK_URL != '' }}
-        run: curl -fsS -X POST "$DOKPLOY_WEBHOOK_URL"
+        if: ${{ env.DOKPLOY_TOKEN != '' }}
+        run: |
+          curl -fsS -X POST "$DOKPLOY_URL/api/application.deploy" \
+            -H "x-api-key: $DOKPLOY_TOKEN" \
+            -H "Content-Type: application/json" \
+            -H "accept: application/json" \
+            -d "{\"applicationId\":\"$DOKPLOY_APP_ID\"}"
