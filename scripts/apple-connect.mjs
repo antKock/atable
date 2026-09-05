@@ -6,6 +6,7 @@
 // Usage :
 //   node scripts/apple-connect.mjs apps
 //   node scripts/apple-connect.mjs get "/v1/apps/<id>/analyticsReportRequests"
+//   echo '<json>' | node scripts/apple-connect.mjs post|patch <path>   (écriture)
 //   node scripts/apple-connect.mjs analytics-create <appId>   (snapshot historique)
 //   node scripts/apple-connect.mjs analytics-requests <appId>
 //   node scripts/apple-connect.mjs analytics-reports <requestId> [category]
@@ -85,6 +86,22 @@ switch (cmd) {
 
   case 'get': {
     const data = await api(arg1);
+    console.log(JSON.stringify(data, null, 2));
+    break;
+  }
+
+  // Écriture générique : corps JSON:API lu sur stdin.
+  //   echo '{"data":{...}}' | node scripts/apple-connect.mjs post /v1/appInfoLocalizations
+  //   echo '{"data":{...}}' | node scripts/apple-connect.mjs patch /v1/appInfoLocalizations/<id>
+  case 'post':
+  case 'patch': {
+    const raw = await new Promise((resolve) => {
+      let buf = '';
+      process.stdin.setEncoding('utf8');
+      process.stdin.on('data', (c) => (buf += c));
+      process.stdin.on('end', () => resolve(buf));
+    });
+    const data = await api(arg1, { method: cmd.toUpperCase(), body: JSON.parse(raw) });
     console.log(JSON.stringify(data, null, 2));
     break;
   }
