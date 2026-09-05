@@ -25,11 +25,22 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
   `grep -l "^id: N$" ~/projects/anthony-os/Perso/Mijote/Backlog/*.md`
 - Lire aussi `Stratégie.md` (dossier parent) quand la spec y renvoie.
 
-## Chantier en cours — Foyer (#14 + #15)
+## Chantiers livrés (specs par lot dans `docs/specs/`)
 
-Specs d'implémentation par lot dans **`docs/specs/foyer/`** : lire `00-socle.md`
-d'abord (contexte, décisions actées, ordre des lots, statuts), puis la spec du lot
-demandé. Les maquettes hi-fi sont dans `docs/specs/foyer/handoff/`.
+- **Foyer (#14 + #15)** — `docs/specs/foyer/` (lire `00-socle.md`) : owners/memberships,
+  rôles membre/invité, e-mail de secours, multi-carnets. **En prod depuis juillet 2026.**
+- **Version EN** — `docs/specs/i18n/` (lire `00-socle.md`) : la langue suit l'appareil
+  (`Accept-Language`, stateless, flag `I18N_EN_ENABLED`), recettes en langue source,
+  « carnet » = « cookbook ». **En prod depuis le 2026-09-05.** Règles à respecter :
+  - toute chaîne visible va dans `src/lib/i18n/fr.ts` **et** `en.ts` (`Dictionary` typé,
+    clé manquante = erreur `tsc`) ; jamais `import { t } from "@/lib/i18n/fr"` hors tests,
+    admin, scripts et défauts de schémas — `useT()` côté client, `await getT()` côté serveur ;
+  - une valeur stockée (enum, tag) ne se traduit pas en base : libellé via `labels.ts`
+    ou une table `t.xxx` indexée par la valeur stockée ;
+  - deux foyers démo (FR `DEMO_HOUSEHOLD_ID`, EN `DEMO_HOUSEHOLD_ID_EN`) ; recettes seed
+    intouchables (`assertNotDemoSeedMutation`), alerte Sentry du cron sous 30 seed ;
+    restauration : `scripts/restore-demo-from-staging.mjs` (FR), `scripts/demo-en/demo-en.mjs`
+    (EN).
 
 ## Repères rapides
 
@@ -39,6 +50,11 @@ demandé. Les maquettes hi-fi sont dans `docs/specs/foyer/handoff/`.
   (re-link pour changer d'env staging ↔ prod).
 - Les gotchas connus (Vercel, Supabase, Capacitor) sont dans la note
   `Opérations & Pièges.md` du vault — la lire avant toute opération d'infra.
+  Vercel : CLI installée (`/opt/homebrew/bin/vercel`, compte antkock) — **jamais `npx vercel`**
+  en non-interactif (a déjà vidé la session). App Store Connect : `scripts/apple-connect.mjs`
+  (`get`, `post`, `patch` — clé Admin dans `.env.local`) ; les textes de fiche font foi dans
+  `docs/marketing/fiche-app-store.md` (FR) et `fiche-app-store-en.md` (EN), **ASC d'abord,
+  la fiche ensuite**. App Privacy n'a pas d'API.
 - Plan de migration infra Vercel → VPS OVH + Dokploy (non déclenché, analyse coûts du
   2026-09-05) : `docs/infra/migration-vps-ovh.md` — à lire avant tout chantier « hébergement »,
   « coûts » ou « quitter Vercel ».
