@@ -8,90 +8,65 @@
 
 ---
 
-## 1. Détails de l'app (Store listing)
+## 1. Détails de l'app (Store listing) — **refonte 2026-09-06**
+
+> Alignée sur la refonte App Store (`marketing/fiche-app-store.md`). Différence Play :
+> **la description est indexée pour la recherche** (pas de champ mots-clés) → garder
+> « recettes », « livre de recettes », « carnet », « Instagram », « TikTok », « photo »,
+> « dictée », « partage » dans le texte, ce que la description fait naturellement.
 
 | Champ Play | Limite | Valeur |
 |---|---|---|
-| **Nom de l'app** | 30 car. | `Mijote - Tes Recettes` *(déjà saisi dans la console)* |
-| **Description courte** | 80 car. | `Toutes tes recettes, rassemblées et enrichies : photo, voix, lien ou saisie.` (76 car.) |
-| **Description complète** | 4000 car. | voir bloc ci-dessous |
-
-> ℹ️ Textes alignés sur la fiche **Apple à jour (2026-06-29)**. Google Play n'a
-> **pas** de champ « texte promotionnel » distinct comme Apple — le promo iOS
-> ci-dessous sert juste à nourrir la description courte. Google est plus
-> permissif sur les caractères (`…`, emojis OK).
->
-> Promo Apple (référence, pas de champ Google équivalent) : « Toutes tes
-> recettes, rassemblées et enrichies en quelques secondes : photo, voix, lien
-> ou saisie. Sans compte, sans pub, sans casse-tête. »
+| **Nom de l'app** | 30 car. | `Mijote — Livre de recettes` (26) — remplace « Mijote - Tes Recettes » |
+| **Description courte** | 80 car. | `Importe tes recettes depuis Instagram, une photo ou ta voix. Zéro saisie.` (73) |
+| **Description complète** | 4000 car. | bloc ci-dessous (identique à l'App Store FR) |
 
 ### Description complète (à coller)
 
 ```
+Marre de chercher « cette recette de la dernière fois » entre douze captures d'écran, un lien Instagram perdu et un vieux cahier ? Mijote les réunit dans un seul livre de recettes — et remplit les fiches tout seul.
+
+Gratuit, sans publicité, sans abonnement.
+
 QUATRE FAÇONS D'AJOUTER UNE RECETTE
 
-• PHOTO — prends en photo le carnet de ta grand-mère ou un screenshot
-  Instagram. On extrait le titre, les ingrédients et les étapes pour toi.
-• VOIX — dicte la recette pendant qu'on te la raconte au téléphone. On
-  transcrit et on met en forme.
-• LIEN — colle l'adresse d'un blog culinaire. On récupère le contenu et
-  on en fait une vraie recette, lisible, sans le bruit autour.
-• À LA MAIN — tape directement ta recette si tu la connais par cœur ou
-  si tu veux la composer pas à pas. Tu restes en contrôle de A à Z.
+• PHOTO — prends en photo le carnet de ta grand-mère ou un screenshot Instagram. On extrait le titre, les ingrédients et les étapes pour toi.
+• VOIX — dicte la recette pendant qu'on te la raconte au téléphone. On transcrit et on met en forme.
+• LIEN — colle l'adresse d'un blog culinaire. On récupère le contenu et on en fait une vraie recette, lisible, sans le bruit autour.
+• À LA MAIN — tape directement ta recette si tu la connais par cœur ou si tu veux la composer pas à pas. Tu restes en contrôle de A à Z.
 
-Chaque recette se complète toute seule : temps de préparation, coût estimé,
-saisons, étiquettes (végétarien, rapide, comfort food). Une jolie
-illustration est même générée pour reconnaître chaque plat d'un coup d'œil.
-Tu restes maître : modifie, complète, remplace l'image par tes propres
-photos.
+Chaque recette se complète toute seule : temps de préparation, coût estimé, saisons, étiquettes (végétarien, rapide, comfort food). Une jolie illustration est même générée pour reconnaître chaque plat d'un coup d'œil. Tu restes maître : modifie, complète, remplace l'image par tes propres photos.
 
 SIMPLE À ADOPTER, À AIMER, À PARTAGER
 
-• ESSAI EN UN CLIC — explore une bibliothèque démo avant même de créer
-  ton foyer. Tu vois ce que ça donne, sans rien fournir.
-• PAS DE COMPTE — quand tu te lances, pas d'e-mail, pas de mot de passe,
-  pas de publicité. On te respecte assez pour ne rien te demander
-  d'inutile.
-• FOYER PARTAGÉ — crée un foyer et passe le code d'invitation à qui tu
-  veux. Vos recettes sont les mêmes sur tous vos téléphones. Ton ou ta
-  partenaire ajoute la recette du dimanche midi, tu la retrouves dans ta
-  cuisine du mardi soir.
-• PARTAGE PAR LIEN — envoie une recette à qui tu veux par un simple lien.
-  La personne l'ouvre direct, sans compte et sans rien installer, et la
-  garde dans son foyer en un geste.
+• ESSAI EN UN CLIC — explore un carnet démo avant même de créer le tien. Tu vois ce que ça donne, sans rien fournir.
+• PAS DE COMPTE — quand tu te lances, pas d'e-mail, pas de mot de passe, pas de publicité. On te respecte assez pour ne rien te demander d'inutile.
+• CARNET PARTAGÉ — crée ton carnet et invite qui tu veux, en membre ou en invité (lecture seule). Vos recettes sont les mêmes sur tous vos téléphones. Ton ou ta partenaire ajoute la recette du dimanche midi, tu la retrouves dans ta cuisine du mardi soir.
+• PARTAGE PAR LIEN — envoie une recette à qui tu veux par un simple lien. La personne l'ouvre direct, sans compte et sans rien installer, et la garde dans son carnet en un geste.
 
 RETROUVER, SANS CHERCHER
 
-• Accueil par envies : Rapide, Végétarien, Comfort food, De saison,
-  Apéro, Desserts.
+• Accueil par envies : Rapide, Végétarien, Comfort food, De saison, Apéro, Desserts.
 • Filtres précis : par ingrédient, durée, coût, régime, type de plat.
 • Mode « De saison » : ne voir que ce qui se cuisine maintenant.
-• Pendant que tu cuisines, l'écran reste allumé tout seul — pas besoin
-  de réveiller ton téléphone les mains tachées de farine.
+• Pendant que tu cuisines, l'écran reste allumé tout seul — pas besoin de réveiller ton téléphone les mains tachées de farine.
 
-TON FOYER, TES RÈGLES
+TON CARNET, TES RÈGLES
 
-• Renomme le foyer, gère les appareils connectés, quitte ou supprime
-  le foyer en deux tapotements.
-• Suppression définitive et complète à tout moment — c'est ton contenu,
-  jamais le nôtre.
+• Renomme ton carnet, gère membres et invités, quitte ou supprime le carnet en deux tapotements.
+• Suppression définitive et complète à tout moment — c'est ton contenu, jamais le nôtre.
 
 CONFIDENTIALITÉ
 
-• Pas de profilage publicitaire, pas de pixels de suivi, pas d'identifiant
-  publicitaire.
+• Pas de profilage publicitaire, pas de pixels de suivi, pas d'identifiant publicitaire.
 • Aucune vente de tes données à des tiers.
 • Politique de confidentialité : mijote.anthonykocken.fr/legal/confidentialite
 
 POUR QUI ?
 
-Pour celles et ceux qui aiment cuisiner et qui en ont assez de chercher
-« cette recette de la dernière fois » dans douze endroits différents. Pour
-les foyers qui veulent garder vivantes les vraies recettes — celles qu'on
-mange, pas celles d'un site sponsorisé. Pour les gens marre des apps
-bourrées de pubs et de paywalls.
+Pour celles et ceux qui aiment cuisiner et qui en ont assez de chercher « cette recette de la dernière fois » dans douze endroits différents. Pour les maisonnées qui veulent garder vivantes les vraies recettes — celles qu'on mange, pas celles d'un site sponsorisé. Pour les gens marre des apps bourrées de pubs et d'abonnements.
 
-Mijote est gratuit, sans publicité, sans achat intégré.
+Mijote est gratuit, sans publicité et sans abonnement.
 ```
 
 ---
@@ -113,17 +88,19 @@ Mijote est gratuit, sans publicité, sans achat intégré.
 
 ---
 
-## 3. Ressources graphiques
+## 3. Ressources graphiques — **produites le 2026-09-06**
 
-| Asset | Spéc Google | Statut |
+| Asset | Spéc Google | Fichier |
 |---|---|---|
-| **Icône de l'app** | 512×512 PNG 32-bit | ✅ générée → `assets/play/icon-512.png` |
-| **Image de présentation (feature graphic)** | 1024×500 PNG/JPG — **obligatoire** | ✅ générée → `assets/play/feature-graphic.png` |
-| **Captures téléphone** | 2 à 8, 16:9 ou 9:16, ≥ 320 px — **obligatoire (min 2)** | ⏳ à capturer depuis l'app |
-| **Captures 7" / 10" tablette** | optionnel | ⏳ si tu veux apparaître sur tablette |
+| **Icône** | 512×512 PNG | `assets/play/icon-512.png` (inchangée) |
+| **Feature graphic** | 1024×500 — obligatoire | `assets/play/feature-graphic.png` (FR, refaite : Fraunces + « Livre de recettes — importe, cuisine et partage ») · `feature-graphic-en.png` (EN) |
+| **Captures téléphone** | 2-8, ratio ≤ 2:1, 320-3840 px | `marketing/visuels-play-store/export-phone/` (FR) · `export-phone-en/` (EN) — 6 × **1440×2560** (9:16), cadre Android (poinçon, status bar Android), captures réelles en émulation Pixel |
+| **Captures tablette 10"** | 2-8, ratio ≤ 2:1 | `export-tablet/` · `export-tablet-en/` — 6 × 2064×2752 (mêmes que l'iPad : cadre neutre, réutilisables) |
+| **Captures tablette 7"** | optionnel | réutiliser les 10" |
 
-> Les captures iOS (1290×2796) ne sont pas au bon ratio Google. Le plus simple :
-> je les capture depuis l'émulateur Android (ou un vrai tél). Voir §10.
+> ⚠️ Les captures iOS 1290×2796 sont **refusées** par Play (ratio 2,17:1 > 2:1) — d'où
+> l'export 9:16 dédié. Pipeline : `visuels-play-store/index-play-*.html` → `export-play-*.html`
+> (sources `android/`). Ordre d'upload : 01 → 06, mêmes messages que l'App Store.
 
 ---
 
@@ -210,45 +187,37 @@ Pour **chaque** ligne : *Collectée = Oui*, *Partagée = Non*, *Liée à l'ident
 
 ---
 
-## 8. Accès à l'app (App access — pour les évaluateurs Google)
+## 8. Accès à l'app (App access — pour les évaluateurs Google) — **màj 2026-09-06**
 
-> Google a besoin de pouvoir tester l'app. Mijote n'a **pas de connexion**.
+> Les évaluateurs Google sont anglophones et verront l'interface **EN** (langue de
+> l'appareil) → instructions en anglais. Cocher « Toutes les fonctionnalités sont
+> disponibles sans identifiants particuliers » + coller :
 
 ```
-Aucun identifiant requis : l'application fonctionne entièrement sans compte
-ni connexion utilisateur.
+No credentials required: the app works entirely without an account or login.
 
-Deux manières de tester :
+The app follows the device language: French or English. In our vocabulary, a "cookbook" ("carnet" in French) is a shared recipe collection.
 
-1. Mode démo (recommandé) — bouton « Essayer l'app » sur la page d'accueil.
-Donne accès à un foyer de démonstration pré-rempli d'une quinzaine de
-recettes. Expérience strictement identique à celle d'un foyer créé par
-l'utilisateur (mêmes écrans, mêmes interactions).
+Two ways to test:
 
-2. Création d'un foyer — bouton « Créer un foyer » sur la page d'accueil.
-Seul un nom de foyer est demandé. Aucun e-mail, mot de passe ou identifiant
-ne sera requis. L'authentification repose uniquement sur un code
-d'invitation (foyer-based, anonyme).
+1. Demo mode (recommended) — "Try the app" on the landing screen. Opens a demo cookbook pre-filled with about thirty recipes. Same screens and interactions as a user-created cookbook; recipes added in the demo are not kept (a banner says so).
 
-Permissions Android demandées au moment où l'utilisateur déclenche la
-fonctionnalité correspondante (jamais au lancement) :
-- Micro (RECORD_AUDIO) : import de recette par dictée vocale.
-- Aucune permission pour l'import par photo/capture d'écran : il passe par
-  le sélecteur de fichiers du système (galerie), sans accès stockage requis.
+2. Create a cookbook — "Create a cookbook" on the landing screen. Only a cookbook name is required: no email, password or identifier. Access is tied to the device (anonymous session) and can be extended to other people by invitation.
 
-Les trois imports (photo, voix, lien web) nécessitent une connexion
-internet — le contenu est analysé côté serveur.
+Worth checking:
+- Sharing: gear icon on Home → "Cookbook & profile" → your cookbook → invite. Two invite links: member (can add and edit) and guest (read-only). Opening a link (/join/CODE) on another device joins the cookbook. A person can belong to several cookbooks.
+- Optional backup email: "Cookbook & profile" → your profile. Used only to send a sign-in link to recover access on a new phone. No password, no marketing emails.
+- Data deletion: cookbook detail → "Delete the cookbook" permanently deletes the cookbook and its recipes; "Leave this cookbook" removes only the current person.
 
-Aucun achat intégré, aucune publicité, aucun contenu généré par
-l'utilisateur visible publiquement.
+Android permissions, requested when the user first tries the feature (never at launch):
+- Microphone (RECORD_AUDIO): voice dictation import
+- Camera (CAMERA): import by photographing a book or notebook
+- Import from a screenshot uses the system picker (no storage permission)
+
+Imports (photo, voice, web link) need an internet connection — content is analyzed server-side. Recipe illustrations are generated automatically; users can replace them with their own photos.
+
+No in-app purchases, no ads, no third-party login. Recipes shared by link (/r/TOKEN) are unlisted pages visible only to people who have the link.
 ```
-
-➡️ Champ « Toutes les fonctionnalités sont disponibles sans identifiants
-particuliers » → **coché**, avec les instructions ci-dessus en complément.
-
-> ⚠️ La permission **micro** n'est utile que si `RECORD_AUDIO` est déclaré
-> dans le manifeste **et** présent dans l'`.aab` uploadé (voir §13). Sinon
-> l'import vocal échoue sur Android.
 
 ---
 
@@ -263,18 +232,10 @@ particuliers » → **coché**, avec les instructions ci-dessus en complément.
 
 ---
 
-## 10. Captures d'écran — à produire
+## 10. Captures d'écran — ✅ produites (voir §3)
 
-Min. **2** captures téléphone (idéalement 4-6), ratio 9:16, ≥ 1080 px de large.
-Écrans à montrer (mêmes que la story iOS) :
-1. Accueil par envies (carrousels)
-2. Une recette enrichie (métadonnées + illustration)
-3. Les 4 façons d'ajouter une recette (écran d'import)
-4. Filtres / recherche
-5. Foyer partagé (code d'invitation)
-
-> Je peux les capturer depuis l'émulateur Android (Pixel) ou tu me fournis
-> un appareil. Dis-moi.
+Six visuels par langue, même séquence que l'App Store : hook → sources d'import →
+fiche remplie → bibliothèque → partage (membres/invités) → gratuité.
 
 ---
 
@@ -308,13 +269,94 @@ Min. **2** captures téléphone (idéalement 4-6), ratio 9:16, ≥ 1080 px de la
 
 ---
 
-## 13. À corriger côté app Android (avant publication)
+## 13. Côté app Android — **avant publication en production**
 
-- [ ] **`RECORD_AUDIO`** — l'import **vocal** (`getUserMedia` audio dans
-  `src/hooks/useVoiceRecorder.ts`) échoue dans la WebView Android tant que la
-  permission n'est pas déclarée dans `android/app/src/main/AndroidManifest.xml`
-  (qui ne contient aujourd'hui que `INTERNET`). À ajouter (+ `MODIFY_AUDIO_SETTINGS`),
-  puis **rebuild `.aab` (versionCode 3)** et re-upload. Capacitor accorde alors
-  l'accès micro à la WebView via son `WebChromeClient`.
-- Import **photo** (sélecteur de fichiers/galerie) et **lien** : aucune
-  permission requise. Pas besoin de `CAMERA` (pas de capture directe).
+- [x] `RECORD_AUDIO` + `MODIFY_AUDIO_SETTINGS` + `CAMERA` déclarés dans le manifeste
+  (import vocal et plugin caméra, 2026-06-29).
+- [ ] **Rebuild `.aab`** : le build en test fermé est `versionCode 3 / versionName 1.0`
+  (juin). L'app charge le web de prod (`capacitor.config.ts`), donc les fonctionnalités
+  (carnets partagés, EN…) y sont déjà, mais la fiche 1.3 et le Data safety à jour
+  méritent un binaire `versionCode 4 / versionName 1.3` (`npx cap sync android` puis
+  build signé), puis promotion Test fermé → **Production**.
+- [ ] Data safety : reporter **nom** + **e-mail** (voir §4) avant la promotion.
+
+---
+
+## 14. Fiche EN (en-US) — traduction Play
+
+| Champ | Valeur |
+|---|---|
+| **Nom** | `Mijote: Recipe Book & Keeper` (28) |
+| **Description courte** | `Import recipes from Instagram, a photo or your voice. Zero typing.` (66) |
+| **Description complète** | bloc ci-dessous (identique à l'App Store EN) |
+
+```
+Tired of hunting for "that recipe from last time" across a dozen screenshots, a lost Instagram link and an old notebook? Mijote gathers them all into one cookbook — and fills in the cards for you.
+
+Free, no ads, no subscription.
+
+FOUR WAYS TO ADD A RECIPE
+
+• PHOTO — snap your grandmother's notebook or an Instagram screenshot. We extract the title, ingredients and steps for you.
+• VOICE — dictate the recipe while someone tells it to you over the phone. We transcribe it and shape it up.
+• LINK — paste the address of a cooking blog. We fetch the content and turn it into a real, readable recipe, without the noise around it.
+• BY HAND — type your recipe directly if you know it by heart or want to build it step by step. You stay in control from A to Z.
+
+Every recipe completes itself: prep time, estimated cost, seasons, tags (vegetarian, quick, comfort food). A lovely illustration is even generated so you can spot each dish at a glance. You stay in charge: edit, complete, or swap the image for your own photos.
+
+EASY TO ADOPT, TO LOVE, TO SHARE
+
+• ONE-TAP TRIAL — explore a demo cookbook before even creating your own. See what it feels like without giving anything away.
+• NO ACCOUNT — when you get started: no email, no password, no ads. We respect you enough not to ask for anything unnecessary.
+• SHARED COOKBOOK — create a cookbook and pass the invite code to whoever you like. Your recipes are the same on all your phones. Your partner adds the Sunday lunch recipe, you find it in your kitchen on Tuesday night.
+• SHARE BY LINK — send a recipe to anyone with a simple link. They open it right away, no account, nothing to install, and can keep it in their own cookbook in one tap.
+
+FIND, WITHOUT SEARCHING
+
+• Browse by craving: Quick, Vegetarian, Comfort food, In season, Appetizers, Desserts.
+• Precise filters: by ingredient, time, cost, diet, dish type.
+• "In season" mode: only see what's worth cooking right now.
+• While you cook, the screen stays awake on its own — no need to wake your phone with flour-covered hands.
+
+YOUR COOKBOOK, YOUR RULES
+
+• Rename your cookbook, manage members and guests, leave or delete it in two taps.
+• Full and permanent deletion at any time — it's your content, never ours.
+
+PRIVACY
+
+• No ad profiling, no tracking pixels, no advertising identifier.
+• Your data is never sold to anyone.
+• Privacy policy: mijote.anthonykocken.fr/legal/confidentialite
+
+WHO IS IT FOR?
+
+For people who love to cook and are tired of digging for "that recipe from last time" in twelve different places. For households that want to keep real recipes alive — the ones you actually eat, not the ones from a sponsored site. For anyone fed up with apps stuffed with ads and subscriptions.
+
+Mijote is free, with no ads and no subscription.
+```
+
+---
+
+## 15. Nouveautés (release notes) — **limite Play : 500 caractères**
+
+### FR (438 car.)
+
+```
+Grosse fournée ! Ton carnet se partage, ton accès est sauvegardé, et tout le reste est plus rapide.
+• Invite qui tu veux dans ton carnet, en membre ou en invité (lecture seule).
+• Plusieurs carnets, et tu choisis où ranger chaque recette.
+• Email de secours (optionnel) pour retrouver ton accès si tu changes de téléphone.
+• Accueil repensé, import plus rapide et plus précis, étiquettes plus justes.
+• Mijote existe désormais en anglais.
+```
+
+### EN (356 car.)
+
+```
+Big batch! Your cookbook is shareable, your access is backed up, and everything else got faster.
+• Invite anyone into your cookbook, as a member or a read-only guest.
+• Several cookbooks, and you choose where each recipe goes.
+• Optional backup email to get your access back on a new phone.
+• Redesigned home, faster and more accurate imports, better tags.
+```
