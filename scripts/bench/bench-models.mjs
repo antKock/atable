@@ -12,20 +12,21 @@ import { readFile, mkdir, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadEnvLocal } from "../lib/env.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const FIX = path.join(ROOT, "fixtures");
 const OUT = path.join(ROOT, "results");
 const REPO = path.resolve(ROOT, "../..");
 
-// ---------- Clé API (.env.local, comme recheck-diet-tags.mjs) ----------
-const envFile = await readFile(path.join(REPO, ".env.local"), "utf8");
-const OPENAI_KEY = envFile.match(/^OPENAI_SERVICE_KEY=(.+)$/m)?.[1]?.trim();
+// ---------- Clés API (.env.local, socle scripts/lib/env.mjs) ----------
+const envVars = loadEnvLocal(path.join(REPO, ".env.local"));
+const OPENAI_KEY = envVars.OPENAI_SERVICE_KEY;
 if (!OPENAI_KEY) {
   console.error("OPENAI_SERVICE_KEY introuvable dans .env.local");
   process.exit(1);
 }
-const GEMINI_KEY = envFile.match(/^GEMINI_API_KEY=(.+)$/m)?.[1]?.trim();
+const GEMINI_KEY = envVars.GEMINI_API_KEY;
 if (!GEMINI_KEY) {
   console.error("GEMINI_API_KEY introuvable dans .env.local");
   process.exit(1);

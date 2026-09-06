@@ -71,9 +71,9 @@ export const PATCH = withOwnerAuth(
 
     // MEMBRE sur la source (déplacer = écriture) ET sur la destination (on
     // n'écrit jamais dans un foyer invité). requireMember couvre les deux.
-    const sourceForbidden = requireMember(owner, sourceHid);
+    const sourceForbidden = await requireMember(owner, sourceHid);
     if (sourceForbidden) return sourceForbidden;
-    const destForbidden = requireMember(owner, destHid);
+    const destForbidden = await requireMember(owner, destHid);
     if (destForbidden) return destForbidden;
 
     if (destHid === sourceHid) {

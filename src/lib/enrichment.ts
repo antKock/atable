@@ -215,6 +215,15 @@ async function generateAndUploadImage(
 
 // ---------- Main enrichment pipeline ----------
 
+/** La recette existe-t-elle encore ? (`select id`, sans erreur si absente.) */
+async function recipeStillExists(
+  supabase: ReturnType<typeof createServerClient>,
+  recipeId: string,
+): Promise<boolean> {
+  const { data } = await supabase.from("recipes").select("id").eq("id", recipeId).maybeSingle();
+  return Boolean(data);
+}
+
 export async function enrichRecipe(
   recipeId: string,
   options?: { skipImage?: boolean },
@@ -395,6 +404,13 @@ export async function enrichRecipe(
     // 7. Image generation (only if recipe has no photo at all)
     const imagePrompt = result?.imagePrompt || recipe.image_prompt;
     if (needsImage && imagePrompt) {
+      // L'enrichissement tourne dans `after()` : l'utilisateur a pu supprimer
+      // la recette entre-temps (ou le cron démo l'a purgée). Ne pas dépenser
+      // ~1 ct d'image (ni orphaner un fichier Storage) pour une ligne disparue.
+      if (!(await recipeStillExists(supabase, recipeId))) {
+        console.log(`[enrichment] ${recipeId} — recette supprimée entre-temps, image ignorée`);
+        return;
+      }
       console.log(`[enrichment] ${recipeId} — calling DALL-E`);
       try {
         const imageUrl = await withRetry(() =>

@@ -90,7 +90,8 @@ describe("enrichRecipe — full enrichment", () => {
       { error: null }, // 4. recipes metadata update
       { data: [{ id: "t1", name: "Dessert" }, { id: "t2", name: "Végétarien" }] }, // 5. matching tags
       { error: null }, // 6. recipe_tags insert
-      { error: null }, // 7. recipes image update
+      { data: { id: "recipe-1" } }, // 7. la recette existe encore (garde avant dépense image)
+      { error: null }, // 8. recipes image update
     ]);
     mockChat.mockResolvedValue(chatCompletion(enrichmentResult()));
     mockImages.mockResolvedValue(imageResponse());
@@ -125,7 +126,8 @@ describe("enrichRecipe — full enrichment", () => {
       { count: 2 }, // 2. recipe_tags count
       { data: [{ name: "Dessert" }] }, // 3. predefined tags
       { error: null }, // 4. enrichment_status update (image-only branch)
-      { error: null }, // 5. recipes image update
+      { data: { id: "recipe-1" } }, // 5. la recette existe encore
+      { error: null }, // 6. recipes image update
     ]);
     mockImages.mockResolvedValue(imageResponse());
 
@@ -159,6 +161,32 @@ describe("enrichRecipe — full enrichment", () => {
     expect(mockImages).not.toHaveBeenCalled();
     expect(supa.uploadMock).not.toHaveBeenCalled();
     expect(updatePayloads("recipes").some((u) => "image_status" in u)).toBe(false);
+  });
+
+  it("n'appelle pas le générateur d'images si la recette a été supprimée pendant l'after()", async () => {
+    supa.queueResults([
+      {
+        data: recipeDbRow({
+          photo_url: null,
+          generated_image_url: null,
+          image_prompt: "Une tarte dorée",
+          enrichment_status: "enriched",
+        }),
+      }, // 1. recipe select — image-only path
+      { count: 2 }, // 2. recipe_tags count
+      { data: [{ name: "Dessert" }] }, // 3. predefined tags
+      { data: null }, // 4. select id → disparue
+    ]);
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    mockImages.mockResolvedValue(imageResponse());
+
+    await enrichRecipe("recipe-1");
+
+    expect(mockImages).not.toHaveBeenCalled();
+    expect(supa.uploadMock).not.toHaveBeenCalled();
+    // Sortie propre : ni image_status "failed", ni enrichment_status "failed".
+    expect(updatePayloads("recipes")).toHaveLength(0);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("supprimée entre-temps"));
   });
 
   it("marks the recipe failed when the OpenAI call errors", async () => {

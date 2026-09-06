@@ -99,6 +99,16 @@ Pour celles et ceux qui aiment cuisiner et qui en ont assez de chercher « cette
 Mijote est gratuit, sans publicité et sans abonnement.
 ```
 
+## Visuels iPad (obligatoires — app « Conçue pour iPad »)
+
+Format iPad 13" **2064×2752**, 6 visuels par langue, mêmes messages que l'iPhone :
+`visuels-app-store/export-ipad/` (FR) et `export-ipad-en/` (EN). Captures **réelles de
+l'app sur iPad** (prod, carnet démo, Playwright en émulation iPad Pro 1032×1376 @2x — la
+grille passe à 4 colonnes), status bar iPad reconstituée, bannière démo masquée, page
+membres composée à 3 personnes. Sources : `ipad/`, pipeline `index-ipad-*.html` →
+`export-ipad-*.html`. Dans App Store Connect : onglet « iPad 13" », mêmes emplacements
+(10 captures max), même ordre 01 → 06.
+
 ## Ordre d'application
 
 1. **Aujourd'hui, sans review** : texte promotionnel.

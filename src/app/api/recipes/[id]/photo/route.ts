@@ -5,9 +5,13 @@ import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/a
 import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 
-// Stay under Vercel's 4.5 MB function body limit; the client resizes photos
-// to ~150-300 KB WebP before upload, so this only guards the raw-file fallback.
+// 4 Mo : le client redimensionne les photos (~150-300 Ko WebP) avant envoi,
+// la limite ne concerne que le repli « fichier brut ». Historiquement calée
+// sous le plafond Vercel de 4,5 Mo ; derrière Traefik il n'y a plus de plafond
+// amont, d'où le `maxBodyBytes` ci-dessous (corps refusé AVANT lecture).
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
+// Marge pour l'enveloppe multipart (boundary, en-têtes de partie).
+const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 const EXT_BY_MIME: Record<string, string> = {
   "image/webp": "webp",
@@ -63,7 +67,7 @@ export const POST = withOwnerAuth(
       return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
 
-    const forbidden = requireMember(owner, existing.household_id);
+    const forbidden = await requireMember(owner, existing.household_id);
     if (forbidden) return forbidden;
     const frozen = await assertNotDemoSeedMutation(owner, existing);
     if (frozen) return frozen;
@@ -108,4 +112,5 @@ export const POST = withOwnerAuth(
 
     return NextResponse.json({ url });
   },
+  { maxBodyBytes: MAX_PHOTO_BYTES + MULTIPART_OVERHEAD_BYTES },
 );

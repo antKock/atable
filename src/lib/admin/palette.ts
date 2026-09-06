@@ -62,13 +62,31 @@ export const COHORT_RAMP = [
   "#39431A", "#4E5A24", "#64712F", "#7C8A47", "#93A163", "#A8B490", "#C2CBA4", "#DCE1C8",
 ] as const;
 
-/** Couleur d'une cohorte, ancrée sur la PLUS ANCIENNE (pas le plus foncé) :
- *  l'index d'une génération ne change jamais quand de nouvelles s'ajoutent —
- *  chaque strate garde sa couleur à vie. Au-delà de la rampe, les plus
- *  récentes saturent sur le pas le plus clair (le passage au trimestre est
- *  prévu avant). */
-export function cohortColor(index: number): string {
-  return COHORT_RAMP[Math.min(index, COHORT_RAMP.length - 1)];
+/** Mois d'ancrage des générations : premier mois du parc mesuré sous le modèle
+ *  actuel (cutover Supabase prod le 2026-05-20, rebrand Mijote le 2026-05-23).
+ *  Le snapshot de cutover peut contenir des owners antérieurs (« À Table »,
+ *  début 2026) : ils tombent sur les pas clairs par le modulo ci-dessous. */
+export const COHORT_EPOCH_MONTH = "2026-05";
+
+/** Index d'une cohorte = mois écoulés depuis COHORT_EPOCH_MONTH. Accepte la clé
+ *  SQL (`2026-07-01`, date_trunc('month')) ou `YYYY-MM`. */
+export function cohortIndex(cohort: string): number {
+  const [ey, em] = COHORT_EPOCH_MONTH.split("-").map(Number);
+  const [y, m] = cohort.split("-").map(Number);
+  return (y - ey) * 12 + (m - em);
+}
+
+/** Couleur d'une cohorte, ancrée sur son MOIS (pas sur sa position parmi les
+ *  cohortes visibles) : une génération garde sa couleur à vie, quelle que soit
+ *  la fenêtre affichée ou la disparition des plus anciennes — la plus ancienne
+ *  est la plus foncée. Au-delà de la rampe on boucle (modulo) ; le passage au
+ *  trimestre est prévu avant que cela ne prête à confusion.
+ *  Un nombre est accepté par compatibilité (index déjà ancré sur l'époque,
+ *  cf. `cohortIndex`) — préférer la clé de cohorte. */
+export function cohortColor(cohort: string | number): string {
+  const n = COHORT_RAMP.length;
+  const index = typeof cohort === "number" ? cohort : cohortIndex(cohort);
+  return COHORT_RAMP[((index % n) + n) % n];
 }
 
 // Fonts — map the design's roles onto the app's loaded next/font variables.

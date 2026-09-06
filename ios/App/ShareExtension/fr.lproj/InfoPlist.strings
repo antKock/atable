@@ -1,0 +1,3 @@
+/* Share Extension — valeurs Info.plist localisées (chantier Version EN). La
+   feuille de partage affiche le nom de l'app, pas celui de la cible. */
+"CFBundleDisplayName" = "Mijote";

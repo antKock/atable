@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { cookies } from 'next/headers'
+import { getClientIp } from '@/lib/request-ip'
 import { createServerClient } from '@/lib/supabase/server'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { generateJoinCode } from '@/lib/auth/join-code'
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
   try {
     // Unauthenticated route, and every new household gets a fresh daily
     // import quota — rate limit per IP to keep both bounded.
-    const ip = (request.headers.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const ip = getClientIp(request)
     const quotaResponse = await enforceHouseholdCreateQuota(ip)
     if (quotaResponse) return quotaResponse
 

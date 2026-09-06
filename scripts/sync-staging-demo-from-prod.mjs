@@ -10,6 +10,10 @@
 // Requires:
 //   .env.local      → prod credentials (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEMO_HOUSEHOLD_ID)
 //   .env.staging.local → staging credentials (same vars, pulled via `vercel env pull --environment=preview .env.staging.local`)
+//
+// Version EN : le foyer démo EN (DEMO_HOUSEHOLD_ID_EN, optionnel) reçoit le
+// même traitement, à condition que la variable soit posée DES DEUX côtés
+// (prod ET staging) — sinon il est ignoré avec un avertissement.
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
@@ -34,12 +38,25 @@ const PROD = {
   url: prodEnv["NEXT_PUBLIC_SUPABASE_URL"],
   key: prodEnv["SUPABASE_SERVICE_ROLE_KEY"],
   demo: prodEnv["DEMO_HOUSEHOLD_ID"] || "00000000-0000-0000-0000-000000000000",
+  demoEn: prodEnv["DEMO_HOUSEHOLD_ID_EN"] || null,
 };
 const STAGING = {
   url: stagingEnv["NEXT_PUBLIC_SUPABASE_URL"],
   key: stagingEnv["SUPABASE_SERVICE_ROLE_KEY"],
   demo: stagingEnv["DEMO_HOUSEHOLD_ID"] || "00000000-0000-0000-0000-000000000000",
+  demoEn: stagingEnv["DEMO_HOUSEHOLD_ID_EN"] || null,
 };
+
+// Paires (prod → staging) de foyers démo à synchroniser : FR toujours, EN si
+// configuré des deux côtés.
+const DEMO_PAIRS = [{ label: "FR", prod: PROD.demo, staging: STAGING.demo }];
+if (PROD.demoEn && STAGING.demoEn) {
+  DEMO_PAIRS.push({ label: "EN", prod: PROD.demoEn, staging: STAGING.demoEn });
+} else if (PROD.demoEn || STAGING.demoEn) {
+  console.warn(
+    `DEMO_HOUSEHOLD_ID_EN n'est posé que côté ${PROD.demoEn ? "prod" : "staging"} — foyer EN ignoré.`
+  );
+}
 
 for (const [label, env] of [["prod", PROD], ["staging", STAGING]]) {
   if (!env.url || !env.key) {
@@ -54,7 +71,10 @@ if (PROD.url === STAGING.url) {
 
 console.log(`Prod    : ${PROD.url}`);
 console.log(`Staging : ${STAGING.url}`);
-console.log(`Demo HH : ${PROD.demo}\n`);
+for (const pair of DEMO_PAIRS) {
+  console.log(`Demo ${pair.label} : ${pair.prod} → ${pair.staging}`);
+}
+console.log("");
 
 async function rest(env, path, init = {}) {
   const res = await fetch(env.url + "/rest/v1/" + path, {
@@ -74,12 +94,36 @@ async function rest(env, path, init = {}) {
   return text ? JSON.parse(text) : null;
 }
 
+let updated = 0;
+let skipped = 0;
+let tagLinks = 0;
+const missingTags = new Set();
+
+for (const pair of DEMO_PAIRS) {
+  console.log(`\n=== Foyer démo ${pair.label} ===`);
+  await syncHousehold(pair.prod, pair.staging);
+}
+
+console.log(
+  `\nDone — ${updated} updated, ${skipped} skipped, ${tagLinks} tag links recreated.`
+);
+if (missingTags.size) {
+  console.warn(
+    `Warning: ${missingTags.size} predefined tag(s) missing in staging: ${[...missingTags].join(", ")}`
+  );
+}
+
+async function syncHousehold(prodDemoId, stagingDemoId) {
 // ─── 1. Pull prod state ────────────────────────────────────────────────────
 const prodRecipes = await rest(
   PROD,
-  `recipes?household_id=eq.${PROD.demo}&select=id,title,prep_time,cook_time,cost,complexity,seasons,image_prompt,generated_image_url,enrichment_status,image_status&order=created_at.asc`
+  `recipes?household_id=eq.${prodDemoId}&select=id,title,prep_time,cook_time,cost,complexity,seasons,image_prompt,generated_image_url,enrichment_status,image_status&order=created_at.asc`
 );
 console.log(`Pulled ${prodRecipes.length} prod demo recipes.`);
+if (prodRecipes.length === 0) {
+  console.warn("  ⊘ aucune recette prod pour ce foyer — rien à synchroniser");
+  return;
+}
 
 const prodIds = prodRecipes.map((r) => r.id);
 const inList = (ids) => "(" + ids.map((i) => `"${i}"`).join(",") + ")";
@@ -98,7 +142,7 @@ const prodTagNameById = Object.fromEntries(prodTags.map((t) => [t.id, t.name]));
 // ─── 2. Pull staging state ─────────────────────────────────────────────────
 const stagingRecipes = await rest(
   STAGING,
-  `recipes?household_id=eq.${STAGING.demo}&select=id,title`
+  `recipes?household_id=eq.${stagingDemoId}&select=id,title`
 );
 const stagingIdByTitle = Object.fromEntries(stagingRecipes.map((r) => [r.title, r.id]));
 
@@ -109,11 +153,6 @@ const stagingTags = await rest(
 const stagingTagIdByName = Object.fromEntries(stagingTags.map((t) => [t.name, t.id]));
 
 // ─── 3. Apply ──────────────────────────────────────────────────────────────
-let updated = 0;
-let skipped = 0;
-let tagLinks = 0;
-const missingTags = new Set();
-
 for (const r of prodRecipes) {
   const stagingId = stagingIdByTitle[r.title];
   if (!stagingId) {
@@ -165,12 +204,4 @@ for (const r of prodRecipes) {
 
   console.log(`  ✓ ${r.title} (${prodTagNames.length} tags)`);
 }
-
-console.log(
-  `\nDone — ${updated} updated, ${skipped} skipped, ${tagLinks} tag links recreated.`
-);
-if (missingTags.size) {
-  console.warn(
-    `Warning: ${missingTags.size} predefined tag(s) missing in staging: ${[...missingTags].join(", ")}`
-  );
 }

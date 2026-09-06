@@ -141,6 +141,8 @@ export const en: Dictionary = {
     Cuisine: "Cuisine",
     Occasion: "Occasion",
     Caractéristiques: "Features",
+    // Repli d'affichage pour les tags sans catégorie (`tagCategoryLabel`).
+    Autres: "Other",
   },
   tags: {
     addPlaceholder: "Add a tag…",
@@ -306,7 +308,8 @@ export const en: Dictionary = {
       fromGallery: "Choose from gallery",
       cancel: "Cancel",
       analyze: "Analyze",
-      count: (n: number) => `${n} image${n > 1 ? "s" : ""} selected`,
+      // Pluriel anglais : tout sauf 1 (« 0 images », « 1 image », « 2 images »).
+      count: (n: number) => `${n} image${n === 1 ? "" : "s"} selected`,
     },
     voice: {
       title: "Voice dictation",
@@ -358,17 +361,13 @@ export const en: Dictionary = {
     orGenerated: "or Mijote will generate one",
   },
 
-  // Photo picker
-  photoPicker: {
-    camera: "Camera",
-    gallery: "Photo gallery",
-  },
-
   // Landing screen
   landing: {
     title: "Mijote",
     tagline: "Your recipes",
     subtitle: "Gathered as if by magic",
+    // Meta description + manifest PWA (phrase complète, pas un assemblage).
+    description: "Your recipes, gathered as if by magic",
     tryApp: "Try the app",
     createHousehold: "Create a cookbook",
     joinHousehold: "Open a cookbook",
@@ -481,8 +480,9 @@ export const en: Dictionary = {
       member: "Member",
       guest: "Guest",
     },
-    peopleCount: (n: number) => `${n} ${n > 1 ? "people" : "person"}`,
-    recipeCount: (n: number) => `${n} recipe${n > 1 ? "s" : ""}`,
+    // Pluriel anglais : tout sauf 1 (« 0 people », « 1 person »).
+    peopleCount: (n: number) => `${n} ${n === 1 ? "person" : "people"}`,
+    recipeCount: (n: number) => `${n} recipe${n === 1 ? "" : "s"}`,
     join: {
       alreadyMember: "You already have access to this cookbook.",
       added: (name: string) => `You now have access to “${name}”.`,
@@ -659,6 +659,10 @@ export const en: Dictionary = {
     tokenMissing: "Missing token",
     recipeNotFound: "Recipe not found",
     targetHouseholdMissing: "Missing destination cookbook",
+    unauthorized: "Unauthorized",
+    forbidden: "Forbidden",
+    invalidAction: "Invalid action",
+    bodyTooLarge: "Request body too large",
   },
 
   // Zod validation messages (schemas/recipe.ts, schemas/import.ts)
@@ -700,6 +704,7 @@ export const en: Dictionary = {
     backButton: "Back",
     mainNav: "Main navigation",
     recipePhoto: (title: string) => `Photo of ${title}`,
+    recipePhotoGeneric: "Recipe photo",
     recipeCard: (title: string) => title,
     carousel: (theme: string) => `${theme} recipes`,
   },

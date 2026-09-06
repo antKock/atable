@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
+import { getClientIp } from '@/lib/request-ip'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
 import { recoveryVerifyRateLimit } from '@/lib/redis'
 import {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     }
 
     const hdrs = await headers()
-    const ip = (hdrs.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const ip = getClientIp(hdrs)
     const { success } = await recoveryVerifyRateLimit.limit(ip)
     if (!success) {
       return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })

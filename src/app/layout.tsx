@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, DM_Mono } from "next/font/google";
 import { getLocale, getT } from "@/lib/i18n/server";
+import { configuredAppOrigin } from "@/lib/request-origin";
 import { LOCALE_TAGS, readI18nFlags } from "@/lib/i18n/locale";
 import { LocalePreviewSwitch, LocaleProvider } from "@/lib/i18n/client";
 import SWRProvider from "@/components/providers/SWRProvider";
@@ -39,9 +40,11 @@ export const viewport: Viewport = {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale();
   const t = await getT();
-  const description = t.landing.tagline + ", " + t.landing.subtitle.toLowerCase();
+  const description = t.landing.description;
   return {
-    metadataBase: new URL("https://mijote.anthonykocken.fr"),
+    // Origine canonique (APP_ORIGIN) pour les URLs absolues d'Open Graph ;
+    // repli sur la prod si la variable n'est pas posée.
+    metadataBase: new URL(configuredAppOrigin() ?? "https://mijote.anthonykocken.fr"),
     title: t.appName,
     description,
     manifest: "/manifest.webmanifest",

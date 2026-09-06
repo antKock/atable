@@ -1,12 +1,16 @@
 import { test, expect } from "@playwright/test";
 import { newVisitor } from "./helpers/onboarding";
 
-// Chantier « Version EN », Lot 0 : la locale suit l'appareil. Le serveur E2E
-// tourne avec I18N_PREVIEW_COOKIE=1 (playwright.config.ts) — le cookie
-// mijote_locale force la langue ; I18N_EN_ENABLED n'est PAS posé, donc sans
-// cookie tout reste fr même avec un Accept-Language anglais.
+// Chantier « Version EN » : la locale suit l'appareil. Le serveur E2E tourne
+// comme la prod, I18N_EN_ENABLED=1 (pinné dans helpers/env.ts) : sans cookie,
+// Accept-Language décide. Les specs FR restent FR parce que le contexte
+// Playwright envoie `locale: "fr-FR"` (playwright.config.ts). Le serveur pose
+// aussi I18N_PREVIEW_COOKIE=1 : le cookie mijote_locale force la langue.
+//
+// Le rollback (flag absent → fr quoi qu'il arrive) est couvert en unitaire par
+// src/lib/i18n/locale.test.ts (« tout éteint → fr ») : pas de second serveur.
 
-test("i18n : sans cookie, un navigateur anglais voit toujours le FR (EN non activé)", async ({
+test("i18n : flag ON, un navigateur anglais sans cookie voit la landing en anglais", async ({
   browser,
 }) => {
   const context = await browser.newContext({
@@ -15,8 +19,8 @@ test("i18n : sans cookie, un navigateur anglais voit toujours le FR (EN non acti
   });
   const page = await context.newPage();
   await page.goto("/");
-  await expect(page.locator("html")).toHaveAttribute("lang", "fr");
-  await expect(page.getByRole("button", { name: "Créer un carnet" })).toBeVisible();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(page.getByRole("button", { name: "Create a cookbook" })).toBeVisible();
   await context.close();
 });
 
@@ -43,11 +47,11 @@ test("i18n : ?lang=en pose le cookie de prévisualisation et bascule la landing 
   await context.close();
 });
 
-test("i18n : la page 404 suit la locale", async ({ browser }) => {
+// `baseURL` = http://127.0.0.1:${E2E_PORT} (playwright.config.ts) : ne pas
+// figer le port ici.
+test("i18n : la page 404 suit la locale", async ({ browser, baseURL }) => {
   const { context, page } = await newVisitor(browser);
-  await context.addCookies([
-    { name: "mijote_locale", value: "en", url: "http://127.0.0.1:3100" },
-  ]);
+  await context.addCookies([{ name: "mijote_locale", value: "en", url: baseURL! }]);
   // Préfixe public : hors session, le middleware redirige toute autre route
   // inconnue vers la landing avant d'atteindre le 404.
   await page.goto("/legal/does-not-exist");
@@ -56,9 +60,12 @@ test("i18n : la page 404 suit la locale", async ({ browser }) => {
   await context.close();
 });
 
-test("i18n : un appareil EN atterrit sur le foyer démo EN (recettes anglaises)", async ({ browser }) => {
+test("i18n : un appareil EN atterrit sur le foyer démo EN (recettes anglaises)", async ({
+  browser,
+  baseURL,
+}) => {
   const { context, page } = await newVisitor(browser);
-  await context.addCookies([{ name: "mijote_locale", value: "en", url: "http://127.0.0.1:3100" }]);
+  await context.addCookies([{ name: "mijote_locale", value: "en", url: baseURL! }]);
   await page.goto("/");
   await page.getByRole("button", { name: "Try the app" }).click();
   await page.waitForURL(/\/home/);

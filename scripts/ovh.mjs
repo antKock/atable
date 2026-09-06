@@ -8,6 +8,11 @@
 //   node scripts/ovh.mjs POST /domain/zone/<zone>/record '{"fieldType":"A","subDomain":"x","target":"1.2.3.4","ttl":300}'
 //   node scripts/ovh.mjs POST /domain/zone/<zone>/refresh
 //
+// Garde-fou : les opérations destructives (rebuild, reinstall, terminate, reboot,
+// tout DELETE) exigent `--yes` en argument, sinon le script affiche l'opération et
+// sort en code 2 :
+//   node scripts/ovh.mjs POST /vps/<name>/rebuild '{"imageId":"…"}' --yes
+//
 // Clés dans .env.local (jamais commitées) : OVH_ENDPOINT (ovh-eu), OVH_APP_KEY,
 // OVH_APP_SECRET, OVH_CONSUMER_KEY — créées sur https://api.ovh.com/createToken/
 // avec des droits restreints (GET/POST/PUT /vps/*, GET/POST/PUT/DELETE
@@ -26,7 +31,7 @@ function loadEnv() {
   const env = { ...process.env };
   try {
     for (const line of readFileSync(".env.local", "utf8").split("\n")) {
-      const m = line.match(/^([A-Z_]+)=(.*)$/);
+      const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
       if (m && env[m[1]] === undefined) env[m[1]] = m[2].trim().replace(/^"(.*)"$/, "$1");
     }
   } catch {
@@ -65,14 +70,28 @@ export async function ovh(method, path, body) {
   return data;
 }
 
+// Opérations destructives (hors GET) : chemin OVH sensible ou méthode DELETE.
+const DESTRUCTIVE_PATH = /\/(rebuild|reinstall|terminate|reboot)(\/|$)/;
+export function isDestructive(method, path) {
+  if (method === "GET") return false;
+  return method === "DELETE" || DESTRUCTIVE_PATH.test(path);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [method, path, json] = process.argv.slice(2);
+  const yes = process.argv.includes("--yes");
+  const [method, path, json] = process.argv.slice(2).filter((a) => a !== "--yes");
   if (!method || !path) {
-    console.error("usage: node scripts/ovh.mjs <GET|POST|PUT|DELETE> <path> [json-body]");
+    console.error("usage: node scripts/ovh.mjs <GET|POST|PUT|DELETE> <path> [json-body] [--yes]");
+    process.exit(2);
+  }
+  const verb = method.toUpperCase();
+  if (isDestructive(verb, path) && !yes) {
+    console.error(`Opération destructive refusée sans --yes : ${verb} ${path}${json ? " " + json : ""}`);
+    console.error("Relancer avec --yes pour confirmer.");
     process.exit(2);
   }
   try {
-    const out = await ovh(method.toUpperCase(), path, json ? JSON.parse(json) : undefined);
+    const out = await ovh(verb, path, json ? JSON.parse(json) : undefined);
     console.log(JSON.stringify(out, null, 2));
   } catch (err) {
     console.error(err.message);

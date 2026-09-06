@@ -20,6 +20,10 @@ const PINNED_DEFAULTS: Record<string, string> = {
   ADMIN_HOUSEHOLD_IDS: "",
   NEXT_PUBLIC_SENTRY_DSN: "",
   SENTRY_AUTH_TOKEN: "",
+  // Chemin réel de prod (chantier Version EN) : la langue suit Accept-Language.
+  // Pinné explicitement pour ne pas dépendre de .env.local ; les specs FR
+  // restent FR car le contexte Playwright envoie `locale: "fr-FR"`.
+  I18N_EN_ENABLED: "1",
 };
 
 const REQUIRED_KEYS = [

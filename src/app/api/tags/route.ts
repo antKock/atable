@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createServerClient } from "@/lib/supabase/server";
-import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
+import {
+  withOwnerAuth,
+  resolveWriteHousehold,
+  assertNotDemoMutation,
+  forbiddenResponse,
+} from "@/lib/api/with-owner-auth";
 import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
+import { getT } from "@/lib/i18n/server";
 
 export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const supabase = createServerClient();
@@ -48,8 +54,13 @@ export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const householdId =
     target instanceof NextResponse ? memberHouseholdIds(owner)[0] : target.householdId;
   if (!householdId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbiddenResponse(await getT());
   }
+  // Monde gelé : un visiteur démo est MEMBRE du foyer démo — sans ce garde, son
+  // tag custom persisterait et s'afficherait à tous les visiteurs suivants
+  // (le cron demo-reset purge par ailleurs les tags démo restants).
+  const frozen = await assertNotDemoMutation(owner, householdId);
+  if (frozen) return frozen;
 
   const supabase = createServerClient();
   const ids = householdIds(owner);

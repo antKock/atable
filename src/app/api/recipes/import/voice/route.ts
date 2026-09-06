@@ -2,9 +2,13 @@ import { NextResponse } from "next/server";
 import { MAX_VOICE_FILE_SIZE, VALID_VOICE_MIME_TYPES } from "@/lib/schemas/import";
 import { extractRecipeFromVoice, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
-import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { withOwnerAuth, forbiddenResponse } from "@/lib/api/with-owner-auth";
 import { memberHouseholdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
+
+// Marge pour l'enveloppe multipart autour du fichier audio (MAX_VOICE_FILE_SIZE).
+// Corps refusé AVANT lecture (Vercel plafonnait à 4,5 Mo, Traefik ne plafonne rien).
+const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
   const t = await getT();
@@ -12,7 +16,7 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
   // du foyer). Invité (lecture seule) refusé.
   const memberIds = memberHouseholdIds(owner);
   if (memberIds.length === 0) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbiddenResponse(t);
   }
   const householdId = memberIds[0];
 
@@ -70,4 +74,4 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
       { status: 422 },
     );
   }
-});
+}, { maxBodyBytes: MAX_VOICE_FILE_SIZE + MULTIPART_OVERHEAD_BYTES });

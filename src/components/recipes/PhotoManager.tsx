@@ -63,7 +63,7 @@ export default function PhotoManager({
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-secondary">
             <Image
               src={displaySrc!}
-              alt={t.a11y.recipePhoto("recette")}
+              alt={t.a11y.recipePhotoGeneric}
               fill
               className="object-cover"
               sizes="(max-width: 768px) 100vw, 640px"

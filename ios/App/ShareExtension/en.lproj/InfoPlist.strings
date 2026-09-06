@@ -1,0 +1,3 @@
+/* Share Extension — localized Info.plist values (Version EN). The share sheet
+   shows the extension under the app name, not the target name. */
+"CFBundleDisplayName" = "Mijote";

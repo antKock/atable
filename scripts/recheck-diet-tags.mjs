@@ -10,28 +10,15 @@
 //   node scripts/recheck-diet-tags.mjs                     # prod (.env.local), dry-run
 //   node scripts/recheck-diet-tags.mjs --env .env.staging.local
 //   node scripts/recheck-diet-tags.mjs --apply             # supprime les tags erronés
+//   --apply sur la prod (.env.local) : demande de taper PROD, sauf --yes.
 
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import { ENV_FILES, confirmProd, loadEnvLocal } from "./lib/env.mjs";
 
 const APPLY = process.argv.includes("--apply");
 const envFlag = process.argv.indexOf("--env");
-const ENV_FILE = envFlag !== -1 ? process.argv[envFlag + 1] : ".env.local";
+const ENV_FILE = envFlag !== -1 ? process.argv[envFlag + 1] : ENV_FILES.prod;
 
-function loadEnv(file) {
-  const path = resolve(process.cwd(), file);
-  return Object.fromEntries(
-    readFileSync(path, "utf-8")
-      .split("\n")
-      .filter((l) => l.includes("="))
-      .map((l) => {
-        const i = l.indexOf("=");
-        return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^"|"$/g, "")];
-      })
-  );
-}
-
-const env = loadEnv(ENV_FILE);
+const env = loadEnvLocal(ENV_FILE);
 const SUPABASE_URL = env["NEXT_PUBLIC_SUPABASE_URL"];
 const SERVICE_KEY = env["SUPABASE_SERVICE_ROLE_KEY"];
 const OPENAI_KEY = env["OPENAI_SERVICE_KEY"];
@@ -39,6 +26,7 @@ if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_KEY) {
   console.error(`Missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or OPENAI_SERVICE_KEY in ${ENV_FILE}`);
   process.exit(1);
 }
+if (APPLY) await confirmProd("suppression des tags de régime erronés", { envFile: ENV_FILE });
 
 console.log(`Env    : ${ENV_FILE} → ${SUPABASE_URL}`);
 console.log(`Mode   : ${APPLY ? "APPLY (suppression des tags erronés)" : "dry-run"}\n`);

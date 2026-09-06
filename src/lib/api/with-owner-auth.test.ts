@@ -29,8 +29,8 @@ function ownerContext(overrides: Partial<OwnerContext> = {}): OwnerContext {
   };
 }
 
-function request(): NextRequest {
-  return new NextRequest("https://test.local/api/whatever", { method: "POST" });
+function request(headers: Record<string, string> = {}): NextRequest {
+  return new NextRequest("https://test.local/api/whatever", { method: "POST", headers });
 }
 
 beforeEach(() => {
@@ -63,6 +63,34 @@ describe("withOwnerAuth", () => {
     expect(res.status).toBe(500);
   });
 
+  it("413 AVANT la session quand content-length dépasse le plafond par défaut (1 Mo)", async () => {
+    mockGetOwnerContext.mockClear();
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    const res = await withOwnerAuth(handler)(
+      request({ "content-length": String(1024 * 1024 + 1) }),
+    );
+    expect(res.status).toBe(413);
+    expect(await (res as NextResponse).json()).toMatchObject({
+      error: t.api.bodyTooLarge,
+      code: "BODY_TOO_LARGE",
+    });
+    expect(handler).not.toHaveBeenCalled();
+    expect(mockGetOwnerContext).not.toHaveBeenCalled();
+  });
+
+  it("laisse passer un corps sous le plafond, ou sans content-length (chunked)", async () => {
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    expect((await withOwnerAuth(handler)(request({ "content-length": "1024" }))).status).toBe(200);
+    expect((await withOwnerAuth(handler)(request())).status).toBe(200);
+  });
+
+  it("maxBodyBytes relève le plafond pour les routes fichier (photo, capture, voix)", async () => {
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    const big = request({ "content-length": String(3 * 1024 * 1024) });
+    expect((await withOwnerAuth(handler)(big)).status).toBe(413);
+    expect((await withOwnerAuth(handler, { maxBodyBytes: 4 * 1024 * 1024 })(big)).status).toBe(200);
+  });
+
   it("500 générique quand le handler jette", async () => {
     const res = await withOwnerAuth(async () => {
       throw new Error("secret db detail");
@@ -73,19 +101,21 @@ describe("withOwnerAuth", () => {
 });
 
 describe("requireMember", () => {
-  it("null (OK) pour un membership member", () => {
-    expect(requireMember(ownerContext(), "household-1")).toBeNull();
+  it("null (OK) pour un membership member", async () => {
+    expect(await requireMember(ownerContext(), "household-1")).toBeNull();
   });
 
-  it("403 pour un invité (lecture seule)", () => {
+  it("403 pour un invité (lecture seule), message localisé", async () => {
     const ctx = ownerContext({
       memberships: [{ householdId: "household-1", role: "guest", isDemo: false }],
     });
-    expect(requireMember(ctx, "household-1")?.status).toBe(403);
+    const res = await requireMember(ctx, "household-1");
+    expect(res?.status).toBe(403);
+    expect(await res!.json()).toEqual({ error: t.api.forbidden });
   });
 
-  it("403 sans membership sur le foyer visé", () => {
-    expect(requireMember(ownerContext(), "household-other")?.status).toBe(403);
+  it("403 sans membership sur le foyer visé", async () => {
+    expect((await requireMember(ownerContext(), "household-other"))?.status).toBe(403);
   });
 });
 

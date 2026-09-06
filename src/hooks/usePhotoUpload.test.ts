@@ -70,7 +70,7 @@ describe("uploadPhoto", () => {
     const uploadPhoto = (file: File, id: string) => uploadPhotoPure(file, id, fr);
     const result = await uploadPhoto(makeFile(4 * 1024 * 1024 + 1), "recipe-1");
 
-    expect(result).toEqual({ error: "La photo est trop volumineuse" });
+    expect(result).toEqual({ error: fr.feedback.photoTooLarge });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -82,6 +82,6 @@ describe("uploadPhoto", () => {
     const uploadPhoto = (file: File, id: string) => uploadPhotoPure(file, id, fr);
     const result = await uploadPhoto(makeFile(), "recipe-1");
 
-    expect(result).toEqual({ error: "La photo n'a pas pu être enregistrée" });
+    expect(result).toEqual({ error: fr.feedback.photoSaveError });
   });
 });

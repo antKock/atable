@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
-import { isAdminForHouseholds } from "@/lib/admin/auth";
-import { getOwnerContext, householdIds as ownerHouseholdIds } from "@/lib/auth/owner-context";
+import { isAdminOwner } from "@/lib/admin/auth";
+import { getOwnerContext } from "@/lib/auth/owner-context";
 import { getDashboardData, getHouseholdsForPicker, type KpiCard, type Signal } from "@/lib/admin/queries";
 import { resolvePeriod, isPeriodKey } from "@/lib/admin/periods";
-import { PALETTE as P, cohortColor } from "@/lib/admin/palette";
+import { PALETTE as P } from "@/lib/admin/palette";
 import FilterBar from "@/components/admin/FilterBar";
 import {
   Sparkline,
@@ -171,7 +171,8 @@ export default async function DashboardPage({
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const owner = await getOwnerContext();
-  if (!owner || !isAdminForHouseholds(ownerHouseholdIds(owner))) notFound();
+  // Memberships `member` uniquement : un invité d'un foyer admin n'est pas admin.
+  if (!owner || !isAdminOwner(owner)) notFound();
 
   const sp = await searchParams;
   const rawPlatform = typeof sp.platform === "string" ? sp.platform : undefined;
@@ -366,7 +367,7 @@ export default async function DashboardPage({
                   <LegendInline
                     items={data.mauCohortLabels.map((c, i) => ({
                       label: c,
-                      color: cohortColor(i),
+                      color: data.mauCohortColors[i],
                     }))}
                   />
                   <div className="chart-note">
@@ -381,6 +382,7 @@ export default async function DashboardPage({
               <ChartMauCohorts
                 data={data.mauCohorts}
                 cohorts={data.mauCohortLabels}
+                colors={data.mauCohortColors}
                 marker={data.activityMarker}
                 height={260}
               />

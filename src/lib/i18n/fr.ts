@@ -136,6 +136,8 @@ export const t = {
     Cuisine: "Cuisine",
     Occasion: "Occasion",
     Caractéristiques: "Caractéristiques",
+    // Repli d'affichage pour les tags sans catégorie (`tagCategoryLabel`).
+    Autres: "Autres",
   },
   tags: {
     addPlaceholder: "Ajouter un tag…",
@@ -360,17 +362,13 @@ export const t = {
     orGenerated: "ou Mijote en générera une",
   },
 
-  // Photo picker
-  photoPicker: {
-    camera: "Appareil photo",
-    gallery: "Galerie de photos",
-  },
-
   // Landing screen
   landing: {
     title: "Mijote",
     tagline: "Tes recettes",
     subtitle: "Réunies comme par magie",
+    // Meta description + manifest PWA (phrase complète, pas un assemblage).
+    description: "Tes recettes, réunies comme par magie",
     tryApp: "Essayer l'app",
     createHousehold: "Créer un carnet",
     joinHousehold: "Ouvrir un carnet",
@@ -697,6 +695,10 @@ export const t = {
     tokenMissing: "Token manquant",
     recipeNotFound: "Recette introuvable",
     targetHouseholdMissing: "Carnet cible manquant",
+    unauthorized: "Non autorisé",
+    forbidden: "Accès refusé",
+    invalidAction: "Action invalide",
+    bodyTooLarge: "Requête trop volumineuse",
   },
 
   // Messages de validation zod (schemas/recipe.ts, schemas/import.ts)
@@ -738,6 +740,7 @@ export const t = {
     backButton: "Retour",
     mainNav: "Navigation principale",
     recipePhoto: (title: string) => `Photo de ${title}`,
+    recipePhotoGeneric: "Photo de la recette",
     recipeCard: (title: string) => title,
     carousel: (theme: string) => `Recettes ${theme}`,
   },

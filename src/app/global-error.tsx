@@ -1,8 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { useLocale, useT } from "@/lib/i18n/client";
+import { dictionaries } from "@/lib/i18n";
+import { DEFAULT_LOCALE, localeForTag, type Locale } from "@/lib/i18n/locale";
+
+const subscribeNoop = () => () => {};
+const readNavigatorLocale = (): Locale => localeForTag(navigator.language);
+const readServerLocale = (): Locale => DEFAULT_LOCALE;
 
 // Last-resort boundary: catches errors thrown by the root layout itself,
 // where app/error.tsx can't render. Replaces <html>/<body>, so styles are
@@ -14,8 +19,15 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const t = useT();
-  const locale = useLocale();
+  // Rendu HORS LocaleProvider (le layout racine a planté) : useT() donnerait
+  // toujours fr. Repli sur la langue de l'appareil via navigator.language,
+  // même règle que public/offline.html (fr* → fr, sinon en).
+  // useSyncExternalStore : `navigator` n'existe pas côté serveur ; le snapshot
+  // serveur (fr) est aussi celui de l'hydratation, puis React re-rend avec la
+  // valeur client — pas de mismatch, pas de setState dans un effet.
+  const locale = useSyncExternalStore(subscribeNoop, readNavigatorLocale, readServerLocale);
+  const t = dictionaries[locale];
+
   useEffect(() => {
     Sentry.captureException(error);
     console.error(error);

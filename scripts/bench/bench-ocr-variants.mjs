@@ -5,13 +5,13 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadEnvLocal } from "../lib/env.mjs";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const FIX = path.join(ROOT, "fixtures");
 const OUT = path.join(ROOT, "results");
 const REPO = path.resolve(ROOT, "../..");
-const envFile = await readFile(path.join(REPO, ".env.local"), "utf8");
-const OPENAI_KEY = envFile.match(/^OPENAI_SERVICE_KEY=(.+)$/m)?.[1]?.trim();
+const OPENAI_KEY = loadEnvLocal(path.join(REPO, ".env.local")).OPENAI_SERVICE_KEY;
 
 const TOKEN_PRICING = {
   "gpt-4o": { input: 2.5, output: 10 },

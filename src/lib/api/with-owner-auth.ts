@@ -7,26 +7,46 @@ import {
   type OwnerContext,
 } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/types";
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from "@/lib/body-limit";
+
+export type WithOwnerAuthOptions = {
+  /**
+   * Plafond du corps de requête (via `content-length`, cf. body-limit.ts).
+   * 1 Mo par défaut — largement au-dessus de tout payload JSON de l'app ; les
+   * routes fichier (photo, capture, voix) le relèvent explicitement.
+   */
+  maxBodyBytes?: number;
+};
 
 /**
  * Guard des routes API à contexte owner (chantier foyer #14 + #15) : résout la
  * session via getOwnerContext (401 si inconnue/révoquée) et transforme toute
  * erreur non attrapée en 500 générique loggé + Sentry. Unique guard des routes
  * household-scopées depuis le décommissionnement du hid (Lot 4).
+ * Refuse aussi (413) tout corps annoncé au-delà de `maxBodyBytes` AVANT de le
+ * lire — Vercel plafonnait à 4,5 Mo, Traefik ne plafonne rien.
  */
 export function withOwnerAuth<Req extends Request, C, Res extends Response>(
   handler: (request: Req, context: C, owner: OwnerContext) => Promise<Res>,
+  options: WithOwnerAuthOptions = {},
 ) {
+  const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
   // `context` optionnel dans la signature retournée : les tests appellent les
   // handlers sans params avec un seul argument ; Next passe toujours les deux.
   return async (request: Req, context?: C): Promise<Res | NextResponse> => {
     try {
+      // Avant la session : un simple contrôle d'en-tête, pas d'accès DB.
+      const tooLarge = await rejectOversizedBody(request, maxBodyBytes);
+      if (tooLarge) return tooLarge;
+
       // Dans le try : une erreur de résolution (DB indisponible) doit donner
       // un 500 capturé, PAS un 401 — un 401 déclencherait la purge du cookie
       // côté client alors que la session est probablement valide.
       const owner = await getOwnerContext();
       if (!owner) {
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        const t = await getT();
+        return NextResponse.json({ error: t.api.unauthorized }, { status: 401 });
       }
       return await handler(request, context as C, owner);
     } catch (err) {
@@ -46,15 +66,20 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
  * sont en lecture seule). Posé au Lot 0, branché sur les écritures à partir du
  * Lot 3. Retourne la réponse d'erreur à renvoyer, ou null si OK.
  */
-export function requireMember(
+export async function requireMember(
   owner: OwnerContext,
   householdId: string,
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const membership = owner.memberships.find((m) => m.householdId === householdId);
   if (!membership || membership.role !== "member") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbiddenResponse(await getT());
   }
   return null;
+}
+
+/** 403 générique localisé. Le client branche sur le statut, pas le texte. */
+export function forbiddenResponse(t: Dictionary): NextResponse {
+  return NextResponse.json({ error: t.api.forbidden }, { status: 403 });
 }
 
 /**
@@ -73,12 +98,12 @@ export async function resolveWriteHousehold(
   const memberIds = memberHouseholdIds(owner);
   if (typeof requested === "string" && requested.length > 0) {
     if (!memberIds.includes(requested)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return forbiddenResponse(await getT());
     }
     return { householdId: requested };
   }
   if (memberIds.length === 0) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return forbiddenResponse(await getT());
   }
   if (memberIds.length > 1) {
     const t = await getT();

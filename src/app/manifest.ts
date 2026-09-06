@@ -9,7 +9,7 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
   return {
     name: t.appName,
     short_name: t.appName,
-    description: `${t.landing.tagline}, ${t.landing.subtitle.toLowerCase()}`,
+    description: t.landing.description,
     start_url: "/home",
     display: "standalone",
     theme_color: "#F5F1E8",

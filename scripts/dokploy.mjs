@@ -5,6 +5,11 @@
 //   node scripts/dokploy.mjs GET  application.one '{"applicationId":"..."}'
 //   node scripts/dokploy.mjs POST application.deploy '{"applicationId":"..."}'
 //
+// Garde-fou : les procédures destructives (`*.delete`, `*.remove`, `*.stop`,
+// `*.reload`, `*.redeploy`, `*.cleanAll`, `*.saveEnvironment`) exigent `--yes`,
+// sinon le script affiche l'opération et sort en code 2. `application.deploy`
+// (utilisé par le workflow) n'est jamais bloqué.
+//
 // Jeton et URL dans .env.local (jamais commités) : DOKPLOY_URL, DOKPLOY_TOKEN
 // (Settings → Profile → API/CLI). Le document OpenAPI complet est servi par
 // GET settings.getOpenApiDocument.
@@ -15,7 +20,7 @@ function loadEnv() {
   const env = { ...process.env };
   try {
     for (const line of readFileSync(".env.local", "utf8").split("\n")) {
-      const m = line.match(/^([A-Z_]+)=(.*)$/);
+      const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
       if (m && env[m[1]] === undefined) env[m[1]] = m[2].trim().replace(/^"(.*)"$/, "$1");
     }
   } catch {
@@ -45,14 +50,27 @@ export async function dokploy(method, procedure, input) {
   return data;
 }
 
+const DESTRUCTIVE_PROCEDURE = /\.(delete|remove|stop|reload|redeploy|cleanAll|saveEnvironment)/;
+export function isDestructive(procedure) {
+  if (procedure === "application.deploy") return false;
+  return DESTRUCTIVE_PROCEDURE.test(procedure);
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  const [method, procedure, json] = process.argv.slice(2);
+  const yes = process.argv.includes("--yes");
+  const [method, procedure, json] = process.argv.slice(2).filter((a) => a !== "--yes");
   if (!method || !procedure) {
-    console.error("usage: node scripts/dokploy.mjs <GET|POST> <procedure> [json-input]");
+    console.error("usage: node scripts/dokploy.mjs <GET|POST> <procedure> [json-input] [--yes]");
+    process.exit(2);
+  }
+  const verb = method.toUpperCase();
+  if (isDestructive(procedure) && !yes) {
+    console.error(`Opération destructive refusée sans --yes : ${verb} ${procedure}${json ? " " + json : ""}`);
+    console.error("Relancer avec --yes pour confirmer.");
     process.exit(2);
   }
   try {
-    const out = await dokploy(method.toUpperCase(), procedure, json ? JSON.parse(json) : undefined);
+    const out = await dokploy(verb, procedure, json ? JSON.parse(json) : undefined);
     console.log(JSON.stringify(out, null, 2));
   } catch (err) {
     console.error(err.message);

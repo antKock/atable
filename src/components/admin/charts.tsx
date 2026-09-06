@@ -285,11 +285,13 @@ export function ChartStickiness({ data, marker, height = 172 }: { data: any[]; m
 export function ChartMauCohorts({
   data,
   cohorts,
+  colors,
   marker,
   height = 260,
 }: {
   data: any[];
   cohorts: string[]; // libellés, de la plus ancienne à la plus récente
+  colors?: string[]; // alignées sur `cohorts` (mauCohortColors) : couleur ancrée sur le mois, stable entre fenêtres
   marker?: string | null;
   height?: number;
 }) {
@@ -311,7 +313,7 @@ export function ChartMauCohorts({
             stackId="g"
             stroke={P.surface}
             strokeWidth={1.5}
-            fill={cohortColor(i)}
+            fill={colors?.[i] ?? cohortColor(i)}
             fillOpacity={0.85}
             dot={false}
           />

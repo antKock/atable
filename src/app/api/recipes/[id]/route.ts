@@ -64,7 +64,7 @@ export const PUT = withOwnerAuth(
       return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
 
-    const forbidden = requireMember(owner, existing.household_id);
+    const forbidden = await requireMember(owner, existing.household_id);
     if (forbidden) return forbidden;
     const frozen = await assertNotDemoSeedMutation(owner, existing);
     if (frozen) return frozen;
@@ -181,7 +181,7 @@ export const DELETE = withOwnerAuth(
       return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
 
-    const forbidden = requireMember(owner, existing.household_id);
+    const forbidden = await requireMember(owner, existing.household_id);
     if (forbidden) return forbidden;
     const frozen = await assertNotDemoSeedMutation(owner, existing);
     if (frozen) return frozen;
