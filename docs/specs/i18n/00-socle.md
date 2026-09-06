@@ -58,7 +58,7 @@ resolveLocale(cookie, acceptLanguage, env) :
 - `I18N_PREVIEW_COOKIE` : outil de vérification (Playwright, staging). Le composant
   `LocalePreviewSwitch` pose le cookie depuis `?lang=en|fr` puis recharge. Jamais
   posé en prod.
-- Aucune modification de `src/middleware.ts` : `getLocale()` lit `cookies()` /
+- Aucune modification de `src/proxy.ts` (ex-`middleware.ts`) : `getLocale()` lit `cookies()` /
   `headers()` directement (Server Components, layouts, route handlers).
 - Le layout racine rend `<html lang>` et monte `LocaleProvider` avec la locale
   seule (les dictionnaires contiennent des fonctions → non sérialisables RSC ; le
@@ -139,10 +139,17 @@ déployé sur staging, `done` quand promu en prod — convention backlog).
   handlers mais le remplace par son Vary interne sur le HTML des pages (vérifié
   Next 16.1, build local + staging-vps) ; ce HTML étant `private, no-store`, aucun
   cache partagé ne peut le servir à la mauvaise langue.
-- **Aperçus OG des liens partagés en FR.** Les bots (iMessage, WhatsApp,
-  Slack…) n'envoient pas `Accept-Language` → défaut `fr`, quelle que soit la
-  langue de l'expéditeur. Piste non décidée : un indice `?l=en` dans l'URL
-  partagée, lu uniquement pour les métadonnées OG (pas pour la page).
+- **Aperçus OG des liens partagés : indice `?l=` dans l'URL.** Les bots
+  (iMessage, WhatsApp, Slack…) n'envoient pas `Accept-Language` → défaut `fr`,
+  quelle que soit la langue de l'expéditeur. Règle (implémentée, `src/lib/share-url.ts`) :
+  `POST /api/recipes/[id]/share` ajoute `?l=<locale>` à l'URL **seulement si la
+  locale de l'appareil émetteur n'est pas `fr`** (les URL FR restent inchangées :
+  liens déjà envoyés, pas de bruit). `generateMetadata` de `/r/[token]` lit
+  l'indice (`isLocale`, sinon ignoré) pour le titre/description OG, `og:locale`
+  et `og:locale:alternate` — **et rien d'autre** : la page reste rendue dans la
+  langue du lecteur (`getT()` ⇐ `Accept-Language`), l'indice n'est jamais
+  propagé aux liens internes ni stocké. Couvert par `share-url.test.ts`,
+  `share/route.test.ts` et `e2e/16-i18n.spec.ts`.
 - **Les deux dictionnaires sont dans le bundle client** (~50 Ko de source
   fr + en, avant minification/gzip) : `client.tsx` importe `dictionaries`
   entièrement. Découpage client/serveur (ne livrer au client que la locale

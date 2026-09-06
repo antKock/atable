@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor } from "./helpers/onboarding";
+import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
+import { getHouseholdByJoinCode, insertRecipe } from "./helpers/db";
 
 // Chantier « Version EN » : la locale suit l'appareil. Le serveur E2E tourne
 // comme la prod, I18N_EN_ENABLED=1 (pinné dans helpers/env.ts) : sans cookie,
@@ -52,7 +53,7 @@ test("i18n : ?lang=en pose le cookie de prévisualisation et bascule la landing 
 test("i18n : la page 404 suit la locale", async ({ browser, baseURL }) => {
   const { context, page } = await newVisitor(browser);
   await context.addCookies([{ name: "mijote_locale", value: "en", url: baseURL! }]);
-  // Préfixe public : hors session, le middleware redirige toute autre route
+  // Préfixe public : hors session, le proxy redirige toute autre route
   // inconnue vers la landing avant d'atteindre le 404.
   await page.goto("/legal/does-not-exist");
   await expect(page.getByText("This page doesn't exist.")).toBeVisible();
@@ -76,4 +77,50 @@ test("i18n : un appareil EN atterrit sur le foyer démo EN (recettes anglaises)"
   await page.goto("/household");
   await expect(page.getByText("Demo", { exact: true })).toBeVisible();
   await context.close();
+});
+
+// Aperçus de liens partagés : les bots n'envoient pas Accept-Language, alors
+// l'appareil ÉMETTEUR glisse sa langue dans l'URL (`?l=en`, hors fr). L'indice
+// ne sert qu'aux métadonnées OG — la page reste rendue selon le lecteur.
+test("i18n : un partage depuis un appareil EN porte ?l=en, lu seulement par l'aperçu OG", async ({
+  browser,
+  baseURL,
+}) => {
+  const { context, page } = await newVisitor(browser);
+  const code = await createHouseholdViaUI(page, uniqueName("Foyer OG"));
+  const household = await getHouseholdByJoinCode(code);
+  if (!household) throw new Error("foyer introuvable en DB");
+  const recipeId = await insertRecipe({
+    householdId: household.id,
+    title: uniqueName("Recette OG"),
+    tagName: "Végétarien",
+  });
+
+  // Appareil FR : URL nue, comme avant l'indice
+  const mintFr = await page.request.post(`/api/recipes/${recipeId}/share`);
+  expect(mintFr.ok()).toBe(true);
+  const { token, url: urlFr } = (await mintFr.json()) as { token: string; url: string };
+  expect(new URL(urlFr).pathname).toBe(`/r/${token}`);
+  expect(new URL(urlFr).search).toBe("");
+
+  // Même appareil passé en EN (cookie de prévisualisation) : même jeton, indice ajouté
+  await context.addCookies([{ name: "mijote_locale", value: "en", url: baseURL! }]);
+  const mintEn = await page.request.post(`/api/recipes/${recipeId}/share`);
+  const { url: urlEn } = (await mintEn.json()) as { url: string };
+  expect(new URL(urlEn).pathname).toBe(`/r/${token}`);
+  expect(new URL(urlEn).searchParams.get("l")).toBe("en");
+  await context.close();
+
+  // Bot d'aperçu (UA WhatsApp, Accept-Language fr-FR du harnais) : avec l'indice,
+  // OG en anglais ; sans, en français. Dans les deux cas la page reste FR.
+  const bot = await newVisitor(browser);
+  const botHeaders = { "user-agent": "WhatsApp/2.23.20" };
+  const withHint = await (await bot.page.request.get(urlEn, { headers: botHeaders })).text();
+  expect(withHint).toContain('property="og:locale" content="en_US"');
+  expect(withHint).toContain('property="og:description" content="Vegetarian"');
+  expect(withHint).toContain('<html lang="fr"');
+  const withoutHint = await (await bot.page.request.get(urlFr, { headers: botHeaders })).text();
+  expect(withoutHint).toContain('property="og:locale" content="fr_FR"');
+  expect(withoutHint).toContain('property="og:description" content="Végétarien"');
+  await bot.context.close();
 });
