@@ -1,9 +1,12 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
-> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — VPS prêt, Dokploy en
-> HTTPS, **staging et prod déployés et validés sur le VPS, auto-déploiement des deux
-> branches** ; reste la période d'observation, le cron et la bascule DNS). Revue infra du
-> 2026-09-06 intégrée : `bootstrap.sh` reproduit l'état réel du serveur (règle DOCKER-USER,
+> **Statut : DNS basculé le 2026-09-06** (décidé le 2026-09-05, VPS livré et validé le
+> 2026-09-06 au matin, bascule le même jour vers 11 h 40 Paris) : `mijote` et `staging.mijote`
+> sont des enregistrements A → 217.182.206.61 (TTL 300), Let's Encrypt via Traefik, cron
+> demo-reset sur le VPS, cron Vercel retiré. **Vercel reste en secours** (projet et domaines
+> conservés) : rollback = remettre les deux CNAME `282c7e9a9146f6d0.vercel-dns-017.com.` via
+> `scripts/ovh.mjs`. Reste : période d'observation (calendrier ci-dessous), retrait des
+> domaines côté Vercel après 24 h sans incident. Revue infra du 2026-09-06 intégrée : `bootstrap.sh` reproduit l'état réel du serveur (règle DOCKER-USER,
 > sshd, logs Docker, cron), workflow durci (actions épinglées, `checks` bloquant,
 > vérification post-déploiement). En cas d'écart doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
@@ -256,10 +259,9 @@ Calendrier :
   n'est installé.
 - **Test manuel** : `sudo sh -c '. /etc/mijote/cron.env; curl -fsS -H "Authorization: Bearer
   $CRON_SECRET" https://<hôte>/api/cron/demo-reset'`.
-- **Vercel** : le cron de `vercel.json` continue de tourner sur la **même base** tant que le
-  projet Vercel existe (deux resets par nuit, idempotents : sans conséquence, mais deux
-  check-ins Sentry). À retirer de `vercel.json` **dans la PR de bascule DNS**, pas avant :
-  c'est le filet si la crontab du VPS ne tourne pas.
+- **Vercel** : cron retiré de `vercel.json` dans la PR de bascule DNS (2026-09-06). Le
+  reset est désormais exécuté uniquement par la crontab du VPS (moniteur Sentry Crons
+  `demo-reset` = seul filet : une nuit sans check-in = alerte).
 
 ## Rollback par tag
 
