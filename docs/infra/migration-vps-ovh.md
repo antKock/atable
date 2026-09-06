@@ -1,8 +1,8 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
 > **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — VPS prêt, Dokploy en
-> HTTPS, **staging déployé et validé sur le VPS avec auto-déploiement** ; reste l'app prod
-> (après promotion vers `main`), la validation prod, le cron et la bascule DNS). En cas d'écart
+> HTTPS, **staging et prod déployés et validés sur le VPS, auto-déploiement des deux
+> branches** ; reste la période d'observation, le cron et la bascule DNS). En cas d'écart
 > doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
 
@@ -125,12 +125,20 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
 - **Auto-déploiement vérifié** : push sur `staging` → GitHub Actions construit l'image →
   `POST /api/application.deploy` (secrets GitHub `DOKPLOY_URL`, `DOKPLOY_TOKEN`,
   `DOKPLOY_APP_ID` de l'environnement `staging`) → Dokploy tire le tag et redémarre.
-- **Application prod** : pas encore créée. L'image `ghcr.io/antkock/atable:main` n'existe
-  pas tant que `main` ne contient pas le `Dockerfile` et le workflow → nécessite une
-  promotion `staging` → `main` (PR + merge), qui est aussi un déploiement Vercel prod. Créer
-  ensuite l'app `mijote-prod` (variables du scope production, `SENTRY_ENVIRONMENT=production`,
-  domaine `prod-vps.mijote.anthonykocken.fr`) et poser les secrets GitHub de l'environnement
-  `production`.
+- **Application prod** (id `ljbUvq7lNn0TeTeIYBv6g`) : créée le 2026-09-06 après la promotion
+  `staging` → `main` (PR #114, `26b8646`) qui a produit l'image `ghcr.io/antkock/atable:main`.
+  Variables du scope production de Vercel + `SENTRY_ENVIRONMENT=production`, domaine
+  `https://prod-vps.mijote.anthonykocken.fr` (Let's Encrypt). **Validée contre la base prod** :
+  `/api/version` = SHA de `main`, pages publiques, middleware, session démo, `/home`,
+  carrousels, AASA, image OG, manifest. Secrets GitHub de l'environnement `production`
+  posés (auto-déploiement à chaque push sur `main`). Le cron demo-reset reste sur Vercel
+  jusqu'à la bascule DNS.
+- **Alerte « Dokploy tombé »** (2026-09-06, ~07:00) : fausse alerte. Dokploy et Traefik
+  n'ont pas redémarré (6 h d'uptime, 0 restart), aucun OOM, swap inutilisé. Le premier
+  déploiement prod avait lieu à cet instant : `prod-vps` répondait 502 le temps du démarrage
+  du conteneur, et le tirage/extraction de l'image (2 vCores) peut ralentir l'interface
+  quelques dizaines de secondes. fail2ban ne concerne que SSH (35 bans en 6 h, bruit
+  Internet normal).
 
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 
