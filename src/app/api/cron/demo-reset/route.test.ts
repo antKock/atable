@@ -6,7 +6,11 @@ import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 import * as Sentry from "@sentry/nextjs";
 
 vi.mock("@/lib/supabase/server");
-vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
+vi.mock("@sentry/nextjs", () => ({
+  captureException: vi.fn(),
+  // withMonitor exécute simplement le callback (pas de check-in en test)
+  withMonitor: (_name: string, fn: () => unknown) => fn(),
+}));
 
 let supa: SupabaseMock;
 

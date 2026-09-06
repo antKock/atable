@@ -16,6 +16,35 @@ const eslintConfig = defineConfig([
       "jsx-a11y/role-supports-aria-props": "error",
     },
   },
+  {
+    // Code applicatif uniquement (les scripts ne tournent pas derrière le proxy).
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
+      // Origine des URL absolues : derrière un reverse proxy (VPS, Traefik),
+      // `request.url` / `nextUrl.origin` valent l'adresse d'écoute du serveur
+      // (http://0.0.0.0:3000). Toute URL absolue ou redirection passe par
+      // getRequestOrigin() (src/lib/request-origin.ts) — cf. docs/infra/migration-vps-ovh.md.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector: "MemberExpression[object.property.name='nextUrl'][property.name='origin']",
+          message:
+            "nextUrl.origin est faux derrière le reverse proxy : utiliser getRequestOrigin(request) (@/lib/request-origin).",
+        },
+        {
+          selector:
+            "NewExpression[callee.name='URL'][arguments.length=2][arguments.1.type='MemberExpression'][arguments.1.property.name='url']",
+          message:
+            "new URL(chemin, request.url) construit une URL absolue sur l'adresse d'écoute : utiliser new URL(chemin, getRequestOrigin(request)).",
+        },
+      ],
+    },
+  },
+  {
+    // Seule implémentation autorisée du repli sur nextUrl.
+    files: ["src/lib/request-origin.ts"],
+    rules: { "no-restricted-syntax": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

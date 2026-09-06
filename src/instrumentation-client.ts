@@ -11,6 +11,9 @@ Sentry.init({
     process.env.NEXT_PUBLIC_VERCEL_ENV ??
     "development",
   tracesSampleRate: 0,
+  // Distingue l'hébergement (vercel / vps) pendant la migration et après :
+  // filtre `runtime:vps` dans Sentry. Posé par le Dockerfile pour l'image.
+  initialScope: { tags: { runtime: process.env.NEXT_PUBLIC_SENTRY_RUNTIME ?? "vercel" } },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
