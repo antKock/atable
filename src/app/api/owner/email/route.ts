@@ -8,6 +8,7 @@ import { recoveryEmailRateLimit, recoveryIpRateLimit } from '@/lib/redis'
 import { createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
 import { getT } from '@/lib/i18n/server'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 // Email de secours (#14, maquette 0.3) : saisi au profil, AUCUN envoi à la
 // saisie. Seule exception : la collision — email déjà porté par un autre
@@ -81,7 +82,7 @@ export const PUT = withOwnerAuth(
       }
       const { token, code } = await createLoginToken(holder.id, 'merge')
       await sendRecoveryEmail(email, {
-        magicLink: `${request.nextUrl.origin}/recover/${token}`,
+        magicLink: `${getRequestOrigin(request)}/recover/${token}`,
         code,
         kind: 'merge',
       })

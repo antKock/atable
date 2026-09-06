@@ -6,6 +6,7 @@ import { recoveryIpRateLimit, recoveryEmailRateLimit } from '@/lib/redis'
 import { findOwnerByEmail, createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
 import { getT } from '@/lib/i18n/server'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 // Demande de récupération (#14, §4) — route PUBLIQUE (middleware).
 //
@@ -45,7 +46,7 @@ export async function POST(request: NextRequest) {
       const owner = await findOwnerByEmail(email)
       if (owner) {
         const { token, code } = await createLoginToken(owner.id, 'recovery')
-        const magicLink = `${request.nextUrl.origin}/recover/${token}`
+        const magicLink = `${getRequestOrigin(request)}/recover/${token}`
         // L'appel HTTP Resend part APRÈS la réponse (after) : c'est le plus
         // gros différentiel de timing entre email connu et inconnu — le
         // sortir du chemin de réponse resserre l'anti-énumération. Le token,
