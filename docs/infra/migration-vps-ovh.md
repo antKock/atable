@@ -182,6 +182,15 @@ pas toutes dans l'export `vercel env pull` :
 | `SENTRY_ENVIRONMENT` | `production` / `staging` | `VERCEL_ENV` n'existe plus |
 | `DEMO_SEED_MIN` | optionnelle (défaut 30) | Seuil d'alerte Sentry sur les recettes seed ; valeur illisible ⇒ 30 + warn dans les logs (avant : alerte désactivée en silence) |
 
+⚠ **Piège vécu (2026-09-06)** : les variables marquées *sensitive* sur Vercel ne sont pas
+exportables (`vercel env pull` écrit littéralement `[SENSITIVE]`). La copie Vercel → Dokploy
+avait posé `DEMO_HOUSEHOLD_ID_EN=[SENSITIVE]` sur prod et staging : démo EN en erreur sur le
+VPS et cron voué à l'échec sur le foyer EN, sans aucune alerte au démarrage. Corrigé le jour
+même (id récupéré en base : `households where is_demo`). **Après toute copie de variables,
+vérifier qu'aucune valeur ne vaut `[SENSITIVE]`, vide, ou n'a pas la forme attendue** (uuid
+pour `DEMO_HOUSEHOLD_ID*`, liste d'uuid pour `ADMIN_HOUSEHOLD_IDS`) — via
+`application.one` de l'API Dokploy, sans afficher les valeurs.
+
 Contrôle après déploiement (langue suit l'appareil) :
 
 ```sh
