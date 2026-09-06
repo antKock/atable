@@ -130,4 +130,7 @@ export const POST = withOwnerAuth(
 
     return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
   },
+  // Opt-out garde démo : un visiteur démo ajoute librement ses recettes (jamais
+  // seed, purgées par le cron demo-reset).
+  { allowDemoMutation: true },
 );

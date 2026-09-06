@@ -135,4 +135,7 @@ export const POST = withOwnerAuth(
 
     return NextResponse.json({ ok: true, recipeId: newId });
   },
+  // Opt-out garde démo : la copie atterrit dans le foyer du visiteur (la démo,
+  // seul foyer où il est membre) comme recette non-seed, purgée par le cron.
+  { allowDemoMutation: true },
 );

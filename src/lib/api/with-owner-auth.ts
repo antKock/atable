@@ -17,7 +17,18 @@ export type WithOwnerAuthOptions = {
    * routes fichier (photo, capture, voix) le relèvent explicitement.
    */
   maxBodyBytes?: number;
+  /**
+   * Opt-out de la garde démo par défaut (cf. table de décision ci-dessous) :
+   * la route laisse écrire un owner démo. Elle porte alors SA garde fine
+   * (`assertNotDemoSeedMutation` sur les routes recette) ou n'écrit rien que le
+   * visiteur démo n'ait le droit d'écrire (heartbeat, « Quitter », import IA).
+   * Chaque opt-out se justifie en commentaire au point d'appel.
+   */
+  allowDemoMutation?: boolean;
 };
+
+// Méthodes de lecture : jamais concernées par la garde démo.
+const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /**
  * Guard des routes API à contexte owner (chantier foyer #14 + #15) : résout la
@@ -26,12 +37,47 @@ export type WithOwnerAuthOptions = {
  * household-scopées depuis le décommissionnement du hid (Lot 4).
  * Refuse aussi (413) tout corps annoncé au-delà de `maxBodyBytes` AVANT de le
  * lire — Vercel plafonnait à 4,5 Mo, Traefik ne plafonne rien.
+ *
+ * Garde démo PAR DÉFAUT (stratégie C « monde gelé », incidents 2026-06 et
+ * 2026-09) : toute requête non-GET d'un owner démo est refusée AVANT le handler
+ * (403 `t.demo.frozen` + compteur `demo_frozen_hits`), sauf `allowDemoMutation`.
+ * Une route de mutation n'a plus à « penser » à la garde — l'oubli qui avait
+ * laissé POST /api/tags ouvert (2026-09) n'est plus possible.
+ *
+ * Table de décision (routes sous withOwnerAuth) :
+ *   Défaut — 403 démo (mutations structurelles : foyer, membres, tags, profil)
+ *     POST /api/tags · PUT /api/households/[id] ·
+ *     PATCH+DELETE /api/households/[id]/members/[ownerId] · PUT /api/owner ·
+ *     PUT /api/owner/email · POST /api/owner/email/verify.
+ *   Opt-out `allowDemoMutation` — le visiteur démo DOIT pouvoir écrire :
+ *     POST /api/recipes/[id]/share (partager = lecture publique d'une recette
+ *     déjà visible, canal d'acquisition ; mint de jeton idempotent) ·
+ *     POST /api/recipes, POST /api/recipes/copy (création = recette non-seed) ·
+ *     PUT+DELETE /api/recipes/[id], POST …/photo, PATCH …/move (garde fine
+ *     `assertNotDemoSeedMutation` : seed intouchable, non-seed libre) ·
+ *     DELETE /api/households/[id] (« Quitter » conservé ; `delete` refusé dans
+ *     la route, message dédié `demoNotDeletable`) · POST /api/activity/ping
+ *     (heartbeat, attribution démo du rollup 032) ·
+ *     POST /api/recipes/import/{url,screenshot,voice} (extraction IA sans
+ *     écriture, quota par foyer).
+ *   Lecture — hors sujet : GET carousels, library, tags, recipes, recipes/[id],
+ *     recipes/[id]/status.
+ *
+ * Limite : la garde est OWNER-level (`isDemoOwner`), elle n'inspecte pas le
+ * foyer cible de la requête (qui peut venir du corps : `householdId` de
+ * recipes/copy/move). C'est sans faille car un owner démo ne porte JAMAIS
+ * d'autre membership que le foyer démo (owner dédié à /api/demo/session ;
+ * création/rejoindre repartent d'un owner neuf pour une session démo) — donc
+ * tout foyer cible qu'il pourrait viser EST le foyer démo, et
+ * `resolveWriteHousehold` / `requireMember` refusent les autres. Si l'invariant
+ * cassait un jour, la garde serait plus stricte (tout refusé), jamais plus lâche.
  */
 export function withOwnerAuth<Req extends Request, C, Res extends Response>(
   handler: (request: Req, context: C, owner: OwnerContext) => Promise<Res>,
   options: WithOwnerAuthOptions = {},
 ) {
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;
+  const allowDemoMutation = options.allowDemoMutation ?? false;
   // `context` optionnel dans la signature retournée : les tests appellent les
   // handlers sans params avec un seul argument ; Next passe toujours les deux.
   return async (request: Req, context?: C): Promise<Res | NextResponse> => {
@@ -47,6 +93,9 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
       if (!owner) {
         const t = await getT();
         return NextResponse.json({ error: t.api.unauthorized }, { status: 401 });
+      }
+      if (!allowDemoMutation && !READ_METHODS.has(request.method) && isDemoOwner(owner)) {
+        return await demoFrozenResponse();
       }
       return await handler(request, context as C, owner);
     } catch (err) {
@@ -113,29 +162,22 @@ export async function resolveWriteHousehold(
 }
 
 /**
- * Stratégie C (« monde gelé ») : LE garde-fou central démo — 403 sur toute
- * mutation foyer/membership/profil visant le foyer démo. Posé au Lot 0,
- * branché sur les routes au fil des lots. Leçon de l'incident 2026-06 (démo
- * supprimée par ses visiteurs) : garde-fous serveur centralisés, pas éparpillés.
+ * LA réponse « monde gelé » : 403 localisé + compteur produit `demo_frozen_hits`
+ * (dashboard v2). Un seul point d'émission, que la garde soit celle par défaut
+ * de withOwnerAuth ou la garde fine des routes recette.
  */
-export async function assertNotDemoMutation(
-  owner: OwnerContext,
-  householdId: string,
-): Promise<NextResponse | null> {
-  const membership = owner.memberships.find((m) => m.householdId === householdId);
-  if (membership?.isDemo) {
-    trackStat("demo_frozen_hits");
-    const t = await getT();
-    return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
-  }
-  return null;
+async function demoFrozenResponse(): Promise<NextResponse> {
+  trackStat("demo_frozen_hits");
+  const t = await getT();
+  return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
 }
 
 /**
- * Incident 2026-09 (les 30 recettes seed de la démo prod supprimées par un
- * visiteur) : une recette SEED du foyer démo est intouchable — pas d'édition,
- * de suppression, de déplacement ni de photo. Les recettes ajoutées par les
- * visiteurs restent libres (purgées par le cron). 403 « monde gelé ».
+ * Garde FINE des routes recette (opt-out `allowDemoMutation`). Incident 2026-09
+ * (les 30 recettes seed de la démo prod supprimées par un visiteur) : une
+ * recette SEED du foyer démo est intouchable — pas d'édition, de suppression,
+ * de déplacement ni de photo. Les recettes ajoutées par les visiteurs restent
+ * libres (purgées par le cron). 403 « monde gelé ».
  */
 export async function assertNotDemoSeedMutation(
   owner: OwnerContext,
@@ -144,26 +186,15 @@ export async function assertNotDemoSeedMutation(
   if (!recipe.is_seed) return null;
   const membership = owner.memberships.find((m) => m.householdId === recipe.household_id);
   if (!membership?.isDemo) return null;
-  trackStat("demo_frozen_hits");
-  const t = await getT();
-  return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
+  return demoFrozenResponse();
 }
 
 /**
  * Un owner « démo » = au moins un membership sur le foyer démo (stratégie C).
- * Prédicat owner-level unique, partagé par l'UI (hub gelé, profil masqué) et
- * les gardes de mutation owner-level (profil), pour ne pas réécrire la règle à
- * chaque site. `assertNotDemoOwner` en est la variante « garde de route » 403.
+ * Prédicat owner-level unique, partagé par l'UI (hub gelé, profil masqué), la
+ * conversion démo → owner neuf et la garde par défaut de withOwnerAuth, pour
+ * ne pas réécrire la règle à chaque site.
  */
 export function isDemoOwner(owner: OwnerContext): boolean {
   return owner.memberships.some((m) => m.isDemo);
-}
-
-export async function assertNotDemoOwner(owner: OwnerContext): Promise<NextResponse | null> {
-  if (isDemoOwner(owner)) {
-    trackStat("demo_frozen_hits");
-    const t = await getT();
-    return NextResponse.json({ error: t.demo.frozen }, { status: 403 });
-  }
-  return null;
 }

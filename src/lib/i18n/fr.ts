@@ -615,7 +615,7 @@ export const t = {
   },
 
   // Démo — stratégie C « monde gelé » : la surface foyer/membership/profil est
-  // coupée pour les sessions démo (guard serveur central assertNotDemoMutation)
+  // coupée pour les sessions démo (garde par défaut de withOwnerAuth)
   demo: {
     // Hint démo (HintCard variante `demo`, rendu sur /home par HomeHints),
     // gabarit « hint classique » comme partage/email pour être plus visible et

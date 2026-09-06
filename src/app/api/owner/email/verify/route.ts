@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/request-ip'
-import { withOwnerAuth, assertNotDemoOwner } from '@/lib/api/with-owner-auth'
+import { withOwnerAuth } from '@/lib/api/with-owner-auth'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
 import { recoveryVerifyRateLimit } from '@/lib/redis'
 import {
@@ -21,8 +21,7 @@ const CODE_REGEX = /^\d{6}$/
 export const POST = withOwnerAuth(
   async (request: NextRequest, _context: unknown, owner) => {
     const t = await getT()
-    const denied = await assertNotDemoOwner(owner)
-    if (denied) return denied
+    // Session démo : refusée par la garde par défaut de withOwnerAuth.
 
     let body: unknown
     try {
