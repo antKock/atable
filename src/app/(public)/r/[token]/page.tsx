@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cookies, headers } from "next/headers";
+import { getClientIp } from "@/lib/request-ip";
 import { createServerClient } from "@/lib/supabase/server";
 import { shareRateLimit } from "@/lib/redis";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
@@ -66,7 +67,7 @@ export default async function SharedRecipePage({ params }: Props) {
   let limited = false;
   try {
     const hdrs = await headers();
-    const ip = (hdrs.get("x-forwarded-for") ?? "127.0.0.1").split(",")[0].trim();
+    const ip = getClientIp(hdrs);
     const { success } = await shareRateLimit.limit(ip);
     limited = !success;
   } catch (err) {

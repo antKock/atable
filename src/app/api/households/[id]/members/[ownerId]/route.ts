@@ -6,6 +6,7 @@ import {
   withOwnerAuth,
   requireMember,
   assertNotDemoMutation,
+  forbiddenResponse,
 } from '@/lib/api/with-owner-auth'
 import { getT } from '@/lib/i18n/server'
 
@@ -40,7 +41,7 @@ export const PATCH = withOwnerAuth(
     const t = await getT()
     const { id, ownerId } = await params
 
-    const forbidden = requireMember(owner, id)
+    const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
     const demo = await assertNotDemoMutation(owner, id)
     if (demo) return demo
@@ -86,7 +87,7 @@ export const PATCH = withOwnerAuth(
     // Pas d'action sur soi-même hors dernier membre (se rétrograder = sans objet ;
     // le vrai départ = « Quitter », households/[id] ?action=leave).
     if (ownerId === owner.ownerId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return forbiddenResponse(t)
     }
 
     const { error: updateError } = await supabase
@@ -106,7 +107,7 @@ export const DELETE = withOwnerAuth(
     const t = await getT()
     const { id, ownerId } = await params
 
-    const forbidden = requireMember(owner, id)
+    const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
     const demo = await assertNotDemoMutation(owner, id)
     if (demo) return demo
@@ -135,7 +136,7 @@ export const DELETE = withOwnerAuth(
     // Pas de self-remove hors dernier membre : le vrai départ = « Quitter »,
     // qui nettoie aussi la session courante de l'appareil.
     if (ownerId === owner.ownerId) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return forbiddenResponse(t)
     }
 
     const { error: deleteError } = await supabase

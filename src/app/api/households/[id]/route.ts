@@ -7,6 +7,7 @@ import {
   withOwnerAuth,
   requireMember,
   assertNotDemoMutation,
+  forbiddenResponse,
 } from '@/lib/api/with-owner-auth'
 import { getT } from '@/lib/i18n/server'
 
@@ -19,7 +20,7 @@ export const PUT = withOwnerAuth(
 
     // Le foyer visé est celui de l'URL, validé contre les memberships de
     // l'owner (et non memberships[0]) : le détail de foyer est déjà multi-foyer.
-    const forbidden = requireMember(owner, id)
+    const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
 
     // Le foyer démo est du contenu partagé : le readOnly de l'UI ne protège
@@ -68,7 +69,7 @@ export const DELETE = withOwnerAuth(
     const { ownerId, sessionId } = owner
 
     if (!membership) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      return forbiddenResponse(t)
     }
     const householdId = id
 
@@ -83,7 +84,7 @@ export const DELETE = withOwnerAuth(
     //   delete → the household and all its recipes/sessions are destroyed
     const action = request.nextUrl.searchParams.get('action')
     if (action !== 'leave' && action !== 'delete') {
-      return NextResponse.json({ error: 'Invalid action' }, { status: 400 })
+      return NextResponse.json({ error: t.api.invalidAction }, { status: 400 })
     }
 
     const supabase = createServerClient()
@@ -97,7 +98,7 @@ export const DELETE = withOwnerAuth(
     // Le masquage UI ne suffit pas : la sécurité est serveur (RLS sans policy).
     let destroy: boolean
     if (action === 'delete') {
-      const forbidden = requireMember(owner, householdId)
+      const forbidden = await requireMember(owner, householdId)
       if (forbidden) return forbidden
       // Le foyer démo est du contenu partagé : jamais supprimable (incident
       // 2026-06 — démo effacée par ses visiteurs). « Quitter » reste possible.

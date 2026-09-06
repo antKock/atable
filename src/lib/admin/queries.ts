@@ -13,6 +13,7 @@ import {
   METHOD_COLORS,
   PLATFORM_LABELS,
   PLATFORM_COLORS,
+  cohortColor,
 } from "@/lib/admin/palette";
 
 // AI-cost usage groups — labels + colours. The single "import" bucket is split
@@ -462,6 +463,10 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { month: "short", year: "2-digit", timeZone: "UTC" });
   const mauCohortKeys = [...new Set((activeCohorts as Row[]).map((r) => r.cohort as string))].sort();
   const mauCohortLabels = mauCohortKeys.map(cohortLabel);
+  // Couleur par CLÉ de cohorte (mois), pas par position : la liste ci-dessus ne
+  // contient que les générations actives dans la fenêtre — un index positionnel
+  // changerait de couleur dès que la plus ancienne s'évapore.
+  const mauCohortColors = mauCohortKeys.map((k) => cohortColor(k));
   const cohortByDay = new Map<string, Record<string, number>>();
   for (const r of activeCohorts as Row[]) {
     const day = r.day as string;
@@ -849,7 +854,9 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     // 02 — personnes actives
     wauMau,
     mauCohorts,
+    mauCohortKeys,
     mauCohortLabels,
+    mauCohortColors, // aligné sur mauCohortLabels — à préférer à cohortColor(i)
     activityMarker,
     parc,
     loginFrequency,

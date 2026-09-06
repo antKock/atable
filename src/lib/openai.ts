@@ -10,7 +10,16 @@ let client: OpenAI | null = null;
 
 function getClient(): OpenAI {
   if (!client) {
-    client = new OpenAI({ apiKey: process.env.OPENAI_SERVICE_KEY });
+    // Clé nommée explicitement : sans `apiKey`, le SDK retombe en silence sur
+    // OPENAI_API_KEY puis échoue avec un message qui ne nomme pas la variable
+    // attendue par Mijote — trompeur au premier démarrage d'un conteneur.
+    const apiKey = process.env.OPENAI_SERVICE_KEY;
+    if (!apiKey) {
+      throw new Error(
+        "OPENAI_SERVICE_KEY manquante : la variable d'environnement est requise pour les appels OpenAI (enrichissement, imports IA)",
+      );
+    }
+    client = new OpenAI({ apiKey });
   }
   return client;
 }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { headers, cookies } from 'next/headers'
+import { getClientIp } from '@/lib/request-ip'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
 import { resolveInviteCode } from '@/lib/auth/invite-code'
@@ -23,7 +24,7 @@ export async function POST(request: NextRequest) {
     }
 
     const hdrs = await headers()
-    const ip = (hdrs.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const ip = getClientIp(hdrs)
     const { success } = await joinRateLimit.limit(ip)
     if (!success) {
       return NextResponse.json(

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { headers } from 'next/headers'
+import { getClientIp } from '@/lib/request-ip'
 import { createServerClient } from '@/lib/supabase/server'
 import { withOwnerAuth, assertNotDemoOwner } from '@/lib/api/with-owner-auth'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
@@ -57,7 +58,7 @@ export const PUT = withOwnerAuth(
     // owner authentifié scripterait l'énumération d'un carnet d'adresses. Posé
     // AVANT le lookup, donc identique sur les deux issues.
     const hdrs = await headers()
-    const ip = (hdrs.get('x-forwarded-for') ?? '127.0.0.1').split(',')[0].trim()
+    const ip = getClientIp(hdrs)
     const { success: ipAllowed } = await recoveryIpRateLimit.limit(ip)
     if (!ipAllowed) {
       return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })

@@ -3,7 +3,9 @@ import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { GET, POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
+import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, calledWith, type SupabaseMock } from "@/test/supabase-mock";
+import { t } from "@/lib/i18n/fr";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
@@ -109,6 +111,22 @@ describe("POST /api/tags", () => {
         category: null,
       }),
     ).toBe(true);
+  });
+
+  it("403 « monde gelé » pour un visiteur démo — le tag persisterait pour tous les visiteurs", async () => {
+    vi.mocked(getOwnerContext).mockResolvedValueOnce({
+      ownerId: "owner-demo",
+      ownerName: null,
+      ownerAlias: null,
+      recoveryEmail: null,
+      sessionId: "session-demo",
+      memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
+    });
+    const res = await POST(postRequest({ name: "Festif" }));
+    expect(res.status).toBe(403);
+    expect(await res.json()).toEqual({ error: t.demo.frozen });
+    // Aucune requête DB : ni dédoublonnage, ni insert.
+    expect(supa.calls.some((c) => c.table === "tags")).toBe(false);
   });
 
   it("returns a generic 500 when the insert fails", async () => {
