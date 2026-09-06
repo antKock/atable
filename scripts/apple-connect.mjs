@@ -14,19 +14,11 @@
 //   node scripts/apple-connect.mjs analytics-download <instanceId>
 
 import { createPrivateKey, createSign } from 'node:crypto';
-import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
-import path from 'node:path';
+import { loadEnvLocal } from './lib/env.mjs';
 
 const API = 'https://api.appstoreconnect.apple.com';
-
-function loadEnv() {
-  const file = path.join(process.cwd(), '.env.local');
-  for (const line of readFileSync(file, 'utf8').split('\n')) {
-    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
-    if (m && !(m[1] in process.env)) process.env[m[1]] = m[2].trim();
-  }
-}
+const API_HOST = new URL(API).host;
 
 function b64url(buf) {
   return Buffer.from(buf).toString('base64url');
@@ -59,6 +51,12 @@ function makeToken() {
 
 async function api(pathOrUrl, { method = 'GET', body } = {}) {
   const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API}${pathOrUrl}`;
+  // Le JWT ne part que vers l'API App Store Connect : une URL absolue vers un
+  // autre hôte (lien `next` copié-collé, faute de frappe) ne doit jamais
+  // recevoir le Bearer.
+  if (new URL(url).host !== API_HOST) {
+    throw new Error(`hôte refusé : ${new URL(url).host} (seul ${API_HOST} reçoit le jeton)`);
+  }
   const res = await fetch(url, {
     method,
     headers: {
@@ -73,7 +71,7 @@ async function api(pathOrUrl, { method = 'GET', body } = {}) {
 }
 
 const [cmd, arg1, arg2] = process.argv.slice(2);
-loadEnv();
+loadEnvLocal('.env.local');
 
 switch (cmd) {
   case 'apps': {
@@ -101,7 +99,18 @@ switch (cmd) {
       process.stdin.on('data', (c) => (buf += c));
       process.stdin.on('end', () => resolve(buf));
     });
-    const data = await api(arg1, { method: cmd.toUpperCase(), body: JSON.parse(raw) });
+    if (!raw.trim()) {
+      console.error(`corps JSON attendu sur stdin (echo '{"data":{…}}' | node scripts/apple-connect.mjs ${cmd} ${arg1 ?? '<path>'})`);
+      process.exit(1);
+    }
+    let body;
+    try {
+      body = JSON.parse(raw);
+    } catch (e) {
+      console.error(`corps stdin illisible en JSON : ${e.message}`);
+      process.exit(1);
+    }
+    const data = await api(arg1, { method: cmd.toUpperCase(), body });
     console.log(JSON.stringify(data, null, 2));
     break;
   }
@@ -130,7 +139,7 @@ switch (cmd) {
   }
 
   case 'analytics-reports': {
-    const params = arg2 ? `?filter[category]=${arg2}` : '?limit=200';
+    const params = arg2 ? `?filter[category]=${encodeURIComponent(arg2)}` : '?limit=200';
     const data = await api(`/v1/analyticsReportRequests/${arg1}/reports${params}`);
     for (const r of data.data) {
       console.log(`${r.id}  [${r.attributes.category}]  ${r.attributes.name}`);

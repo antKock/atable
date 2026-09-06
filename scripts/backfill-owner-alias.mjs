@@ -7,43 +7,30 @@
 // Résultat : aucun utilisateur au surnom correct ne change ; seuls les surnoms
 // désagréables sont remplacés, une seule fois ; tout devient statique ensuite.
 //
-// Usage : node scripts/backfill-owner-alias.mjs <prod|staging|local> [--dry-run]
+// Usage : node scripts/backfill-owner-alias.mjs <prod|staging|local> [--dry-run] [--yes]
+//   En prod (hors dry-run) : demande de taper PROD, sauf --yes.
 //
 // À lancer APRÈS la migration 031 (colonne créée), de préférence AVANT/AVEC le
 // déploiement du code (sinon un owner non backfillé lit le repli nouveaux-pools
 // = surnom changé temporairement). Idempotent : ne touche que les alias NULL.
 
-import { readFileSync } from "fs";
-import { resolve } from "path";
+import { ENV_FILES, confirmProd, loadEnvLocal } from "./lib/env.mjs";
 
-const ENV_FILES = { prod: ".env.local", staging: ".env.staging.local", local: ".env.test.local" };
 const target = process.argv[2];
 const dryRun = process.argv.includes("--dry-run");
 if (!ENV_FILES[target]) {
-  console.error("Usage : node scripts/backfill-owner-alias.mjs <prod|staging|local> [--dry-run]");
+  console.error("Usage : node scripts/backfill-owner-alias.mjs <prod|staging|local> [--dry-run] [--yes]");
   process.exit(1);
 }
 
-function loadEnv(file) {
-  const path = resolve(process.cwd(), file);
-  return Object.fromEntries(
-    readFileSync(path, "utf-8")
-      .split("\n")
-      .filter((l) => l.includes("=") && !l.trim().startsWith("#"))
-      .map((l) => {
-        const i = l.indexOf("=");
-        return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^"|"$/g, "")];
-      }),
-  );
-}
-
-const env = loadEnv(ENV_FILES[target]);
+const env = loadEnvLocal(ENV_FILES[target]);
 const URL_ = env["NEXT_PUBLIC_SUPABASE_URL"];
 const KEY = env["SUPABASE_SERVICE_ROLE_KEY"];
 if (!URL_ || !KEY) {
   console.error(`URL ou service key manquante dans ${ENV_FILES[target]}`);
   process.exit(1);
 }
+if (!dryRun) await confirmProd("backfill owners.alias", { envFile: ENV_FILES[target] });
 const HEADERS = { apikey: KEY, authorization: `Bearer ${KEY}` };
 
 // ── Pools ─────────────────────────────────────────────────────────────────

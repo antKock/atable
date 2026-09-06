@@ -13,14 +13,7 @@
 // foyer garde les owners des autres appareils). Un FAIL n'est significatif
 // qu'au moment de l'application de la migration.
 
-import { readFileSync } from "fs";
-import { resolve } from "path";
-
-const ENV_FILES = {
-  prod: ".env.local",
-  staging: ".env.staging.local",
-  local: ".env.test.local",
-};
+import { ENV_FILES, loadEnvLocal } from "./lib/env.mjs";
 
 const target = process.argv[2];
 if (!ENV_FILES[target]) {
@@ -28,20 +21,8 @@ if (!ENV_FILES[target]) {
   process.exit(1);
 }
 
-function loadEnv(file) {
-  const path = resolve(process.cwd(), file);
-  return Object.fromEntries(
-    readFileSync(path, "utf-8")
-      .split("\n")
-      .filter((l) => l.includes("=") && !l.trim().startsWith("#"))
-      .map((l) => {
-        const i = l.indexOf("=");
-        return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^"|"$/g, "")];
-      })
-  );
-}
-
-const env = loadEnv(ENV_FILES[target]);
+// Lecture seule : pas de garde-fou prod.
+const env = loadEnvLocal(ENV_FILES[target]);
 const URL_ = env["NEXT_PUBLIC_SUPABASE_URL"];
 const KEY = env["SUPABASE_SERVICE_ROLE_KEY"];
 if (!URL_ || !KEY) {

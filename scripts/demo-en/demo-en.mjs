@@ -5,37 +5,39 @@
 //        du foyer démo FR de STAGING (.env.staging.local), les traduit en en-US
 //        avec le modèle texte de prod, écrit scripts/demo-en/recipes.en.json
 //        (versionné : même contenu sur staging et prod, relisible).
-//   node scripts/demo-en/demo-en.mjs apply --env staging|prod [--dry-run]
+//   node scripts/demo-en/demo-en.mjs apply --env staging|prod [--dry-run] [--yes]
 //        → crée/maj le foyer démo EN (id fixe, is_demo) et ses recettes seed
 //        (ids fixes, upsert), en réutilisant les IMAGES générées des recettes
 //        FR (mêmes fichiers Storage — les seed ne sont jamais supprimées) et
-//        les tags globaux résolus par nom canonique FR.
+//        les tags globaux résolus par nom canonique FR. En prod : demande de
+//        taper PROD (sauf --dry-run ou --yes).
 //
 // L'id du foyer EN est ensuite à poser en env : DEMO_HOUSEHOLD_ID_EN.
 import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { ENV_FILES, confirmProd, loadEnvLocal } from "../lib/env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const JSON_PATH = path.join(HERE, "recipes.en.json");
 export const DEMO_EN_HOUSEHOLD_ID = "00000000-0000-0000-0000-00000000e000";
 const recipeId = (n) => `00000000-0000-0000-0000-00000000e${String(n).padStart(3, "0")}`;
+// created_at des seed EN : le JSON n'en porte pas (les seed FR gardent celui de
+// la copie staging). On les échelonne d'une heure par recette depuis une base
+// fixe, dans l'ordre du JSON (= ordre created_at des FR) : le tri « récentes »
+// du carnet est stable et identique à chaque ré-application (upsert).
+const SEED_CREATED_AT_BASE = Date.UTC(2026, 0, 1);
+const seedCreatedAt = (i) => new Date(SEED_CREATED_AT_BASE + i * 3600_000).toISOString();
 
-function loadEnv(file) {
-  return Object.fromEntries(
-    readFileSync(file, "utf8").split("\n").filter((l) => l.includes("=") && !l.startsWith("#"))
-      .map((l) => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^"|"$/g, "")]; }),
-  );
-}
 const args = process.argv.slice(2);
 const cmd = args[0];
 const envName = args.includes("--env") ? args[args.indexOf("--env") + 1] : null;
 const dryRun = args.includes("--dry-run");
 
 if (cmd === "translate") {
-  const staging = loadEnv(".env.staging.local");
-  const prodEnv = loadEnv(".env.local");
+  const staging = loadEnvLocal(ENV_FILES.staging);
+  const prodEnv = loadEnvLocal(ENV_FILES.prod);
   const sb = createClient(staging.NEXT_PUBLIC_SUPABASE_URL, staging.SUPABASE_SERVICE_ROLE_KEY);
   const { data: rows, error } = await sb.from("recipes")
     .select("id,title,ingredients,steps,notes,prep_time,cook_time,cost,complexity,seasons,servings,generated_image_url,image_prompt,created_at,recipe_tags(tags(name))")
@@ -74,24 +76,33 @@ Rules:
   console.log(`écrit ${JSON_PATH}`);
 } else if (cmd === "apply") {
   if (!envName) throw new Error("--env staging|prod requis");
-  const env = loadEnv(envName === "prod" ? ".env.local" : ".env.staging.local");
+  const envFile = envName === "prod" ? ENV_FILES.prod : ENV_FILES.staging;
+  const env = loadEnvLocal(envFile);
   const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
   const host = new URL(env.NEXT_PUBLIC_SUPABASE_URL).host;
   const recipes = JSON.parse(readFileSync(JSON_PATH, "utf8"));
   console.log(`${envName} (${host}) : ${recipes.length} recettes EN${dryRun ? " [dry-run]" : ""}`);
-  const { data: tags } = await sb.from("tags").select("id,name").is("household_id", null);
+  const { data: tags, error: tagsError } = await sb.from("tags").select("id,name").is("household_id", null);
+  if (tagsError || !tags) {
+    console.error(`lecture des tags globaux (${envName}) impossible : ${tagsError?.message ?? "réponse vide"}`);
+    process.exit(1);
+  }
   const tagId = new Map(tags.map((t) => [t.name, t.id]));
   // Les images FR vivent dans le Storage de CHAQUE env au même chemin ; on
   // ré-héberge l'URL sur l'env cible et on vérifie qu'elle répond.
   const rehost = (url) => (url ? url.replace(/^https:\/\/[^/]+/, `https://${host}`) : null);
   if (dryRun) { for (const r of recipes) console.log(`  [dry] ${r.title} (${r.tags.length} tags)`); process.exit(0); }
+  await confirmProd("création / mise à jour du foyer démo EN", { envFile });
+  // Codes d'invitation fixes et devinables : sans risque, resolveInviteCode
+  // (src/lib/auth/invite-code.ts) filtre `is_demo = false` — un foyer démo
+  // n'est jamais joignable par code, membre comme invité.
   const { error: hhErr } = await sb.from("households").upsert(
     { id: DEMO_EN_HOUSEHOLD_ID, name: "Mijote Demo", join_code: "DEMO-0001", guest_join_code: "DEMOGUEST-0001", is_demo: true },
     { onConflict: "id" },
   );
   if (hhErr) throw hhErr;
   let missing = 0, links = 0;
-  for (const r of recipes) {
+  for (const [i, r] of recipes.entries()) {
     const image = rehost(r.generated_image_url);
     if (image) { const head = await fetch(image, { method: "HEAD" }); if (!head.ok) { missing++; console.warn(`  image absente : ${r.title}`); } }
     const { error } = await sb.from("recipes").upsert({
@@ -100,7 +111,7 @@ Rules:
       prep_time: r.prep_time, cook_time: r.cook_time, cost: r.cost, complexity: r.complexity,
       seasons: r.seasons, servings: r.servings, image_prompt: r.image_prompt,
       generated_image_url: image, image_status: image ? "done" : "none",
-      enrichment_status: "enriched", source: "manual",
+      enrichment_status: "enriched", source: "manual", created_at: seedCreatedAt(i),
     }, { onConflict: "id" });
     if (error) throw new Error(`${r.title}: ${error.message}`);
     const ids = r.tags.map((name) => tagId.get(name)).filter(Boolean);
