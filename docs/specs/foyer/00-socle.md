@@ -54,7 +54,7 @@ déployé sur staging, `done` quand promu en prod — même convention que le ba
 - Pas d'utilisateurs. Cookie `atable_session` = **JWT signé** (jose HS256,
   `SESSION_SIGNING_SECRET`), payload `{ hid, sid, iat }` (`src/types/household.ts`),
   180 j glissants (re-signé après 30 j). Fichier central : `src/lib/auth/session.ts`.
-- `src/middleware.ts` : vérifie le cookie, check révocation Redis (`revoked:<sid>`),
+- `src/proxy.ts` (ex-`middleware.ts`, convention Next 16) : vérifie le cookie, check révocation Redis (`revoked:<sid>`),
   **injecte `x-household-id` + `x-session-id`** sur chaque requête. Routes publiques
   dans `PUBLIC_ROUTES`/`PUBLIC_PREFIXES`.
 - Consommation : `src/lib/api/with-household-auth.ts` (routes API) et lectures

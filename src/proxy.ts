@@ -9,6 +9,11 @@ import {
 import { redis } from '@/lib/redis'
 import { getRequestOrigin } from '@/lib/request-origin'
 
+// Proxy (convention Next 16, ex-`middleware.ts`) : garde d'authentification de
+// toutes les routes non publiques — vérifie le cookie de session, la révocation
+// Redis, injecte `x-session-id` et renouvelle le jeton (sliding session).
+// Tourne sur le runtime Node (le proxy n'a pas de segment `runtime`).
+
 // Exact-match public routes (no session required)
 const PUBLIC_ROUTES = ['/', '/support', '/api/households', '/api/version']
 // Prefix-match public routes
@@ -29,7 +34,7 @@ const PUBLIC_PREFIXES = [
 // Bot user-agents used by social platforms to generate link previews
 const BOT_UA_PATTERN = /facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot/i
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Let social media crawlers through so they can read OG metadata
@@ -80,7 +85,7 @@ export async function middleware(request: NextRequest) {
       }
     } catch (err) {
       // Redis unavailable → fail open, let the request through
-      console.error('[middleware] revocation check failed (Redis down?), failing open:', err)
+      console.error('[proxy] revocation check failed (Redis down?), failing open:', err)
     }
 
     const requestHeaders = new Headers(request.headers)

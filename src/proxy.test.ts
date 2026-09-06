@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
-import { middleware } from "./middleware";
+import { proxy } from "./proxy";
 import { verifySession, signSession } from "@/lib/auth/session";
 import { redis } from "@/lib/redis";
 
@@ -56,51 +56,51 @@ beforeEach(() => {
   vi.mocked(redis.get).mockReset();
 });
 
-describe("middleware — bots", () => {
+describe("proxy — bots", () => {
   it("lets social-media crawlers through untouched", async () => {
-    const res = await middleware(makeRequest("/home", { ua: "WhatsApp/2.23" }));
+    const res = await proxy(makeRequest("/home", { ua: "WhatsApp/2.23" }));
     expect(res.headers.get("location")).toBeNull();
     expect(verifySession).not.toHaveBeenCalled();
   });
 });
 
-describe("middleware — public routes", () => {
+describe("proxy — public routes", () => {
   it("allows the landing page with no session", async () => {
     vi.mocked(verifySession).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/"));
+    const res = await proxy(makeRequest("/"));
     expect(res.headers.get("location")).toBeNull();
   });
 
   it("allows a /join/ link with no session", async () => {
     vi.mocked(verifySession).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/join/OLIVE-4821"));
+    const res = await proxy(makeRequest("/join/OLIVE-4821"));
     expect(res.headers.get("location")).toBeNull();
   });
 
   it("allows /legal/* pages with no session (privacy policy must be public)", async () => {
     vi.mocked(verifySession).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/legal/confidentialite"));
+    const res = await proxy(makeRequest("/legal/confidentialite"));
     expect(res.headers.get("location")).toBeNull();
   });
 
   it("allows /support with no session (App Store Connect support URL)", async () => {
     vi.mocked(verifySession).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/support"));
+    const res = await proxy(makeRequest("/support"));
     expect(res.headers.get("location")).toBeNull();
   });
 
   it("redirects an authenticated user away from the landing page", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
-    const res = await middleware(makeRequest("/", { cookie: "valid-token" }));
+    const res = await proxy(makeRequest("/", { cookie: "valid-token" }));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toContain("/home");
   });
 });
 
-describe("middleware — protected routes", () => {
+describe("proxy — protected routes", () => {
   it("redirects to the landing page when there is no session", async () => {
     vi.mocked(verifySession).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/home"));
+    const res = await proxy(makeRequest("/home"));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe("https://atable.test/");
   });
@@ -108,14 +108,14 @@ describe("middleware — protected routes", () => {
   it("allows a valid, non-revoked session through", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/home", { cookie: "valid-token" }));
+    const res = await proxy(makeRequest("/home", { cookie: "valid-token" }));
     expect(res.headers.get("location")).toBeNull();
   });
 
   it("redirects and clears the cookie for a revoked session", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue("1"); // revoked marker present
-    const res = await middleware(makeRequest("/home", { cookie: "valid-token" }));
+    const res = await proxy(makeRequest("/home", { cookie: "valid-token" }));
     expect(res.status).toBe(307);
     expect(res.headers.get("location")).toBe("https://atable.test/");
     expect(res.cookies.get("atable_session")?.value).toBe("");
@@ -124,16 +124,16 @@ describe("middleware — protected routes", () => {
   it("fails open (allows through) when Redis errors", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockRejectedValue(new Error("redis down"));
-    const res = await middleware(makeRequest("/home", { cookie: "valid-token" }));
+    const res = await proxy(makeRequest("/home", { cookie: "valid-token" }));
     expect(res.headers.get("location")).toBeNull();
   });
 });
 
-describe("middleware — sliding session renewal", () => {
+describe("proxy — sliding session renewal", () => {
   it("re-signs and sets a fresh cookie when the token is older than the renewal window", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/home", { cookie: "old-token" }));
+    const res = await proxy(makeRequest("/home", { cookie: "old-token" }));
     expect(signSession).toHaveBeenCalledWith({ sid: "session-1" });
     expect(res.cookies.get("atable_session")?.value).toBe("renewed-token");
   });
@@ -141,7 +141,7 @@ describe("middleware — sliding session renewal", () => {
   it("does not renew a token younger than the renewal window", async () => {
     vi.mocked(verifySession).mockResolvedValue(FRESH_PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/home", { cookie: "fresh-token" }));
+    const res = await proxy(makeRequest("/home", { cookie: "fresh-token" }));
     expect(signSession).not.toHaveBeenCalled();
     expect(res.cookies.get("atable_session")).toBeUndefined();
   });
@@ -150,23 +150,23 @@ describe("middleware — sliding session renewal", () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(signSession).mockRejectedValue(new Error("no secret"));
     vi.mocked(redis.get).mockResolvedValue(null);
-    const res = await middleware(makeRequest("/home", { cookie: "old-token" }));
+    const res = await proxy(makeRequest("/home", { cookie: "old-token" }));
     expect(res.headers.get("location")).toBeNull();
   });
 });
 
-describe("middleware — regression guards", () => {
+describe("proxy — regression guards", () => {
   it("never emits x-dbg-* debug headers (Fix 1.3)", async () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue(null);
 
-    const authed = await middleware(
+    const authed = await proxy(
       makeRequest("/home", { cookie: "valid-token" }),
     );
     expect(hasDebugHeaders(authed)).toBe(false);
 
     vi.mocked(verifySession).mockResolvedValue(null);
-    const anon = await middleware(makeRequest("/home"));
+    const anon = await proxy(makeRequest("/home"));
     expect(hasDebugHeaders(anon)).toBe(false);
   });
 });

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Apple App Site Association — served at /.well-known/apple-app-site-association
 // via a rewrite in next.config.ts (so the content-type is application/json and
-// no auth/middleware applies). Declares that this site's /r/* links belong to
+// no auth/proxy applies). Declares that this site's /r/* links belong to
 // the Mijote app, enabling Universal Links (open the app instead of Safari).
 //
 // appID is "<TeamID>.<bundleId>". Both parts are public (the AASA itself is

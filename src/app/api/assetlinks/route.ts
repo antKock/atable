@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 // Android Digital Asset Links — served at /.well-known/assetlinks.json via a
 // rewrite in next.config.ts (so the content-type is application/json and no
-// auth/middleware applies). Declares that this site's /r/* and /join/* links
+// auth/proxy applies). Declares that this site's /r/* and /join/* links
 // belong to the Mijote Android app, enabling App Links (open the app instead
 // of Chrome). This is the Android counterpart of src/app/api/aasa/route.ts.
 const PACKAGE_NAME = "fr.anthonykocken.mijote";

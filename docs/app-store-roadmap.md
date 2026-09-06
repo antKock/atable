@@ -261,7 +261,7 @@ consistant.
 
 ### Fix 1.3 — Retirer les en-têtes de debug `x-dbg-*` · XS · ✅ FAIT
 
-- **Fichier :** `src/middleware.ts` (~lignes 49-56).
+- **Fichier :** `src/proxy.ts` (ex-`middleware.ts`, ~lignes 49-56).
 - **Changement :** supprimer les 3 `response.headers.set('x-dbg-*', …)`.
 - **Impact web :** aucun.
 - **Vérif :** DevTools → Network → plus de `x-dbg-*` dans les réponses.
@@ -336,7 +336,7 @@ Branche : `feat/capacitor-ios`. Couche additive, ne touche pas le code web.
       `@capacitor/haptics`, `@capacitor/splash-screen`, `@capacitor/status-bar`.
 - [x] `npx cap add ios` → projet Xcode généré (`ios/`).
 - [x] User-agent custom : `appendUserAgent` = `MijoteNative/1.0` (sans token de
-      `BOT_UA_PATTERN` — `WhatsApp`, `Facebot`…, cf. `middleware.ts:20` — sinon
+      `BOT_UA_PATTERN` — `WhatsApp`, `Facebot`…, cf. `proxy.ts` — sinon
       bypass d'auth).
 - [x] Clés Info.plist : `NSMicrophoneUsageDescription`,
       `NSPhotoLibraryUsageDescription`, `NSCameraUsageDescription` (descriptions FR).

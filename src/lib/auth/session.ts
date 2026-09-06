@@ -6,7 +6,7 @@ import type { SessionPayload } from '@/types/household'
 
 const COOKIE_NAME = 'atable_session'
 
-// Sliding session: tokens expire after 6 months, but the middleware re-signs
+// Sliding session: tokens expire after 6 months, but the proxy re-signs
 // any token older than the renewal window on each authenticated request. A
 // device only has to re-enter the join code after 6 full months of inactivity.
 export const SESSION_MAX_AGE_S = 60 * 60 * 24 * 180 // 180 days
