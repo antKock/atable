@@ -1,17 +1,22 @@
+# Vérifications sur les pull requests (lint, types, tests unitaires).
+#
+# Pas de déclencheur `push` : sur `main` et `staging`, les mêmes vérifications
+# tournent dans le job `checks` de deploy.yml, qui bloque le build de l'image.
+# ⚠ Si une branch protection exige le check « checks » de ce workflow, elle doit
+# désormais viser celui de « Deploy (Docker) » ou rester sur les PR.
+
 name: CI
 
 on:
-  push:
-    branches: [main, staging]
   pull_request:
 
 jobs:
   checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 22
           cache: npm

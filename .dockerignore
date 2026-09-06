@@ -5,6 +5,7 @@
 .githooks
 .next
 .next-e2e
+.next-e2e-verify
 .vercel
 node_modules
 .env
@@ -20,6 +21,11 @@ playwright-report
 *.har
 *.log
 .DS_Store
+.idea
+# Contexte agent, clés et fichiers locaux (jamais dans une couche d'image).
+.claude
+*.pem
+*.local
 coverage
 supabase/.temp
 _bmad*

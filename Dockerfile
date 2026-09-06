@@ -14,11 +14,15 @@
 #     --secret id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
 #     -t mijote .
 #
+# Le SDK Sentry ne lit pas GIT_COMMIT_SHA : SENTRY_RELEASE (même SHA) nomme la
+# release des événements et des source maps. Image de base épinglée sur une
+# version précise de Node 22 LTS (à monter à la main à chaque révision du Dockerfile).
+#
 # Run : toutes les autres variables (SUPABASE_SERVICE_ROLE_KEY, OPENAI_*, …)
 # sont lues à l'exécution, à fournir via l'environnement du conteneur.
 
 # ---------- deps ----------
-FROM node:22-alpine AS deps
+FROM node:22.23.2-alpine AS deps
 WORKDIR /app
 # npm ci a besoin des devDependencies pour `next build` (typescript, tailwind…).
 COPY package.json package-lock.json ./
@@ -26,7 +30,7 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
 RUN npm ci
 
 # ---------- build ----------
-FROM node:22-alpine AS build
+FROM node:22.23.2-alpine AS build
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -41,6 +45,7 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
     NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN \
     NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT \
     GIT_COMMIT_SHA=$GIT_COMMIT_SHA \
+    SENTRY_RELEASE=$GIT_COMMIT_SHA \
     SENTRY_ORG=$SENTRY_ORG \
     SENTRY_PROJECT=$SENTRY_PROJECT \
     NEXT_TELEMETRY_DISABLED=1 \
@@ -53,7 +58,7 @@ RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
     fi && npm run build
 
 # ---------- runner ----------
-FROM node:22-alpine AS runner
+FROM node:22.23.2-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
