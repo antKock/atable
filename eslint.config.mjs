@@ -14,6 +14,12 @@ const eslintConfig = defineConfig([
       "jsx-a11y/aria-unsupported-elements": "error",
       "jsx-a11y/role-has-required-aria-props": "error",
       "jsx-a11y/role-supports-aria-props": "error",
+    },
+  },
+  {
+    // Code applicatif uniquement (les scripts ne tournent pas derrière le proxy).
+    files: ["src/**/*.{ts,tsx}"],
+    rules: {
       // Origine des URL absolues : derrière un reverse proxy (VPS, Traefik),
       // `request.url` / `nextUrl.origin` valent l'adresse d'écoute du serveur
       // (http://0.0.0.0:3000). Toute URL absolue ou redirection passe par

@@ -7,6 +7,7 @@ import {
   SESSION_RENEW_AFTER_S,
 } from '@/lib/auth/session'
 import { redis } from '@/lib/redis'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 // Exact-match public routes (no session required)
 const PUBLIC_ROUTES = ['/', '/support', '/api/households', '/api/version']
@@ -54,18 +55,18 @@ export async function middleware(request: NextRequest) {
 
   // Authenticated user visiting landing → redirect to /home
   if (pathname === '/' && payload) {
-    return NextResponse.redirect(new URL('/home', request.url))
+    return NextResponse.redirect(new URL('/home', getRequestOrigin(request)))
   }
 
   if (!isPublic) {
     if (!payload) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return NextResponse.redirect(new URL('/', getRequestOrigin(request)))
     }
 
     try {
       const isRevoked = await redis.get(`revoked:${payload.sid}`)
       if (isRevoked) {
-        const res = NextResponse.redirect(new URL('/', request.url))
+        const res = NextResponse.redirect(new URL('/', getRequestOrigin(request)))
         res.cookies.set({
           name: 'atable_session',
           value: '',
