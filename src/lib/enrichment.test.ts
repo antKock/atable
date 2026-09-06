@@ -1,11 +1,12 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import openai from "@/lib/openai";
 import { createServerClient } from "@/lib/supabase/server";
-import { enrichRecipe, regenerateImage, sanitizeDietTags } from "./enrichment";
+import { enrichRecipe, regenerateImage } from "./enrichment";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 import { chatCompletion, enrichmentResult, imageResponse } from "@/test/openai-mock";
 import { recipeDbRow } from "@/test/fixtures";
 import { AI_MODELS } from "@/lib/ai-models";
+import { buildEnrichmentSchema } from "./enrichment-prompt";
 
 vi.mock("@/lib/openai", () => ({
   default: {
@@ -215,24 +216,6 @@ describe("enrichRecipe — full enrichment", () => {
   });
 });
 
-describe("sanitizeDietTags", () => {
-  it("drops Végétarien when an animal-protein tag is present", () => {
-    expect(sanitizeDietTags(["Poisson", "Végétarien", "Plat principal"]))
-      .toEqual(["Poisson", "Plat principal"]);
-    expect(sanitizeDietTags(["Fruits de mer", "Végétarien"])).toEqual(["Fruits de mer"]);
-    expect(sanitizeDietTags(["Poulet", "Végétarien", "Végan"])).toEqual(["Poulet"]);
-  });
-
-  it("drops Végan (but not Végétarien) when Œufs is present", () => {
-    expect(sanitizeDietTags(["Œufs", "Végétarien", "Végan"])).toEqual(["Œufs", "Végétarien"]);
-  });
-
-  it("keeps diet tags on genuinely vegetarian recipes", () => {
-    expect(sanitizeDietTags(["Légumineuses", "Végétarien", "Végan", "Indienne"]))
-      .toEqual(["Légumineuses", "Végétarien", "Végan", "Indienne"]);
-  });
-});
-
 describe("enrichRecipe — tag semantics (besoin #1)", () => {
   const sparse = () =>
     recipeDbRow({
@@ -268,6 +251,9 @@ describe("enrichRecipe — tag semantics (besoin #1)", () => {
     expect(systemPrompt).toContain("- Végétarien : STRICT : aucune viande, volaille, poisson…");
     expect(systemPrompt).toContain("- Poisson"); // definition-less tag still listed
     expect(systemPrompt).toContain("Règles d'attribution des tags");
+    // Le schéma strict est celui d'enrichment-prompt.ts, bâti sur les tags chargés en base
+    const schema = mockChat.mock.calls[0][0].response_format.json_schema;
+    expect(schema).toEqual(buildEnrichmentSchema(["Végétarien", "Poisson"], { enumTags: false }));
   });
 
   it("strips contradictory diet tags from the LLM response before insertion", async () => {

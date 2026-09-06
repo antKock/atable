@@ -133,57 +133,11 @@ const IMPORT_JSON_SCHEMA = {
   },
 };
 
-// Tags prédéfinis + descriptions (copie de la migration 021, source DB).
-const PREDEFINED_TAGS = [
-  ["Entrée", "Se sert en début de repas, avant le plat principal"],
-  ["Plat principal", "Plat central et consistant d'un repas"],
-  ["Accompagnement", "Se sert à côté d'un plat principal (riz, légumes, purée…)"],
-  ["Dessert", "Préparation sucrée servie en fin de repas"],
-  ["Soupe", "Préparation liquide ou veloutée, servie chaude ou froide"],
-  ["Salade", "Plat froid assaisonné à base de feuilles, crudités ou ingrédients mélangés"],
-  ["Apéro", "Bouchées ou plats à partager avant le repas"],
-  ["Petit-déjeuner", "Se consomme au petit-déjeuner ou au brunch"],
-  ["Goûter", "Collation sucrée de l'après-midi"],
-  ["Boisson", "Se boit : cocktail, smoothie, jus, café…"],
-  ["Sauce / Condiment", "Préparation destinée à accompagner ou assaisonner d'autres plats"],
-  ["Pain / Pâtisserie", "Boulangerie ou pâtisserie : pain, brioche, viennoiserie…"],
-  ["Végétarien", "STRICT : aucune viande, volaille, poisson, fruit de mer ni gélatine. Une recette contenant du poisson ou des fruits de mer n'est JAMAIS végétarienne. Œufs et produits laitiers autorisés."],
-  ["Végan", "STRICT : aucun produit d'origine animale — ni viande, volaille, poisson, fruits de mer, œufs, produits laitiers, miel ni gélatine"],
-  ["Sans gluten", "Aucun ingrédient contenant du gluten (blé, orge, seigle, épeautre…)"],
-  ["Sans lactose", "Aucun produit laitier contenant du lactose"],
-  ["Léger", "Peu calorique, adapté à un repas léger"],
-  ["Comfort food", "Plat réconfortant, riche et généreux"],
-  ["Poulet", "Le poulet ou une autre volaille est la protéine principale"],
-  ["Bœuf", "Le bœuf ou le veau est la protéine principale"],
-  ["Porc", "Le porc (jambon, lardons, saucisse, bacon…) est la protéine principale"],
-  ["Agneau", "L'agneau ou le mouton est la protéine principale"],
-  ["Poisson", "Un poisson (saumon, thon, cabillaud…) est la protéine principale"],
-  ["Fruits de mer", "Crustacés ou coquillages (crevettes, moules, calamars…) en protéine principale"],
-  ["Œufs", "Les œufs sont la protéine principale"],
-  ["Tofu / Protéines végétales", "Tofu, tempeh, seitan ou autres substituts végétaux en protéine principale"],
-  ["Légumineuses", "Lentilles, pois chiches, haricots secs… en protéine principale"],
-  ["Française", "Tradition culinaire française"],
-  ["Italienne", "Tradition culinaire italienne (pâtes, risotto, pizza…)"],
-  ["Indienne", "Tradition culinaire indienne (currys, épices…)"],
-  ["Libanaise / Orientale", "Cuisine libanaise ou moyen-orientale (mezze, houmous…)"],
-  ["Mexicaine", "Cuisine mexicaine ou tex-mex"],
-  ["Asiatique", "Cuisine d'Asie de l'Est ou du Sud-Est (chinoise, japonaise, thaïe…)"],
-  ["Africaine", "Cuisine du continent africain (maghrébine, subsaharienne…)"],
-  ["Américaine", "Cuisine nord-américaine (burgers, BBQ, brunch…)"],
-  ["Méditerranéenne", "Cuisine méditerranéenne (huile d'olive, légumes du soleil, grillades…)"],
-  ["Nordique", "Cuisine scandinave ou d'Europe du Nord"],
-  ["Rapide", "Prête en 30 minutes ou moins, préparation et cuisson comprises"],
-  ["En batch", "Se prête au batch cooking et aux grandes quantités"],
-  ["Repas de fête", "Adaptée aux grandes occasions et repas festifs"],
-  ["Pique-nique", "Se transporte facilement et se mange froide"],
-  ["Lunchbox", "Adaptée à une gamelle, froide ou réchauffée, pour le déjeuner"],
-  ["Pas cher", "Ingrédients économiques et courants"],
-  ["Facile", "Peu de technique, accessible aux débutants"],
-  ["One-pot", "Se cuisine entièrement dans un seul récipient"],
-  ["Sans cuisson", "Aucune cuisson nécessaire"],
-  ["Pour les enfants", "Plaît généralement aux enfants"],
-  ["À congeler", "Se congèle et se réchauffe bien"],
-];
+// Tags prédéfinis + descriptions : fixture partagée avec bench-enrichment-tags.mjs
+// (copie de la migration 021, source DB).
+const PREDEFINED_TAGS = JSON.parse(
+  await readFile(path.join(FIX, "enrich", "predefined-tags.json"), "utf8"),
+).map((t) => [t.name, t.description]);
 
 const IMAGE_PROMPT_INSTRUCTION = `Décris visuellement le plat terminé en anglais (pour un générateur d'images). Sois précis sur la présentation, les couleurs, l'angle de vue. Si la recette liste des ingrédients, ne représente QUE les ingrédients, garnitures et accompagnements listés — n'ajoute aucun aliment, ingrédient, herbe, feuille verte, sauce ou décoration non mentionné, et ne suggère pas de garniture "pour la présentation". EXCEPTION : si aucun ingrédient n'est listé (par exemple seulement un titre), imagine librement une version classique et appétissante du plat d'après son nom.`;
 
@@ -228,27 +182,11 @@ const ENRICH_JSON_SCHEMA = {
   },
 };
 
-// Recettes structurées pour le bench d'enrichissement (entrées déterministes).
-const ENRICH_RECIPES = [
-  {
-    slug: "ratatouille",
-    title: "Ratatouille",
-    ingredients: "350 g d'aubergines\n350 g de courgettes\n350 g de poivrons\n350 g d'oignons\n500 g de tomates\n6 cuillères à soupe d'huile d'olive\n2 gousses d'ail\n1 brin de thym\n1 feuille de laurier\nsel\npoivre",
-    steps: "Coupez les légumes en morceaux.\nFaites revenir les oignons dans l'huile d'olive.\nAjoutez les poivrons puis les aubergines et les courgettes.\nAjoutez les tomates, l'ail, le thym et le laurier.\nLaissez mijoter 45 minutes à feu doux.\nSalez et poivrez.",
-  },
-  {
-    slug: "saumon-teriyaki",
-    title: "Saumon teriyaki au riz",
-    ingredients: "4 pavés de saumon\n10 cl de sauce soja\n2 cuillères à soupe de miel\n1 gousse d'ail\ngingembre frais\n300 g de riz\ngraines de sésame\n2 oignons nouveaux",
-    steps: "Mélangez la sauce soja, le miel, l'ail et le gingembre râpés.\nFaites mariner le saumon 20 minutes.\nFaites cuire le riz.\nSaisissez le saumon à la poêle 3 minutes par face en arrosant de marinade.\nServez sur le riz, parsemé de sésame et d'oignons nouveaux.",
-  },
-  {
-    slug: "houmous",
-    title: "Houmous maison",
-    ingredients: "400 g de pois chiches cuits\n2 cuillères à soupe de tahini\n1 citron\n1 gousse d'ail\n4 cuillères à soupe d'huile d'olive\ncumin\nsel",
-    steps: "Mixez les pois chiches avec le tahini, le jus de citron et l'ail.\nAjoutez l'huile d'olive progressivement jusqu'à obtenir une texture lisse.\nAssaisonnez avec le cumin et le sel.\nServez avec un filet d'huile d'olive.",
-  },
-];
+// Recettes structurées pour le bench d'enrichissement (entrées déterministes,
+// fixture partagée avec bench-enrichment-tags.mjs — les 3 premières).
+const ENRICH_RECIPES = JSON.parse(
+  await readFile(path.join(FIX, "enrich", "recipes-fr.json"), "utf8"),
+).slice(0, 3);
 
 // ---------- Appels API ----------
 
