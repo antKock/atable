@@ -32,6 +32,10 @@ describe("checkEnv", () => {
     expect(checkEnv({ ...VALID, DEMO_HOUSEHOLD_ID: "00000000-0000-0000-0000-000000000000" })).toEqual([]);
   });
 
+  it("id fixe du foyer démo EN (hors RFC 4122) accepté — faux positif vu sur staging le 2026-09-06", () => {
+    expect(checkEnv({ ...VALID, DEMO_HOUSEHOLD_ID_EN: "00000000-0000-0000-0000-00000000e000" })).toEqual([]);
+  });
+
   it("requise absente ou vide → error", () => {
     const absent = checkEnv({ ...VALID, CRON_SECRET: undefined });
     expect(issueFor(absent, "CRON_SECRET")).toMatchObject({ level: "error", reason: "absente ou vide" });

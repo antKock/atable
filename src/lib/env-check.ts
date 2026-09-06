@@ -42,7 +42,9 @@ type EnvRule = {
 // `[SENSITIVE]` pour les variables sensibles, Dokploy affiche `[hidden]`.
 const PLACEHOLDER = /^\[[^\]]*\]$/;
 
-const uuid = z.uuid();
+// `z.guid()` et non `z.uuid()` : les foyers démo ont des ids fixes hors RFC 4122
+// (`…-00000000e000`, bits de version absents) que le validateur strict refuse.
+const uuid = z.guid();
 const commaList = (item: z.ZodType<string, string>) =>
   z
     .string()
