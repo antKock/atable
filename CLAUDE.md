@@ -44,6 +44,11 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
 
 ## Repères rapides
 
+- **Hébergement depuis le 2026-09-06 : VPS OVH + Dokploy** (`docs/infra/migration-vps-ovh.md`).
+  Push sur `staging`/`main` → GitHub Actions (`checks` bloquant) → image GHCR → Dokploy
+  (`staging.mijote…` / `mijote…`) → vérification du SHA via `APP_URL`. Vercel déploie encore
+  les deux branches mais **ne sert plus le DNS** (secours quelques semaines). Opérations
+  serveur : `ssh mijote-vps`, `scripts/dokploy.mjs`, `scripts/ovh.mjs`, `scripts/vps/bootstrap.sh`.
 - Branche de travail : `staging` (déploiement auto). `main` = prod, **protégée** :
   promotion via `gh pr create` + `gh pr merge --admin`, avec le compte gh **antKock**.
 - Migrations DB : `supabase/migrations/`, appliquées via `supabase db push --linked`

@@ -135,8 +135,10 @@ déployé sur staging, `done` quand promu en prod — convention backlog).
   `headers()` via `getLocale()` : `/`, `/support`, `/legal/*`, `/_not-found`,
   `/r/[token]` sont rendues côté serveur à chaque hit (plus de HTML pré-rendu
   servi par le CDN). Accepté : trafic faible, rendu léger. `Vary: Accept-Language`
-  est posé sur toutes les routes (`next.config.ts`) pour qu'un cache partagé
-  devant Traefik ne serve jamais une réponse EN à un client FR.
+  est posé dans `next.config.ts` : Next le conserve sur le manifest et les route
+  handlers mais le remplace par son Vary interne sur le HTML des pages (vérifié
+  Next 16.1, build local + staging-vps) ; ce HTML étant `private, no-store`, aucun
+  cache partagé ne peut le servir à la mauvaise langue.
 - **Aperçus OG des liens partagés en FR.** Les bots (iMessage, WhatsApp,
   Slack…) n'envoient pas `Accept-Language` → défaut `fr`, quelle que soit la
   langue de l'expéditeur. Piste non décidée : un indice `?l=en` dans l'URL

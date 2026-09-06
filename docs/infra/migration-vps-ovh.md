@@ -1,9 +1,12 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
-> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — VPS prêt, Dokploy en
-> HTTPS, **staging et prod déployés et validés sur le VPS, auto-déploiement des deux
-> branches** ; reste la période d'observation, le cron et la bascule DNS). Revue infra du
-> 2026-09-06 intégrée : `bootstrap.sh` reproduit l'état réel du serveur (règle DOCKER-USER,
+> **Statut : DNS basculé le 2026-09-06** (décidé le 2026-09-05, VPS livré et validé le
+> 2026-09-06 au matin, bascule le même jour vers 11 h 40 Paris) : `mijote` et `staging.mijote`
+> sont des enregistrements A → 217.182.206.61 (TTL 300), Let's Encrypt via Traefik, cron
+> demo-reset sur le VPS, cron Vercel retiré. **Vercel reste en secours** (projet et domaines
+> conservés) : rollback = remettre les deux CNAME `282c7e9a9146f6d0.vercel-dns-017.com.` via
+> `scripts/ovh.mjs`. Reste : période d'observation (calendrier ci-dessous), retrait des
+> domaines côté Vercel après 24 h sans incident. Revue infra du 2026-09-06 intégrée : `bootstrap.sh` reproduit l'état réel du serveur (règle DOCKER-USER,
 > sshd, logs Docker, cron), workflow durci (actions épinglées, `checks` bloquant,
 > vérification post-déploiement). En cas d'écart doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
@@ -256,10 +259,9 @@ Calendrier :
   n'est installé.
 - **Test manuel** : `sudo sh -c '. /etc/mijote/cron.env; curl -fsS -H "Authorization: Bearer
   $CRON_SECRET" https://<hôte>/api/cron/demo-reset'`.
-- **Vercel** : le cron de `vercel.json` continue de tourner sur la **même base** tant que le
-  projet Vercel existe (deux resets par nuit, idempotents : sans conséquence, mais deux
-  check-ins Sentry). À retirer de `vercel.json` **dans la PR de bascule DNS**, pas avant :
-  c'est le filet si la crontab du VPS ne tourne pas.
+- **Vercel** : cron retiré de `vercel.json` dans la PR de bascule DNS (2026-09-06). Le
+  reset est désormais exécuté uniquement par la crontab du VPS (moniteur Sentry Crons
+  `demo-reset` = seul filet : une nuit sans check-in = alerte).
 
 ## Rollback par tag
 
@@ -345,7 +347,19 @@ until=168h`, hebdo) et jamais sur GHCR : le rollback reste possible à tout mome
    `/etc/mijote/cron.env` — cf. « Cron demo-reset ». Retirer le cron de `vercel.json`
    dans la PR de bascule DNS.
 7. **Bascule DNS** (API OVH, zone du domaine) : `mijote` et `staging.mijote` → IP du VPS
-   (TTL abaissé à 300 s la veille). Let's Encrypt se déclenche dans Dokploy.
+   (TTL abaissé à 300 s la veille). **Fait le 2026-09-06** (CNAME supprimés, A posés,
+   `POST /domain/zone/<zone>/refresh`, propagé en 15 s sur 1.1.1.1 / 8.8.8.8).
+   ⚠ **Let's Encrypt ne se relance pas tout seul** : Traefik tente le challenge HTTP dès
+   que le domaine est ajouté dans Dokploy, donc *avant* la propagation (Let's Encrypt
+   interroge encore Vercel → 404), puis n'essaie plus. Après propagation, forcer la
+   résolution avec `node scripts/dokploy.mjs POST settings.reloadTraefik '{}' --yes`
+   (certificats émis en ~25 s). Vécu : ~15 min de certificat `TRAEFIK DEFAULT CERT` sur
+   `mijote.anthonykocken.fr` pour les résolveurs déjà à jour. Ordre à respecter la
+   prochaine fois : DNS → attendre la propagation → ajouter les domaines dans Dokploy (ou
+   reload Traefik).
+   ⚠ **Vérifier avec `curl --resolve <hôte>:443:<IP VPS>`**, jamais avec le résolveur
+   du poste : il garde l'ancien CNAME en cache (TTL 3600) et répond… Vercel, qui a lui
+   aussi un certificat Let's Encrypt valide — faux positif garanti.
 8. **Apps mobiles : rien à rebuild.** Les coquilles Capacitor chargent l'URL web ; tant que
    le domaine ne change pas, iOS et Android suivent instantanément. Vérifier quand même
    `/api/aasa` et `/api/assetlinks` derrière Traefik (Content-Type, pas de redirection).
