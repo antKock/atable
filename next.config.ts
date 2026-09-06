@@ -4,11 +4,19 @@ import { withSentryConfig } from "@sentry/nextjs";
 // Build identifier baked into both the client bundle and the /api/version
 // response. A stale WebView (or PWA) compares its own frozen value against the
 // live one to detect that a new deployment shipped — see VersionWatcher.
-// Prefer the git SHA (set on Vercel git deploys); fall back to a build-time
-// timestamp so a fresh id is still produced for CLI / non-git builds.
-const BUILD_ID = process.env.VERCEL_GIT_COMMIT_SHA || `t${Date.now()}`;
+// Prefer the git SHA (set by Vercel on git deploys, or passed as GIT_COMMIT_SHA
+// by the Docker build — see Dockerfile); fall back to a build-time timestamp so
+// a fresh id is still produced for CLI / non-git builds.
+const BUILD_ID =
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.GIT_COMMIT_SHA ||
+  `t${Date.now()}`;
 
 const nextConfig: NextConfig = {
+  // Self-hosting (docs/infra/migration-vps-ovh.md) : `next build` produit un
+  // serveur autonome dans `.next/standalone` (node_modules tracés uniquement),
+  // copié tel quel dans l'image Docker. Sans effet sur Vercel.
+  output: "standalone",
   // Répertoire de build alternatif pour le serveur E2E (playwright.config.ts) :
   // deux `next dev` ne peuvent pas partager le lock de .next. Défaut inchangé.
   distDir: process.env.NEXT_DIST_DIR || ".next",
@@ -47,6 +55,22 @@ const nextConfig: NextConfig = {
     formats: ["image/webp"],
     // Long cache so optimized variants aren't regenerated (reduces cache writes).
     minimumCacheTTL: 2678400, // 31 days
+  },
+  // HSTS : Vercel l'ajoutait de lui-même ; derrière Traefik (auto-hébergement)
+  // il faut le poser nous-mêmes. Sans effet en dev (HTTP) : les navigateurs
+  // ignorent l'en-tête hors HTTPS.
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains",
+          },
+        ],
+      },
+    ];
   },
   // Serve the Apple App Site Association from the well-known path via the API
   // route (guarantees application/json + lets it read APPLE_APP_ID at runtime).

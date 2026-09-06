@@ -116,3 +116,18 @@ Les déclarations ci-dessus doivent rester cohérentes avec la politique de
 confidentialité (`docs/politique-confidentialite.md`). Si une fonctionnalité
 ajoute un nouveau type de données (ex. notifications push en Phase 5, analytics,
 crash-reporting), **mettre à jour les deux documents**.
+
+---
+
+## Partie 3 — Classification (questionnaire « réseaux sociaux », 2026-09)
+
+Apple a ajouté deux questions à la classification d'âge (échéance 2026-09-07). Réponses
+données pour la 1.3, vérifiées par l'API (`/v1/appInfos/<id>/ageRatingDeclaration` :
+`socialMedia = false`, `socialMediaAgeRestricted = false`) :
+
+| Question | Réponse | Justification |
+|---|---|---|
+| Réseaux sociaux (flux social / découverte diffusant du contenu à un grand nombre d'utilisateurs) | **Non** | Aucun fil, aucune découverte : une recette n'est vue que par les membres invités d'un carnet privé ou via un lien que l'auteur envoie |
+| Réseaux sociaux désactivés pour les moins de 13 ans | **Non** | Sans objet (dépend d'un Oui à la première) |
+
+Classification inchangée : **4+**.

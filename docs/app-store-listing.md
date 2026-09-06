@@ -1,5 +1,11 @@
 # Mijote — Fiche App Store Connect
 
+> **État au 2026-09-06** : ce document est le guide de la **première** soumission (v1.0,
+> mai 2026). Les textes en vigueur sont désormais dans `docs/marketing/fiche-app-store.md`
+> (FR) et `docs/marketing/fiche-app-store-en.md` (EN) — voir aussi §12 ci-dessous pour la
+> soumission 1.3 (fiche refondue + localisation English U.S.).
+
+
 > Source de vérité pour tous les champs à remplir dans **App Store Connect**
 > au moment de la soumission. Le ton est le **tutoiement** (cohérent avec
 > les apps grand public récentes : Doctolib, Yuka, Spotify…). La politique
@@ -256,3 +262,22 @@ Tes retours nous aident à progresser : kocken.anthony@gmail.com
 5. Uploader icône + screenshots (section 10).
 6. TestFlight pointant sur staging (Phase 4).
 7. Soumettre pour review Apple (Phase 4).
+
+---
+
+## 12. Soumission 1.3 (2026-09-06) — fiche refondue + localisation English (U.S.)
+
+Ce qui a changé par rapport au guide ci-dessus, et comment ça a été fait.
+
+| Élément | Décision / procédure |
+|---|---|
+| Nom / sous-titre FR | « Mijote — Livre de recettes » / « Importe, cuisine et partage » (cf. `docs/marketing/fiche-app-store.md`, analyse concurrentielle du 2026-09-02) |
+| Mots-clés FR | Liste saisie dans ASC = source de vérité, recopiée dans la fiche ; **règle : ASC d'abord, la fiche ensuite** |
+| Visuels | 6 iPhone (1290×2796, déclinés automatiquement sur les tailles inférieures) + 6 iPad 13″, **par langue** (les captures FR ne s'appliquent pas à la localisation EN) |
+| **Localisation English (U.S.)** | Créée par l'API : `echo '<json>' \| node scripts/apple-connect.mjs post /v1/appInfoLocalizations` (nom, sous-titre, URL politique, relation `appInfo` **en préparation**) puis `patch /v1/appStoreVersionLocalizations/<id>` (promo, description, mots-clés, nouveautés, URLs). Textes : `fiche-app-store-en.md`. Les captures EN ont été déposées dans ASC. Audit de relecture par l'API avant soumission (tout identique aux fiches) |
+| Ajouter une langue | **Avant** la soumission, dans la même version : une version en review/publiée est verrouillée ; après publication, nom/sous-titre/description/captures d'une nouvelle langue exigent une nouvelle version |
+| Langue principale | Reste **Français** pour la 1.3 : Apple refuse le changement tant que la version **publiée** (1.2) n'a pas la nouvelle langue complète (« toutes les captures… pour chacune des versions »). **À passer en English (U.S.) une fois la 1.3 en ligne** : c'est la fiche de repli des storefronts sans localisation, et l'app s'affiche en anglais hors FR |
+| Classification (nouveau questionnaire 2026) | « Réseaux sociaux » = **Non** (pas de flux ni de découverte ; carnets privés sur invitation, liens envoyés par l'auteur), « Réseaux sociaux désactivés pour les moins de 13 ans » = **Non** (sans objet). Reste 4+. L'infobox « nouvelles réponses requises » persiste tant que la version publiée porte l'ancien questionnaire (verrouillé) — elle s'éteint à la mise en ligne de la 1.3 |
+| App Privacy | 8 types (voir `app-store-privacy-labels.md`) — pas d'API, vérification sur capture |
+| Release | Automatique après approbation ; export compliance `ITSAppUsesNonExemptEncryption=false` |
+| Après publication | 1) langue principale → English (U.S.) ; 2) Google Play : fiche EN + Data safety (nom, e-mail, Analyse) |

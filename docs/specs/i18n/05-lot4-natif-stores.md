@@ -1,4 +1,4 @@
-# Lot 4 — Natif, stores et activation (code livré le 2026-09-05 ; activation en attente)
+# Lot 4 — Natif, stores et activation (activé en prod le 2026-09-05)
 
 > Contexte et décisions : `00-socle.md`. Ce lot clôt le chantier : c'est ici que
 > l'anglais devient visible pour de vrais utilisateurs.
@@ -26,17 +26,17 @@
 - **Android** : rien à traduire (`strings.xml` = nom de l'app), le WebView envoie
   `Accept-Language` de l'appareil. Aucune modification.
 
-## Checklist d'activation (dans cet ordre)
+## Checklist d'activation (dans cet ordre) — étapes 5-6 (build iOS, fiche App Store EN) restent à faire par Anthony
 
-1. [ ] **Relecture humaine** de `src/app/(landing)/legal/confidentialite/content-en.tsx`
+1. [x] **Relecture humaine** de `src/app/(landing)/legal/confidentialite/content-en.tsx`
    (texte à valeur juridique) — Anthony. Visible sur staging : `?lang=en` puis
    `/legal/confidentialite`.
-2. [ ] **Prod — données** : migration `038_demo_stats_rollup_multi.sql` (avant le
+2. [x] **Prod — données** : migration `038_demo_stats_rollup_multi.sql` (avant le
    code, comme d'habitude), puis `node scripts/demo-en/demo-en.mjs apply --env prod`
    (idempotent ; crée le foyer démo EN + 30 recettes, images FR réutilisées).
-3. [ ] **Prod — env Vercel** : `vercel env add DEMO_HOUSEHOLD_ID_EN production
+3. [x] **Prod — env Vercel** : `vercel env add DEMO_HOUSEHOLD_ID_EN production
    --value 00000000-0000-0000-0000-00000000e000 --yes` (⚠ jamais `npx vercel`).
-4. [ ] **Promotion staging → main** (PR + `gh pr merge --admin`, compte antKock).
+4. [x] **Promotion staging → main** (PR + `gh pr merge --admin`, compte antKock).
    Toujours invisible tant que `I18N_EN_ENABLED` est absent.
 5. [ ] **Build iOS** : `npx cap sync ios` (prod = sans `CAP_ENV`), archive Xcode,
    upload TestFlight ; tester sur un iPhone **réglé en anglais** : permissions
@@ -47,12 +47,12 @@
    cook, share », mots-clés, description, promo), **captures EN** prises depuis
    l'app localisée (remplacer les captures FR de `visuels-app-store/export-en/`).
    Google Play : fiche EN (sans nouveau build).
-7. [ ] **Activation** : `vercel env add I18N_EN_ENABLED production --value 1 --yes`
+7. [x] **Activation** : `vercel env add I18N_EN_ENABLED production --value 1 --yes`
    + redéploiement prod. **Découplée de la release App Store** (décision Anthony,
    2026-09-05) : un appareil anglais qui a déjà l'app passe en EN dès
    l'activation — c'est le but ; la fiche et les captures EN suivent avec la
    release iOS. Prérequis réels : étapes 1 à 4.
-8. [ ] Vérifier en prod avec `curl -H "Accept-Language: en-US"` : `<html lang="en">`,
+8. [x] Vérifier en prod avec `curl -H "Accept-Language: en-US"` : `<html lang="en">`,
    `/api/demo/session` → recettes EN ; puis mettre à jour `00-socle.md` (statuts
    `done`), le vault (`Mijote.md`, `Historique & Décisions.md`) et la note ASO.
 

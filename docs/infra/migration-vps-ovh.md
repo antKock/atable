@@ -1,7 +1,8 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
-> **Statut : plan, non déclenché** (décision de principe du 2026-09-05, Anthony finit 2-3
-> chantiers d'abord). À ouvrir le jour où on décide de quitter Vercel. En cas d'écart
+> **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — VPS prêt, Dokploy en
+> HTTPS, **staging déployé et validé sur le VPS avec auto-déploiement** ; reste l'app prod
+> (après promotion vers `main`), la validation prod, le cron et la bascule DNS). En cas d'écart
 > doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
 
@@ -39,15 +40,17 @@ se font par SSH et par l'API Dokploy.
 
 ## Prérequis dans le repo (à faire avant le jour J, sans risque pour Vercel)
 
-- [ ] `next.config` : `output: 'standalone'` (image ~200 MB).
-- [ ] `Dockerfile` multi-stage (deps → build → runner `node:22-alpine`, utilisateur non-root,
+- [x] `next.config` : `output: 'standalone'` (image ~200 MB).
+- [x] `Dockerfile` multi-stage (deps → build → runner `node:22-alpine`, utilisateur non-root,
       `HOSTNAME=0.0.0.0`).
-- [ ] Workflow `.github/workflows/deploy.yml` : sur push `main` et `staging` → build de
+- [x] Workflow `.github/workflows/deploy.yml` : sur push `main` et `staging` → build de
       l'image → push `ghcr.io/antkock/atable:<branche>-<sha>` → appel API Dokploy (ou SSH)
       pour redéployer. **Repo public** : seuls les `NEXT_PUBLIC_*` passent en `build-arg` ;
-      aucun autre secret dans l'image ni dans les logs du workflow. Rendre le paquet GHCR
-      privé (500 MB de stockage privé gratuit, garder 2-3 tags).
-- [ ] Vérifier ce qui dépend de Vercel : `after()` fonctionne en Node standalone ; image
+      aucun autre secret dans l'image ni dans les logs du workflow. Le paquet GHCR est
+      **public** (décision 2026-09-06 : l'image ne contient aucun secret, et un paquet public
+      se tire sans identifiant depuis Dokploy). Premier run réussi le 2026-09-06 :
+      `ghcr.io/antkock/atable:staging` (amd64, 86 MB compressés).
+- [x] Vérifier ce qui dépend de Vercel : `after()` fonctionne en Node standalone ; image
       OpenGraph en `runtime nodejs` ; `VERCEL_ENV` utilisé par Sentry (`environment`) → le
       remplacer par `SENTRY_ENVIRONMENT` ; `x-forwarded-for` pour les rate-limits par IP
       (Traefik le pose) ; taille max du body (4,5 MB chez Vercel → à configurer côté
@@ -55,6 +58,79 @@ se font par SSH et par l'API Dokploy.
 - [ ] Reprendre `vercel.json` : la région n'a plus d'objet, le cron passe en crontab.
 - [ ] Liste exhaustive des variables d'environnement par scope (`vercel env pull` prod +
       preview) → à recopier dans Dokploy.
+
+## Vérifié le 2026-09-06 (build local)
+
+Image construite et testée sur le poste (`docker buildx build`, env staging) : 353 MB,
+conteneur `healthy`, landing et pages publiques en 200, middleware OK (`/home` → 307 sans
+session), session démo créée en base staging, `/api/carousels` et `/api/library` en 200,
+`/api/version` renvoie le SHA git, AASA et image OpenGraph servis. **73 MB de RAM au repos**
+(estimation initiale : 250 MB).
+
+Pièges rencontrés, déjà corrigés dans le repo :
+
+- Le montage de secret BuildKit exige `docker buildx` (sur le poste : `brew install
+  docker-buildx` + lien dans `~/.docker/cli-plugins`). Sur GitHub Actions, buildx est natif.
+- `src/lib/email/send.ts` importe un helper de `e2e/` → le dossier `e2e/` doit rester dans le
+  contexte Docker (ne pas l'exclure dans `.dockerignore`).
+- Le client OpenAI s'instanciait au chargement du module et faisait échouer `next build`
+  sans clé (« collecting page data »). Il est désormais instancié à la première utilisation
+  (`src/lib/openai.ts`, Proxy) : **aucun secret n'est nécessaire au build**.
+- `docker run --env-file` ne retire pas les guillemets : les fichiers `.env.*.local` sont
+  quotés, il faut les nettoyer avant de les passer à un conteneur (Dokploy n'a pas ce
+  problème, les variables y sont saisies sans guillemets).
+- Le SHA git est passé en `GIT_COMMIT_SHA` au build ; `next.config.ts` le prend en relais de
+  `VERCEL_GIT_COMMIT_SHA` pour `NEXT_PUBLIC_BUILD_ID`.
+
+Outil : `scripts/ovh.mjs <METHOD> <path> [json]` appelle l'API OVH signée avec les clés de
+`.env.local` (droits restreints : `/me`, `/vps/*`, `/domain/zone/anthonykocken.fr/*`).
+
+GitHub : environnements `staging` et `production` créés, variables `NEXT_PUBLIC_SUPABASE_URL`
+et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le jour J :
+`DOKPLOY_WEBHOOK_URL` par environnement. Clé SSH du VPS générée sur le poste :
+`~/.ssh/mijote_vps` (clé publique à déposer à la commande du VPS).
+
+## État du serveur (2026-09-06)
+
+- **VPS** : `vps-64df9538.vps.ovh.net`, VPS-1 2027 (2 vCores, 4 GB, 40 GB NVMe), Gravelines
+  (os-gra6), Debian 13, IPv4 `217.182.206.61`. Accès : `ssh mijote-vps` (entrée dans
+  `~/.ssh/config`, utilisateur `debian`, sudo sans mot de passe, clé `~/.ssh/mijote_vps`).
+- **Piège à la commande** : la clé SSH saisie sur le bon de commande n'a pas été installée
+  (aucun utilisateur n'acceptait la clé). Corrigé par une **réinstallation via l'API**
+  (`POST /vps/{name}/rebuild` avec `imageId` Debian 13 + `publicSshKey` +
+  `doNotSendPassword`), refusée tant que la tâche `deliverVm` tourne, ~3 min ensuite.
+- **Préparation** : `scripts/vps/bootstrap.sh` exécuté (mises à jour, ufw 22/80/443/3000,
+  swap 2 GB, fail2ban, Dokploy v0.30.5). Au repos après installation : ~1,4 GB de RAM
+  utilisés.
+- **DNS temporaires** (A, TTL 300, créés via `scripts/ovh.mjs`) : `staging-vps.mijote`,
+  `prod-vps.mijote`, `dokploy.mijote` → `217.182.206.61`. Les CNAME `mijote` et
+  `staging.mijote` pointent toujours vers Vercel.
+- **Dokploy** : `https://dokploy.mijote.anthonykocken.fr` (domaine + Let's Encrypt posés via
+  `settings.assignDomainServer` ; compte admin créé par Anthony à la première visite ; jeton
+  API dans `.env.local` : `DOKPLOY_URL`, `DOKPLOY_TOKEN`). Outil : `scripts/dokploy.mjs
+  <GET|POST> <procédure> [json]` ; le document OpenAPI est servi par
+  `GET settings.getOpenApiDocument` (pas `/api/openapi.json`).
+- **Port 3000** : Docker contourne ufw pour les ports publiés, donc la règle ufw ne suffit
+  pas. Bloqué par une règle `DOCKER-USER` (`iptables -I DOCKER-USER -i ens3 -p tcp -m
+  conntrack --ctorigdstport 3000 -j DROP`), rendue persistante par l'unité systemd
+  `docker-user-firewall.service`. L'interface n'est joignable qu'en HTTPS.
+- **Application staging** (projet Dokploy « Mijote », environnement `production`, id
+  `q6amHZ0Z755R83fMCJ77_`) : source Docker `ghcr.io/antkock/atable:staging`, variables
+  recopiées depuis le scope preview de Vercel (`vercel env pull`, sans `VERCEL_*`/`TURBO_*`)
+  + `SENTRY_ENVIRONMENT=staging` + `I18N_PREVIEW_COOKIE=1`, domaine
+  `https://staging-vps.mijote.anthonykocken.fr` (port interne 3000, Let's Encrypt).
+  **Validé le 2026-09-06** : pages publiques, middleware, session démo (cookie `Secure` +
+  `HttpOnly`), carrousels, bibliothèque, AASA, assetlinks, image OG, manifest, `?lang=en` ;
+  conteneur `healthy`, ~110 MB de RAM ; ~1,8 GB utilisés sur le serveur au total.
+- **Auto-déploiement vérifié** : push sur `staging` → GitHub Actions construit l'image →
+  `POST /api/application.deploy` (secrets GitHub `DOKPLOY_URL`, `DOKPLOY_TOKEN`,
+  `DOKPLOY_APP_ID` de l'environnement `staging`) → Dokploy tire le tag et redémarre.
+- **Application prod** : pas encore créée. L'image `ghcr.io/antkock/atable:main` n'existe
+  pas tant que `main` ne contient pas le `Dockerfile` et le workflow → nécessite une
+  promotion `staging` → `main` (PR + merge), qui est aussi un déploiement Vercel prod. Créer
+  ensuite l'app `mijote-prod` (variables du scope production, `SENTRY_ENVIRONMENT=production`,
+  domaine `prod-vps.mijote.anthonykocken.fr`) et poser les secrets GitHub de l'environnement
+  `production`.
 
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 

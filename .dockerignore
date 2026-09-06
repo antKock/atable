@@ -1,0 +1,26 @@
+# Tout ce qui n'est pas nécessaire à `next build` (allège le contexte et évite
+# d'embarquer secrets ou artefacts locaux dans l'image).
+.git
+.github
+.githooks
+.next
+.next-e2e
+.vercel
+node_modules
+.env
+.env.*
+!.env.example
+!.env.test.example
+ios
+android
+docs
+scripts/bench
+test-results
+playwright-report
+*.har
+*.log
+.DS_Store
+coverage
+supabase/.temp
+_bmad*
+temp

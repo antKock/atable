@@ -1,9 +1,11 @@
-# App Store listing — English (en-US) — PRÊT, À PUBLIER AVEC LE LOT 4
+# App Store listing — English (en-US) — À PUBLIER AVEC LA 1.3
 
-> ⚠️ **À n'appliquer qu'à la fin du chantier « Version EN »** (`docs/specs/i18n/`,
-> Lot 4 : release iOS avec `en.lproj` + `I18N_EN_ENABLED=1`). Publier la fiche EN
-> avant = promesse rompue → avis 1★. Les visuels EN (`visuels-app-store/export-en/`)
-> contiennent des captures FR à remplacer par des captures de l'app localisée.
+> ✅ **L'app est en anglais en prod depuis le 2026-09-05** (`I18N_EN_ENABLED=1`, démo EN)
+> et la 1.3 embarque `en.lproj`. La localisation English (U.S.) se publie avec cette
+> soumission. Les visuels EN (`visuels-app-store/export-en/`)
+> utilisent depuis le 2026-09-06 de **vraies captures de l'app EN** (prod, carnet démo
+> EN, via Playwright en émulation iPhone — status bar et île reconstituées dans le
+> mockup, bannière démo masquée ; S5 = page membres composée à 3 personnes).
 >
 > **Vocabulaire aligné sur l'app (2026-09-04)** : un « carnet » se dit **cookbook**
 > dans l'interface EN (décision 7 du socle i18n, relevé concurrence ReciMe/Pestle/
@@ -99,8 +101,8 @@ Mijote is free, with no ads and no subscription.
 1. Lots 0-3 livrés : interface EN (`src/lib/i18n/en.ts` + bascule par langue
    d'appareil — **fait, Lot 0**), prompts IA en langue source, démo EN, pages
    partage `/r/[token]`, emails, pages légales EN.
-2. Recapturer les 6 visuels depuis l'app EN (remplacer les captures FR de
-   `export-en/`) ; vérifier que les captures montrent bien « cookbook ».
+2. ~~Recapturer les 6 visuels depuis l'app EN~~ — **fait le 2026-09-06**
+   (`export-en/`, sources dans `en-captures/`, pipeline `export-en.html`).
 3. Release iOS avec `en.lproj` (permissions + Share Extension), puis ajouter la
    localisation **English (U.S.)** dans App Store Connect et y coller les textes
    ci-dessus ; poser `I18N_EN_ENABLED=1` en prod le même jour.
