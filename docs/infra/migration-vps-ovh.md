@@ -1,8 +1,8 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
 > **Statut : en cours** (décidé le 2026-09-05, lancé le 2026-09-06 — VPS prêt, Dokploy en
-> HTTPS, **staging déployé et validé sur le VPS avec auto-déploiement** ; reste l'app prod
-> (après promotion vers `main`), la validation prod, le cron et la bascule DNS). En cas d'écart
+> HTTPS, **staging et prod déployés et validés sur le VPS, auto-déploiement des deux
+> branches** ; reste la période d'observation, le cron et la bascule DNS). En cas d'écart
 > doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
 
@@ -125,12 +125,33 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
 - **Auto-déploiement vérifié** : push sur `staging` → GitHub Actions construit l'image →
   `POST /api/application.deploy` (secrets GitHub `DOKPLOY_URL`, `DOKPLOY_TOKEN`,
   `DOKPLOY_APP_ID` de l'environnement `staging`) → Dokploy tire le tag et redémarre.
-- **Application prod** : pas encore créée. L'image `ghcr.io/antkock/atable:main` n'existe
-  pas tant que `main` ne contient pas le `Dockerfile` et le workflow → nécessite une
-  promotion `staging` → `main` (PR + merge), qui est aussi un déploiement Vercel prod. Créer
-  ensuite l'app `mijote-prod` (variables du scope production, `SENTRY_ENVIRONMENT=production`,
-  domaine `prod-vps.mijote.anthonykocken.fr`) et poser les secrets GitHub de l'environnement
-  `production`.
+- **Application prod** (id `ljbUvq7lNn0TeTeIYBv6g`) : créée le 2026-09-06 après la promotion
+  `staging` → `main` (PR #114, `26b8646`) qui a produit l'image `ghcr.io/antkock/atable:main`.
+  Variables du scope production de Vercel + `SENTRY_ENVIRONMENT=production`, domaine
+  `https://prod-vps.mijote.anthonykocken.fr` (Let's Encrypt). **Validée contre la base prod** :
+  `/api/version` = SHA de `main`, pages publiques, middleware, session démo, `/home`,
+  carrousels, AASA, image OG, manifest. Secrets GitHub de l'environnement `production`
+  posés (auto-déploiement à chaque push sur `main`). Le cron demo-reset reste sur Vercel
+  jusqu'à la bascule DNS.
+- **Alerte « Dokploy tombé »** (2026-09-06, ~07:00) : fausse alerte. Dokploy et Traefik
+  n'ont pas redémarré (6 h d'uptime, 0 restart), aucun OOM, swap inutilisé. Le premier
+  déploiement prod avait lieu à cet instant : `prod-vps` répondait 502 le temps du démarrage
+  du conteneur, et le tirage/extraction de l'image (2 vCores) peut ralentir l'interface
+  quelques dizaines de secondes. fail2ban ne concerne que SSH (35 bans en 6 h, bruit
+  Internet normal).
+
+## Bilan de risque Vercel → VPS (2026-09-06, vérifié sur les domaines temporaires)
+
+| Point | Résultat |
+|---|---|
+| Origine des liens absolus (magic links, partage) | **Bug** : `request.nextUrl.origin` vaut `https://0.0.0.0:3000` derrière Traefik. Corrigé par `src/lib/request-origin.ts` (`x-forwarded-proto` / `x-forwarded-host`, repli `host`), utilisé par `/api/recovery/request`, `/api/owner/email`, `/api/recipes/[id]/share`. Vérifié sur staging-vps |
+| IP client pour les rate-limits | OK : Traefik pose `x-forwarded-for` (mon IP limitée au 6e essai, l'IP du VPS non) |
+| Cookies `Secure`/`HttpOnly`, HTTP→HTTPS (301), HSTS, gzip | OK |
+| AASA, assetlinks, image OG, manifest, offline | OK |
+| `after()` (enrichissement, mail de récupération) | Fonctionne en Node ; risque uniquement pendant un redéploiement. `stopGracePeriodSwarm` porté à **90 s** sur les deux apps (défaut Docker : 10 s) |
+| Sentry | Source maps non envoyées (pas de `SENTRY_AUTH_TOKEN` dans GitHub) : traces minifiées pour les erreurs du VPS. À poser si besoin |
+| Non testable depuis le poste | Imports Instagram / photo / capture / voix, Share Extension iOS → essais Anthony sur `prod-vps` avant la bascule |
+| Mémoire | Le graphique OVH compte le cache : réel ~1,7 GB utilisés dont Dokploy ~840 MB ; les deux Mijote ~170 MB à elles deux |
 
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 

@@ -4,6 +4,7 @@ import { generateShareToken } from "@/lib/auth/share-token";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -78,7 +79,7 @@ export const POST = withOwnerAuth(
       throw new Error("Failed to mint share token");
     }
 
-    const url = `${request.nextUrl.origin}/r/${token}`;
+    const url = `${getRequestOrigin(request)}/r/${token}`;
     return NextResponse.json({ token, url });
   },
 );
