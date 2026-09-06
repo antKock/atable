@@ -26,6 +26,16 @@ export function complexityLabel(t: Dictionary, value: string | null | undefined)
   return labels[value] ?? value;
 }
 
+/**
+ * Libellé d'une catégorie de tag (valeur stockée `tags.category`, FR canonique) ;
+ * `null` = tag sans catégorie → groupe de repli « Autres » / « Other ». Une
+ * catégorie inconnue du dictionnaire s'affiche telle quelle.
+ */
+export function tagCategoryLabel(t: Dictionary, category: string | null | undefined): string {
+  const key = category ?? "Autres";
+  return (t.tagCategories as Record<string, string>)[key] ?? key;
+}
+
 /** Libellé d'un tag : traduit s'il est prédéfini, tel quel sinon (tag libre). */
 export function tagLabel(t: Dictionary, name: string): string {
   return (t.tagNames as Record<string, string>)[name] ?? name;

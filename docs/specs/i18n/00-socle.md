@@ -80,8 +80,14 @@ Convention d'usage :
 - Server Component / route handler : `const t = await getT()`.
 - Client Component : `const t = useT()` (contexte ; défaut `fr` hors provider, ce
   qui couvre `global-error.tsx`).
-- Interdit après le Lot 1 : `import { t } from "@/lib/i18n/fr"` hors tests et
-  hors admin.
+- Interdit après le Lot 1 : `import { t } from "@/lib/i18n/fr"` hors tests,
+  admin, scripts et défauts de schémas (même règle que `CLAUDE.md`).
+- Valeurs stockées (enum, tag, catégorie) : jamais traduites en base ; libellé
+  via `labels.ts` (`costLabel`, `complexityLabel`, `tagLabel`, `tagCategoryLabel`…)
+  ou une table `t.xxx` indexée par la valeur stockée.
+- `global-error.tsx` est rendu hors `LocaleProvider` : il choisit son dictionnaire
+  d'après `navigator.language` (même règle que `public/offline.html`), sans lire
+  le flag `I18N_EN_ENABLED` (inaccessible côté client).
 
 ## Ordre des lots
 
@@ -122,6 +128,24 @@ déployé sur staging, `done` quand promu en prod — convention backlog).
   harnais reste `fr`).
 - `I18N_PREVIEW_COOKIE=1` est posé par `playwright.config.ts` pour que
   `16-i18n.spec.ts` puisse forcer `en` via le cookie.
+
+## Coûts acceptés (revue de code 2026-09-06)
+
+- **Plus de HTML statique pour les pages publiques.** Le layout racine lit
+  `headers()` via `getLocale()` : `/`, `/support`, `/legal/*`, `/_not-found`,
+  `/r/[token]` sont rendues côté serveur à chaque hit (plus de HTML pré-rendu
+  servi par le CDN). Accepté : trafic faible, rendu léger. `Vary: Accept-Language`
+  est posé sur toutes les routes (`next.config.ts`) pour qu'un cache partagé
+  devant Traefik ne serve jamais une réponse EN à un client FR.
+- **Aperçus OG des liens partagés en FR.** Les bots (iMessage, WhatsApp,
+  Slack…) n'envoient pas `Accept-Language` → défaut `fr`, quelle que soit la
+  langue de l'expéditeur. Piste non décidée : un indice `?l=en` dans l'URL
+  partagée, lu uniquement pour les métadonnées OG (pas pour la page).
+- **Les deux dictionnaires sont dans le bundle client** (~50 Ko de source
+  fr + en, avant minification/gzip) : `client.tsx` importe `dictionaries`
+  entièrement. Découpage client/serveur (ne livrer au client que la locale
+  active, ou que les clés utilisées côté client) = dette identifiée, non
+  planifiée.
 
 ## Hors périmètre
 

@@ -14,9 +14,8 @@
 // où linear-gradient n'est pas supporté (Outlook) ; aucune webfont embarquée.
 
 import type { Dictionary } from "@/lib/i18n/types";
-import { t as fr } from "@/lib/i18n/fr";
 import { getLocale, getT } from "@/lib/i18n/server";
-import { LOCALE_TAGS } from "@/lib/i18n/locale";
+import type { Locale } from "@/lib/i18n/locale";
 
 export type RecoveryEmailKind = "recovery" | "merge";
 
@@ -28,10 +27,12 @@ export type RecoveryEmailPayload = {
 
 // Copy localisée (chantier i18n) : `t.email.*` — la langue est celle de la
 // requête qui déclenche l'envoi (l'appareil qui demande la récupération).
+// `t` et `lang` sont obligatoires : pas de repli FR implicite (l'appelant
+// résout la locale, cf. sendRecoveryEmail).
 export function renderRecoveryEmail(
   payload: RecoveryEmailPayload,
-  t: Dictionary = fr,
-  lang = "fr",
+  t: Dictionary,
+  lang: Locale,
 ): {
   subject: string;
   html: string;
@@ -151,7 +152,7 @@ export async function sendRecoveryEmail(
   }
 
   const [t, locale] = await Promise.all([getT(), getLocale()]);
-  const { subject, html, text } = renderRecoveryEmail(payload, t, LOCALE_TAGS[locale].slice(0, 2));
+  const { subject, html, text } = renderRecoveryEmail(payload, t, locale);
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

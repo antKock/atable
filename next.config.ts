@@ -59,6 +59,11 @@ const nextConfig: NextConfig = {
   // HSTS : Vercel l'ajoutait de lui-même ; derrière Traefik (auto-hébergement)
   // il faut le poser nous-mêmes. Sans effet en dev (HTTP) : les navigateurs
   // ignorent l'en-tête hors HTTPS.
+  // Vary: Accept-Language — le HTML et le manifest sont rendus dans la langue
+  // de l'appareil (getLocale lit Accept-Language) : un cache partagé placé
+  // devant Traefik ne doit jamais servir une réponse EN à un client FR. Next
+  // fusionne cet en-tête avec son propre Vary interne (rsc, next-router-…)
+  // via appendHeader, il ne l'écrase pas.
   async headers() {
     return [
       {
@@ -67,6 +72,10 @@ const nextConfig: NextConfig = {
           {
             key: "Strict-Transport-Security",
             value: "max-age=63072000; includeSubDomains",
+          },
+          {
+            key: "Vary",
+            value: "Accept-Language",
           },
         ],
       },

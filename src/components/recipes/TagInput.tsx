@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useT } from "@/lib/i18n/client";
-import { tagLabel } from "@/lib/i18n/labels";
+import { tagCategoryLabel, tagLabel } from "@/lib/i18n/labels";
 import Chip from "./Chip";
 import type { Tag } from "@/types/recipe";
 
@@ -55,7 +55,9 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
         normalize(tagLabel(t, tag.name)).includes(normalizedQuery))
   );
 
-  // Group by category
+  // Group by category — clé de groupe = valeur stockée (FR canonique) ; les
+  // tags sans catégorie vont dans le groupe de repli « Autres », traduit à
+  // l'affichage par tagCategoryLabel.
   const grouped = new Map<string, Tag[]>();
   for (const tag of filtered) {
     const cat = tag.category ?? "Autres";
@@ -237,7 +239,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                   <li
                     key={category}
                     role="group"
-                    aria-label={t.tagCategories[category as keyof typeof t.tagCategories] ?? category}
+                    aria-label={tagCategoryLabel(t, category)}
                   >
                     <div
                       className="px-3 pt-2 pb-1"
@@ -251,7 +253,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                         letterSpacing: "-0.005em",
                       }}
                     >
-                      {t.tagCategories[category as keyof typeof t.tagCategories] ?? category}
+                      {tagCategoryLabel(t, category)}
                     </div>
                     <ul role="group">
                       {tags.map((tag) => {

@@ -11,10 +11,10 @@ describe("MetadataGrid", () => {
     render(
       <MetadataGrid prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
     );
-    expect(screen.getByText("Prép.")).not.toBeNull();
-    expect(screen.getByText("Cuisson")).not.toBeNull();
-    expect(screen.getByText("Coût")).not.toBeNull();
-    expect(screen.getByText("Difficulté")).not.toBeNull();
+    expect(screen.getByText(t.metadata.prepTime)).not.toBeNull();
+    expect(screen.getByText(t.metadata.cookTime)).not.toBeNull();
+    expect(screen.getByText(t.metadata.cost)).not.toBeNull();
+    expect(screen.getByText(t.metadata.complexity)).not.toBeNull();
   });
 
   it("shows dash for null values when not loading", () => {

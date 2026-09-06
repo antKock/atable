@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
+import { unstable_rethrow } from "next/navigation";
 import { dictionaries, type Dictionary } from "./index";
 import { DEFAULT_LOCALE, LOCALE_PREVIEW_COOKIE, readI18nFlags, resolveLocale, type Locale } from "./locale";
 
@@ -17,9 +18,17 @@ export const getLocale = cache(async (): Promise<Locale> => {
       acceptLanguage: headerStore.get("accept-language"),
       ...readI18nFlags(),
     });
-  } catch {
+  } catch (err) {
+    // Les erreurs internes de Next (bailout statique `DynamicServerError`,
+    // redirect/notFound…) doivent remonter telles quelles : les avaler
+    // figerait la page en FR au lieu de la rendre dynamique.
+    unstable_rethrow(err);
     // Hors portée de requête (handlers appelés directement en vitest, tâches
     // sans requête) : `cookies()`/`headers()` jettent → langue par défaut.
+    // Attendu en test ; ailleurs on le trace pour que le repli reste visible.
+    if (process.env.NODE_ENV !== "test") {
+      console.warn("[i18n] getLocale() hors contexte de requête — repli sur fr", err);
+    }
     return DEFAULT_LOCALE;
   }
 });

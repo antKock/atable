@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderRecoveryEmail, sendRecoveryEmail } from "./send";
+import { t as fr } from "@/lib/i18n/fr";
 
 const PAYLOAD = {
   magicLink: "https://mijote.test/recover/VERtkn234ABCDe56",
@@ -8,7 +9,7 @@ const PAYLOAD = {
 
 describe("renderRecoveryEmail", () => {
   it("récup : objet, lien, code et copy arbitrée (proposition A)", () => {
-    const { subject, html, text } = renderRecoveryEmail({ ...PAYLOAD, kind: "recovery" });
+    const { subject, html, text } = renderRecoveryEmail({ ...PAYLOAD, kind: "recovery" }, fr, "fr");
     expect(subject).toBe("Retrouve ton carnet sur Mijote");
     expect(html).toContain(PAYLOAD.magicLink);
     expect(html).toContain("482913");
@@ -20,7 +21,7 @@ describe("renderRecoveryEmail", () => {
   });
 
   it("fusion : même gabarit, objet et copy dédiés", () => {
-    const { subject, html } = renderRecoveryEmail({ ...PAYLOAD, kind: "merge" });
+    const { subject, html } = renderRecoveryEmail({ ...PAYLOAD, kind: "merge" }, fr, "fr");
     expect(subject).toBe("On réunit tes carnets");
     expect(html).toContain("réunir tes deux accès en une seule identité");
     expect(html).toContain("Réunir mes carnets");
