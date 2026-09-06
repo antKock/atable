@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { clearSessionCookie } from '@/lib/auth/session'
+import { getRequestOrigin } from '@/lib/request-origin'
 
 /**
  * Purge le cookie de session puis renvoie à la landing. Cible du redirect des
@@ -11,7 +12,7 @@ import { clearSessionCookie } from '@/lib/auth/session'
  * pour un visiteur sans cookie.
  */
 export async function GET(request: NextRequest) {
-  const response = NextResponse.redirect(new URL('/', request.url), {
+  const response = NextResponse.redirect(new URL('/', getRequestOrigin(request)), {
     status: 303,
   })
   clearSessionCookie(response)

@@ -112,8 +112,11 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
   `GET settings.getOpenApiDocument` (pas `/api/openapi.json`).
 - **Port 3000** : Docker contourne ufw pour les ports publiés, donc la règle ufw ne suffit
   pas. Bloqué par une règle `DOCKER-USER` (`iptables -I DOCKER-USER -i ens3 -p tcp -m
-  conntrack --ctorigdstport 3000 -j DROP`), rendue persistante par l'unité systemd
-  `docker-user-firewall.service`. L'interface n'est joignable qu'en HTTPS.
+  conntrack --ctorigdstport 3000 -j REJECT --reject-with tcp-reset`), rendue persistante
+  par l'unité systemd `docker-user-firewall.service`. **REJECT et non DROP** : avec DROP, un
+  navigateur qui garde l'ancienne adresse `http://…:3000` charge indéfiniment puis plante
+  (vécu le 2026-09-06) ; avec REJECT il échoue immédiatement. L'interface n'est joignable
+  qu'en HTTPS, sans port : `https://dokploy.mijote.anthonykocken.fr`.
 - **Application staging** (projet Dokploy « Mijote », environnement `production`, id
   `q6amHZ0Z755R83fMCJ77_`) : source Docker `ghcr.io/antkock/atable:staging`, variables
   recopiées depuis le scope preview de Vercel (`vercel env pull`, sans `VERCEL_*`/`TURBO_*`)
@@ -145,6 +148,7 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
 | Point | Résultat |
 |---|---|
 | Origine des liens absolus (magic links, partage) | **Bug** : `request.nextUrl.origin` vaut `https://0.0.0.0:3000` derrière Traefik. Corrigé par `src/lib/request-origin.ts` (`x-forwarded-proto` / `x-forwarded-host`, repli `host`), utilisé par `/api/recovery/request`, `/api/owner/email`, `/api/recipes/[id]/share`. Vérifié sur staging-vps |
+| Redirections construites avec `request.url` dans les routes API (`/api/auth/session` DELETE, `/api/auth/session/clear`) | **Bug** (même cause) : déconnexion renvoyée vers `0.0.0.0`. Corrigé avec `getRequestOrigin`. Les redirections du middleware, elles, étaient correctes (Next y applique les en-têtes transmis) |
 | IP client pour les rate-limits | OK : Traefik pose `x-forwarded-for` (mon IP limitée au 6e essai, l'IP du VPS non) |
 | Cookies `Secure`/`HttpOnly`, HTTP→HTTPS (301), HSTS, gzip | OK |
 | AASA, assetlinks, image OG, manifest, offline | OK |
