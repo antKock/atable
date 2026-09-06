@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 
-// Covers the middleware (session verification, revocation checks).
+// Runtime edge (aucune route edge aujourd'hui : le proxy tourne sur Node).
 // No-op when the DSN env var is absent (local dev, CI).
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,

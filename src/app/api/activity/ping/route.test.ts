@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
+import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
@@ -90,5 +91,24 @@ describe("POST /api/activity/ping", () => {
     mockHeaders.mockResolvedValue(new Headers());
     const res = await POST(postRequest({ platform: "web" }));
     expect(res.status).toBe(401);
+  });
+
+  // Opt-out de la garde démo par défaut de withOwnerAuth : le heartbeat d'un
+  // visiteur démo alimente l'attribution démo du rollup 032.
+  it("accepte le heartbeat d'un visiteur démo (opt-out allowDemoMutation)", async () => {
+    vi.mocked(getOwnerContext).mockResolvedValueOnce({
+      ownerId: "owner-demo",
+      ownerName: null,
+      ownerAlias: null,
+      recoveryEmail: null,
+      sessionId: "session-demo",
+      memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
+    });
+    const res = await POST(postRequest({ platform: "web" }));
+    expect(res.status).toBe(200);
+    expect(payloadOf("daily_activity", "upsert")).toMatchObject({
+      household_id: "hh-demo",
+      device_id: "session-demo",
+    });
   });
 });

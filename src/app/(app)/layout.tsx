@@ -5,7 +5,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { getOwnerContext, isGuestOwner } from '@/lib/auth/owner-context'
 
 export default async function AppShell({ children }: { children: React.ReactNode }) {
-  // Le JWT a passé le middleware (signature) mais la session doit exister en
+  // Le JWT a passé le proxy (signature) mais la session doit exister en
   // DB (owner résolu) : un sid inconnu/révoqué = déconnecté, cookie purgé.
   // Une erreur DB, elle, PROPAGE (error boundary) — jamais de purge de cookie
   // sur incident transitoire. getOwnerContext est mémoïsé par requête —

@@ -8,8 +8,11 @@ import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import { resolveOwnerContext, householdIds } from "@/lib/auth/owner-context";
 import RecipeView from "@/components/recipes/RecipeView";
-import { getT } from "@/lib/i18n/server";
+import { getLocale } from "@/lib/i18n/server";
+import { dictionaries, LOCALES } from "@/lib/i18n";
+import { ogLocaleTag } from "@/lib/i18n/locale";
 import { tagLabel } from "@/lib/i18n/labels";
+import { SHARE_LOCALE_PARAM, shareLocaleFromSearchParam } from "@/lib/share-url";
 import InAppBackButton from "@/components/recipes/InAppBackButton";
 import ShareRecipeActions, {
   type ViewerState,
@@ -17,6 +20,7 @@ import ShareRecipeActions, {
 
 type Props = {
   params: Promise<{ token: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 // Resolve a recipe purely by its capability token — no household scoping.
@@ -34,13 +38,18 @@ async function getSharedRecipe(token: string) {
   };
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { token } = await params;
+// Métadonnées Open Graph dans la langue de l'appareil ÉMETTEUR quand l'URL
+// porte l'indice `?l=` (cf. share-url.ts) : les bots d'aperçu n'envoient pas
+// Accept-Language. L'indice ne sert qu'ici — la page elle-même (composant
+// ci-dessous) reste rendue dans la langue du lecteur via getT().
+export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
+  const [{ token }, query] = await Promise.all([params, searchParams]);
   const result = await getSharedRecipe(token);
   if (!result) return {};
 
   const { recipe } = result;
-  const t = await getT();
+  const locale = shareLocaleFromSearchParam(query[SHARE_LOCALE_PARAM]) ?? (await getLocale());
+  const t = dictionaries[locale];
   const description =
     recipe.tags.length > 0
       ? recipe.tags.map((tag) => tagLabel(t, tag.name)).join(", ")
@@ -50,9 +59,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: recipe.title,
     description,
+    // `openGraph` d'une page REMPLACE celui du layout (pas de fusion) : on
+    // repose donc siteName et locale ici.
     openGraph: {
       title: recipe.title,
       description,
+      siteName: t.appName,
+      locale: ogLocaleTag(locale),
+      alternateLocale: LOCALES.filter((l) => l !== locale).map(ogLocaleTag),
       ...(image && { images: [{ url: image }] }),
     },
   };

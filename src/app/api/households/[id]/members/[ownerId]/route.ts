@@ -2,12 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
-import {
-  withOwnerAuth,
-  requireMember,
-  assertNotDemoMutation,
-  forbiddenResponse,
-} from '@/lib/api/with-owner-auth'
+import { withOwnerAuth, requireMember, forbiddenResponse } from '@/lib/api/with-owner-auth'
 import { getT } from '@/lib/i18n/server'
 
 type RouteContext = { params: Promise<{ id: string; ownerId: string }> }
@@ -17,7 +12,7 @@ const RoleSchema = z.object({ role: z.enum(['member', 'guest']) })
 // Gestion des membres d'un foyer (Lot 3, #15a — maquette 2.2). Enforcement
 // 100 % applicatif (RLS sans policy). Règles communes PATCH/DELETE :
 //   - seul un MEMBRE du foyer gère les membres (requireMember) ;
-//   - jamais en démo (monde gelé, garde central) ;
+//   - jamais en démo (monde gelé : garde par défaut de withOwnerAuth) ;
 //   - pas d'action sur soi-même (se retirer = « Quitter », route households/[id]) ;
 //   - jamais rétrograder/retirer le DERNIER membre (foyer sans membre = ingérable).
 
@@ -43,8 +38,6 @@ export const PATCH = withOwnerAuth(
 
     const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
-    const demo = await assertNotDemoMutation(owner, id)
-    if (demo) return demo
 
     let body: unknown
     try {
@@ -109,8 +102,6 @@ export const DELETE = withOwnerAuth(
 
     const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
-    const demo = await assertNotDemoMutation(owner, id)
-    if (demo) return demo
 
     const supabase = createServerClient()
 

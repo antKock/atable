@@ -4,7 +4,6 @@ import { createServerClient } from "@/lib/supabase/server";
 import {
   withOwnerAuth,
   resolveWriteHousehold,
-  assertNotDemoMutation,
   forbiddenResponse,
 } from "@/lib/api/with-owner-auth";
 import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
@@ -56,11 +55,8 @@ export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   if (!householdId) {
     return forbiddenResponse(await getT());
   }
-  // Monde gelé : un visiteur démo est MEMBRE du foyer démo — sans ce garde, son
-  // tag custom persisterait et s'afficherait à tous les visiteurs suivants
-  // (le cron demo-reset purge par ailleurs les tags démo restants).
-  const frozen = await assertNotDemoMutation(owner, householdId);
-  if (frozen) return frozen;
+  // Monde gelé : un tag custom d'un visiteur démo persisterait pour tous les
+  // visiteurs suivants — refusé par la garde par défaut de withOwnerAuth.
 
   const supabase = createServerClient();
   const ids = householdIds(owner);

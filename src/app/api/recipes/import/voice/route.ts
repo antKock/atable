@@ -74,4 +74,9 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
       { status: 422 },
     );
   }
-}, { maxBodyBytes: MAX_VOICE_FILE_SIZE + MULTIPART_OVERHEAD_BYTES });
+}, {
+  maxBodyBytes: MAX_VOICE_FILE_SIZE + MULTIPART_OVERHEAD_BYTES,
+  // Opt-out garde démo : extraction IA sans écriture (le visiteur démo importe
+  // comme n'importe quel membre, sous le quota du foyer démo).
+  allowDemoMutation: true,
+});

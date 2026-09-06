@@ -112,5 +112,9 @@ export const POST = withOwnerAuth(
 
     return NextResponse.json({ url });
   },
-  { maxBodyBytes: MAX_PHOTO_BYTES + MULTIPART_OVERHEAD_BYTES },
+  {
+    maxBodyBytes: MAX_PHOTO_BYTES + MULTIPART_OVERHEAD_BYTES,
+    // Opt-out garde démo : garde fine assertNotDemoSeedMutation ci-dessus.
+    allowDemoMutation: true,
+  },
 );

@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Fraunces, DM_Mono } from "next/font/google";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { configuredAppOrigin } from "@/lib/request-origin";
-import { LOCALE_TAGS, readI18nFlags } from "@/lib/i18n/locale";
+import { ogLocaleTag, readI18nFlags } from "@/lib/i18n/locale";
 import { LocalePreviewSwitch, LocaleProvider } from "@/lib/i18n/client";
 import SWRProvider from "@/components/providers/SWRProvider";
 import VersionWatcher from "@/components/VersionWatcher";
@@ -62,7 +62,7 @@ export async function generateMetadata(): Promise<Metadata> {
       title: t.appName,
       description,
       siteName: t.appName,
-      locale: LOCALE_TAGS[locale].replace("-", "_"),
+      locale: ogLocaleTag(locale),
       type: "website",
     },
     twitter: {

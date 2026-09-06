@@ -86,7 +86,7 @@ l'email). Générateurs dans `src/lib/auth/` à côté de `share-token.ts`.
 ## 4. Fork onboarding + récupération (maquettes 1.2, 1.3, 1.4)
 
 - **Routes publiques** : ajouter `/recover/` et `/api/recovery/` aux
-  `PUBLIC_PREFIXES` de `src/middleware.ts` — sans ça l'écran de récupération
+  `PUBLIC_PREFIXES` de `src/proxy.ts` (ex-`middleware.ts`) — sans ça l'écran de récupération
   est inatteignable (redirect `/` pour un visiteur sans cookie). L'AASA liste
   déjà `/recover/*` (pré-lot).
 - `LandingScreen` : 3ᵉ action **« Rejoindre un foyer »** (lien texte sous les CTA,

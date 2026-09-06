@@ -66,4 +66,8 @@ export const POST = withOwnerAuth(
 
     return NextResponse.json({ ok: true });
   },
+  // Opt-out garde démo : le heartbeat d'un visiteur démo n'écrit que SON
+  // activité (daily_activity, last_seen_at) — rien sur le foyer démo — et
+  // alimente l'attribution démo du rollup 032.
+  { allowDemoMutation: true },
 );

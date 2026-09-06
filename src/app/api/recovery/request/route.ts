@@ -9,7 +9,7 @@ import { sendRecoveryEmail } from '@/lib/email/send'
 import { getT } from '@/lib/i18n/server'
 import { getRequestOrigin } from '@/lib/request-origin'
 
-// Demande de récupération (#14, §4) — route PUBLIQUE (middleware).
+// Demande de récupération (#14, §4) — route PUBLIQUE (proxy).
 //
 // ANTI-ÉNUMÉRATION STRICTE : la réponse est un 200 identique que l'email
 // existe ou non (timing best effort). Même un échec du chemin « email

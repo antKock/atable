@@ -32,7 +32,7 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   await expect(page.getByRole("button", { name: "Renommer" })).toHaveCount(0);
 
   // Le rename est refusé côté SERVEUR, pas seulement masqué dans l'UI
-  // (garde central assertNotDemoMutation — leçon de l'incident 2026-06)
+  // (garde démo par défaut de withOwnerAuth — leçon de l'incident 2026-06)
   const householdId = new URL(page.url()).pathname.split("/").pop();
   const rename = await context.request.put(`/api/households/${householdId}`, {
     data: { name: "Démo vandalisée" },

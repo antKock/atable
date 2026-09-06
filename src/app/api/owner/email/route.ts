@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server'
 import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/request-ip'
 import { createServerClient } from '@/lib/supabase/server'
-import { withOwnerAuth, assertNotDemoOwner } from '@/lib/api/with-owner-auth'
+import { withOwnerAuth } from '@/lib/api/with-owner-auth'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
 import { recoveryEmailRateLimit, recoveryIpRateLimit } from '@/lib/redis'
 import { createLoginToken } from '@/lib/queries/recovery'
@@ -19,10 +19,8 @@ import { getRequestOrigin } from '@/lib/request-origin'
 export const PUT = withOwnerAuth(
   async (request: NextRequest, _context: unknown, owner) => {
     const t = await getT()
-    // Stratégie C : profil gelé pour les sessions démo — owner-level, comme
-    // PUT /api/owner.
-    const denied = await assertNotDemoOwner(owner)
-    if (denied) return denied
+    // Stratégie C : profil gelé pour les sessions démo — garde par défaut de
+    // withOwnerAuth, comme PUT /api/owner.
 
     let body: unknown
     try {

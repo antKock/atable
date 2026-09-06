@@ -3,12 +3,7 @@ import type { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
-import {
-  withOwnerAuth,
-  requireMember,
-  assertNotDemoMutation,
-  forbiddenResponse,
-} from '@/lib/api/with-owner-auth'
+import { withOwnerAuth, requireMember, forbiddenResponse } from '@/lib/api/with-owner-auth'
 import { getT } from '@/lib/i18n/server'
 
 type RouteContext = { params: Promise<{ id: string }> }
@@ -22,11 +17,8 @@ export const PUT = withOwnerAuth(
     // l'owner (et non memberships[0]) : le détail de foyer est déjà multi-foyer.
     const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
-
-    // Le foyer démo est du contenu partagé : le readOnly de l'UI ne protège
-    // rien côté serveur (leçon de l'incident 2026-06 — garde central).
-    const demo = await assertNotDemoMutation(owner, id)
-    if (demo) return demo
+    // Foyer démo (contenu partagé, incident 2026-06) : le readOnly de l'UI ne
+    // protège rien — le rename est refusé par la garde par défaut de withOwnerAuth.
 
     let body: unknown
     try {
@@ -216,4 +208,8 @@ export const DELETE = withOwnerAuth(
     clearSessionCookie(response)
     return response
   },
+  // Opt-out garde démo : « Quitter » est LE chemin de sortie d'un visiteur démo
+  // (retrait de son membership + session). `action=delete` sur la démo est
+  // refusé ci-dessus, avec son message dédié (demoNotDeletable).
+  { allowDemoMutation: true },
 )

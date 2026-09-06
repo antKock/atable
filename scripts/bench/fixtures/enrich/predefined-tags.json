@@ -1,0 +1,194 @@
+[
+  {
+    "name": "Entrée",
+    "description": "Se sert en début de repas, avant le plat principal"
+  },
+  {
+    "name": "Plat principal",
+    "description": "Plat central et consistant d'un repas"
+  },
+  {
+    "name": "Accompagnement",
+    "description": "Se sert à côté d'un plat principal (riz, légumes, purée…)"
+  },
+  {
+    "name": "Dessert",
+    "description": "Préparation sucrée servie en fin de repas"
+  },
+  {
+    "name": "Soupe",
+    "description": "Préparation liquide ou veloutée, servie chaude ou froide"
+  },
+  {
+    "name": "Salade",
+    "description": "Plat froid assaisonné à base de feuilles, crudités ou ingrédients mélangés"
+  },
+  {
+    "name": "Apéro",
+    "description": "Bouchées ou plats à partager avant le repas"
+  },
+  {
+    "name": "Petit-déjeuner",
+    "description": "Se consomme au petit-déjeuner ou au brunch"
+  },
+  {
+    "name": "Goûter",
+    "description": "Collation sucrée de l'après-midi"
+  },
+  {
+    "name": "Boisson",
+    "description": "Se boit : cocktail, smoothie, jus, café…"
+  },
+  {
+    "name": "Sauce / Condiment",
+    "description": "Préparation destinée à accompagner ou assaisonner d'autres plats"
+  },
+  {
+    "name": "Pain / Pâtisserie",
+    "description": "Boulangerie ou pâtisserie : pain, brioche, viennoiserie…"
+  },
+  {
+    "name": "Végétarien",
+    "description": "STRICT : aucune viande, volaille, poisson, fruit de mer ni gélatine. Une recette contenant du poisson ou des fruits de mer n'est JAMAIS végétarienne. Œufs et produits laitiers autorisés."
+  },
+  {
+    "name": "Végan",
+    "description": "STRICT : aucun produit d'origine animale — ni viande, volaille, poisson, fruits de mer, œufs, produits laitiers, miel ni gélatine"
+  },
+  {
+    "name": "Sans gluten",
+    "description": "Aucun ingrédient contenant du gluten (blé, orge, seigle, épeautre…)"
+  },
+  {
+    "name": "Sans lactose",
+    "description": "Aucun produit laitier contenant du lactose"
+  },
+  {
+    "name": "Léger",
+    "description": "Peu calorique, adapté à un repas léger"
+  },
+  {
+    "name": "Comfort food",
+    "description": "Plat réconfortant, riche et généreux"
+  },
+  {
+    "name": "Poulet",
+    "description": "Le poulet ou une autre volaille est la protéine principale"
+  },
+  {
+    "name": "Bœuf",
+    "description": "Le bœuf ou le veau est la protéine principale"
+  },
+  {
+    "name": "Porc",
+    "description": "Le porc (jambon, lardons, saucisse, bacon…) est la protéine principale"
+  },
+  {
+    "name": "Agneau",
+    "description": "L'agneau ou le mouton est la protéine principale"
+  },
+  {
+    "name": "Poisson",
+    "description": "Un poisson (saumon, thon, cabillaud…) est la protéine principale"
+  },
+  {
+    "name": "Fruits de mer",
+    "description": "Crustacés ou coquillages (crevettes, moules, calamars…) en protéine principale"
+  },
+  {
+    "name": "Œufs",
+    "description": "Les œufs sont la protéine principale"
+  },
+  {
+    "name": "Tofu / Protéines végétales",
+    "description": "Tofu, tempeh, seitan ou autres substituts végétaux en protéine principale"
+  },
+  {
+    "name": "Légumineuses",
+    "description": "Lentilles, pois chiches, haricots secs… en protéine principale"
+  },
+  {
+    "name": "Française",
+    "description": "Tradition culinaire française"
+  },
+  {
+    "name": "Italienne",
+    "description": "Tradition culinaire italienne (pâtes, risotto, pizza…)"
+  },
+  {
+    "name": "Indienne",
+    "description": "Tradition culinaire indienne (currys, épices…)"
+  },
+  {
+    "name": "Libanaise / Orientale",
+    "description": "Cuisine libanaise ou moyen-orientale (mezze, houmous…)"
+  },
+  {
+    "name": "Mexicaine",
+    "description": "Cuisine mexicaine ou tex-mex"
+  },
+  {
+    "name": "Asiatique",
+    "description": "Cuisine d'Asie de l'Est ou du Sud-Est (chinoise, japonaise, thaïe…)"
+  },
+  {
+    "name": "Africaine",
+    "description": "Cuisine du continent africain (maghrébine, subsaharienne…)"
+  },
+  {
+    "name": "Américaine",
+    "description": "Cuisine nord-américaine (burgers, BBQ, brunch…)"
+  },
+  {
+    "name": "Méditerranéenne",
+    "description": "Cuisine méditerranéenne (huile d'olive, légumes du soleil, grillades…)"
+  },
+  {
+    "name": "Nordique",
+    "description": "Cuisine scandinave ou d'Europe du Nord"
+  },
+  {
+    "name": "Rapide",
+    "description": "Prête en 30 minutes ou moins, préparation et cuisson comprises"
+  },
+  {
+    "name": "En batch",
+    "description": "Se prête au batch cooking et aux grandes quantités"
+  },
+  {
+    "name": "Repas de fête",
+    "description": "Adaptée aux grandes occasions et repas festifs"
+  },
+  {
+    "name": "Pique-nique",
+    "description": "Se transporte facilement et se mange froide"
+  },
+  {
+    "name": "Lunchbox",
+    "description": "Adaptée à une gamelle, froide ou réchauffée, pour le déjeuner"
+  },
+  {
+    "name": "Pas cher",
+    "description": "Ingrédients économiques et courants"
+  },
+  {
+    "name": "Facile",
+    "description": "Peu de technique, accessible aux débutants"
+  },
+  {
+    "name": "One-pot",
+    "description": "Se cuisine entièrement dans un seul récipient"
+  },
+  {
+    "name": "Sans cuisson",
+    "description": "Aucune cuisson nécessaire"
+  },
+  {
+    "name": "Pour les enfants",
+    "description": "Plaît généralement aux enfants"
+  },
+  {
+    "name": "À congeler",
+    "description": "Se congèle et se réchauffe bien"
+  }
+]

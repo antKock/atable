@@ -1,9 +1,9 @@
 import { test, expect } from "@playwright/test";
 import { newVisitor } from "./helpers/onboarding";
 
-// Caractérisation du garde d'auth. Note : c'est le middleware qui intercepte
+// Caractérisation du garde d'auth. Note : c'est le proxy (src/proxy.ts) qui intercepte
 // (redirect vers la landing), pages ET API — le 401 de withHouseholdAuth
-// n'est pas observable via HTTP puisque le middleware court-circuite avant.
+// n'est pas observable via HTTP puisque le proxy court-circuite avant.
 test("auth : /home sans cookie → redirigé vers la landing", async ({ browser }) => {
   const { context, page } = await newVisitor(browser);
   await page.goto("/home");
@@ -12,7 +12,7 @@ test("auth : /home sans cookie → redirigé vers la landing", async ({ browser 
   await context.close();
 });
 
-test("auth : API protégée sans cookie → redirect middleware vers /", async ({ browser }) => {
+test("auth : API protégée sans cookie → redirect proxy vers /", async ({ browser }) => {
   const { context } = await newVisitor(browser);
   const res = await context.request.get("/api/carousels", { maxRedirects: 0 });
   expect([301, 302, 303, 307, 308]).toContain(res.status());

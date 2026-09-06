@@ -3,8 +3,9 @@ import { createServerClient } from "@/lib/supabase/server";
 import { generateShareToken } from "@/lib/auth/share-token";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { getRequestOrigin } from "@/lib/request-origin";
+import { buildShareUrl } from "@/lib/share-url";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -79,7 +80,13 @@ export const POST = withOwnerAuth(
       throw new Error("Failed to mint share token");
     }
 
-    const url = `${getRequestOrigin(request)}/r/${token}`;
+    // La langue de l'appareil émetteur voyage dans l'URL (`?l=en`, hors fr)
+    // pour que l'aperçu du lien sorte dans sa langue — cf. share-url.ts.
+    const url = buildShareUrl(getRequestOrigin(request), token, await getLocale());
     return NextResponse.json({ token, url });
   },
+  // Un visiteur démo peut partager (lecture publique d'une recette qu'il voit
+  // déjà) : c'est un canal d'acquisition, et le mint du jeton est idempotent.
+  // La garde démo par défaut de withOwnerAuth est donc levée ici.
+  { allowDemoMutation: true },
 );

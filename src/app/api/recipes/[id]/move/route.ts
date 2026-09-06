@@ -121,4 +121,8 @@ export const PATCH = withOwnerAuth(
 
     return NextResponse.json({ ok: true, householdId: destHid });
   },
+  // Opt-out garde démo : garde fine assertNotDemoSeedMutation ci-dessus. Le
+  // foyer cible vient du corps, mais requireMember(destHid) borne un visiteur
+  // démo à son unique foyer (déplacement = no-op).
+  { allowDemoMutation: true },
 );

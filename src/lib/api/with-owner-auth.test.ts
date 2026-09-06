@@ -3,9 +3,11 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   withOwnerAuth,
   requireMember,
-  assertNotDemoMutation,
-  resolveWriteHousehold, assertNotDemoSeedMutation } from "./with-owner-auth";
+  resolveWriteHousehold,
+  assertNotDemoSeedMutation,
+} from "./with-owner-auth";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
+import { trackStat } from "@/lib/admin/track-stat";
 import { t } from "@/lib/i18n/fr";
 
 // Seul getOwnerContext est mocké ; les helpers purs (memberHouseholdIds…)
@@ -14,6 +16,8 @@ vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/auth/owner-context")>();
   return { ...actual, getOwnerContext: vi.fn() };
 });
+// Compteur produit demo_frozen_hits : on vérifie l'émission, pas l'écriture DB.
+vi.mock("@/lib/admin/track-stat", () => ({ trackStat: vi.fn() }));
 
 const mockGetOwnerContext = vi.mocked(getOwnerContext);
 
@@ -29,12 +33,17 @@ function ownerContext(overrides: Partial<OwnerContext> = {}): OwnerContext {
   };
 }
 
-function request(headers: Record<string, string> = {}): NextRequest {
-  return new NextRequest("https://test.local/api/whatever", { method: "POST", headers });
+function request(headers: Record<string, string> = {}, method = "POST"): NextRequest {
+  return new NextRequest("https://test.local/api/whatever", { method, headers });
 }
+
+const demoOwner = ownerContext({
+  memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
+});
 
 beforeEach(() => {
   mockGetOwnerContext.mockResolvedValue(ownerContext());
+  vi.mocked(trackStat).mockClear();
 });
 
 describe("withOwnerAuth", () => {
@@ -100,6 +109,71 @@ describe("withOwnerAuth", () => {
   });
 });
 
+describe("withOwnerAuth — garde démo par défaut (monde gelé)", () => {
+  it.each(["POST", "PUT", "PATCH", "DELETE"])(
+    "%s d'un owner démo → 403 gelé avant le handler, compteur demo_frozen_hits",
+    async (method) => {
+      mockGetOwnerContext.mockResolvedValue(demoOwner);
+      const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+      const res = await withOwnerAuth(handler)(request({}, method));
+      expect(res.status).toBe(403);
+      expect(await (res as NextResponse).json()).toEqual({ error: t.demo.frozen });
+      expect(handler).not.toHaveBeenCalled();
+      expect(trackStat).toHaveBeenCalledWith("demo_frozen_hits");
+    },
+  );
+
+  it.each(["GET", "HEAD", "OPTIONS"])("%s d'un owner démo → laissé passer", async (method) => {
+    mockGetOwnerContext.mockResolvedValue(demoOwner);
+    const handler = vi.fn(async () => new NextResponse(null, { status: 200 }));
+    const res = await withOwnerAuth(handler)(request({}, method));
+    expect(res.status).toBe(200);
+    expect(handler).toHaveBeenCalled();
+    expect(trackStat).not.toHaveBeenCalled();
+  });
+
+  it("owner-level : un membership démo parmi d'autres suffit à geler", async () => {
+    mockGetOwnerContext.mockResolvedValue(
+      ownerContext({
+        memberships: [
+          { householdId: "household-1", role: "member", isDemo: false },
+          { householdId: "hh-demo", role: "member", isDemo: true },
+        ],
+      }),
+    );
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    expect((await withOwnerAuth(handler)(request())).status).toBe(403);
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("mutation d'un owner normal → laissée passer, pas de compteur", async () => {
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    expect((await withOwnerAuth(handler)(request())).status).toBe(200);
+    expect(trackStat).not.toHaveBeenCalled();
+  });
+
+  it("opt-out allowDemoMutation → le handler reçoit la mutation démo", async () => {
+    mockGetOwnerContext.mockResolvedValue(demoOwner);
+    const handler = vi.fn(async () => NextResponse.json({ ok: true }));
+    const res = await withOwnerAuth(handler, { allowDemoMutation: true })(request({}, "DELETE"));
+    expect(res.status).toBe(200);
+    expect(handler).toHaveBeenCalledWith(expect.anything(), undefined, demoOwner);
+    expect(trackStat).not.toHaveBeenCalled();
+  });
+
+  it("la garde passe APRÈS la session (401 prime) et le plafond de corps (413 prime)", async () => {
+    mockGetOwnerContext.mockResolvedValue(null);
+    expect((await withOwnerAuth(async () => NextResponse.json({}))(request())).status).toBe(401);
+
+    mockGetOwnerContext.mockResolvedValue(demoOwner);
+    const res = await withOwnerAuth(async () => NextResponse.json({}))(
+      request({ "content-length": String(1024 * 1024 + 1) }),
+    );
+    expect(res.status).toBe(413);
+    expect(trackStat).not.toHaveBeenCalled();
+  });
+});
+
 describe("requireMember", () => {
   it("null (OK) pour un membership member", async () => {
     expect(await requireMember(ownerContext(), "household-1")).toBeNull();
@@ -119,36 +193,16 @@ describe("requireMember", () => {
   });
 });
 
-describe("assertNotDemoMutation", () => {
-  it("403 sur une mutation visant le foyer démo", async () => {
-    const ctx = ownerContext({
-      memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
-    });
-    const res = await assertNotDemoMutation(ctx, "hh-demo");
+describe("assertNotDemoSeedMutation (incident démo 2026-09, garde fine des routes recette)", () => {
+  it("403 sur une recette seed du foyer démo, compteur demo_frozen_hits", async () => {
+    const res = await assertNotDemoSeedMutation(demoOwner, { household_id: "hh-demo", is_seed: true });
     expect(res?.status).toBe(403);
     expect(await res!.json()).toEqual({ error: t.demo.frozen });
-  });
-
-  it("null (OK) pour un foyer normal", async () => {
-    expect(await assertNotDemoMutation(ownerContext(), "household-1")).toBeNull();
-  });
-
-  it("null sans membership (requireMember porte ce cas)", async () => {
-    expect(await assertNotDemoMutation(ownerContext(), "household-other")).toBeNull();
-  });
-});
-
-describe("assertNotDemoSeedMutation (incident démo 2026-09)", () => {
-  const demo = ownerContext({
-    memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }],
-  });
-  it("403 sur une recette seed du foyer démo", async () => {
-    const res = await assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: true });
-    expect(res?.status).toBe(403);
-    expect(await res!.json()).toEqual({ error: t.demo.frozen });
+    expect(trackStat).toHaveBeenCalledWith("demo_frozen_hits");
   });
   it("null pour une recette ajoutée par le visiteur démo (non seed)", async () => {
-    expect(await assertNotDemoSeedMutation(demo, { household_id: "hh-demo", is_seed: false })).toBeNull();
+    expect(await assertNotDemoSeedMutation(demoOwner, { household_id: "hh-demo", is_seed: false })).toBeNull();
+    expect(trackStat).not.toHaveBeenCalled();
   });
   it("null pour une recette seed hors démo (flag vestigial)", async () => {
     expect(await assertNotDemoSeedMutation(ownerContext(), { household_id: "household-1", is_seed: true })).toBeNull();

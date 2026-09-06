@@ -1,0 +1,57 @@
+[
+  {
+    "slug": "chickpea-curry",
+    "title": "Chickpea Curry",
+    "ingredients": "2 cans chickpeas\n1 can coconut milk\n1 can crushed tomatoes\n1 onion\n2 garlic cloves\n1 piece ginger\n2 tbsp curry powder\nFresh cilantro\nOil, salt",
+    "steps": "Sauté the chopped onion, garlic, and ginger.\nAdd the curry powder and stir to release the aromas.\nStir in the tomatoes and coconut milk.\nAdd the drained chickpeas.\nSimmer for 20 minutes over low heat.\nServe with chopped cilantro and rice.",
+    "forbiddenDietTags": []
+  },
+  {
+    "slug": "chocolate-mousse",
+    "title": "Chocolate Mousse",
+    "ingredients": "200 g dark chocolate (70%)\n6 eggs\n1 pinch of salt\n2 tbsp sugar",
+    "steps": "Melt the chocolate in a double boiler and let it cool slightly.\nSeparate the egg whites from the yolks.\nStir the yolks into the melted chocolate, one at a time.\nBeat the egg whites until stiff peaks form with the salt.\nAdd the sugar to the egg whites halfway through.\nGently fold the egg whites into the chocolate mixture in three batches.\nRefrigerate for at least 2 hours before serving.",
+    "forbiddenDietTags": [
+      "Végan"
+    ]
+  },
+  {
+    "slug": "herb-omelet",
+    "title": "Herb Omelet",
+    "ingredients": "6 eggs\n1 tbsp. parsley\n1 tbsp. chives\n1 pat of butter\nSalt, pepper",
+    "steps": "Beat the eggs with salt and pepper.\nAdd the finely chopped herbs.\nMelt the butter in a skillet.\nPour in the eggs and cook over medium heat.\nFold the omelet while it is still slightly runny.\nServe immediately.",
+    "forbiddenDietTags": [
+      "Végan"
+    ]
+  },
+  {
+    "slug": "shrimp-pad-thai",
+    "title": "Shrimp Pad Thai",
+    "ingredients": "200 g rice noodles\n250 g peeled shrimp\n2 eggs\n100 g bean sprouts\n2 tbsp fish sauce\n1 tbsp soy sauce\n1 lime\n50 g peanuts\n2 green onions",
+    "steps": "Rehydrate the rice noodles in hot water.\nStir-fry the shrimp in a wok, then set aside.\nScramble the eggs in the wok.\nAdd the noodles, sauces, and lime juice.\nAdd the shrimp and bean sprouts, and stir-fry for 2 minutes.\nServe with crushed peanuts and green onions.",
+    "forbiddenDietTags": [
+      "Végétarien",
+      "Végan"
+    ]
+  },
+  {
+    "slug": "herb-roasted-chicken",
+    "title": "Herb-Roasted Chicken",
+    "ingredients": "1 whole chicken (1.5 kg)\n4 garlic cloves\n1 lemon\nFresh thyme\nFresh rosemary\n3 tbsp olive oil\nSalt, pepper",
+    "steps": "Preheat the oven to 200°C.\nMix the olive oil with the crushed garlic, thyme, and rosemary.\nRub the chicken with the mixture, then season generously with salt and pepper.\nPlace the halved lemon in the cavity.\nRoast for 1 hour 15 minutes, basting every 20 minutes.\nLet rest for 10 minutes before carving.",
+    "forbiddenDietTags": [
+      "Végétarien",
+      "Végan"
+    ]
+  },
+  {
+    "slug": "salmon-papillote",
+    "title": "Salmon en Papillote",
+    "ingredients": "4 salmon fillets\n1 lemon\n2 zucchini\n1 shallot\nFresh dill\nOlive oil\nSalt, pepper",
+    "steps": "Preheat the oven to 200°C.\nPlace each fillet on a sheet of parchment paper.\nAdd zucchini slices, thinly sliced shallot, and lemon slices.\nDrizzle with olive oil, season with salt and pepper, and sprinkle with dill.\nSeal the packets tightly.\nBake for 15 to 18 minutes and serve immediately.",
+    "forbiddenDietTags": [
+      "Végétarien",
+      "Végan"
+    ]
+  }
+]

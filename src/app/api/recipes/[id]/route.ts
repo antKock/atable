@@ -162,6 +162,9 @@ export const PUT = withOwnerAuth(
 
     return NextResponse.json(mapDbRowToRecipe(data));
   },
+  // Opt-out garde démo : garde fine assertNotDemoSeedMutation ci-dessus (seed
+  // intouchable, recettes du visiteur libres).
+  { allowDemoMutation: true },
 );
 
 export const DELETE = withOwnerAuth(
@@ -198,4 +201,6 @@ export const DELETE = withOwnerAuth(
 
     return new NextResponse(null, { status: 204 });
   },
+  // Opt-out garde démo : garde fine assertNotDemoSeedMutation ci-dessus.
+  { allowDemoMutation: true },
 );

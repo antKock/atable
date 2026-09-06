@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (consumed.purpose === 'merge') {
-      // Route publique : le middleware ne passe pas ici, donc ni x-session-id
+      // Route publique : le proxy ne passe pas ici, donc ni x-session-id
       // ni le check de révocation Redis. On refait les deux à la main — une
       // session révoquée ne doit pas servir de source de fusion.
       const raw = request.cookies.get('atable_session')?.value

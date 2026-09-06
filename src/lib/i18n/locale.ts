@@ -94,3 +94,8 @@ export function readI18nFlags(env: I18nFlagsEnv = process.env) {
 
 /** Locale BCP 47 complète (OG `locale`, `Intl`). */
 export const LOCALE_TAGS: Record<Locale, string> = { fr: "fr-FR", en: "en-US" };
+
+/** Forme Open Graph de la locale (`fr_FR`, `en_US`) : underscore, pas tiret. */
+export function ogLocaleTag(locale: Locale): string {
+  return LOCALE_TAGS[locale].replace("-", "_");
+}

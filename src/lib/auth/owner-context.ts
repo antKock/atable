@@ -89,8 +89,8 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
 
 /**
  * Contexte owner de la requête courante, depuis le header x-session-id injecté
- * par le middleware. Mémoïsé par requête via React cache() : layout + page ne
- * paient qu'une seule requête DB par rendu.
+ * par le proxy (src/proxy.ts). Mémoïsé par requête via React cache() : layout
+ * + page ne paient qu'une seule requête DB par rendu.
  */
 export const getOwnerContext = cache(async (): Promise<OwnerContext | null> => {
   const sessionId = (await headers()).get('x-session-id')

@@ -6,7 +6,7 @@ import { getRequestOrigin } from '@/lib/request-origin'
  * Purge le cookie de session puis renvoie à la landing. Cible du redirect des
  * layouts quand getOwnerContext() ne résout pas la session (sid inconnu/révoqué,
  * ex. cookie forgé ou session supprimée) : un Server Component ne peut pas
- * poser de cookie, et rediriger vers `/` sans purger bouclerait — le middleware
+ * poser de cookie, et rediriger vers `/` sans purger bouclerait — le proxy
  * renvoie tout porteur d'un JWT signé de `/` vers `/home`.
  * Route publique (préfixe /api/auth/session) ; GET idempotent et sans effet
  * pour un visiteur sans cookie.

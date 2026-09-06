@@ -79,7 +79,7 @@ se font par SSH et par l'API Dokploy.
 ## Vérifié le 2026-09-06 (build local)
 
 Image construite et testée sur le poste (`docker buildx build`, env staging) : 353 MB,
-conteneur `healthy`, landing et pages publiques en 200, middleware OK (`/home` → 307 sans
+conteneur `healthy`, landing et pages publiques en 200, proxy Next OK (`/home` → 307 sans
 session), session démo créée en base staging, `/api/carousels` et `/api/library` en 200,
 `/api/version` renvoie le SHA git, AASA et image OpenGraph servis. **73 MB de RAM au repos**
 (estimation initiale : 250 MB).
@@ -153,7 +153,7 @@ le poste : `~/.ssh/mijote_vps` (clé publique à déposer à la commande du VPS)
   recopiées depuis le scope preview de Vercel (`vercel env pull`, sans `VERCEL_*`/`TURBO_*`)
   + `SENTRY_ENVIRONMENT=staging` + `I18N_PREVIEW_COOKIE=1`, domaine
   `https://staging-vps.mijote.anthonykocken.fr` (port interne 3000, Let's Encrypt).
-  **Validé le 2026-09-06** : pages publiques, middleware, session démo (cookie `Secure` +
+  **Validé le 2026-09-06** : pages publiques, proxy Next, session démo (cookie `Secure` +
   `HttpOnly`), carrousels, bibliothèque, AASA, assetlinks, image OG, manifest, `?lang=en` ;
   conteneur `healthy`, ~110 MB de RAM ; ~1,8 GB utilisés sur le serveur au total.
 - **Auto-déploiement vérifié** : push sur `staging` → GitHub Actions construit l'image →
@@ -163,7 +163,7 @@ le poste : `~/.ssh/mijote_vps` (clé publique à déposer à la commande du VPS)
   `staging` → `main` (PR #114, `26b8646`) qui a produit l'image `ghcr.io/antkock/atable:main`.
   Variables du scope production de Vercel + `SENTRY_ENVIRONMENT=production`, domaine
   `https://prod-vps.mijote.anthonykocken.fr` (Let's Encrypt). **Validée contre la base prod** :
-  `/api/version` = SHA de `main`, pages publiques, middleware, session démo, `/home`,
+  `/api/version` = SHA de `main`, pages publiques, proxy Next, session démo, `/home`,
   carrousels, AASA, image OG, manifest. Secrets GitHub de l'environnement `production`
   posés (auto-déploiement à chaque push sur `main`). Le cron demo-reset reste sur Vercel
   jusqu'à la bascule DNS (cf. « Cron demo-reset »).
@@ -181,6 +181,19 @@ pas toutes dans l'export `vercel env pull` :
 | `CRON_SECRET` | même valeur que `/etc/mijote/cron.env` sur le VPS (et que Vercel tant qu'il existe) | **Obligatoire** : sans elle, `/api/cron/demo-reset` refuse tout appel |
 | `SENTRY_ENVIRONMENT` | `production` / `staging` | `VERCEL_ENV` n'existe plus |
 | `DEMO_SEED_MIN` | optionnelle (défaut 30) | Seuil d'alerte Sentry sur les recettes seed ; valeur illisible ⇒ 30 + warn dans les logs (avant : alerte désactivée en silence) |
+
+⚠ **Piège vécu (2026-09-06)** : les variables marquées *sensitive* sur Vercel ne sont pas
+exportables (`vercel env pull` écrit littéralement `[SENSITIVE]`). La copie Vercel → Dokploy
+avait posé `DEMO_HOUSEHOLD_ID_EN=[SENSITIVE]` sur prod et staging : démo EN en erreur sur le
+VPS et cron voué à l'échec sur le foyer EN, sans aucune alerte au démarrage. Corrigé le jour
+même (id récupéré en base : `households where is_demo`). **Après toute copie de variables,
+vérifier qu'aucune valeur ne vaut `[SENSITIVE]`, vide, ou n'a pas la forme attendue** (uuid
+pour `DEMO_HOUSEHOLD_ID*`, liste d'uuid pour `ADMIN_HOUSEHOLD_IDS`) — via
+`application.one` de l'API Dokploy, sans afficher les valeurs. **Depuis le 2026-09-06 au
+soir, l'application fait ce contrôle elle-même au démarrage** (`src/lib/env-check.ts`,
+appelé par `instrumentation.ts`) : variable requise absente, placeholder ou forme invalide
+→ `console.error` + événement Sentry `env-check` (tag `variable`) ; optionnelle absente en
+production → warning. Après un déploiement, filtrer Sentry sur `env-check` : rien = env sain.
 
 Contrôle après déploiement (langue suit l'appareil) :
 
@@ -200,13 +213,13 @@ curl -s https://<host>/ | grep -o 'lang="[a-z]*"'                              #
 | Point | Résultat |
 |---|---|
 | Origine des liens absolus (magic links, partage) | **Bug** : `request.nextUrl.origin` vaut `https://0.0.0.0:3000` derrière Traefik. Corrigé par `src/lib/request-origin.ts` (`x-forwarded-proto` / `x-forwarded-host`, repli `host`), utilisé par `/api/recovery/request`, `/api/owner/email`, `/api/recipes/[id]/share`. Vérifié sur staging-vps |
-| Redirections construites avec `request.url` dans les routes API (`/api/auth/session` DELETE, `/api/auth/session/clear`) | **Bug** (même cause) : déconnexion renvoyée vers `0.0.0.0`. Corrigé avec `getRequestOrigin`. Les redirections du middleware, elles, étaient correctes (Next y applique les en-têtes transmis) |
-| **Garde-fou centralisé** | Règle ESLint (`no-restricted-syntax`, `src/**`) : `nextUrl.origin` et `new URL(chemin, request.url)` sont interdits hors `src/lib/request-origin.ts` ; la CI refuse toute réintroduction. Le middleware utilise aussi `getRequestOrigin` par cohérence |
+| Redirections construites avec `request.url` dans les routes API (`/api/auth/session` DELETE, `/api/auth/session/clear`) | **Bug** (même cause) : déconnexion renvoyée vers `0.0.0.0`. Corrigé avec `getRequestOrigin`. Les redirections du proxy Next (`src/proxy.ts`, ex-middleware), elles, étaient correctes (Next y applique les en-têtes transmis) |
+| **Garde-fou centralisé** | Règle ESLint (`no-restricted-syntax`, `src/**`) : `nextUrl.origin` et `new URL(chemin, request.url)` sont interdits hors `src/lib/request-origin.ts` ; la CI refuse toute réintroduction. Le proxy Next utilise aussi `getRequestOrigin` par cohérence |
 | IP client pour les rate-limits | OK : Traefik pose `x-forwarded-for` (mon IP limitée au 6e essai, l'IP du VPS non) |
 | Cookies `Secure`/`HttpOnly`, HTTP→HTTPS (301), HSTS, gzip | OK |
 | AASA, assetlinks, image OG, manifest, offline | OK |
-| `after()` (enrichissement, mail de récupération) | Fonctionne en Node ; risque uniquement pendant un redéploiement. `stopGracePeriodSwarm` porté à **90 s** sur les deux apps (défaut Docker : 10 s) |
-| Sentry | Source maps non envoyées (pas de `SENTRY_AUTH_TOKEN` dans GitHub) : traces minifiées pour les erreurs du VPS. À poser si besoin |
+| `after()` (enrichissement, mail de récupération) | Fonctionne en Node ; risque uniquement pendant un redéploiement. `stopGracePeriodSwarm` porté à **90 s** sur les deux apps (défaut Docker : 10 s). **Depuis le 2026-09-06 au soir, mise à jour `start-first`** (`updateConfigSwarm` : Parallelism 1, Order start-first, FailureAction rollback, Monitor 15 s, posé via `application.update`) : le nouveau conteneur démarre et passe son HEALTHCHECK avant l'arrêt de l'ancien → plus de 502 au redéploiement, et retour automatique à l'ancienne image si le nouveau conteneur échoue |
+| Sentry | Source maps **envoyées depuis le 2026-09-06 au soir** : `SENTRY_AUTH_TOKEN` (secret BuildKit, jamais dans l'image) + `SENTRY_ORG`/`SENTRY_PROJECT` posés sur les environnements GitHub `production` et `staging` ; release = `SENTRY_RELEASE` = SHA du commit (Dockerfile). Vérifier au prochain déploiement qu'une release apparaît dans Sentry avec ses artefacts |
 | Non testable depuis le poste | Imports Instagram / photo / capture / voix, Share Extension iOS → essais Anthony sur `prod-vps` avant la bascule |
 | Mémoire | Le graphique OVH compte le cache : réel ~1,7 GB utilisés dont Dokploy ~840 MB ; les deux Mijote ~170 MB à elles deux |
 | Timeouts Traefik | `readTimeout` par défaut 60 s sur l'entrypoint : un import voix de ~10 Mo depuis un mobile lent pouvait être coupé. **Posé le 2026-09-06** : `entryPoints.websecure.transport.respondingTimeouts.readTimeout: 180s` dans la config statique Traefik de Dokploy (`settings.updateTraefikConfig` + `settings.reloadTraefik`), vérifié après reload (prod-vps, staging-vps, dokploy en 200) |

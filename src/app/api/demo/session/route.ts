@@ -27,8 +27,8 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient()
 
     // Stratégie C (monde gelé) : un visiteur démo a un owner + membership
-    // normaux — c'est la surface foyer/membership/profil qui est coupée
-    // (assertNotDemoMutation). Purge des owners démo par le cron demo-reset.
+    // normaux — c'est la surface foyer/membership/profil qui est coupée (garde
+    // démo par défaut de withOwnerAuth). Purge des owners démo par le cron demo-reset.
     const ownerId = crypto.randomUUID()
     const { error: ownerError } = await supabase
       .from('owners')

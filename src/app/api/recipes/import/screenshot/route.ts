@@ -53,4 +53,9 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
       { status: 422 },
     );
   }
-}, { maxBodyBytes: MAX_SCREENSHOT_BODY_BYTES });
+}, {
+  maxBodyBytes: MAX_SCREENSHOT_BODY_BYTES,
+  // Opt-out garde démo : extraction IA sans écriture (le visiteur démo importe
+  // comme n'importe quel membre, sous le quota du foyer démo).
+  allowDemoMutation: true,
+});

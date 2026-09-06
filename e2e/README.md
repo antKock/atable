@@ -73,5 +73,5 @@ Notes de caractérisation (comportement constaté, pas forcément souhaité) :
 
 - La recherche texte de la biblio est locale, **pas** reflétée dans l'URL
   (contrairement aux filtres).
-- Une API protégée sans cookie renvoie un **redirect 307 vers `/`** (middleware),
+- Une API protégée sans cookie renvoie un **redirect 307 vers `/`** (proxy, `src/proxy.ts`),
   pas un 401 — le 401 de `withHouseholdAuth` n'est pas observable via HTTP.
