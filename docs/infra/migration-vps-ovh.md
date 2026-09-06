@@ -112,8 +112,11 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
   `GET settings.getOpenApiDocument` (pas `/api/openapi.json`).
 - **Port 3000** : Docker contourne ufw pour les ports publiés, donc la règle ufw ne suffit
   pas. Bloqué par une règle `DOCKER-USER` (`iptables -I DOCKER-USER -i ens3 -p tcp -m
-  conntrack --ctorigdstport 3000 -j DROP`), rendue persistante par l'unité systemd
-  `docker-user-firewall.service`. L'interface n'est joignable qu'en HTTPS.
+  conntrack --ctorigdstport 3000 -j REJECT --reject-with tcp-reset`), rendue persistante
+  par l'unité systemd `docker-user-firewall.service`. **REJECT et non DROP** : avec DROP, un
+  navigateur qui garde l'ancienne adresse `http://…:3000` charge indéfiniment puis plante
+  (vécu le 2026-09-06) ; avec REJECT il échoue immédiatement. L'interface n'est joignable
+  qu'en HTTPS, sans port : `https://dokploy.mijote.anthonykocken.fr`.
 - **Application staging** (projet Dokploy « Mijote », environnement `production`, id
   `q6amHZ0Z755R83fMCJ77_`) : source Docker `ghcr.io/antkock/atable:staging`, variables
   recopiées depuis le scope preview de Vercel (`vercel env pull`, sans `VERCEL_*`/`TURBO_*`)
