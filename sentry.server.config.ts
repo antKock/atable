@@ -9,4 +9,7 @@ Sentry.init({
     process.env.SENTRY_ENVIRONMENT ?? process.env.VERCEL_ENV ?? "development",
   // Errors only — no performance tracing, keeps the free tier quiet.
   tracesSampleRate: 0,
+  // Distingue l'hébergement (vercel / vps) pendant la migration et après :
+  // filtre `runtime:vps` dans Sentry. Posé par le Dockerfile pour l'image.
+  initialScope: { tags: { runtime: process.env.SENTRY_RUNTIME ?? "vercel" } },
 });

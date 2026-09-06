@@ -158,6 +158,36 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
 | Non testable depuis le poste | Imports Instagram / photo / capture / voix, Share Extension iOS → essais Anthony sur `prod-vps` avant la bascule |
 | Mémoire | Le graphique OVH compte le cache : réel ~1,7 GB utilisés dont Dokploy ~840 MB ; les deux Mijote ~170 MB à elles deux |
 
+## Observation après bascule (capteurs et calendrier)
+
+Capteurs en place (2026-09-06) :
+
+- **Sentry** : tag `runtime` (`vps` posé par le Dockerfile, `vercel` sinon) sur les événements
+  serveur, edge et client → filtre `runtime:vps` pour isoler ce qui vient du VPS. Moniteur
+  **Crons** `demo-reset` (`Sentry.withMonitor`, crontab `0 3 * * *` UTC, marge 30 min) : alerte
+  si le cron ne tourne pas ou dépasse 10 min. Source maps : ajouter le secret GitHub
+  `SENTRY_AUTH_TOKEN` (environnements `staging` et `production`) pour des traces lisibles.
+- **Traefik** : journal d'accès **des réponses 4xx/5xx uniquement** (JSON, stdout) → `sudo docker
+  logs --since 24h dokploy-traefik | grep '"DownstreamStatus":5'` pour les 5xx.
+- **Application** : `sudo docker service logs --since 24h mijote-prod-9nkv9s | grep -iE
+  "error|unhandled"`.
+- **Base** : requête « enrichissements bloqués » (recettes `pending`/`processing` créées il y a
+  plus de 15 min) et répartition des statuts des recettes des dernières 24 h — script dans la
+  conversation du 2026-09-06, à rejouer.
+- **Dashboard** `/admin/stats` : pings DAU, coûts IA, funnel démo. Un trou = les clients
+  n'atteignent plus l'API.
+- **Externe (à activer par Anthony)** : un moniteur d'uptime hors du VPS (Sentry Uptime,
+  UptimeRobot…) sur `/api/version` du vrai domaine après bascule.
+
+Calendrier :
+
+| Échéance | Vérifier |
+|---|---|
+| T+2 h | Sentry `runtime:vps` sans nouvelle issue ; pings DAU qui arrivent dans `/admin/stats` (preuve que les apps iOS/Android suivent le DNS) ; aucun 5xx Traefik |
+| T+12 h | Enrichissements bloqués = 0 ; lignes `ai_costs` récentes (imports, images) ; mémoire et disque stables (`free -m`, `df -h`) |
+| T+24 h | Le cron demo-reset a tourné à 03:00 UTC (check-in Sentry OK, `stats_daily` alimenté, 30 recettes seed présentes) ; DAU du jour comparable aux jours précédents ; un e-mail de récupération reçu avec un lien sur le bon domaine |
+| T+48 h | Taux d'erreur Sentry vs semaine précédente ; certificats Let's Encrypt OK ; uptime 100 % ; puis retirer les domaines de Vercel (garder le projet) |
+
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 
 1. **Commander le VPS-1** (API OVH ou espace client), Debian/Ubuntu LTS, clé SSH déposée à

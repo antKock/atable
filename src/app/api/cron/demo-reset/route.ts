@@ -24,6 +24,12 @@ export async function GET(request: NextRequest) {
 
   const supabase = createServerClient()
 
+  // Moniteur Sentry (Crons) : un check-in par exécution ; Sentry alerte si le
+  // cron ne se déclenche pas (03:00 UTC) ou dépasse 10 min — utile après la
+  // migration du cron Vercel vers la crontab du VPS (docs/infra/migration-vps-ovh.md).
+  return Sentry.withMonitor(
+    'demo-reset',
+    async () => {
   try {
     // Step 0 (dashboard v2, migration 032) : consolider les agrégats quotidiens
     // AVANT toute purge — les recettes démo supprimées ci-dessous et les owners
@@ -172,4 +178,12 @@ export async function GET(request: NextRequest) {
     console.error('[cron/demo-reset] Unexpected error:', err)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
+    },
+    {
+      schedule: { type: 'crontab', value: '0 3 * * *' },
+      checkinMargin: 30,
+      maxRuntime: 10,
+      timezone: 'UTC',
+    },
+  )
 }

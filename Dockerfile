@@ -43,7 +43,8 @@ ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL \
     GIT_COMMIT_SHA=$GIT_COMMIT_SHA \
     SENTRY_ORG=$SENTRY_ORG \
     SENTRY_PROJECT=$SENTRY_PROJECT \
-    NEXT_TELEMETRY_DISABLED=1
+    NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PUBLIC_SENTRY_RUNTIME=vps
 
 # Le secret n'existe que le temps de cette commande (jamais dans une couche).
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN \
@@ -57,7 +58,8 @@ WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=0.0.0.0 \
+    SENTRY_RUNTIME=vps
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nextjs
 
