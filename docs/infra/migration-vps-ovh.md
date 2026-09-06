@@ -140,6 +140,19 @@ et `NEXT_PUBLIC_SENTRY_DSN` posées (valeurs publiques). Secrets à ajouter le j
   quelques dizaines de secondes. fail2ban ne concerne que SSH (35 bans en 6 h, bruit
   Internet normal).
 
+## Bilan de risque Vercel → VPS (2026-09-06, vérifié sur les domaines temporaires)
+
+| Point | Résultat |
+|---|---|
+| Origine des liens absolus (magic links, partage) | **Bug** : `request.nextUrl.origin` vaut `https://0.0.0.0:3000` derrière Traefik. Corrigé par `src/lib/request-origin.ts` (`x-forwarded-proto` / `x-forwarded-host`, repli `host`), utilisé par `/api/recovery/request`, `/api/owner/email`, `/api/recipes/[id]/share`. Vérifié sur staging-vps |
+| IP client pour les rate-limits | OK : Traefik pose `x-forwarded-for` (mon IP limitée au 6e essai, l'IP du VPS non) |
+| Cookies `Secure`/`HttpOnly`, HTTP→HTTPS (301), HSTS, gzip | OK |
+| AASA, assetlinks, image OG, manifest, offline | OK |
+| `after()` (enrichissement, mail de récupération) | Fonctionne en Node ; risque uniquement pendant un redéploiement. `stopGracePeriodSwarm` porté à **90 s** sur les deux apps (défaut Docker : 10 s) |
+| Sentry | Source maps non envoyées (pas de `SENTRY_AUTH_TOKEN` dans GitHub) : traces minifiées pour les erreurs du VPS. À poser si besoin |
+| Non testable depuis le poste | Imports Instagram / photo / capture / voix, Share Extension iOS → essais Anthony sur `prod-vps` avant la bascule |
+| Mémoire | Le graphique OVH compte le cache : réel ~1,7 GB utilisés dont Dokploy ~840 MB ; les deux Mijote ~170 MB à elles deux |
+
 ## Jour J (runbook, ~1 journée, pilotable depuis Claude Code)
 
 1. **Commander le VPS-1** (API OVH ou espace client), Debian/Ubuntu LTS, clé SSH déposée à
