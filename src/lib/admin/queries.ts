@@ -676,7 +676,7 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     {
       id: "trials",
       label: "Essais démo",
-      sub: `acquisition — sessions démo · ${windows.conversion}`,
+      sub: `acquisition — sessions démo depuis un navigateur ou l'app · ${windows.conversion}`,
       value: fr(trials30),
       delta: trialsDelta,
       positive: trialsDelta == null ? undefined : trialsDelta >= 0,
