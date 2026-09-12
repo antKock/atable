@@ -2,7 +2,7 @@
 
 > Rédigé le 2026-09-12 à partir de la page en prod (v2 du 2026-08-14 + section 00 App Store du
 > 2026-09-12), des données prod du jour et des bonnes pratiques citées en fin de document.
-> Statut : **proposition à valider par Anthony** avant toute maquette / implémentation.
+> Statut : **structure validée par Anthony le 2026-09-12** (décisions en §4.7) — **maquette HTML** `temp/stats-v3-preview.html` (non commitée, chiffres prod du 12/09) à valider, puis lot A.
 
 ## 0. TL;DR
 
@@ -158,9 +158,10 @@ Contraintes : coût IA / cuisinier actif / mois · santé pipeline · sécurité
 
 ### 4.2 Structure de la page
 
-Barre : **période** (4 sem · 12 sem · 26 sem · tout) appliquée à *toutes* les séries ; plus de filtre
-plateforme global (la plateforme devient une dimension des cartes acquisition) ; le sélecteur de
-carnets part dans une page « Explorer » (lot C).
+Barre : **aucun filtre**. Période figée à **12 semaines** pour toutes les séries (« tout » n'existe que
+sur la table de cohortes) ; plus de filtre plateforme global (la plateforme devient une dimension des
+cartes acquisition) ; le sélecteur de carnets part dans une page « Explorer » (lot C). Seuls éléments
+de barre : date des données, lien « Définitions & limites », lien « Explorer » (lot C).
 
 **Bloc 1 — En un coup d'œil** *(tient sur un écran, y compris mobile)*
 
@@ -274,14 +275,52 @@ contenu).
 Ordre conseillé : A, puis B immédiatement (pour accumuler), C quand le besoin d'aller voir un carnet
 précis se fait sentir.
 
-### 4.7 Questions ouvertes pour Anthony
+### 4.7 Décisions (Anthony, 2026-09-12)
 
-1. Événement de rétention : « consulter ou ajouter une recette » te semble-t-il la bonne définition de
-   « cuisiner avec Mijote » ? Alternative plus stricte : consulter une recette en mode cuisine (wake
-   lock).
-2. Définition de l'activation : ≥ 3 recettes + 1 retour dans les 7 j — ou un autre seuil ? (Je propose
-   de calibrer sur les cohortes de mai-août : quel seuil sépare le mieux les retenues M1 des autres.)
-3. Benchmarks en filigrane : utiles, ou anxiogènes à ce stade ?
-4. Faut-il garder le sélecteur de période, ou figer « 12 semaines » et n'offrir « tout » qu'à la table
-   de cohortes ? (Few plaide pour zéro filtre sur l'écran principal.)
-5. La page reste réservée à l'admin : veux-tu une version « digest » hebdo par e-mail du bloc 1 ?
+1. **Événement de rétention** = consulter ou ajouter une recette. ✅
+2. **Activation** = ≥ 3 recettes ET ≥ 1 retour après J+1 dans les 7 j, seuil à calibrer contre M1. ✅
+   Premier calibrage sur les 53 personnes arrivées de juin à début septembre : la **première méthode
+   d'ajout** sépare déjà nettement — URL 9 activées / 17, manuel 5 / 7, photo 3 / 13, aucune recette
+   0 / 13. Le bloc *Activer* est donc directement actionnable (onboarding, premier import proposé).
+3. **Benchmarks** : affichés en filigrane sous les KPI concernés, avec la source et la catégorie, en
+   tant que « repère marché » (études publiques AppsFlyer/Adjust/data.ai pour la rétention, AppTweak
+   pour la fiche App Store), jamais comme jugement automatique. Détail en §4.8.
+4. **Période figée à 12 semaines** sur toute la page ; « tout » n'existe que sur la table de cohortes.
+   Plus de sélecteur de période, de plateforme ni de carnet sur l'écran principal. ✅
+5. **Digest hebdo par e-mail** (bloc 1 en texte) à `kocken.anthony@gmail.com`. ✅ Spécifié en §4.9.
+
+### 4.8 Benchmarks : ce qu'on affiche et d'où ça vient
+
+Un benchmark ici = la **médiane du marché** publiée par un acteur qui agrège des milliers d'apps,
+pour la catégorie la plus proche de Mijote quand elle existe. Ce n'est pas « telle app concurrente »
+(pas de données publiques par app), c'est le standard observé.
+
+| KPI Mijote | Repère marché | Valeur (2025) | Source | Lecture |
+|---|---|---|---|---|
+| Fiche App Store → téléchargement | Food & Drink, US App Store | ≈ 53 % ; toutes catégories ≈ 34 % | [AppTweak](https://www.apptweak.com/en/aso-blog/average-app-conversion-rate-per-category) | Apple seuille les vues de fiche : comparer sur des mois entiers seulement |
+| Impression → téléchargement | toutes catégories | ≈ 3,6 % | [Business of Apps](https://www.businessofapps.com/marketplace/app-store-optimization/research/app-store-optimization-statistics/) | Mijote ≈ 16 % depuis la 1.3 (petit volume, mais très au-dessus) |
+| Rétention J1 / J7 / J30 (post-install, apps grand public) | médiane iOS | ≈ 25 % / 12 % / 6 % | [UXCam](https://uxcam.com/blog/mobile-app-retention-benchmarks/), [Business of Apps](https://www.businessofapps.com/guide/mobile-app-retention/) | Notre M1 (actif entre J+30 et J+59) n'est pas la même définition que D30 (actif le jour 30) : on affiche le repère avec cette réserve, à titre d'ordre de grandeur — 18 % M1 est *au-dessus* d'un D30 à 6 % |
+| Jours actifs / mois | DAU/MAU ≥ 20 % « bon » pour des apps quotidiennes | — | Pushwoosh, UXCam | Non pertinent pour un usage « quand je cuisine » : **pas affiché** |
+| Activation, essai → carnet, coût IA / personne | aucun standard public comparable | — | — | Comparaison à nous-mêmes (cohorte précédente) uniquement |
+
+Règle : le repère s'affiche en gris sous la valeur (« repère marché ≈ 34 %, AppTweak 2025 »), avec un
+ⓘ vers la définition et la réserve. Il disparaît quand N < 20.
+
+### 4.9 Digest hebdo par e-mail
+
+- **Quand** : lundi 07:00 Europe/Paris, cron VPS → `GET /api/cron/weekly-digest` (même garde
+  `CRON_SECRET`, idempotent par semaine ISO : une ligne `digests_sent(week)`).
+- **À qui** : `DIGEST_TO` (variable d'env, = `kocken.anthony@gmail.com`), via Resend (déjà en place
+  pour les magic links), expéditeur `EMAIL_FROM`.
+- **Contenu** = le bloc 1 en texte, semaine ISO précédente vs les 4 précédentes :
+  1. Cuisiniers actifs 28 j (valeur, delta, N total).
+  2. Nouvelles personnes (par canal), activées à 7 j (n/N), rétention M1 de la dernière cohorte
+     complète (n/N), recettes / cuisinier actif, coût IA / cuisinier actif.
+  3. « Ce qui a bougé » : les 3 plus fortes variations en une phrase chacune.
+  4. Santé : pipeline, crons, démo — une ligne, rouge si un voyant est au rouge.
+  5. Lien vers `/admin/stats`.
+- **Rendu** : texte brut + HTML minimal (pas de graphique), 15 lignes, lisible sur téléphone.
+- **Code** : le calcul du bloc 1 est un module pur `src/lib/admin/overview.ts` partagé par la page et
+  le digest — une seule définition des chiffres.
+- **Silence** : si le cron échoue, Sentry `captureException` ; pas de moniteur Crons (seat).
+- Lot : **A** (le digest est l'usage principal du bloc 1).
