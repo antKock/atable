@@ -112,6 +112,7 @@ describe("checkEnv", () => {
         "NEXT_PUBLIC_SENTRY_DSN",
         "RESEND_API_KEY",
         "APIFY_TOKEN",
+        "APPLE_CONNECT_KEY",
       ]),
     );
     expect(prod.every((i) => i.level === "warn")).toBe(true);
@@ -124,6 +125,9 @@ describe("checkEnv", () => {
     const prod = {
       ...VALID,
       NODE_ENV: "production",
+      APPLE_CONNECT_KEY_ID: "ABC123DEF4",
+      APPLE_CONNECT_ISSUER_ID: UUID,
+      APPLE_CONNECT_APP_ID: "6772487648",
       I18N_EN_ENABLED: "1",
       DEMO_HOUSEHOLD_ID_EN: UUID,
       APP_ORIGIN: "https://mijote.anthonykocken.fr",
@@ -132,6 +136,7 @@ describe("checkEnv", () => {
       RESEND_API_KEY: "re_x",
       EMAIL_FROM: "Mijote <no-reply@mijote.fr>",
       APIFY_TOKEN: "apify",
+      APPLE_CONNECT_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEH",
     };
     expect(checkEnv(prod)).toEqual([]);
   });
@@ -170,6 +175,7 @@ describe("reportEnvIssues", () => {
       RESEND_API_KEY: "re_x",
       EMAIL_FROM: "no-reply@mijote.fr",
       APIFY_TOKEN: "apify",
+      APPLE_CONNECT_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEH",
     });
     expect(console.error).toHaveBeenCalledTimes(1);
     expect(captureMessage).toHaveBeenCalledTimes(1);
@@ -195,6 +201,7 @@ describe("reportEnvIssues", () => {
       RESEND_API_KEY: "re_x",
       EMAIL_FROM: "no-reply@mijote.fr",
       APIFY_TOKEN: "apify",
+      APPLE_CONNECT_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEH",
       DEMO_SEED_MIN: "trente",
     });
     expect(console.error).not.toHaveBeenCalled();

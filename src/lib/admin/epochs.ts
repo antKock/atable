@@ -27,6 +27,16 @@ export const METRIC_EPOCHS = {
   /** Migration 032 : marqueur de conversion démo → carnet, compteurs
    *  stats_daily (tokens, 403 gelés), recipes.last_moved_at. */
   conversionMarker: "2026-08-14",
+  /** Stats App Store (042, backlog #19) : premier jour couvert par le flux
+   *  Analytics ONGOING créé le 2026-08-16 (instances DAILY à partir du 17/08,
+   *  données de J-1). Aucune donnée quotidienne avant. */
+  appStoreDaily: "2026-08-16",
+} as const;
+
+/** Événements produit posés en repère sur les graphes (pas des changements de mesure). */
+export const PRODUCT_EVENTS = {
+  /** iOS 1.3 en ligne : fiche App Store refondue (titre « Livre de recettes », visuels, EN). */
+  appStoreListingV2: "2026-09-06",
 } as const;
 
 export type MetricEpoch = keyof typeof METRIC_EPOCHS;

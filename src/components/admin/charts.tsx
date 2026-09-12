@@ -228,6 +228,40 @@ export function ChartDemoActivity({ data, height = 210 }: { data: any[]; height?
   );
 }
 
+/* ==================== 00 — ACQUISITION APP STORE ==================== */
+
+// Premiers téléchargements (barres, axe gauche) + impressions App Store (ligne,
+// axe droit : ordre de grandeur ×10). Repère « 1.3 » = fiche refondue en ligne.
+export function ChartAppStoreDaily({
+  data,
+  marker,
+  notMeasuredBefore,
+  height = 240,
+}: {
+  data: any[];
+  marker?: string | null;
+  notMeasuredBefore?: NotMeasuredRange;
+  height?: number;
+}) {
+  if (sum(data, ["downloads", "impressions"]) === 0)
+    return <ChartEmpty height={height} sub="Se remplit au premier passage du cron app-store-sync (10:00 UTC, données de la veille)." />;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <ComposedChart data={data} margin={{ top: 8, right: -8, left: -12, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={36} />
+        <YAxis yAxisId="left" {...axisProps} width={36} allowDecimals={false} />
+        <YAxis yAxisId="right" orientation="right" {...axisProps} width={40} allowDecimals={false} />
+        <Tooltip content={<Tip />} />
+        {notMeasuredBefore && <ReferenceArea yAxisId="left" x1={notMeasuredBefore.from} x2={notMeasuredBefore.to} {...notMeasuredProps} />}
+        <Bar yAxisId="left" dataKey="downloads" name="Premiers téléchargements" fill={P.olive} radius={[2, 2, 0, 0]} maxBarSize={10} />
+        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impressions" stroke={P.ochre} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+        {marker && <ReferenceLine yAxisId="left" x={marker} {...epochMarkerProps("1.3")} />}
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+}
+
 /* ==================== 02 — PERSONNES ACTIVES ==================== */
 
 export function ChartWauMau({ data, marker, height = 260 }: { data: any[]; marker?: string | null; height?: number }) {

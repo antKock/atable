@@ -115,6 +115,19 @@ const RULES: EnvRule[] = [
     missingInProduction: "aucune remontée d'erreur vers Sentry",
   },
 
+  // Stats App Store (cron app-store-sync, backlog #19) : sans elles la route
+  // répond 503 et la section 00 du dashboard reste vide. Clé de rôle Admin.
+  {
+    name: "APPLE_CONNECT_KEY",
+    required: false,
+    shape: z.string().regex(/^[A-Za-z0-9+/=]+$/),
+    expected: "corps base64 de la clé .p8",
+    missingInProduction: "stats App Store non synchronisées (section 00 du dashboard vide)",
+  },
+  { name: "APPLE_CONNECT_KEY_ID", required: false, shape: z.string().min(1), expected: "identifiant de clé" },
+  { name: "APPLE_CONNECT_ISSUER_ID", required: false, shape: uuid, expected: "uuid" },
+  { name: "APPLE_CONNECT_APP_ID", required: false, shape: positiveInt, expected: "id numérique de l'app" },
+
   // Fonctionnalités à interrupteur : absentes = éteintes, mais jamais malformées.
   { name: "ADMIN_HOUSEHOLD_IDS", required: false, shape: commaList(uuid), expected: "liste d'uuid séparés par des virgules" },
   { name: "DEMO_SEED_MIN", required: false, shape: positiveInt, expected: "entier > 0" },

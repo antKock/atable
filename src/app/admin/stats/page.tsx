@@ -9,6 +9,7 @@ import {
   Sparkline,
   HBarList,
   ChartTrialsDaily,
+  ChartAppStoreDaily,
   ChartDemoActivity,
   ChartWauMau,
   ChartMauCohorts,
@@ -218,6 +219,129 @@ export default async function DashboardPage({
           {data.signals.map((s) => (
             <SignalTile key={s.label} s={s} />
           ))}
+        </div>
+
+        {/* 00 — Acquisition App Store (042, cron app-store-sync) */}
+        <div className="section">
+          <SectionHead n="00" title="Acquisition App Store" meta="En amont de la démo : ce que l'App Store montre, et ce qu'il en sort" />
+          <div className="cards">
+            <Card
+              span={5}
+              title={`Tunnel complet — ${data.appStore.window}`}
+              sub="Impressions → fiche → téléchargements (Apple) → essais démo → 1er carnet (Mijote)"
+              badge="iOS"
+              footer={
+                <div className="chart-note">
+                  Compteurs Apple <b>arrondis et seuillés</b> (petits volumes omis, vues de fiche souvent absentes) : lire les ordres
+                  de grandeur. Les essais démo incluent le web, les téléchargements non — le ratio n&apos;est pas un vrai taux.
+                  {data.appStore.lastDayLabel && (
+                    <>
+                      {" "}
+                      Données Apple jusqu&apos;au <b>{data.appStore.lastDayLabel}</b> (J-1).
+                    </>
+                  )}
+                </div>
+              }
+            >
+              {data.appStore.hasData ? (
+                <HBarList
+                  height={200}
+                  colors={[P.ochre, P.oliveSoft, P.olive, P.oliveDeep, P.terracotta]}
+                  rows={data.appStore.funnel.map((s) => ({ label: s.label, value: s.value, hint: `${Math.round(s.pct)} %` }))}
+                />
+              ) : (
+                <ChartAppStoreDaily data={[]} height={200} />
+              )}
+            </Card>
+            <Card
+              span={7}
+              title="Téléchargements & impressions par jour"
+              sub={`Premiers téléchargements (barres) et impressions en recherche/navigation (ligne, axe droit) · ${periodSpan}`}
+              badge="global"
+              footer={
+                <>
+                  <LegendInline
+                    items={[
+                      { label: "Premiers téléchargements / jour", color: P.olive },
+                      { label: "Impressions / jour", color: P.ochre },
+                    ]}
+                  />
+                  {(data.appStore.listingMarker || data.appStore.notMeasured) && (
+                    <div className="chart-note">
+                      {data.appStore.listingMarker && (
+                        <>Repère <b>1.3 — {data.appStore.listingMarker}</b> : fiche App Store refondue en ligne (titre, visuels, version EN). </>
+                      )}
+                      {data.appStore.notMeasured && <>Zone grisée : pas de données quotidiennes Apple avant le flux ONGOING (16 août).</>}
+                    </div>
+                  )}
+                </>
+              }
+            >
+              <ChartAppStoreDaily
+                data={data.appStore.daily}
+                marker={data.appStore.listingMarker}
+                notMeasuredBefore={data.appStore.notMeasured}
+                height={240}
+              />
+            </Card>
+            <Card
+              span={5}
+              title="Origine des téléchargements"
+              sub={`Source App Store des premiers téléchargements · ${data.appStore.window}`}
+              footer={
+                <div className="chart-note">
+                  « Depuis une app » = ouverture de la fiche depuis une autre app (ChatGPT, Messages…). Sans lien possible avec une
+                  personne côté Mijote.
+                </div>
+              }
+            >
+              {data.appStore.sources.length ? (
+                <HBarList
+                  height={180}
+                  rows={data.appStore.sources.map((s) => ({
+                    label: s.label,
+                    value: s.downloads,
+                    hint: s.impressions ? `${s.impressions.toLocaleString("fr-FR")} impr.` : s.pageViews ? `${s.pageViews} vues` : undefined,
+                  }))}
+                />
+              ) : (
+                <ChartAppStoreDaily data={[]} height={180} />
+              )}
+            </Card>
+            <Card span={4} title="Taux" sub={`Deux ratios à suivre · ${data.appStore.window}`}>
+              <BigStats
+                stats={[
+                  {
+                    value: `${data.appStore.rates.impressionsToDownloadPct} %`,
+                    label: "impressions → téléchargement",
+                    hint: `${data.appStore.totals.downloads} téléchargements / ${data.appStore.totals.impressions.toLocaleString("fr-FR")} impressions`,
+                  },
+                  {
+                    value: `${data.appStore.rates.downloadToCarnetPct} %`,
+                    label: "téléchargement → 1er carnet",
+                    hint: "conversions démo (app + web) / premiers téléchargements iOS",
+                  },
+                ]}
+              />
+            </Card>
+            <Card span={3} title="Parc & synchro" sub={`Mises à jour et retéléchargements · ${data.appStore.window}`}>
+              <BigStats
+                stats={[
+                  {
+                    value: String(data.appStore.totals.updates),
+                    label: "mises à jour installées",
+                    hint: `${data.appStore.totals.redownloads} retéléchargement${data.appStore.totals.redownloads > 1 ? "s" : ""}`,
+                  },
+                  {
+                    value: data.appStore.lastSyncLabel ?? "jamais",
+                    label: "dernière synchro Apple",
+                    hint: data.appStore.lastSyncTime ? `à ${data.appStore.lastSyncTime} · cron quotidien 10:00 UTC` : "cron quotidien 10:00 UTC",
+                    warn: data.appStore.syncStale,
+                  },
+                ]}
+              />
+            </Card>
+          </div>
         </div>
 
         {/* 01 — Funnel démo → carnet */}

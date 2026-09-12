@@ -1,5 +1,9 @@
 #!/usr/bin/env node
-// CLI minimal pour l'API App Store Connect.
+// CLI minimal pour l'API App Store Connect — s'appuie sur le module partagé
+// src/lib/apple-connect/client.ts (JWT, appels, téléchargement d'instances),
+// celui du cron /api/cron/app-store-sync. Node ≥ 22.18 : le `.ts` est importé
+// tel quel (type stripping), sans bundler.
+//
 // Auth : APPLE_CONNECT_KEY (corps base64 de la clé .p8), APPLE_CONNECT_KEY_ID,
 // APPLE_CONNECT_ISSUER_ID — lus depuis .env.local.
 //
@@ -7,71 +11,19 @@
 //   node scripts/apple-connect.mjs apps
 //   node scripts/apple-connect.mjs get "/v1/apps/<id>/analyticsReportRequests"
 //   echo '<json>' | node scripts/apple-connect.mjs post|patch <path>   (écriture)
-//   node scripts/apple-connect.mjs analytics-create <appId>   (snapshot historique)
+//   node scripts/apple-connect.mjs analytics-create <appId> [ONGOING]   (défaut : snapshot historique)
 //   node scripts/apple-connect.mjs analytics-requests <appId>
 //   node scripts/apple-connect.mjs analytics-reports <requestId> [category]
 //   node scripts/apple-connect.mjs analytics-instances <reportId>
 //   node scripts/apple-connect.mjs analytics-download <instanceId>
 
-import { createPrivateKey, createSign } from 'node:crypto';
-import { gunzipSync } from 'node:zlib';
 import { loadEnvLocal } from './lib/env.mjs';
-
-const API = 'https://api.appstoreconnect.apple.com';
-const API_HOST = new URL(API).host;
-
-function b64url(buf) {
-  return Buffer.from(buf).toString('base64url');
-}
-
-function makeToken() {
-  const { APPLE_CONNECT_KEY, APPLE_CONNECT_KEY_ID, APPLE_CONNECT_ISSUER_ID } = process.env;
-  if (!APPLE_CONNECT_KEY || !APPLE_CONNECT_KEY_ID || !APPLE_CONNECT_ISSUER_ID) {
-    throw new Error('Variables APPLE_CONNECT_* manquantes dans .env.local');
-  }
-  const key = createPrivateKey({
-    key: Buffer.from(APPLE_CONNECT_KEY, 'base64'),
-    format: 'der',
-    type: 'pkcs8',
-  });
-  const now = Math.floor(Date.now() / 1000);
-  const header = { alg: 'ES256', kid: APPLE_CONNECT_KEY_ID, typ: 'JWT' };
-  const payload = {
-    iss: APPLE_CONNECT_ISSUER_ID,
-    iat: now,
-    exp: now + 15 * 60,
-    aud: 'appstoreconnect-v1',
-  };
-  const signingInput = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(payload))}`;
-  const signature = createSign('SHA256')
-    .update(signingInput)
-    .sign({ key, dsaEncoding: 'ieee-p1363' });
-  return `${signingInput}.${b64url(signature)}`;
-}
-
-async function api(pathOrUrl, { method = 'GET', body } = {}) {
-  const url = pathOrUrl.startsWith('http') ? pathOrUrl : `${API}${pathOrUrl}`;
-  // Le JWT ne part que vers l'API App Store Connect : une URL absolue vers un
-  // autre hôte (lien `next` copié-collé, faute de frappe) ne doit jamais
-  // recevoir le Bearer.
-  if (new URL(url).host !== API_HOST) {
-    throw new Error(`hôte refusé : ${new URL(url).host} (seul ${API_HOST} reçoit le jeton)`);
-  }
-  const res = await fetch(url, {
-    method,
-    headers: {
-      Authorization: `Bearer ${makeToken()}`,
-      ...(body ? { 'Content-Type': 'application/json' } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
-  const text = await res.text();
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText} — ${text}`);
-  return text ? JSON.parse(text) : null;
-}
+import { createAppleConnectClient, credentialsFromEnv } from '../src/lib/apple-connect/client.ts';
 
 const [cmd, arg1, arg2] = process.argv.slice(2);
 loadEnvLocal('.env.local');
+
+const { api, downloadInstance } = createAppleConnectClient(credentialsFromEnv());
 
 switch (cmd) {
   case 'apps': {
@@ -156,12 +108,7 @@ switch (cmd) {
   }
 
   case 'analytics-download': {
-    const data = await api(`/v1/analyticsReportInstances/${arg1}/segments`);
-    for (const seg of data.data) {
-      const res = await fetch(seg.attributes.url);
-      const buf = Buffer.from(await res.arrayBuffer());
-      process.stdout.write(gunzipSync(buf).toString('utf8'));
-    }
+    process.stdout.write(await downloadInstance(arg1));
     break;
   }
 

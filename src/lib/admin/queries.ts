@@ -7,6 +7,7 @@ import {
   windowLabel,
   windowPredatesEpoch,
 } from "@/lib/admin/epochs";
+import { shapeAppStore, type AppStoreDailyRow } from "@/lib/admin/app-store";
 import {
   PALETTE,
   METHOD_LABELS,
@@ -230,6 +231,8 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     aiCostDemoRows,
     adoptionRows,
     demoActivityRows,
+    appStoreRows,
+    appStoreSyncRows,
   ] = await Promise.all([
     rpc("analytics_kpis", { p_household_ids: hh }),
     rpc("analytics_recipes_created_daily", { p_from: ISO(fromRecipes), p_household_ids: hh, p_platform: plat }),
@@ -296,6 +299,26 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
         if (error) throw new Error(`stats_daily: ${error.message}`);
         return (data ?? []) as Row[];
       }),
+    // Stats App Store (042) : lecture directe de l'agrégat quotidien du cron
+    // app-store-sync — période affichée, et au moins 30 j pour le tunnel.
+    supabase
+      .from("app_store_daily")
+      .select("day, source_type, source_info, dl_first_time, dl_redownload, dl_update, eng_impressions, eng_impressions_uniq, eng_page_views, eng_page_views_uniq, eng_taps")
+      .gte("day", ISO(fromRecipes))
+      .order("day", { ascending: true })
+      .then(({ data, error }) => {
+        if (error) throw new Error(`app_store_daily: ${error.message}`);
+        return (data ?? []) as AppStoreDailyRow[];
+      }),
+    supabase
+      .from("app_store_sync_instances")
+      .select("synced_at")
+      .order("synced_at", { ascending: false })
+      .limit(1)
+      .then(({ data, error }) => {
+        if (error) throw new Error(`app_store_sync_instances: ${error.message}`);
+        return (data ?? []) as { synced_at: string }[];
+      }),
   ]);
 
   const k = (kpisRow[0] ?? {}) as Record<string, number>;
@@ -337,6 +360,14 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
       pct: pct(Number(demoSum.activated_7d ?? 0), trials30),
     },
   ];
+
+  // ---- 00 — acquisition App Store ----
+  const appStore = shapeAppStore(appStoreRows, {
+    days,
+    today,
+    lastSyncAt: appStoreSyncRows[0]?.synced_at ?? null,
+    demo: { trials: trials30, conversions: conversions30 },
+  });
 
   const ttc = (ttcRows as Row[]).map((r) => ({ bin: r.bin as string, value: Number(r.owners) }));
   const ttcTotal = ttc.reduce((s, b) => s + b.value, 0);
@@ -674,6 +705,13 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
   // engagement → contenu → qualité ----
   const kpis: KpiCard[] = [
     {
+      id: "downloads",
+      label: "Téléchargements App Store",
+      sub: `premiers téléchargements iOS · ${appStore.window}`,
+      value: fr(appStore.totals.downloads),
+      spark: spark(appStore.daily.map((d) => d.downloads)),
+    },
+    {
       id: "trials",
       label: "Essais démo",
       sub: `acquisition — sessions démo depuis un navigateur ou l'app · ${windows.conversion}`,
@@ -838,6 +876,8 @@ export async function getDashboardData(filters: DashboardFilters = {}) {
     kpis,
     signals,
     enrichmentFailures,
+    // 00 — acquisition App Store
+    appStore,
     // 01 — funnel démo → carnet
     funnel,
     demoDaily: demoDailyChart,

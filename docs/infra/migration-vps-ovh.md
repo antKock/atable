@@ -181,6 +181,7 @@ pas toutes dans l'export `vercel env pull` :
 | `CRON_SECRET` | même valeur que `/etc/mijote/cron.env` sur le VPS (et que Vercel tant qu'il existe) | **Obligatoire** : sans elle, `/api/cron/demo-reset` refuse tout appel |
 | `SENTRY_ENVIRONMENT` | `production` / `staging` | `VERCEL_ENV` n'existe plus |
 | `DEMO_SEED_MIN` | optionnelle (défaut 30) | Seuil d'alerte Sentry sur les recettes seed ; valeur illisible ⇒ 30 + warn dans les logs (avant : alerte désactivée en silence) |
+| `APPLE_CONNECT_KEY`, `APPLE_CONNECT_KEY_ID`, `APPLE_CONNECT_ISSUER_ID`, `APPLE_CONNECT_APP_ID` | **prod seulement** : clé App Store Connect de rôle Admin (corps base64 du `.p8`), id de clé, issuer, id numérique de l'app (`6772487648`) — mêmes valeurs que `.env.local` | Cron `/api/cron/app-store-sync` (stats App Store dans `/admin/stats`, backlog #19). Sans elles : 503, section 00 vide, pas d'alerte. La clé vaut un accès Admin ASC : ne la poser que sur prod |
 
 ⚠ **Piège vécu (2026-09-06)** : les variables marquées *sensitive* sur Vercel ne sont pas
 exportables (`vercel env pull` écrit littéralement `[SENSITIVE]`). La copie Vercel → Dokploy
@@ -275,6 +276,26 @@ Calendrier :
 - **Vercel** : cron retiré de `vercel.json` dans la PR de bascule DNS (2026-09-06). Le
   reset est désormais exécuté uniquement par la crontab du VPS (moniteur Sentry Crons
   `demo-reset` = seul filet : une nuit sans check-in = alerte).
+
+## Cron app-store-sync (stats App Store, 2026-09-12)
+
+- Même mécanique que demo-reset : `bootstrap.sh` pose `/etc/cron.d/mijote-app-store-sync`
+  (garde `date -u` sur **10 h UTC** — Apple publie les données de J-1 dans la matinée),
+  même secret `/etc/mijote/cron.env`, `GET https://<APP_HOST>/api/cron/app-store-sync`.
+  Moniteur Sentry Crons `app-store-sync` (`0 10 * * *` UTC, marge 30 min, 10 min max).
+- Idempotent par instance Apple (`app_store_sync_instances`, migration 042) : un passage
+  manqué est rattrapé au suivant, un passage manuel supplémentaire ne double rien. Le
+  premier passage intègre tout l'historique du flux ONGOING (depuis le 2026-08-16).
+- ⚠ **Chaque instance quotidienne Apple contient 2-3 jours de données** (J-1 plus les jours
+  précédents restatés). Sommer les fichiers par date compte double/triple : l'intégration
+  remplace le jour entier par la dernière instance qui le contient
+  (`app_store_daily_replace`). Le CLI `analytics-download` livre les fichiers bruts —
+  dédoublonner avant tout calcul à la main.
+- Sur le VPS, poser la crontab en relançant `bootstrap.sh` avec `APP_HOST`, ou à la main
+  (copier le bloc `mijote-app-store-sync` du script). Variables `APPLE_CONNECT_*` dans
+  Dokploy prod (cf. tableau). Test manuel : `sudo sh -c '. /etc/mijote/cron.env; curl -fsS -H
+  "Authorization: Bearer $CRON_SECRET" https://<hôte>/api/cron/app-store-sync'` — réponse
+  JSON `{ requestId, reports: { downloads, engagement } }` avec `processed`/`skipped`.
 
 ## Rollback par tag
 
