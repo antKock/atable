@@ -17,7 +17,7 @@
 - **Refonte proposée** : une page blanche organisée autour d'une **North Star** (personnes qui
   utilisent réellement Mijote chaque mois) et de son arbre d'inputs, en 5 blocs qui suivent le
   parcours — *En un coup d'œil · Acquérir · Activer · Retenir · Engager* — plus un bloc *Santé &
-  économie* replié en bas. Comptes avant pourcentages, fenêtres uniformes de 4 semaines, une
+  économie* replié en bas. % et effectifs toujours ensemble, fenêtres uniformes de 4 semaines, une
   définition par carte au lieu de la prose, mobile d'abord pour le premier écran.
 - 3 lots : **A** restructuration sans nouvelle instrumentation (le gros de la valeur), **B**
   instrumentation « usage réel » (consultation de recettes) pour une North Star honnête, **C**
@@ -82,7 +82,7 @@ trois (Few : « un dashboard tient sur un écran ou ce n'est pas un dashboard »
 | Activation 7 j = ≥ 1 recette | Trop bas : la 1ʳᵉ recette est souvent créée dans la minute qui suit la conversion (c'est le geste de sortie de démo) | « Aha » à définir sur les données : ex. **≥ 3 recettes ET ≥ 1 retour après J+1** dans les 7 j. À calibrer contre la rétention M1 (l'activation qui prédit le mieux M1 est la bonne) |
 | Deltas 30 j vs 30 j | Fenêtres glissantes qui coupent les semaines ; un seul point de comparaison | Semaines ISO, comparaison **4 semaines vs 4 semaines précédentes**, et série hebdo derrière chaque KPI |
 | Fenêtres | 30 j, période sélectionnée, « depuis le 16 août », 8 cohortes, 90 j, cumul… sur la même page | **Une** fenêtre de comparaison (4 sem.) pour les KPI, **une** période sélectionnée pour toutes les séries, clamp à l'époque affiché en libellé |
-| Pourcentages | Affichés sur n < 20 sans effectif (activation 0 %, conversion 0 %, 100 % couverture) | **Compte d'abord** : « 7 / 22 » ; le % n'apparaît que si N ≥ 20 (a16z, PostHog : à petit volume, les % trompent) |
+| Pourcentages | Affichés sur n < 20 sans effectif (activation 0 %, conversion 0 %, 100 % couverture) | **% et n/N toujours ensemble** ; % grisé sous N < 20 avec marge d'erreur (a16z, PostHog : à petit volume, un % seul trompe) |
 | Couverture IA 100 %, pipeline 100 % | Problème résolu → n'a plus rien d'un KPI | Pastille de santé (vert/rouge) en bas, alerte si < 95 % |
 | Coût / recette, / image | Bonne unité pour le pipeline, mauvaise pour le modèle économique envisagé (déblocage à coût fixe, cf. [[Stratégie]]) | **Coût IA / personne active / mois** — c'est ce chiffre que le prix unique doit couvrir |
 | Partage : copies 30 j / liens émis depuis toujours | Ratio explicitement non comparable | Dater l'émission des liens (colonne `share_token_created_at`) ou ne montrer que les copies |
@@ -167,9 +167,13 @@ de barre : date des données, lien « Définitions & limites », lien « Explore
 
 - **North Star** en grand : cuisiniers actifs 28 j, sparkline 12 semaines, delta vs 4 semaines
   précédentes, N total de personnes.
-- **5 inputs** en tuiles : nouvelles personnes (4 sem.), activées à 7 j (n/N), rétention M1 de la
-  dernière cohorte complète (n/N), recettes / cuisinier actif, coût IA / cuisinier actif. Chaque
-  tuile : valeur, comparaison 4 sem., sparkline hebdo, benchmark en filigrane quand il existe.
+- **5 inputs** en tuiles : nouvelles personnes (4 sem.), activées à 7 j, **rétention M1 glissante**
+  (personnes arrivées dans les 4 semaines closes il y a 8 semaines, actives au moins un jour entre
+  J+28 et J+55 — fenêtre toujours complète, mise à jour chaque lundi, comparée à la cohorte glissante
+  de la semaine précédente), recettes / cuisinier actif, coût IA / cuisinier actif. Chaque tuile :
+  % en grand + n/N dessous, comparaison 4 sem., sparkline hebdo, benchmark en filigrane quand il
+  existe. La cohorte glissante lisse (chevauchement) et porte sur des arrivées d'il y a 2-3 mois :
+  le signal précoce, c'est l'activation (« ≥ 1 retour après J+1 »).
 - **Santé** : trois pastilles vert/rouge — pipeline IA (succès < 95 % ou échecs en attente), crons
   (demo-reset, app-store-sync : dernier passage < 36 h), démo (seed ≥ 30). Rien d'autre.
 - **Ce qui a bougé** *(v2 du lot A)* : trois phrases générées (plus fortes variations sur 4 sem.),
@@ -195,8 +199,9 @@ de barre : date des données, lien « Définitions & limites », lien « Explore
 
 **Bloc 4 — Retenir** *(la question du moment)*
 
-- **Table de cohortes mensuelles** : lignes = mois d'arrivée, colonnes = M0 M1 M2 M3, cellule = n/N
-  avec ombrage ; cellules non éligibles grisées. C'est la carte centrale de la page.
+- **Table de cohortes mensuelles** : lignes = mois d'arrivée, colonnes = M0 M1 M2 M3, cellule = % en
+  grand + n/N dessous, ombrage proportionnel ; cellules non éligibles grisées. C'est la carte centrale
+  de la page (mois calendaires : ici on lit l'histoire ; le KPI du bloc 1 est la version glissante).
 - **Courbes de rétention** superposées par cohorte (M0→M3), pour voir si une cohorte fait mieux que
   la précédente et si ça s'aplatit.
 - **Personnes actives 28 j par génération** (le layer cake existant, conservé tel quel : il est bon).
@@ -225,7 +230,9 @@ métrique, source, époque de naissance, réserves de fiabilité — généré d
 
 ### 4.3 Règles de présentation
 
-- **Compte avant pourcentage** : « 7 / 22 » toujours visible ; le % s'ajoute si N ≥ 20.
+- **Pourcentage ET effectif, toujours les deux** : le % est l'unité de comparaison (en grand), le
+  n/N est toujours visible dessous. Sous N < 20, le % passe en gris (fragile : une personne = plusieurs
+  points) avec la marge d'erreur au survol (intervalle de Wilson à 95 %).
 - **Semaines ISO** comme grain des séries ; KPI comparés sur 4 semaines vs 4 précédentes.
 - **Une période** pour toute la page ; clamp à l'époque signalé dans le libellé (« depuis le 16 août »).
 - **Zéro jargon interne** dans les titres (pas de lot, migration, grain, heartbeat) ; une ligne de
@@ -276,6 +283,10 @@ Ordre conseillé : A, puis B immédiatement (pour accumuler), C quand le besoin 
 précis se fait sentir.
 
 ### 4.7 Décisions (Anthony, 2026-09-12)
+
+0. **Ajustements après lecture de la maquette** : le KPI rétention du bloc 1 devient **glissant** (cohorte des
+   4 semaines closes il y a 8 semaines, fenêtre J+28 → J+55, MAJ hebdo) ; les **% sont affichés partout**,
+   avec n/N dessous et % grisé sous N < 20 (règle §4.3). ✅
 
 1. **Événement de rétention** = consulter ou ajouter une recette. ✅
 2. **Activation** = ≥ 3 recettes ET ≥ 1 retour après J+1 dans les 7 j, seuil à calibrer contre M1. ✅
