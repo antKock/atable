@@ -152,6 +152,10 @@ describe("bloc 0 et funnel hebdo", () => {
     expect(by.downloads.bars).toHaveLength(14);
     expect(by.downloads.barDays[0]).toBe("2026-08-29");
     expect(by.downloads.barDays[13]).toBe("2026-09-11");
+    // Médiane du même jour de semaine sur 4 semaines : essais = 1 avant les 7 derniers jours (2 ensuite)
+    expect(by.trials.barRefs[13]).toBe(1); // 11/09 : 04/09 (2), 28/08, 21/08, 14/08 (1) → médiane 1
+    expect(by.trials.barRefs[0]).toBe(1);
+    expect(by.trials.barRefs).toHaveLength(14);
     expect(by.downloads.bars.reduce((a, b) => a + b, 0)).toBe(9); // …mais dans les 14 barres
     expect(by.new.value).toBe(0); // new_people de la série quotidienne (0 ici)
   });

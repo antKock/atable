@@ -35,7 +35,8 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     rpc<HealthRow[]>("analytics_v3_health", { p_days: 28 }),
     rpc<SharingRow[]>("analytics_v3_sharing", { p_days: 84 }),
     rpc<CarnetRow[]>("analytics_v3_carnets"),
-    // 12 semaines closes + la semaine en cours, pour le funnel App Store hebdo et le bloc « 7 derniers jours ».
+    // 12 semaines closes + la semaine en cours (funnel App Store hebdo), et 14 + 28 jours
+    // pour les médianes par jour de semaine du bloc « 7 derniers jours ».
     rpc<DailyRow[]>("analytics_v3_daily", { p_days: (WEEKS + 2) * 7 }),
     supabase
       .from("app_store_daily")

@@ -205,35 +205,43 @@ export function Dist({ data, height = 170, color = P.olive }: { data: { label: s
   );
 }
 
-/** Mini-barres (14 jours) pour le bloc « 7 derniers jours » : les 7 derniers en
- *  olive, les 7 d'avant en gris. Info-bulle React immédiate (pas de `title`
- *  natif, lent et nu) : jour en toutes lettres, valeur, et à quelle semaine
- *  appartient la barre. */
-export function MiniBars({ values, days, label, unit, height = 34 }: { values: number[]; days: string[]; label: string; unit?: string; height?: number }) {
+/** Mini-barres (14 jours) pour le bloc « 7 derniers jours ». La couleur de
+ *  chaque barre dit si le jour est au-dessus (olive), égal (sable) ou en
+ *  dessous (terracotta) de la médiane du MÊME jour de semaine sur les 4
+ *  semaines précédentes — un dimanche bas n'est pas forcément anormal. La
+ *  semaine précédente est atténuée. Info-bulle React immédiate. */
+export function MiniBars({ values, days, refs, label, unit, height = 34 }: { values: number[]; days: string[]; refs: number[]; label: string; unit?: string; height?: number }) {
   const [hover, setHover] = useState<number | null>(null);
-  const max = Math.max(1, ...values);
+  const max = Math.max(1, ...values, ...refs);
   const n = values.length;
   const fmtDay = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
+  const weekday = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", timeZone: "UTC" });
+  const fmt = (v: number) => String(v).replace(".", ",");
+  const status = (i: number) => (values[i] > refs[i] ? "above" : values[i] < refs[i] ? "below" : "equal");
+  const color = (st: "above" | "below" | "equal") => (st === "above" ? P.olive : st === "below" ? P.terracotta : "#C9C2B2");
+  const wording = (st: "above" | "below" | "equal") => (st === "above" ? "au-dessus de" : st === "below" ? "en dessous de" : "égal à");
+  // Ancrage : à gauche sur le premier tiers, à droite sur le dernier, centré sinon — jamais coupé par le bord de la tuile.
+  const anchor = (i: number) => (i < n / 3 ? "translateX(0)" : i > (2 * n) / 3 ? "translateX(-100%)" : "translateX(-50%)");
   return (
     <div style={{ position: "relative" }} onMouseLeave={() => setHover(null)}>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height }} aria-hidden="true">
         {values.map((v, i) => {
-          const recent = i >= n - 7;
+          const st = status(i);
           const active = hover === i;
           return (
-            <div
-              key={i}
-              onMouseEnter={() => setHover(i)}
-              style={{ flex: 1, height: "100%", display: "flex", alignItems: "flex-end", cursor: "default" }}
-            >
+            <div key={i} onMouseEnter={() => setHover(i)} style={{ flex: 1, height: "100%", display: "flex", alignItems: "flex-end", cursor: "default", position: "relative" }}>
+              {/* repère : trait fin à la hauteur de la médiane du jour de semaine */}
+              {refs[i] > 0 && <div style={{ position: "absolute", left: 0, right: 0, bottom: `${(refs[i] / max) * 100}%`, height: 1, background: P.faint, opacity: 0.55 }} />}
               <div
                 style={{
                   width: "100%",
                   height: `${Math.max(6, (v / max) * 100)}%`,
-                  background: active ? P.ochre : recent ? P.olive : P.grid,
+                  background: color(st),
                   borderRadius: 2,
-                  opacity: v === 0 && !active ? 0.45 : 1,
-                  transition: "background 80ms",
+                  opacity: active ? 1 : i >= n - 7 ? 0.95 : 0.45,
+                  outline: active ? `2px solid ${P.ink}` : "none",
+                  outlineOffset: 1,
+                  transition: "opacity 80ms",
                 }}
               />
             </div>
@@ -247,7 +255,7 @@ export function MiniBars({ values, days, label, unit, height = 34 }: { values: n
             position: "absolute",
             bottom: height + 8,
             left: `${((hover + 0.5) / n) * 100}%`,
-            transform: "translateX(-50%)",
+            transform: anchor(hover),
             zIndex: 6,
             pointerEvents: "none",
             background: "rgba(251,248,241,0.98)",
@@ -260,13 +268,16 @@ export function MiniBars({ values, days, label, unit, height = 34 }: { values: n
         >
           <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: P.muted }}>{fmtDay(days[hover])}</div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 3 }}>
-            <span style={{ fontFamily: MONO, fontSize: 18, fontWeight: 500, color: P.ink }}>
-              {String(values[hover]).replace(".", ",")}
+            <span style={{ fontFamily: MONO, fontSize: 18, fontWeight: 500, color: color(status(hover)) === "#C9C2B2" ? P.ink : color(status(hover)) }}>
+              {fmt(values[hover])}
               {unit ? ` ${unit}` : ""}
             </span>
             <span style={{ fontFamily: FONT, fontSize: 12, color: P.muted }}>{label.charAt(0).toLowerCase() + label.slice(1)}</span>
           </div>
-          <div style={{ fontFamily: FONT, fontSize: 10.5, color: hover >= n - 7 ? P.oliveDeep : P.faint, marginTop: 2 }}>{hover >= n - 7 ? "7 derniers jours" : "semaine précédente"}</div>
+          <div style={{ fontFamily: FONT, fontSize: 11, color: P.muted, marginTop: 3 }}>
+            <b style={{ color: P.ink, fontWeight: 600 }}>{wording(status(hover))}</b> la médiane des 4 derniers {weekday(days[hover])}s : <span style={{ fontFamily: MONO }}>{fmt(refs[hover])}</span>
+          </div>
+          <div style={{ fontFamily: FONT, fontSize: 10.5, color: P.faint, marginTop: 2 }}>{hover >= n - 7 ? "7 derniers jours" : "semaine précédente"}</div>
         </div>
       )}
     </div>
