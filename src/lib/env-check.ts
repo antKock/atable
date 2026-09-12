@@ -209,8 +209,16 @@ function checkRule(rule: EnvRule, env: Env, production: boolean): EnvIssue | nul
  * (`NODE_ENV=production`, conteneur Docker prod ET staging) active les warns
  * « absente en production ».
  */
+// « Production » au sens des règles `missingInProduction` : l'image Docker
+// tourne toujours en NODE_ENV=production, y compris sur staging — c'est
+// SENTRY_ENVIRONMENT qui distingue les deux. Staging n'a ni clé App Store ni
+// destinataire de digest, et ne doit pas paginer Sentry à chaque démarrage.
+export function isProductionEnv(env: Env): boolean {
+  return env.NODE_ENV === "production" && (env.SENTRY_ENVIRONMENT ?? "production") === "production";
+}
+
 export function checkEnv(env: Env): EnvIssue[] {
-  const production = env.NODE_ENV === "production";
+  const production = isProductionEnv(env);
   const issues = RULES.map((rule) => checkRule(rule, env, production)).filter(
     (issue): issue is EnvIssue => issue !== null,
   );

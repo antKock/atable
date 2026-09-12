@@ -144,6 +144,13 @@ describe("checkEnv", () => {
     );
   });
 
+  it("staging (SENTRY_ENVIRONMENT=staging) : les règles « absente en production » ne s'appliquent pas", () => {
+    const staging = { ...VALID, NODE_ENV: "production", SENTRY_ENVIRONMENT: "staging", APP_ORIGIN: "https://staging.mijote.fr" };
+    expect(checkEnv(staging)).toEqual([]);
+    // Sans SENTRY_ENVIRONMENT, NODE_ENV=production vaut production (prudence).
+    expect(checkEnv({ ...VALID, NODE_ENV: "production" }).length).toBeGreaterThan(0);
+  });
+
   it("production complète → aucun problème", () => {
     const prod = {
       ...VALID,
