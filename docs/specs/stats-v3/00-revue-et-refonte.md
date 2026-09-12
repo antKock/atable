@@ -358,3 +358,13 @@ Règle : le repère s'affiche en gris sous la valeur (« repère marché ≈ 34 
 - **Écarts avec la maquette** : la cohorte « ≤ mai » n'apparaît que si plus de 5 mois sont actifs ; les
   cohortes d'avant mai 2026 (modèle d'identité différent) sortent de la table ; « Vues de fiche » peut
   être inférieur aux téléchargements (seuillage Apple) — dit dans la définition de la carte.
+
+## 6. Lectures à revoir (journal)
+
+- **2026-09-12 — canal « invitation »** = partage de **carnet** (code membre ou invité en lecture), jamais
+  de recette (le lien `/r/…` ne crée pas de personne : 6 copies au total). Depuis juin, jugeables à J+7 :
+  App Store 30 personnes / 12 activées / 12,1 recettes ; invitation 12 / 0 activée / 0,3 recette mais
+  5 encore actives à 28 j. Lecture : l'invitation est un levier de **rétention du carnet** (conjoint
+  consommateur), pas d'acquisition ; le critère d'activation « 3 recettes + retour » est aveugle pour
+  ces profils → à relire avec la consultation (`recipe_views_daily`) vers mi-octobre. Pistes : proposer
+  l'invitation après la 3ᵉ recette ; faire de la page publique `/r/…` une boucle vers l'App Store.
