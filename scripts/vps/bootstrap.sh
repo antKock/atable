@@ -33,7 +33,8 @@
 #   6. Docker : rotation des logs (daemon.json), règle DOCKER-USER persistante qui
 #      rejette le port 3000 publié par Docker depuis l'extérieur (Docker contourne ufw),
 #      purge hebdomadaire des images
-#   7. crontab du reset démo (03:00 UTC via `date -u`, secret dans /etc/mijote/cron.env, root 600)
+#   7. crontabs demo-reset (03:00 UTC) et app-store-sync (10:00 UTC) via `date -u`,
+#      secret dans /etc/mijote/cron.env (root 600)
 #   8. installation de Dokploy (installe Docker + Traefik + sa base + son Redis), installeur
 #      épinglé par sha256
 
@@ -240,14 +241,14 @@ cat > /etc/cron.d/mijote-docker-prune <<'EOF'
 EOF
 chmod 644 /etc/cron.d/mijote-docker-prune
 
-echo "==> 7/8 Cron demo-reset"
+echo "==> 7/8 Crons demo-reset + app-store-sync"
 # Secret lu depuis un fichier root-only, jamais dans la crontab ni dans ce script.
 install -d -m 700 /etc/mijote
 if [ ! -f /etc/mijote/cron.env ]; then
   cat > /etc/mijote/cron.env <<'EOF'
 # Posé par scripts/vps/bootstrap.sh (repo atable). Fichier root:root 600.
 # CRON_SECRET : même valeur que la variable CRON_SECRET de l'application (Dokploy),
-# celle que /api/cron/demo-reset attend en `Authorization: Bearer`.
+# celle que /api/cron/demo-reset et /api/cron/app-store-sync attendent en `Authorization: Bearer`.
 CRON_SECRET=
 EOF
   chmod 600 /etc/mijote/cron.env
@@ -268,6 +269,16 @@ if [ -n "$APP_HOST" ]; then
 EOF
   chmod 644 /etc/cron.d/mijote-demo-reset
   echo "    installé : https://${APP_HOST}/api/cron/demo-reset à 03:00 UTC"
+  # Stats App Store (backlog #19) : Apple publie les données de J-1 dans la matinée,
+  # d'où 10:00 UTC (moniteur Sentry Crons `app-store-sync`, marge 30 min). Même secret.
+  # Sans clé App Store Connect dans l'app (staging), la route répond 503 : inoffensif.
+  cat > /etc/cron.d/mijote-app-store-sync <<EOF
+# Posé par scripts/vps/bootstrap.sh (repo atable). Rapatriement quotidien des stats
+# App Store à 10:00 UTC (moniteur Sentry Crons \`app-store-sync\`). Secret : /etc/mijote/cron.env.
+0 * * * * root [ "\$(date -u +\%H)" = "10" ] || exit 0; set -a; . /etc/mijote/cron.env; set +a; curl -fsS -m 600 -H "Authorization: Bearer \$CRON_SECRET" "https://${APP_HOST}/api/cron/app-store-sync" >/dev/null
+EOF
+  chmod 644 /etc/cron.d/mijote-app-store-sync
+  echo "    installé : https://${APP_HOST}/api/cron/app-store-sync à 10:00 UTC"
 else
   echo "    APP_HOST non fourni : crontab demo-reset non installée (relancer avec APP_HOST=<hôte>)"
 fi

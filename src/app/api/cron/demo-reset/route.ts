@@ -1,25 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { timingSafeEqual } from 'node:crypto'
 import * as Sentry from '@sentry/nextjs'
 import { createServerClient } from '@/lib/supabase/server'
+import { isCronAuthorized } from '@/lib/cron-auth'
 
 const DEFAULT_DEMO_SEED_MIN = 30
-
-/**
- * Vrai si `Authorization: Bearer <CRON_SECRET>` correspond. Sans CRON_SECRET
- * posé (ou vide), TOUJOURS faux — jamais de comparaison à `Bearer undefined`,
- * qui ouvrirait le cron à quiconque envoie littéralement cette chaîne.
- * Comparaison en temps constant (buffers de même longueur seulement :
- * `timingSafeEqual` jette sinon, et la longueur du secret n'est pas un secret).
- */
-function isAuthorized(authHeader: string | null): boolean {
-  const secret = process.env.CRON_SECRET
-  if (!secret) return false
-  const expected = Buffer.from(`Bearer ${secret}`)
-  const received = Buffer.from(authHeader ?? '')
-  if (expected.length !== received.length) return false
-  return timingSafeEqual(expected, received)
-}
 
 /**
  * Seuil d'alerte « démo amputée » : DEMO_SEED_MIN (30 en prod). Une valeur
@@ -53,7 +37,7 @@ type ResetSummary = {
 // scheduled job declared in vercel.json actually runs instead of 405-ing.
 // Même contrat pour la crontab du VPS : `curl -H "Authorization: Bearer $CRON_SECRET"`.
 export async function GET(request: NextRequest) {
-  if (!isAuthorized(request.headers.get('authorization'))) {
+  if (!isCronAuthorized(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
