@@ -42,6 +42,14 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
     restauration : `scripts/restore-demo-from-staging.mjs` (FR), `scripts/demo-en/demo-en.mjs`
     (EN).
 
+## Chantier en cours — revue d'architecture
+
+**`docs/reviews/2026-09-12-revue-architecture.md`** : actions recommandées par lot (bugs,
+typage de la base, socle des routes, client, ménage, sagas d'onboarding, tests IA) avec un
+**protocole de vérification obligatoire** avant tout push sur `staging` (tsc, lint, vitest,
+E2E, contrôles réels sur staging, Sentry). Anthony ne relit pas : il donne seulement le go
+de promotion en prod. Cocher les cases du fichier au fil des lots.
+
 ## Repères rapides
 
 - **Hébergement depuis le 2026-09-06 : VPS OVH + Dokploy** (`docs/infra/migration-vps-ovh.md`).
