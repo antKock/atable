@@ -19,6 +19,7 @@ import {
   Tooltip,
   ReferenceLine,
 } from "recharts";
+import { useState } from "react";
 import { PALETTE as P, FONT, MONO, axisProps, gridProps, cohortColor } from "@/lib/admin/palette";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -204,14 +205,70 @@ export function Dist({ data, height = 170, color = P.olive }: { data: { label: s
   );
 }
 
-/** Mini-barres (14 jours) pour le bloc « 7 derniers jours » : les 7 derniers en olive, les 7 d'avant en gris. */
-export function MiniBars({ values, height = 34 }: { values: number[]; height?: number }) {
+/** Mini-barres (14 jours) pour le bloc « 7 derniers jours » : les 7 derniers en
+ *  olive, les 7 d'avant en gris. Info-bulle React immédiate (pas de `title`
+ *  natif, lent et nu) : jour en toutes lettres, valeur, et à quelle semaine
+ *  appartient la barre. */
+export function MiniBars({ values, days, label, unit, height = 34 }: { values: number[]; days: string[]; label: string; unit?: string; height?: number }) {
+  const [hover, setHover] = useState<number | null>(null);
   const max = Math.max(1, ...values);
+  const n = values.length;
+  const fmtDay = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
   return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height }} aria-hidden="true">
-      {values.map((v, i) => (
-        <div key={i} style={{ flex: 1, height: `${Math.max(6, (v / max) * 100)}%`, background: i >= values.length - 7 ? P.olive : P.grid, borderRadius: 2, opacity: v === 0 ? 0.45 : 1 }} title={String(v)} />
-      ))}
+    <div style={{ position: "relative" }} onMouseLeave={() => setHover(null)}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height }} aria-hidden="true">
+        {values.map((v, i) => {
+          const recent = i >= n - 7;
+          const active = hover === i;
+          return (
+            <div
+              key={i}
+              onMouseEnter={() => setHover(i)}
+              style={{ flex: 1, height: "100%", display: "flex", alignItems: "flex-end", cursor: "default" }}
+            >
+              <div
+                style={{
+                  width: "100%",
+                  height: `${Math.max(6, (v / max) * 100)}%`,
+                  background: active ? P.ochre : recent ? P.olive : P.grid,
+                  borderRadius: 2,
+                  opacity: v === 0 && !active ? 0.45 : 1,
+                  transition: "background 80ms",
+                }}
+              />
+            </div>
+          );
+        })}
+      </div>
+      {hover != null && days[hover] && (
+        <div
+          role="tooltip"
+          style={{
+            position: "absolute",
+            bottom: height + 8,
+            left: `${((hover + 0.5) / n) * 100}%`,
+            transform: "translateX(-50%)",
+            zIndex: 6,
+            pointerEvents: "none",
+            background: "rgba(251,248,241,0.98)",
+            border: `1px solid ${P.border}`,
+            borderRadius: 10,
+            padding: "8px 11px",
+            boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: P.muted }}>{fmtDay(days[hover])}</div>
+          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 3 }}>
+            <span style={{ fontFamily: MONO, fontSize: 18, fontWeight: 500, color: P.ink }}>
+              {String(values[hover]).replace(".", ",")}
+              {unit ? ` ${unit}` : ""}
+            </span>
+            <span style={{ fontFamily: FONT, fontSize: 12, color: P.muted }}>{label.charAt(0).toLowerCase() + label.slice(1)}</span>
+          </div>
+          <div style={{ fontFamily: FONT, fontSize: 10.5, color: hover >= n - 7 ? P.oliveDeep : P.faint, marginTop: 2 }}>{hover >= n - 7 ? "7 derniers jours" : "semaine précédente"}</div>
+        </div>
+      )}
     </div>
   );
 }

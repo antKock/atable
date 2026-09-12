@@ -1,8 +1,10 @@
 # Migration base et photos — Supabase → VPS OVH (Postgres + PostgREST + Object Storage)
 
-> **Statut : staging basculé le 2026-09-12** (voir « Journal »). Prod : pas encore, bascule
-> sur décision d'Anthony (quelques minutes de gel des écritures). Suite du plan
-> `docs/infra/migration-vps-ovh.md` (phase 2). En cas d'écart doc ↔ réel, **le code fait foi**.
+> **Statut : staging ET prod basculés le 2026-09-12** (voir « Journal »). L'app ne parle
+> plus à Supabase ; les projets Supabase restent intacts une semaine (rollback complet
+> possible, cf. « Rollback »). Suite du plan `docs/infra/migration-vps-ovh.md` (phase 2).
+> En cas d'écart doc ↔ réel, **le code fait foi**. **Les migrations SQL ne passent plus par
+> `supabase db push --linked`** : voir « Migrations SQL après la bascule ».
 
 ## Pourquoi
 
@@ -115,15 +117,32 @@ Fait pour staging le 2026-09-12 ; à rejouer pour prod (`<env>` = `prod`, ref Su
 
 ## Migrations SQL après la bascule
 
-La base n'est pas exposée hors du VPS. Depuis le poste :
+La base n'est pas exposée hors du VPS, et **`supabase db push --linked` n'atteint plus que
+les projets Supabase, que l'app n'utilise plus** (piège vécu le soir même : la 044 poussée
+sur Supabase prod par une session parallèle → `Could not find the function
+analytics_v3_daily` sur `/admin/stats` jusqu'à son application sur le VPS). Procédure,
+pour chaque environnement (`mijote-staging-db-iglfwv`, `mijote-prod-db-s9yapl`) :
 ```sh
-ssh mijote-vps "sudo docker exec -i \$(sudo docker ps -q -f name=mijote-<env>-db) psql -U mijote -d mijote" < supabase/migrations/044_xxx.sql
+scp supabase/migrations/045_xxx.sql mijote-vps:/tmp/m.sql
+ssh mijote-vps 'C=$(sudo docker ps -q -f name=mijote-prod-db); \
+  sudo docker exec -i $C psql -v ON_ERROR_STOP=1 -U mijote -d mijote < /tmp/m.sql && \
+  sudo docker exec -i $C psql -U mijote -d mijote -c "INSERT INTO supabase_migrations.schema_migrations (version, name) VALUES ('"'"'045'"'"','"'"'xxx'"'"') ON CONFLICT DO NOTHING; NOTIFY pgrst, '"'"'reload schema'"'"';"; rm /tmp/m.sql'
 ```
-puis insérer la ligne dans `supabase_migrations.schema_migrations` (version, name) pour
-garder l'historique cohérent — ou installer le CLI Supabase sur le VPS et utiliser
-`supabase db push --db-url postgres://mijote:<pw>@localhost:<port>/mijote` (port publié le
-temps de l'opération via `externalPort`). Toujours **migration avant code** pour les ajouts,
-**après** pour les suppressions (règle inchangée).
+Le `NOTIFY pgrst` recharge le cache de schéma de PostgREST (il l'écoute sur ce canal ; les
+DDL sont aussi captés par son écouteur d'événements, la notification est une ceinture).
+Vérifier `select count(*) from supabase_migrations.schema_migrations` = nombre de fichiers
+du repo. Toujours **migration avant code** pour les ajouts, **après** pour les suppressions.
+À faire : un script `scripts/vps/migrate.mjs` qui enchaîne ces étapes pour les deux bases.
+
+## Rollback complet (sans perte) vers Supabase
+
+Tant que les projets Supabase existent : `pg_dump --data-only` depuis le conteneur VPS,
+TRUNCATE + rechargement dans Supabase par le pooler avec un rôle d'écriture créé par l'API
+de management, copie inverse des objets S3 ajoutés depuis la bascule vers Supabase Storage
+(script à écrire sur le modèle de `migrate-photos-to-s3.mjs`), réécriture inverse des URLs,
+puis remettre `NEXT_PUBLIC_SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` et retirer
+`DATABASE_REST_*` / `S3_*` dans Dokploy. ~30 min. Le rollback « rapide » (variables seules,
+5 min) perd les écritures faites sur le VPS entre-temps.
 
 ## Restaurer une sauvegarde
 
@@ -160,3 +179,17 @@ gunzip -c dump.sql.gz | sudo docker exec -i <conteneur db> pg_restore -U mijote 
   déjà connues) ; **51 E2E verts** en local sur le repli Supabase. Le projet Supabase staging
   n'est plus utilisé par l'app (le dev local avec `.env.staging.local` pointe encore dessus :
   la base VPS n'est pas joignable hors du VPS).
+- **2026-09-12, 22 h 30** — **Prod basculée** (go d'Anthony). Postgres `mijote-prod-db-s9yapl`
+  (id `O_XtdCE9iSYTwEg7-dkgv`), PostgREST `mijote-prod-postgrest-habab7` (id
+  `W9UGUFsVqeIvlxi698k7p`), pooler prod = `aws-0-eu-west-1` (pas `aws-1` comme staging ;
+  lu via `GET /v1/projects/<ref>/config/database/pooler`). Dump : 686 recettes, 73 foyers,
+  187 owners, 48 fonctions. **860 photos (279 Mo)** copiées vers `mijote-photos` (le listing
+  Supabase free tier renvoie « Too many connections » → retry avec backoff ajouté au script).
+  Sauvegarde prod planifiée (`g19YZo8554fuW1Mcu8GEB`) et testée (577 Ko). Dump final à
+  20:33:42 UTC, variables posées et redéploiement à 20:34:02, aucune écriture sur Supabase
+  après T0 (vérifié table par table). **Incident de 2 min** : une session parallèle avait
+  mergé la PR #125 (migration 044) et appliqué la 044 sur Supabase prod après le dump →
+  `/admin/stats` en erreur sur le VPS (Sentry NEXTJS-M/4, un seul hit à 20:34:30) ; 044
+  appliquée à la main sur les deux bases VPS + ligne d'historique + `NOTIFY pgrst`.
+  Vérifié : landing, session démo, recettes (31 images S3), fiche, home, library, EN,
+  RPC `analytics_v3_daily`. Reste : Redis → VPS, puis J+7 suppression Supabase.

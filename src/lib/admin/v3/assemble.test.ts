@@ -150,6 +150,8 @@ describe("bloc 0 et funnel hebdo", () => {
     expect(by.active).toMatchObject({ value: 3, ref: 2, trend: "up" });
     expect(by.downloads.value).toBe(0); // 01/09 et 02/09 sont hors des 7 derniers jours…
     expect(by.downloads.bars).toHaveLength(14);
+    expect(by.downloads.barDays[0]).toBe("2026-08-29");
+    expect(by.downloads.barDays[13]).toBe("2026-09-11");
     expect(by.downloads.bars.reduce((a, b) => a + b, 0)).toBe(9); // …mais dans les 14 barres
     expect(by.new.value).toBe(0); // new_people de la série quotidienne (0 ici)
   });
