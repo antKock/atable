@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { ChevronLeft, Users, Eye } from 'lucide-react'
+import { Users, Eye } from 'lucide-react'
 import { getT } from '@/lib/i18n/server'
+import BackButton from '@/components/ui/BackButton'
 import CodeDisplay from './CodeDisplay'
 import InviteLinkDisplay from './InviteLinkDisplay'
 
@@ -17,13 +17,7 @@ export default async function InviteScreen({ householdId, joinCode, guestJoinCod
   const t = await getT()
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
-      <Link
-        href={`/household/${householdId}`}
-        aria-label={t.a11y.backButton}
-        className="mb-2 -ml-2 flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <ChevronLeft size={22} strokeWidth={2} aria-hidden="true" />
-      </Link>
+      <BackButton href={`/household/${householdId}`} />
 
       <h1 className="mb-6 text-2xl font-bold text-foreground">{t.household.invite.title}</h1>
 

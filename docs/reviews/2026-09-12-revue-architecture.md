@@ -137,15 +137,17 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
 - [x] `RecipeForm.tsx` (676 l.) : extraire `useRecipeSave()` (`runSave`, `:327-449`, le
   code le plus fragile : upload différé, repli régénération, dismiss share-extension) et
   `recipe-form-state.ts` (reducer `:75-168`). Tests unitaires sur le hook.
-- [ ] `TagInput.tsx:40-45` : `useSWR("/api/tags")` au lieu du fetch brut qui avale les
+- [x] `TagInput.tsx:40-45` : `useSWR("/api/tags")` au lieu du fetch brut qui avale les
   erreurs ; extraire `TagListbox` (IIFE à index mutable `:234-352`).
-- [ ] `ScreenshotImporter.tsx` : sortir la plomberie Capacitor (`:25-60`, `:145-195`) vers
+- [x] `ScreenshotImporter.tsx` : sortir la plomberie Capacitor (`:25-60`, `:145-195`) vers
   `src/lib/native/camera.ts` ; `useVoiceRecorder.ts:132,198` doit utiliser
   `getPlatform()` de `lib/native.ts`.
-- [ ] `RecipeView`, `RecipeCard`, `RecipeCarousel`, `MetadataGrid` : `"use client"` seulement
+- [x] `RecipeView`, `RecipeCard`, `RecipeCarousel`, `MetadataGrid` : `"use client"` seulement
   à cause de `useT()`. Passer `t` en prop (ou `getT()` dans le parent) et les rendre
-  serveur ; priorité à `RecipeView` (page publique `/r/[token]`).
-- [ ] Unifier les 3 boutons retour (`BackCircleButton`, `InAppBackButton`, SVG inline
+  serveur ; priorité à `RecipeView` (page publique `/r/[token]`). *Fait pour `RecipeView`
+  + `MetadataGrid` (prop `t`). `RecipeCard` / `RecipeCarousel` restent clients : rendus
+  dans `HomeContent` (SWR, client), un `t` en prop n'y changerait rien.*
+- [x] Unifier les 3 boutons retour (`BackCircleButton`, `InAppBackButton`, SVG inline
   `RecoverFlow.tsx:115-137`, header `ArrowLeft` de `NewRecipeFlow.tsx:88-99` et
   `recipes/[id]/edit/page.tsx:41-51`).
 

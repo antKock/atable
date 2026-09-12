@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Mail } from 'lucide-react'
 import { useT } from '@/lib/i18n/client'
+import BackButton from '@/components/ui/BackButton'
 import { dropSwrCache } from '@/lib/swr'
 import RecoveryCodeInput from './RecoveryCodeInput'
 
@@ -113,27 +114,10 @@ export default function RecoverFlow({ onBack }: Props) {
   }
 
   const backButton = (
-    <button
-      type="button"
+    <BackButton
+      variant="fixed"
       onClick={step === 'sent' ? () => { setStep('email'); setError(null); setCode(''); submitted.current = false } : onBack}
-      aria-label={t.a11y.backButton}
-      className="fixed left-2 z-10 flex h-10 w-10 items-center justify-center text-foreground"
-      style={{ top: 'calc(env(safe-area-inset-top) + 13px)' }}
-    >
-      <svg
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden="true"
-      >
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-    </button>
+    />
   )
 
   if (step === 'sent') {

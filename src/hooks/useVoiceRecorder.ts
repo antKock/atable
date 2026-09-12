@@ -2,7 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect, useSyncExternalStore } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { Capacitor } from "@capacitor/core";
+import { getPlatform } from "@/lib/native";
 import { haptics } from "@/lib/haptics";
 
 const MAX_DURATION_S = 180; // 3 minutes
@@ -129,7 +129,7 @@ export function useVoiceRecorder(): VoiceRecorderState {
         Sentry.captureException(
           new Error("Voice recording produced no blob (onstop never fired)"),
           {
-            tags: { feature: "voice-import", platform: Capacitor.getPlatform() },
+            tags: { feature: "voice-import", platform: getPlatform() },
             extra: { mimeType: mimeTypeRef.current },
           },
         );
@@ -195,7 +195,7 @@ export function useVoiceRecorder(): VoiceRecorderState {
       clearWatchdog();
       const cause = (e as unknown as { error?: DOMException }).error;
       Sentry.captureException(cause ?? new Error("MediaRecorder error"), {
-        tags: { feature: "voice-import", platform: Capacitor.getPlatform() },
+        tags: { feature: "voice-import", platform: getPlatform() },
         extra: { mimeType: mimeTypeRef.current },
       });
       setError("recorder-error");

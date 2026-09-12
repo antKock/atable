@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
-import { ChevronLeft, ChevronRight, KeyRound, Plus } from 'lucide-react'
+import { ChevronRight, KeyRound, Plus } from 'lucide-react'
 import { useT } from '@/lib/i18n/client'
+import BackButton from '@/components/ui/BackButton'
 import CreateHouseholdForm from '@/components/auth/CreateHouseholdForm'
 import CodeEntryForm from '@/components/auth/CodeEntryForm'
 
@@ -28,13 +28,7 @@ export default function SwitchHouseholdScreen() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
-      <Link
-        href="/household"
-        aria-label={t.a11y.backButton}
-        className="mb-2 -ml-2 flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <ChevronLeft size={22} strokeWidth={2} aria-hidden="true" />
-      </Link>
+      <BackButton href="/household" />
 
       <h1
         className="display-xl mb-3 text-foreground"

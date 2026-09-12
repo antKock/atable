@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { useT } from "@/lib/i18n/client";
 import ImportSelector from "./ImportSelector";
 import RecipeForm, { type MemberFoyer } from "./RecipeForm";
@@ -87,13 +87,7 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
       {/* Header — hidden in the Share Extension (the native sheet has its own). */}
       {!isExt && (
         <div className="mb-8 flex items-center gap-3">
-          <button
-            onClick={handleBack}
-            aria-label={t.a11y.backButton}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            <ArrowLeft size={20} strokeWidth={1.75} />
-          </button>
+          <BackButton variant="header" onClick={handleBack} />
           <h1 className="display"
             style={{
               fontStyle: "italic",

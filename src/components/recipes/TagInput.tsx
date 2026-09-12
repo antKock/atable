@@ -1,9 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import useSWR from "swr";
 import { useT } from "@/lib/i18n/client";
-import { tagCategoryLabel, tagLabel } from "@/lib/i18n/labels";
+import { tagLabel } from "@/lib/i18n/labels";
+import { swrFetcher } from "@/lib/swr";
+import { apiRequest } from "@/lib/api-client";
 import Chip from "./Chip";
+import TagListbox from "./TagListbox";
 import type { Tag } from "@/types/recipe";
 
 const CATEGORY_ORDER = [
@@ -26,23 +30,23 @@ interface TagInputProps {
 
 export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProps) {
   const t = useT();
-  const [allTags, setAllTags] = useState<Tag[]>([]);
+  // Catalogue des tags via SWR (même cache persistant que les deux listes) :
+  // une erreur réseau remonte dans `error` au lieu d'être avalée, et un tag
+  // créé est ajouté au cache sans refetch.
+  const { data: tagsData, error: tagsError, mutate: mutateTags } = useSWR<{ tags: Tag[] }>(
+    "/api/tags",
+    swrFetcher,
+  );
+  const allTags = tagsData?.tags ?? [];
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLUListElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // Fetch all tags on mount
-  useEffect(() => {
-    fetch("/api/tags")
-      .then((r) => r.json())
-      .then((data) => setAllTags(data.tags ?? []))
-      .catch(() => {});
-  }, []);
 
   // Filter available tags
   const selectedIds = new Set(selectedTags.map((t) => t.id));
@@ -118,21 +122,27 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
     if (isCreating || !query.trim()) return;
     setIsCreating(true);
     try {
-      const res = await fetch("/api/tags", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: query.trim() }),
+      const tag = await apiRequest<Tag>("/api/tags", {
+        body: { name: query.trim() },
+        fallbackError: t.tags.createError,
       });
-      if (res.ok) {
-        const tag = (await res.json().catch(() => null)) as Tag | null;
-        if (!tag) return;
-        setAllTags((prev) => [...prev, tag]);
-        selectTag(tag);
-      }
+      if (!tag?.id) throw new Error(t.tags.createError);
+      // Le serveur renvoie le tag existant (200) ou le nouveau (201) : dans
+      // les deux cas on l'ajoute au cache s'il n'y est pas déjà.
+      void mutateTags(
+        (current) =>
+          current && !current.tags.some((x) => x.id === tag.id)
+            ? { tags: [...current.tags, tag] }
+            : current,
+        { revalidate: false },
+      );
+      selectTag(tag);
+    } catch (err) {
+      setCreateError(err instanceof Error ? err.message : t.tags.createError);
     } finally {
       setIsCreating(false);
     }
-  }, [query, isCreating, selectTag]);
+  }, [query, isCreating, selectTag, mutateTags, t]);
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (!isOpen) {
@@ -224,132 +234,24 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
         className="h-12 w-full rounded-[10px] border border-border bg-surface px-3 text-base text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
       />
 
+      {/* Erreur de chargement du catalogue : on peut encore créer un tag. */}
+      {(tagsError || createError) && (
+        <p className="mt-1.5 text-xs text-destructive" role="alert">
+          {createError ?? t.tags.loadError}
+        </p>
+      )}
+
       {/* Dropdown */}
-      {isOpen && (flatItems.length > 0) && (
-        <ul
+      {isOpen && flatItems.length > 0 && (
+        <TagListbox
           ref={listboxRef}
-          id="tag-listbox"
-          role="listbox"
-          className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md border border-border bg-background shadow-lg"
-        >
-          {(() => {
-            let itemIndex = 0;
-            return (
-              <>
-                {sortedGroups.map(([category, tags]) => (
-                  <li
-                    key={category}
-                    role="group"
-                    aria-label={tagCategoryLabel(t, category)}
-                  >
-                    <div
-                      className="display px-3 pt-2 pb-1"
-                      style={{
-                        fontStyle: "italic",
-                        fontWeight: 500,
-                        fontSize: 12,
-                        color: "var(--accent)",
-                        letterSpacing: "-0.005em",
-                      }}
-                    >
-                      {tagCategoryLabel(t, category)}
-                    </div>
-                    <ul role="group">
-                      {tags.map((tag) => {
-                        const idx = itemIndex++;
-                        const isActive = idx === activeIndex;
-                        return (
-                          <li
-                            key={tag.id}
-                            id={`tag-option-${idx}`}
-                            data-index={idx}
-                            role="option"
-                            aria-selected={false}
-                            className={`flex cursor-pointer items-center gap-2 px-3 py-2 text-sm ${
-                              isActive
-                                ? "font-medium text-foreground"
-                                : "text-foreground hover:bg-secondary"
-                            }`}
-                            style={{
-                              background: isActive
-                                ? "var(--chip-bg-selected)"
-                                : undefined,
-                            }}
-                            onMouseDown={(e) => {
-                              e.preventDefault();
-                              selectTag(tag);
-                            }}
-                            onMouseEnter={() => setActiveIndex(idx)}
-                          >
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="var(--accent)"
-                              strokeWidth={2.5}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              aria-hidden="true"
-                              style={{
-                                visibility: isActive ? "visible" : "hidden",
-                              }}
-                            >
-                              <path d="M20 6 9 17l-5-5" />
-                            </svg>
-                            {tagLabel(t, tag.name)}
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </li>
-                ))}
-                {showCreateOption && (
-                  <li
-                    id={`tag-option-${itemIndex}`}
-                    data-index={itemIndex}
-                    role="option"
-                    aria-selected={false}
-                    className={`flex cursor-pointer items-center gap-2 border-t border-border px-3 py-2 text-sm ${
-                      itemIndex === activeIndex
-                        ? "font-medium text-foreground"
-                        : "text-foreground hover:bg-secondary"
-                    }`}
-                    style={{
-                      background:
-                        itemIndex === activeIndex
-                          ? "var(--chip-bg-selected)"
-                          : undefined,
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      createTag();
-                    }}
-                    onMouseEnter={() => setActiveIndex(itemIndex)}
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="var(--accent)"
-                      strokeWidth={2.5}
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      aria-hidden="true"
-                      style={{
-                        visibility: itemIndex === activeIndex ? "visible" : "hidden",
-                      }}
-                    >
-                      <path d="M20 6 9 17l-5-5" />
-                    </svg>
-                    {t.tags.create(query.trim())}
-                  </li>
-                )}
-              </>
-            );
-          })()}
-        </ul>
+          groups={sortedGroups}
+          activeIndex={activeIndex}
+          createLabel={showCreateOption ? t.tags.create(query.trim()) : null}
+          onSelect={selectTag}
+          onCreate={createTag}
+          onHover={setActiveIndex}
+        />
       )}
     </div>
   );

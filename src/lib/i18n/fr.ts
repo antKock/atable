@@ -142,6 +142,8 @@ export const t = {
   tags: {
     addPlaceholder: "Ajouter un tag…",
     create: (name: string) => `Créer ‘${name}’`,
+    loadError: "Impossible de charger les tags",
+    createError: "Impossible de créer le tag",
   },
   // Tags prédéfinis (migration 004) — clés = noms canoniques stockés en base
   // (français, jamais traduits), valeurs = libellé affiché. Les tags libres

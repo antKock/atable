@@ -49,7 +49,7 @@ describe("rendu EN sous LocaleProvider", () => {
 
   it("MetadataGrid : libellés anglais, valeur stockée « facile » → « Easy »", () => {
     const { container } = render(
-      <MetadataGrid prepTime={null} cookTime="Aucune" cost="€" complexity="facile" isLoading={false} />,
+      <MetadataGrid t={en} prepTime={null} cookTime="Aucune" cost="€" complexity="facile" isLoading={false} />,
       { wrapper },
     );
     expect(container.textContent).not.toMatch(FRENCH_MARKERS);

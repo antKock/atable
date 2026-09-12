@@ -1,9 +1,10 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { CheckCircle2, ChevronLeft } from 'lucide-react'
+import { CheckCircle2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useT } from '@/lib/i18n/client'
+import BackButton from '@/components/ui/BackButton'
 import { apiRequest } from '@/lib/api-client'
 import { hardNavigate } from '@/lib/navigate'
 import { dropSwrCache } from '@/lib/swr'
@@ -84,14 +85,7 @@ export default function MergeVerifyScreen({ email, onCancel }: Props) {
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
-      <button
-        type="button"
-        onClick={onCancel}
-        aria-label={t.a11y.backButton}
-        className="mb-2 -ml-2 flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <ChevronLeft size={22} strokeWidth={2} aria-hidden="true" />
-      </button>
+      <BackButton onClick={onCancel} />
 
       <div className="flex flex-col items-center text-center">
         <div className="mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent/15 text-accent">

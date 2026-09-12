@@ -147,6 +147,8 @@ export const en: Dictionary = {
   tags: {
     addPlaceholder: "Add a tag…",
     create: (name: string) => `Create ‘${name}’`,
+    loadError: "Could not load tags",
+    createError: "Could not create the tag",
   },
   // Predefined tags (migration 004) — keys = canonical DB names (French,
   // never translated), values = displayed label. User-created tags show as is.
