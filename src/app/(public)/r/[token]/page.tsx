@@ -34,7 +34,7 @@ async function getSharedRecipe(token: string) {
   if (!data) return null;
   return {
     recipe: mapDbRowToRecipe(data),
-    householdId: data.household_id as string | null,
+    householdId: data.household_id,
   };
 }
 

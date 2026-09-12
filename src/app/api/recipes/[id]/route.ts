@@ -9,6 +9,7 @@ import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/a
 import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 import { purgeRecipePhotos } from "@/lib/storage/photos";
+import type { TablesUpdate } from "@/lib/db/types";
 
 export const maxDuration = 60;
 
@@ -76,7 +77,7 @@ export const PUT = withOwnerAuth(
       (existing.ingredients ?? null) !== (result.data.ingredients ?? null) ||
       (existing.steps ?? null) !== (result.data.steps ?? null);
 
-    const updatePayload: Record<string, unknown> = {
+    const updatePayload: TablesUpdate<"recipes"> = {
       title: result.data.title,
       ingredients: result.data.ingredients ?? null,
       steps: result.data.steps ?? null,

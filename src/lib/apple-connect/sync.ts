@@ -10,6 +10,7 @@
 // Un échec de téléchargement lève (le moniteur Sentry passe en erreur) mais
 // les instances déjà intégrées restent acquises : le passage suivant reprend.
 
+import type { Json } from "@/lib/db/types";
 import type { DbClient } from "@/lib/supabase/server";
 import {
   type AppleConnectClient,
@@ -98,7 +99,7 @@ export async function syncAppStore(opts: {
         const { error } = await supabase.rpc("app_store_daily_replace", {
           p_day: day,
           p_report: kind,
-          p_rows: rows,
+          p_rows: rows as Json,
         });
         if (error) throw new Error(`app_store_daily_replace(${day}, ${kind}): ${error.message}`);
       }

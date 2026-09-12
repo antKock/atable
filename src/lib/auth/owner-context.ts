@@ -27,23 +27,6 @@ export type OwnerContext = {
   memberships: OwnerMembership[]
 }
 
-// Ligne PostgREST : device_sessions → owners (FK) → memberships (inverse)
-// → households (FK), en une seule requête service role.
-type SessionRow = {
-  owner_id: string | null
-  is_revoked: boolean
-  owners: {
-    name: string | null
-    alias: string | null
-    recovery_email: string | null
-    memberships: {
-      household_id: string
-      role: string
-      households: { is_demo: boolean } | null
-    }[]
-  } | null
-}
-
 /**
  * Résout une session vers son owner et ses appartenances. `null` si la session
  * est inconnue ou révoquée — l'appelant traite ce cas comme « déconnecté ».
@@ -68,7 +51,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     throw new Error(`owner-context: résolution de session impossible (${error.message})`)
   }
   if (!data) return null
-  const row = data as unknown as SessionRow
+  const row = data
   if (row.is_revoked || !row.owner_id || !row.owners) return null
 
   const memberships: OwnerMembership[] = (row.owners.memberships ?? []).map((m) => ({

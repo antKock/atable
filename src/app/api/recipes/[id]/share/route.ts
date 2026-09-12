@@ -39,7 +39,7 @@ export const POST = withOwnerAuth(
 
     const householdId = recipe.household_id;
 
-    let token = recipe.share_token as string | null;
+    let token = recipe.share_token;
 
     if (!token) {
       // Mint a token, retrying on the (extremely unlikely) unique-index collision.

@@ -179,10 +179,10 @@ export async function executeMergeOwners(
 
   const byId = new Map(
     (data ?? []).map((row) => [
-      row.id as string,
+      row.id,
       {
-        name: (row.name as string | null) ?? null,
-        memberships: ((row.memberships ?? []) as { household_id: string; role: string }[]).map(
+        name: row.name ?? null,
+        memberships: (row.memberships ?? []).map(
           (m) => ({
             householdId: m.household_id,
             role: m.role === "guest" ? ("guest" as const) : ("member" as const),
@@ -199,7 +199,9 @@ export async function executeMergeOwners(
   const { error: rpcError } = await supabase.rpc("merge_owners", {
     p_source_id: sourceOwnerId,
     p_target_id: targetOwnerId,
-    p_name: plan.name,
+    // `p_name text` accepte NULL (028) ; le générateur de types ne connaît pas
+    // la nullabilité des arguments de fonction.
+    p_name: plan.name as string,
     p_adopt_household_ids: plan.adoptHouseholdIds,
     p_upgrade_household_ids: plan.upgradeHouseholdIds,
   });

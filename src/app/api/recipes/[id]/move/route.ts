@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { TablesUpdate } from "@/lib/db/types";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
@@ -63,7 +64,7 @@ export const PATCH = withOwnerAuth(
     if (!recipe) {
       return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
     }
-    const sourceHid = recipe.household_id as string;
+    const sourceHid = recipe.household_id;
     const frozen = await assertNotDemoSeedMutation(owner, { household_id: sourceHid, is_seed: recipe.is_seed });
     if (frozen) return frozen;
 
@@ -90,7 +91,7 @@ export const PATCH = withOwnerAuth(
     // dernier déplacement est conservé, suffisant pour un compteur macro. Même
     // timestamp que updated_at : un déplacement EST la dernière modification.
     const movedAt = new Date().toISOString();
-    const update: Record<string, unknown> = {
+    const update: TablesUpdate<"recipes"> = {
       household_id: destHid,
       updated_at: movedAt,
       last_moved_at: movedAt,

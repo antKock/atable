@@ -5,6 +5,7 @@ import { withRetry } from "@/lib/retry";
 import { recordAiCost, textCostUsd, imageCostUsd } from "@/lib/ai-cost";
 import { createServerClient } from "@/lib/supabase/server";
 import { getPhotoStore } from "@/lib/storage/photos";
+import type { TablesUpdate } from "@/lib/db/types";
 import { EnrichmentResponseSchema } from "@/lib/schemas/enrichment";
 import type { EnrichmentResponse } from "@/lib/schemas/enrichment";
 import {
@@ -290,7 +291,7 @@ export async function enrichRecipe(
       }
 
       // 5. "Fill empty only" — only update null fields
-      const updates: Record<string, unknown> = {};
+      const updates: TablesUpdate<"recipes"> = {};
       if (!recipe.prep_time && result.prepTime) updates.prep_time = result.prepTime;
       if (!recipe.cook_time && result.cookTime) updates.cook_time = result.cookTime;
       if (!recipe.cost && result.cost) updates.cost = result.cost;

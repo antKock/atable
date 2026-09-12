@@ -64,7 +64,11 @@ de promotion en prod. Cocher les cases du fichier au fil des lots.
   Postgres + PostgREST Dokploy par env, photos sur OVH Object Storage S3, sauvegardes
   nocturnes S3. Migrations DB : `supabase/migrations/`, appliquées avec
   **`node scripts/vps/migrate.mjs staging|prod|all`** (`--dry-run` d'abord) — `supabase db
-  push --linked` ne sert plus. Scripts d'exploitation et `npm run dev` : ouvrir
+  push --linked` ne sert plus. **Après toute migration : `npm run db:types`** (régénère
+  `src/lib/db/types.ts` depuis la base Supabase locale du harnais E2E, qui doit porter la
+  migration — `npx supabase db reset --local` d'abord) et committer les types avec elle :
+  le client PostgREST est typé par ce schéma, `tsc` révèle les colonnes fantômes.
+  Scripts d'exploitation et `npm run dev` : ouvrir
   `scripts/vps/tunnel.sh` (PostgREST prod sur 127.0.0.1:3100, staging sur 3101).
   Redis aussi sur le VPS (Redis 7 + proxy REST `serverless-redis-http` par env, variables
   `UPSTASH_*` inchangées) ; sur le poste, `npm run dev` utilise le Redis local du harnais E2E

@@ -3,6 +3,7 @@
 // les pages Explorer / Santé (qui n'en lisent qu'une partie).
 
 import { createServerClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/db/types";
 import { getBilledOpenAiSpend } from "@/lib/admin/openai-costs";
 import type { AppStoreDailyRow } from "@/lib/admin/app-store";
 import type { Person } from "@/lib/admin/v3/people";
@@ -18,8 +19,13 @@ function demoSeedMin(): number {
 
 export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
   const supabase = createServerClient();
-  const rpc = <T>(fn: string, params: Record<string, unknown> = {}) =>
-    supabase.rpc(fn, params).then(({ data, error }) => {
+  // Nom de fonction contraint par le schéma généré ; les arguments sont
+  // validés par appel (`Database["public"]["Functions"][fn]["Args"]`).
+  const rpc = <T, Fn extends keyof Database["public"]["Functions"] = keyof Database["public"]["Functions"]>(
+    fn: Fn,
+    params?: Database["public"]["Functions"][Fn]["Args"],
+  ) =>
+    supabase.rpc(fn, params as never).then(({ data, error }) => {
       if (error) throw new Error(`${fn}: ${error.message}`);
       return (data ?? []) as T;
     });

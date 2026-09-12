@@ -75,15 +75,15 @@ Tous confirmés sur le code le 2026-09-12. Risque faible ou nul.
 
 ## Lot 1 — Typage de la base (aucune requête modifiée)
 
-- [ ] Générer les types du schéma (`supabase gen types typescript --db-url …` via le tunnel
+- [x] Générer les types du schéma (`supabase gen types typescript --db-url …` via le tunnel
   `scripts/vps/tunnel.sh`, ou à partir du dump ; script npm `db:types`) dans
   `src/lib/db/types.ts`, et paramétrer `PostgrestClient<Database>` dans
   `src/lib/supabase/server.ts:36-41` + `export type DbClient = PostgrestClient<Database>`.
-- [ ] Corriger tout ce que `tsc` révèle (colonnes fantômes, 27 casts `as string` /
+- [x] Corriger tout ce que `tsc` révèle (colonnes fantômes, 27 casts `as string` /
   `as unknown as` : `recipes/[id]/page.tsx:36,119,135`, `households/[id]/route.ts:154`,
   `owner-context.ts:71`…). Retirer les `eslint-disable no-explicit-any` de
   `src/lib/supabase/mappers.ts:4,15,46` en typant les entrées.
-- [ ] Documenter dans `CLAUDE.md` : « après une migration, régénérer les types ».
+- [x] Documenter dans `CLAUDE.md` : « après une migration, régénérer les types ».
 
 Valeur haute, risque très faible (compile-time). C'est le filet de tout le reste.
 

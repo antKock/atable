@@ -8,15 +8,8 @@ import { getLocale } from '@/lib/i18n/server'
 import { HOME_HIDDEN_FOYERS_COOKIE, parseHiddenFoyers } from '@/lib/home-foyers'
 import HouseholdMenuContent from '@/components/household/HouseholdMenuContent'
 
-// Ligne PostgREST : households + compteurs embarqués (une seule requête
-// groupée pour N foyers — pas de N+1). personnes = memberships du foyer.
-type HouseholdRow = {
-  id: string
-  name: string
-  memberships: { count: number }[]
-  recipes: { count: number }[]
-}
-
+// Requête households + compteurs embarqués (une seule requête groupée pour N
+// foyers — pas de N+1) ; la forme des lignes est inférée du schéma généré.
 export default async function HouseholdPage() {
   const owner = await getOwnerContext()
   const locale = await getLocale()
@@ -35,7 +28,7 @@ export default async function HouseholdPage() {
     throw new Error(`household hub: chargement des foyers impossible (${error.message})`)
   }
 
-  const rows = (data ?? []) as unknown as HouseholdRow[]
+  const rows = data ?? []
   const byId = new Map(rows.map((row) => [row.id, row]))
 
   // L'ordre des memberships (contexte owner) fait foi, pas celui de la requête.
