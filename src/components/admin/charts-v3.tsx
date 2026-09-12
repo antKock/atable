@@ -212,7 +212,7 @@ export function Dist({ data, height = 170, color = P.olive }: { data: { label: s
  *  semaine précédente est atténuée. Info-bulle React immédiate. */
 export function MiniBars({ values, days, refs, label, unit, height = 34 }: { values: number[]; days: string[]; refs: number[]; label: string; unit?: string; height?: number }) {
   const [hover, setHover] = useState<number | null>(null);
-  const max = Math.max(1, ...values, ...refs);
+  const max = Math.max(1, ...values);
   const n = values.length;
   const fmtDay = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" });
   const weekday = (iso: string) => new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", timeZone: "UTC" });
@@ -229,9 +229,12 @@ export function MiniBars({ values, days, refs, label, unit, height = 34 }: { val
           const st = status(i);
           const active = hover === i;
           return (
-            <div key={i} onMouseEnter={() => setHover(i)} style={{ flex: 1, height: "100%", display: "flex", alignItems: "flex-end", cursor: "default", position: "relative" }}>
-              {/* repère : trait fin à la hauteur de la médiane du jour de semaine */}
-              {refs[i] > 0 && <div style={{ position: "absolute", left: 0, right: 0, bottom: `${(refs[i] / max) * 100}%`, height: 1, background: P.faint, opacity: 0.55 }} />}
+            <div
+              key={i}
+              onMouseEnter={() => setHover(i)}
+              onClick={() => setHover(i)}
+              style={{ flex: 1, height: "100%", display: "flex", alignItems: "flex-end", cursor: "default" }}
+            >
               <div
                 style={{
                   width: "100%",
@@ -251,19 +254,19 @@ export function MiniBars({ values, days, refs, label, unit, height = 34 }: { val
       {hover != null && days[hover] && (
         <div
           role="tooltip"
+          className="mini-tip"
+          onClick={() => setHover(null)}
           style={{
-            position: "absolute",
+            // Desktop : flottante au-dessus des barres ; mobile (CSS .mini-tip) :
+            // sous les barres, pleine largeur, texte qui replie.
             bottom: height + 8,
             left: `${((hover + 0.5) / n) * 100}%`,
             transform: anchor(hover),
-            zIndex: 6,
-            pointerEvents: "none",
             background: "rgba(251,248,241,0.98)",
             border: `1px solid ${P.border}`,
             borderRadius: 10,
             padding: "8px 11px",
             boxShadow: "0 8px 24px rgba(0,0,0,0.12)",
-            whiteSpace: "nowrap",
           }}
         >
           <div style={{ fontFamily: FONT, fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: P.muted }}>{fmtDay(days[hover])}</div>

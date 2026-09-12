@@ -294,10 +294,14 @@ export const t = {
   // Import
   import: {
     title: "Nouvelle recette",
-    subtitle: "Comment veux-tu ajouter ta recette ?",
+    // Spec #24 : la question en titre, verbe en premier sur chaque méthode,
+    // promesse en dessous ; `chip` = libellé court de la rangée « Ou plutôt ».
+    question: "D'où vient ta recette ?",
+    orRather: "Ou plutôt",
     screenshot: {
-      title: "Depuis une photo",
-      description: "Importe une capture d'écran ou photo de recette",
+      title: "Prendre en photo",
+      description: "Un livre, une capture d'écran, un carnet manuscrit.",
+      chip: "Photo",
       upload: "Choisir des images",
       uploadHint: "Plusieurs images possibles — JPG, PNG — max 10 Mo",
       sourceTitle: "Ajouter une image",
@@ -309,8 +313,9 @@ export const t = {
         `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
     },
     voice: {
-      title: "Dictée vocale",
-      description: "Dicte ta recette à voix haute",
+      title: "Dicter",
+      description: "Raconte-la comme à un ami : ingrédients, quantités, étapes.",
+      chip: "Dicter",
       record: "Appuie pour dicter",
       recording: "Enregistrement en cours…",
       processing: "Transcription en cours…",
@@ -322,13 +327,15 @@ export const t = {
       errorUnsupported: "Ton navigateur ne supporte pas l'enregistrement audio",
     },
     url: {
-      title: "Depuis un lien",
-      description: "Colle l'URL d'une recette en ligne ou d'un post Instagram",
+      title: "Coller un lien",
+      description: "Instagram, Marmiton, un blog… Mijote fait le tri.",
+      chip: "Lien",
       placeholder: "https://marmiton.org/… ou instagram.com/reel/…",
     },
     manual: {
-      title: "Saisie manuelle",
-      description: "Remplir le formulaire directement",
+      title: "Écrire moi-même",
+      description: "Le formulaire, à ton rythme.",
+      chip: "Écrire",
     },
     divider: "ou",
     error:

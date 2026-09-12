@@ -13,11 +13,11 @@ test("recette manuelle : créer → visible home/biblio → éditer le titre →
   const title = uniqueName("Gratin dauphinois");
   const editedTitle = `${title} (revu)`;
 
-  // Créer : nav « Ajouter » → carte « Saisie manuelle » → formulaire
+  // Créer : nav « Ajouter » → carte « Écrire moi-même » → formulaire
   await page.goto("/home");
   await page.getByRole("link", { name: "Ajouter", exact: true }).click();
   await page.waitForURL(/\/recipes\/new/);
-  await page.getByText("Saisie manuelle").click();
+  await page.getByText("Écrire moi-même").click();
   await page.locator("#title").fill(title);
   await page.locator("#ingredients").fill("1 kg de pommes de terre\n50 cl de crème");
   await page.locator("#steps").fill("Éplucher et trancher.\nEnfourner 1 h à 180°C.");

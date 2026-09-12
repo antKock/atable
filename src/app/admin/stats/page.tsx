@@ -33,7 +33,7 @@ export default async function DashboardPage() {
       <div className="page">
         {/* ============ 0 · 7 DERNIERS JOURS (données chaudes) ============ */}
         <div className="section" style={{ marginTop: 8 }}>
-          <SectionHead n="0" title="7 derniers jours" q={`Du ${shortDate(o.hotWindow.from)} au ${shortDate(o.hotWindow.to)} · repère = médiane des 3 semaines précédentes · barres : olive au-dessus, terracotta en dessous de la médiane du même jour de semaine sur 4 semaines`} />
+          <SectionHead n="0" title="7 derniers jours" q={`Du ${shortDate(o.hotWindow.from)} au ${shortDate(o.hotWindow.to)} · repère = médiane des 3 semaines précédentes · barres : olive au-dessus, terracotta en dessous de la médiane du même jour de semaine sur 4 semaines · toucher une barre pour le détail`} />
           <div className="hot">
             {o.hot.map((h) => (
               <div className="h" key={h.id}>
