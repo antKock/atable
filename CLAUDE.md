@@ -59,7 +59,8 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
   push --linked` ne sert plus. Scripts d'exploitation et `npm run dev` : ouvrir
   `scripts/vps/tunnel.sh` (PostgREST prod sur 127.0.0.1:3100, staging sur 3101).
   Redis aussi sur le VPS (Redis 7 + proxy REST `serverless-redis-http` par env, variables
-  `UPSTASH_*` inchangées). Hors OVH il ne reste que Resend, OpenAI, Apify, Sentry, GitHub.
+  `UPSTASH_*` inchangées) ; sur le poste, `npm run dev` utilise le Redis local du harnais E2E
+  (`npm run test:e2e:setup` d'abord). Hors OVH il ne reste que Resend, OpenAI, Apify, Sentry, GitHub.
 - Les gotchas connus (Dokploy/Traefik, Supabase, Capacitor) sont dans la note
   `Opérations & Pièges.md` du vault — la lire avant toute opération d'infra.
   App Store Connect : `scripts/apple-connect.mjs`

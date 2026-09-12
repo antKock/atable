@@ -213,8 +213,9 @@ gunzip -c dump.sql.gz | sudo docker exec -i <conteneur db> pg_restore -U mijote 
   staging puis prod (Redis 7 + serverless-redis-http par env, ids Dokploy staging
   `o6DKD0XPb2iw7g6hWQN08` / `oNrLnYRm0MH6_cvvs8GSa`, prod `W3RgydUtLMx3t0uv2Sb_A` /
   `6EJSLycyUb2i6cartyFEJ`), rate limit vérifié (429 au 6e essai de code), 5 clés
-  `revoked:*` reportées avec leur TTL. Upstash n'est plus utilisé par l'app ; le poste
-  (`.env.local`) y pointe encore pour `npm run dev` — à remplacer par le Redis local du
-  harnais E2E avant de fermer le compte Upstash. Reste : J+7 (≈ 2026-09-19) suppression
+  `revoked:*` reportées avec leur TTL. Upstash n'est plus utilisé par l'app ni par le poste :
+  `.env.local` et `.env.staging.local` pointent sur le Redis local du harnais E2E
+  (`127.0.0.1:8079`, jeton de `.env.test.local` ; `npm run test:e2e:setup` le démarre). Le
+  compte Upstash peut être fermé. Reste : J+7 (≈ 2026-09-19) suppression
   des projets Supabase + rôle `mijote_dump`, retrait de `@supabase/supabase-js` et du
   pilote Storage de repli, harnais E2E sur Postgres + PostgREST + MinIO.
