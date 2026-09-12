@@ -43,7 +43,7 @@ export default async function DashboardPage() {
                   {h.unit && <small>{h.unit}</small>}
                 </div>
                 <div className={"ref " + h.trend}>repère {String(h.ref).replace(".", ",")}</div>
-                <MiniBars values={h.bars} />
+                <MiniBars values={h.bars} days={h.barDays} label={h.label} unit={h.unit} />
                 {h.hint && <div className="hint">{h.hint}</div>}
               </div>
             ))}
