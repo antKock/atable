@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import {
@@ -47,6 +48,25 @@ function trackView(id: string, currentViewCount: number) {
     .then();
 }
 
+// Stats v3 (lot B, migration 043) : consultation datée par PERSONNE — l'usage
+// réel derrière la North Star. Hors démo (visiteurs anonymes, purgés) ; les
+// tests ne réinjectent pas de vue. Best-effort, hors chemin de réponse.
+function trackPersonView(owner: OwnerContext, householdId: string) {
+  if (roleForHousehold(owner, householdId) == null) return;
+  if (owner.memberships.some((m) => m.householdId === householdId && m.isDemo)) return;
+  try {
+    after(async () => {
+      try {
+        await createServerClient().rpc("track_recipe_view", { p_owner: owner.ownerId });
+      } catch {
+        // compteur best-effort
+      }
+    });
+  } catch {
+    // after() hors contexte requête
+  }
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const owner = await getOwnerContext();
@@ -80,6 +100,7 @@ export default async function RecipeDetailPage({ params }: Props) {
   const { recipe, householdId } = result;
 
   trackView(id, recipe.viewCount);
+  trackPersonView(owner, householdId);
 
   // Rôle du viewer sur LE foyer de la recette (multi-foyer, Lot 4) : la pill
   // d'actions (partager/éditer/supprimer/déplacer) n'apparaît que pour un

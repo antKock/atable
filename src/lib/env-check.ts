@@ -128,6 +128,15 @@ const RULES: EnvRule[] = [
   { name: "APPLE_CONNECT_ISSUER_ID", required: false, shape: uuid, expected: "uuid" },
   { name: "APPLE_CONNECT_APP_ID", required: false, shape: positiveInt, expected: "id numérique de l'app" },
 
+  // Digest hebdo du dashboard (stats v3) : sans elle la route répond 503.
+  {
+    name: "DIGEST_TO",
+    required: false,
+    shape: z.email(),
+    expected: "adresse e-mail",
+    missingInProduction: "pas de digest hebdo du dashboard (cron weekly-digest en 503)",
+  },
+
   // Fonctionnalités à interrupteur : absentes = éteintes, mais jamais malformées.
   { name: "ADMIN_HOUSEHOLD_IDS", required: false, shape: commaList(uuid), expected: "liste d'uuid séparés par des virgules" },
   { name: "DEMO_SEED_MIN", required: false, shape: positiveInt, expected: "entier > 0" },

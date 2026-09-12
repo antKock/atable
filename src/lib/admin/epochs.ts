@@ -1,8 +1,6 @@
 // Registre des « dates de naissance » des métriques du dashboard — la source
-// de vérité unique pour (1) clamper les fenêtres de calcul à la période
-// réellement mesurée, (2) poser les repères verticaux et zones « non mesuré »
-// sur les graphes, (3) calculer l'adoption sur la cohorte exposée à une
-// feature plutôt que sur le parc entier.
+// de vérité unique des limites de mesure affichées dans le panneau
+// « Définitions & limites » (stats v3) et des repères produit sur les graphes.
 //
 // Chaque date est celle de l'arrivée EN PROD de l'instrumentation ou de la
 // feature (vérifiée dans l'historique git / la base) — pas celle du code.
@@ -38,46 +36,3 @@ export const PRODUCT_EVENTS = {
   /** iOS 1.3 en ligne : fiche App Store refondue (titre « Livre de recettes », visuels, EN). */
   appStoreListingV2: "2026-09-06",
 } as const;
-
-export type MetricEpoch = keyof typeof METRIC_EPOCHS;
-
-const DAY_MS = 86_400_000;
-
-/** Nombre de jours couverts par la mesure : de l'époque à aujourd'hui inclus (≥ 1). */
-export function daysSinceEpoch(epoch: MetricEpoch, today: Date): number {
-  const start = new Date(METRIC_EPOCHS[epoch] + "T00:00:00Z");
-  return Math.max(1, Math.floor((today.getTime() - start.getTime()) / DAY_MS) + 1);
-}
-
-/**
- * Clampe une fenêtre demandée (en jours) à la période réellement mesurée.
- * `clamped` indique que la fenêtre affichée doit être étiquetée
- * « depuis le <date> » plutôt que « N j ».
- */
-export function clampWindow(
-  requestedDays: number,
-  epoch: MetricEpoch,
-  today: Date,
-): { days: number; clamped: boolean } {
-  const measured = daysSinceEpoch(epoch, today);
-  return measured < requestedDays
-    ? { days: measured, clamped: true }
-    : { days: requestedDays, clamped: false };
-}
-
-/** Libellé de fenêtre honnête : « 30 j » ou « depuis le 14 août » si clampée. */
-export function windowLabel(
-  requestedDays: number,
-  epoch: MetricEpoch,
-  today: Date,
-): string {
-  const { clamped } = clampWindow(requestedDays, epoch, today);
-  if (!clamped) return `${requestedDays} j`;
-  const d = new Date(METRIC_EPOCHS[epoch] + "T00:00:00Z");
-  return `depuis le ${d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "UTC" })}`;
-}
-
-/** Vrai si une fenêtre de p_days remonte avant la naissance de la métrique. */
-export function windowPredatesEpoch(days: number, epoch: MetricEpoch, today: Date): boolean {
-  return daysSinceEpoch(epoch, today) < days;
-}

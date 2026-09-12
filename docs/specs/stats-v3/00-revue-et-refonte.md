@@ -2,7 +2,7 @@
 
 > Rédigé le 2026-09-12 à partir de la page en prod (v2 du 2026-08-14 + section 00 App Store du
 > 2026-09-12), des données prod du jour et des bonnes pratiques citées en fin de document.
-> Statut : **structure validée par Anthony le 2026-09-12** (décisions en §4.7) — **maquette HTML** `temp/stats-v3-preview.html` (non commitée, chiffres prod du 12/09) à valider, puis lot A.
+> Statut : **livré (lots A, B, C + digest) le 2026-09-12** — migration 043, `src/lib/admin/v3/`, pages `/admin/stats`, `/admin/explorer`, `/admin/sante`, cron `weekly-digest`. Maquette de référence : `temp/stats-v3-preview.html` (non commitée).
 
 ## 0. TL;DR
 
@@ -335,3 +335,26 @@ Règle : le repère s'affiche en gris sous la valeur (« repère marché ≈ 34 
   le digest — une seule définition des chiffres.
 - **Silence** : si le cron échoue, Sentry `captureException` ; pas de moniteur Crons (seat).
 - Lot : **A** (le digest est l'usage principal du bloc 1).
+
+---
+
+## 5. Implémentation (2026-09-12)
+
+- **Migration 043** (`supabase/migrations/043_stats_v3.sql`) : `recipe_views_daily` + `track_recipe_view`
+  + `purge_recipe_views` (lot B), `recipes.share_token_created_at` (liens datés, backfill = date de
+  la recette), `stats_daily.demo_trials_{ios,android,web}` + rollup, `digests_sent`, vue
+  `v3_recipe_people` (recette → personne via l'appareil créateur), fonctions `analytics_v3_people`,
+  `_weekly_active`, `_weekly_recipes`, `_demo`, `_health`, `_carnets`, `_sharing`. Les fonctions v2
+  (033-041) restent en place : à retirer par une migration ultérieure (règle suppressions-après).
+- **Code** : `src/lib/admin/v3/` — `weeks.ts` (semaines ISO, fenêtres), `ratio.ts` (% + n/N + Wilson),
+  `people.ts` (cohortes 28 j, M1 glissante, activation, engagement), `assemble.ts` (assemblage pur,
+  blocs 1-6), `data.ts` (Supabase), `digest.ts` (e-mail). Composants : `components/admin/ui.tsx`
+  (serveur), `charts-v3.tsx` (Recharts). Pages : `/admin/stats`, `/admin/explorer`, `/admin/sante`.
+  Cron `/api/cron/weekly-digest` (Resend, `DIGEST_TO`, idempotent par semaine ISO).
+- **Supprimé** : `queries.ts`, `charts.tsx`, `FilterBar.tsx`, `periods.ts`, façonnage App Store v2 ;
+  `epochs.ts` réduit au registre ; `palette.ts` aux couleurs et rampes.
+- **Accroches produit** : consultation comptée à l'ouverture d'une fiche par une personne réelle
+  (hors démo, `after()`), lien de partage daté à l'émission, purge des vues > 13 mois dans demo-reset.
+- **Écarts avec la maquette** : la cohorte « ≤ mai » n'apparaît que si plus de 5 mois sont actifs ; les
+  cohortes d'avant mai 2026 (modèle d'identité différent) sortent de la table ; « Vues de fiche » peut
+  être inférieur aux téléchargements (seuillage Apple) — dit dans la définition de la carte.

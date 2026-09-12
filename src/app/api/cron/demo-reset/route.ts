@@ -230,6 +230,13 @@ async function resetDemo(demoHouseholdIds: string[]): Promise<ResetSummary> {
     purgedTokens = tokensCount ?? 0
   }
 
+  // Step 5 (stats v3, 043) : purge des compteurs de consultation de plus de
+  // 13 mois — best-effort, sans alerte bloquante.
+  const { error: viewsError } = await supabase.rpc('purge_recipe_views', { p_keep_days: 400 })
+  if (viewsError) {
+    Sentry.captureException(new Error(`[cron/demo-reset] recipe_views purge failed: ${viewsError.message}`))
+  }
+
   return {
     reset: true,
     deleted: deleted ?? 0,

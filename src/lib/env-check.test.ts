@@ -113,6 +113,7 @@ describe("checkEnv", () => {
         "RESEND_API_KEY",
         "APIFY_TOKEN",
         "APPLE_CONNECT_KEY",
+        "DIGEST_TO",
       ]),
     );
     expect(prod.every((i) => i.level === "warn")).toBe(true);
@@ -137,6 +138,7 @@ describe("checkEnv", () => {
       EMAIL_FROM: "Mijote <no-reply@mijote.fr>",
       APIFY_TOKEN: "apify",
       APPLE_CONNECT_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEH",
+      DIGEST_TO: "anthony@example.com",
     };
     expect(checkEnv(prod)).toEqual([]);
   });
@@ -176,6 +178,7 @@ describe("reportEnvIssues", () => {
       EMAIL_FROM: "no-reply@mijote.fr",
       APIFY_TOKEN: "apify",
       APPLE_CONNECT_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEH",
+      DIGEST_TO: "anthony@example.com",
     });
     expect(console.error).toHaveBeenCalledTimes(1);
     expect(captureMessage).toHaveBeenCalledTimes(1);
@@ -202,6 +205,7 @@ describe("reportEnvIssues", () => {
       EMAIL_FROM: "no-reply@mijote.fr",
       APIFY_TOKEN: "apify",
       APPLE_CONNECT_KEY: "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEH",
+      DIGEST_TO: "anthony@example.com",
       DEMO_SEED_MIN: "trente",
     });
     expect(console.error).not.toHaveBeenCalled();

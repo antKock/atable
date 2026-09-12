@@ -47,7 +47,7 @@ export const POST = withOwnerAuth(
         const candidate = generateShareToken();
         const { data: updated, error: updateError } = await supabase
           .from("recipes")
-          .update({ share_token: candidate })
+          .update({ share_token: candidate, share_token_created_at: new Date().toISOString() })
           .eq("id", id)
           .eq("household_id", householdId)
           .is("share_token", null)
