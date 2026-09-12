@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { ChevronLeft, ChevronRight, Eye, UserPlus } from 'lucide-react'
 import { useT } from '@/lib/i18n/client'
+import { apiRequest } from '@/lib/api-client'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 import InlineEditableField from './InlineEditableField'
 import LeaveHouseholdDialog from './LeaveHouseholdDialog'
@@ -46,14 +47,13 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
     const previousName = name
     setName(newName) // optimistic update
     try {
-      const res = await fetch(`/api/households/${household.id}`, {
+      await apiRequest(`/api/households/${household.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: newName }),
+        body: { name: newName },
+        fallbackError: t.household.renameError,
       })
-      if (!res.ok) throw new Error(t.household.renameError)
     } catch (err) {
-      setName(previousName) // revert on any failure
+      setName(previousName) // revert on any failure (InlineEditableField affiche l'erreur)
       throw err instanceof Error ? err : new Error(t.household.renameError)
     }
   }

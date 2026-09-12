@@ -1,10 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { useT } from '@/lib/i18n/client'
+import { useApiMutation } from '@/hooks/useApiMutation'
 import { haptics } from '@/lib/haptics'
 import { dropSwrCache } from '@/lib/swr'
+import { hardNavigate } from '@/lib/navigate'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -33,32 +34,23 @@ type Step = null | 'leave' | 'delete-1' | 'delete-2'
 export default function LeaveHouseholdDialog({ householdId, canDelete = true, canLeave = true }: Props) {
   const t = useT()
   const [step, setStep] = useState<Step>(null)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const { run, loading: isSubmitting } = useApiMutation<{ redirect?: string }>({
+    fallbackError: t.household.leaveError,
+  })
 
   const close = () => {
     if (!isSubmitting) setStep(null)
   }
 
   async function submit(action: 'leave' | 'delete') {
-    setIsSubmitting(true)
     if (action === 'delete') void haptics.heavy()
-    try {
-      const res = await fetch(`/api/households/${householdId}?action=${action}`, {
-        method: 'DELETE',
-      })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error((data as { error?: string }).error ?? t.household.leaveError)
-      }
-      dropSwrCache() // left the household: its recipes must not survive in cache
-      window.location.href = (data as { redirect?: string }).redirect ?? '/'
-    } catch (err) {
+    const data = await run(`/api/households/${householdId}?action=${action}`, { method: 'DELETE' })
+    if (!data) {
       setStep(null)
-      setIsSubmitting(false)
-      toast.error(err instanceof Error ? err.message : t.household.leaveError, {
-        duration: Infinity,
-      })
+      return
     }
+    dropSwrCache() // left the household: its recipes must not survive in cache
+    hardNavigate(data.redirect ?? '/')
   }
 
   // Dialog copy + primary action, keyed by step.

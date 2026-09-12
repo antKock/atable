@@ -121,7 +121,7 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
 
 ## Lot 3 — Côté client
 
-- [ ] `useApiMutation(url, { method, onSuccess, fallbackError })` dans `src/hooks/` : 9
+- [x] `useApiMutation(url, { method, onSuccess, fallbackError })` dans `src/hooks/` : 9
   copies du pattern fetch + toast + loading (`ConfirmDeleteDialog:44-65`,
   `RecipeForm:352-448`, `LeaveHouseholdDialog:44-62`, `MemberActionDialog:55-97`,
   `RecipeActionPill:58-77`, `ProfileForm:40-75`, `MergeVerifyScreen:48-80`,
@@ -134,7 +134,7 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
   remplacer les 27 blocs inline (23 fichiers). Variabiliser le dégradé `#EDE8E0` (4
   fichiers) et une utilitaire `.card-surface` (5 sites). `invalidateRecipeLists()` dans
   `lib/swr.ts` (3 doublons de `mutate`).
-- [ ] `RecipeForm.tsx` (676 l.) : extraire `useRecipeSave()` (`runSave`, `:327-449`, le
+- [x] `RecipeForm.tsx` (676 l.) : extraire `useRecipeSave()` (`runSave`, `:327-449`, le
   code le plus fragile : upload différé, repli régénération, dismiss share-extension) et
   `recipe-form-state.ts` (reducer `:75-168`). Tests unitaires sur le hook.
 - [ ] `TagInput.tsx:40-45` : `useSWR("/api/tags")` au lieu du fetch brut qui avale les

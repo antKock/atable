@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, Mail } from 'lucide-react'
 import { toast } from 'sonner'
 import { useT } from '@/lib/i18n/client'
+import { apiRequest } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
 import MergeVerifyScreen from './MergeVerifyScreen'
 
@@ -36,35 +37,29 @@ export default function ProfileForm({ initialName, alias, initialEmail }: Props)
     if (saving) return
     setSaving(true)
     try {
+      // Deux requêtes séquentielles (nom puis email) sous un seul état
+      // `saving` : apiRequest directement, le toast est commun ci-dessous.
       if (name.trim() !== savedName) {
-        const res = await fetch('/api/owner', {
+        await apiRequest('/api/owner', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: name.trim() }),
+          body: { name: name.trim() },
+          fallbackError: t.profile.saveError,
         })
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          throw new Error((data as { error?: string }).error ?? t.profile.saveError)
-        }
         setSavedName(name.trim())
       }
 
       if (email.trim().toLowerCase() !== savedEmail.toLowerCase()) {
-        const res = await fetch('/api/owner/email', {
+        const data = await apiRequest<{ merge?: boolean; email?: string | null }>('/api/owner/email', {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email.trim() }),
+          body: { email: email.trim() },
+          fallbackError: t.profile.saveError,
         })
-        const data = await res.json().catch(() => ({}))
-        if (!res.ok) {
-          throw new Error((data as { error?: string }).error ?? t.profile.saveError)
-        }
-        if ((data as { merge?: boolean }).merge) {
+        if (data.merge) {
           // L'email appartient à un autre profil → vérification avant fusion.
           setMergeEmail(email.trim().toLowerCase())
           return
         }
-        setSavedEmail(((data as { email?: string | null }).email ?? '') || '')
+        setSavedEmail(data.email ?? '')
       }
 
       toast.success(t.profile.saved, { duration: 2500 })

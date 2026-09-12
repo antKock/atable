@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, ChevronLeft } from 'lucide-react'
 import { toast } from 'sonner'
 import { useT } from '@/lib/i18n/client'
+import { apiRequest } from '@/lib/api-client'
+import { hardNavigate } from '@/lib/navigate'
 import { dropSwrCache } from '@/lib/swr'
 import RecoveryCodeInput from '@/components/auth/RecoveryCodeInput'
 
@@ -45,19 +47,14 @@ export default function MergeVerifyScreen({ email, onCancel }: Props) {
     setVerifying(true)
     setError(null)
     try {
-      const res = await fetch('/api/owner/email/verify', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code: value }),
+      const data = await apiRequest<{ redirect?: string }>('/api/owner/email/verify', {
+        body: { email, code: value },
+        fallbackError: t.merge.codeInvalid,
       })
-      const data = await res.json().catch(() => ({}))
-      if (!res.ok) {
-        throw new Error((data as { error?: string }).error ?? t.merge.codeInvalid)
-      }
       toast.success(t.merge.success, { duration: 2500 })
       // L'identité vient de changer (union des foyers) : cache SWR périmé.
       dropSwrCache()
-      window.location.href = (data as { redirect?: string }).redirect ?? '/household'
+      hardNavigate(data.redirect ?? '/household')
     } catch (err) {
       setError(err instanceof Error ? err.message : t.merge.codeInvalid)
       setCode('')
@@ -72,15 +69,11 @@ export default function MergeVerifyScreen({ email, onCancel }: Props) {
     setError(null)
     try {
       // Re-déclenche le même chemin collision → nouveau token + nouvel email
-      const res = await fetch('/api/owner/email', {
+      await apiRequest('/api/owner/email', {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: { email },
+        fallbackError: t.recovery.sendError,
       })
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error((data as { error?: string }).error ?? t.recovery.sendError)
-      }
       setResendLeft(RESEND_DELAY_S)
     } catch (err) {
       setError(err instanceof Error ? err.message : t.recovery.sendError)

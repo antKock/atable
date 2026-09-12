@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { Share } from "lucide-react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n/client";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import { isNativeApp } from "@/lib/native";
 
 type Props = {
@@ -24,20 +24,19 @@ export default function ShareButton({
   iconStroke = 1.75,
 }: Props) {
   const t = useT();
-  const [loading, setLoading] = useState(false);
+  // Toast d'erreur unique (t.share.shareError, 2,5 s) quelle que soit la cause
+  // — le message serveur n'est pas plus utile ici.
+  const { run, loading } = useApiMutation<{ url?: string }>({
+    fallbackError: t.share.shareError,
+    toastError: false,
+  });
 
   async function handleShare() {
     if (loading) return;
-    setLoading(true);
     try {
-      const res = await fetch(`/api/recipes/${recipeId}/share`, {
-        method: "POST",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok || !data.url) {
-        throw new Error(data.error ?? t.share.shareError);
-      }
-      const url: string = data.url;
+      const data = await run(`/api/recipes/${recipeId}/share`);
+      if (!data?.url) throw new Error(t.share.shareError);
+      const url = data.url;
 
       // Native iOS shell: use the Capacitor Share plugin — navigator.share is
       // unreliable in WKWebView. Web: Web Share API, then clipboard fallback.
@@ -60,8 +59,6 @@ export default function ShareButton({
       }
     } catch {
       toast.error(t.share.shareError, { duration: 2500 });
-    } finally {
-      setLoading(false);
     }
   }
 
