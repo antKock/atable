@@ -8,8 +8,8 @@
 // (recipe-photos) — no file copy needed.
 //
 // Requires:
-//   .env.local      → prod credentials (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEMO_HOUSEHOLD_ID)
-//   .env.staging.local → staging credentials (same vars, copied by hand from the Dokploy `mijote-staging` environment)
+//   .env.local      → prod (DATABASE_REST_URL/KEY via scripts/vps/tunnel.sh, DEMO_HOUSEHOLD_ID)
+//   .env.staging.local → staging (same vars, port 3101 of the tunnel)
 //
 // Version EN : le foyer démo EN (DEMO_HOUSEHOLD_ID_EN, optionnel) reçoit le
 // même traitement, à condition que la variable soit posée DES DEUX côtés
@@ -17,6 +17,7 @@
 
 import { readFileSync } from "fs";
 import { resolve } from "path";
+import { restConfig } from "./lib/env.mjs";
 
 function loadEnv(file) {
   const path = resolve(process.cwd(), file);
@@ -35,14 +36,12 @@ const prodEnv = loadEnv(".env.local");
 const stagingEnv = loadEnv(".env.staging.local");
 
 const PROD = {
-  url: prodEnv["NEXT_PUBLIC_SUPABASE_URL"],
-  key: prodEnv["SUPABASE_SERVICE_ROLE_KEY"],
+  ...restConfig(prodEnv),
   demo: prodEnv["DEMO_HOUSEHOLD_ID"] || "00000000-0000-0000-0000-000000000000",
   demoEn: prodEnv["DEMO_HOUSEHOLD_ID_EN"] || null,
 };
 const STAGING = {
-  url: stagingEnv["NEXT_PUBLIC_SUPABASE_URL"],
-  key: stagingEnv["SUPABASE_SERVICE_ROLE_KEY"],
+  ...restConfig(stagingEnv),
   demo: stagingEnv["DEMO_HOUSEHOLD_ID"] || "00000000-0000-0000-0000-000000000000",
   demoEn: stagingEnv["DEMO_HOUSEHOLD_ID_EN"] || null,
 };
@@ -60,12 +59,12 @@ if (PROD.demoEn && STAGING.demoEn) {
 
 for (const [label, env] of [["prod", PROD], ["staging", STAGING]]) {
   if (!env.url || !env.key) {
-    console.error(`Missing Supabase URL or service key for ${label}`);
+    console.error(`Missing database URL or key for ${label}`);
     process.exit(1);
   }
 }
 if (PROD.url === STAGING.url) {
-  console.error("Prod and staging Supabase URLs are identical — refusing to run.");
+  console.error("Prod and staging database URLs are identical — refusing to run.");
   process.exit(1);
 }
 
@@ -77,7 +76,7 @@ for (const pair of DEMO_PAIRS) {
 console.log("");
 
 async function rest(env, path, init = {}) {
-  const res = await fetch(env.url + "/rest/v1/" + path, {
+  const res = await fetch(env.url + "/" + path, {
     ...init,
     headers: {
       apikey: env.key,

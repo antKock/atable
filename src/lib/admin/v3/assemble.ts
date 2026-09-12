@@ -117,9 +117,12 @@ export type HotIndicator = {
   /** Médiane des 3 semaines précédentes (J-28 → J-8), même unité. */
   ref: number;
   trend: "up" | "down" | "flat";
-  /** 14 dernières valeurs quotidiennes (J-14 → J-1) et leurs jours ISO. */
+  /** 14 dernières valeurs quotidiennes (J-14 → J-1), leurs jours ISO, et pour
+   *  chaque jour la médiane du MÊME jour de semaine sur les 4 semaines
+   *  précédentes (dimanche bas = normal ou pas ?). */
   bars: number[];
   barDays: string[];
+  barRefs: number[];
   unit?: string;
   hint?: string;
 };
@@ -311,7 +314,8 @@ export function assembleV3(raw: RawV3) {
     const value = win(yesterday);
     const ref = +median([win(addDays(yesterday, -7)), win(addDays(yesterday, -14)), win(addDays(yesterday, -21))]).toFixed(1);
     const barDays = dayList(14, yesterday);
-    return { id, label, value, ref, trend: value > ref ? "up" : value < ref ? "down" : "flat", bars: barDays.map(get), barDays, unit: opts.unit, hint: opts.hint };
+    const barRefs = barDays.map((d) => median([7, 14, 21, 28].map((k) => get(addDays(d, -k)))));
+    return { id, label, value, ref, trend: value > ref ? "up" : value < ref ? "down" : "flat", bars: barDays.map(get), barDays, barRefs, unit: opts.unit, hint: opts.hint };
   };
   const hot: HotIndicator[] = [
     hotOf("downloads", "Téléchargements App Store", (d) => dlByDay.get(d) ?? 0, { hint: appStoreLastDay ? `Apple jusqu'au ${shortDate(appStoreLastDay)}` : undefined }),
