@@ -19,7 +19,7 @@ export const metadataEn: Metadata = {
   },
 };
 
-const updatedAt = "September 5, 2026";
+const updatedAt = "September 12, 2026";
 const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -313,10 +313,10 @@ export default function PrivacyEn() {
           </thead>
           <tbody>
             <tr>
-              <Td><strong>Vercel</strong></Td>
-              <Td>Application hosting</Td>
+              <Td><strong>OVHcloud</strong></Td>
+              <Td>Application hosting (virtual private server)</Td>
               <Td>Technical request data, logs</Td>
-              <Td>European Union (Paris, <code>cdg1</code>)</Td>
+              <Td>France (Gravelines)</Td>
             </tr>
             <tr>
               <Td><strong>Supabase</strong></Td>
@@ -365,7 +365,7 @@ export default function PrivacyEn() {
 
         <H2 id="transferts">7. Data transfers outside the European Union</H2>
         <P>
-          <strong>Vercel</strong> and <strong>Supabase</strong>, which host most of your data,
+          <strong>OVHcloud</strong> and <strong>Supabase</strong>, which host most of your data,
           operate <strong>within the European Union</strong>. Several processors nevertheless
           process data outside the EU:
         </P>

@@ -37,8 +37,6 @@ yarn-error.log*
 .env.local
 .env*.local
 
-# vercel
-.vercel
 
 # Claude Code local workspace
 .claude/

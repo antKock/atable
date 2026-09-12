@@ -6,11 +6,11 @@ import { getT } from "@/lib/i18n/server";
 /**
  * Plafond de taille du corps des requêtes API.
  *
- * Vercel coupait tout corps > 4,5 Mo avant même d'atteindre la fonction.
- * Derrière Traefik (docs/infra/migration-vps-ovh.md) il n'y a plus de plafond
- * : les routes qui bufferisent le corps (`request.json()`, `formData()`) le
- * lisaient en entier AVANT de vérifier la taille du fichier — un client
- * malveillant pouvait faire avaler des Go au conteneur.
+ * Traefik (docs/infra/migration-vps-ovh.md) ne plafonne pas le corps en
+ * amont (l'hébergeur précédent coupait à 4,5 Mo) : les routes qui bufferisent
+ * le corps (`request.json()`, `formData()`) le lisaient en entier AVANT de
+ * vérifier la taille du fichier — un client malveillant pouvait faire avaler
+ * des Go au conteneur.
  *
  * Le contrôle repose sur `content-length` : c'est ce que les navigateurs, les
  * WebViews Capacitor et `curl` envoient pour un corps connu, et Traefik le

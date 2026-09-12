@@ -9,7 +9,7 @@
 //
 // Requires:
 //   .env.local      → prod credentials (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, DEMO_HOUSEHOLD_ID)
-//   .env.staging.local → staging credentials (same vars, pulled via `vercel env pull --environment=preview .env.staging.local`)
+//   .env.staging.local → staging credentials (same vars, copied by hand from the Dokploy `mijote-staging` environment)
 //
 // Version EN : le foyer démo EN (DEMO_HOUSEHOLD_ID_EN, optionnel) reçoit le
 // même traitement, à condition que la variable soit posée DES DEUX côtés

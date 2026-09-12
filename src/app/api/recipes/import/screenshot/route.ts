@@ -10,7 +10,7 @@ import { memberHouseholdIds } from "@/lib/auth/owner-context";
 // 15 M caractères ≈ une image de 10 Mo) + enveloppe JSON. Le client
 // redimensionne à 1280 px (~500 Ko base64 par image, 5 max) : en pratique on
 // est très en dessous ; la limite sert de garde-fou contre un corps hostile,
-// refusé AVANT lecture (Vercel plafonnait à 4,5 Mo, Traefik ne plafonne rien).
+// refusé AVANT lecture (Traefik ne plafonne pas le corps en amont).
 const MAX_SCREENSHOT_BODY_BYTES = 15_000_000 + 64 * 1024;
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {

@@ -9,8 +9,8 @@ import { createServerClient } from "@/lib/supabase/server";
  * sources peuvent disparaître avant : les login_tokens sont purgés dès un
  * « Renvoyer », les 403 démo n'ont aucune ligne du tout.
  *
- * `after()` sort l'écriture du chemin de réponse (et survit au retour de la
- * fonction sur Vercel) ; tout est best-effort — jamais d'erreur remontée pour
+ * `after()` sort l'écriture du chemin de réponse (elle s'achève après l'envoi,
+ * d'où `stopGracePeriod` au redéploiement) ; tout est best-effort — jamais d'erreur remontée pour
  * un compteur, et no-op hors contexte requête (tests unitaires).
  */
 export type StatsDailyField =

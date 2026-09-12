@@ -46,20 +46,20 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
 
 - **Hébergement depuis le 2026-09-06 : VPS OVH + Dokploy** (`docs/infra/migration-vps-ovh.md`).
   Push sur `staging`/`main` → GitHub Actions (`checks` bloquant) → image GHCR → Dokploy
-  (`staging.mijote…` / `mijote…`) → vérification du SHA via `APP_URL`. Vercel déploie encore
-  les deux branches mais **ne sert plus le DNS** (secours quelques semaines). Opérations
+  (`staging.mijote…` / `mijote…`) → vérification du SHA via `APP_URL`. **Vercel est retiré
+  depuis le 2026-09-12** (projet supprimé, plus de secours) : la reprise = nouveau VPS +
+  `bootstrap.sh` + image GHCR (section « Reprise après perte du VPS » de la doc). Opérations
   serveur : `ssh mijote-vps`, `scripts/dokploy.mjs`, `scripts/ovh.mjs`, `scripts/vps/bootstrap.sh`.
 - Branche de travail : `staging` (déploiement auto). `main` = prod, **protégée** :
   promotion via `gh pr create` + `gh pr merge --admin`, avec le compte gh **antKock**.
 - Migrations DB : `supabase/migrations/`, appliquées via `supabase db push --linked`
   (re-link pour changer d'env staging ↔ prod).
-- Les gotchas connus (Vercel, Supabase, Capacitor) sont dans la note
+- Les gotchas connus (Dokploy/Traefik, Supabase, Capacitor) sont dans la note
   `Opérations & Pièges.md` du vault — la lire avant toute opération d'infra.
-  Vercel : CLI installée (`/opt/homebrew/bin/vercel`, compte antkock) — **jamais `npx vercel`**
-  en non-interactif (a déjà vidé la session). App Store Connect : `scripts/apple-connect.mjs`
+  App Store Connect : `scripts/apple-connect.mjs`
   (`get`, `post`, `patch` — clé Admin dans `.env.local`) ; les textes de fiche font foi dans
   `docs/marketing/fiche-app-store.md` (FR) et `fiche-app-store-en.md` (EN), **ASC d'abord,
   la fiche ensuite**. App Privacy n'a pas d'API.
-- Plan de migration infra Vercel → VPS OVH + Dokploy (non déclenché, analyse coûts du
-  2026-09-05) : `docs/infra/migration-vps-ovh.md` — à lire avant tout chantier « hébergement »,
-  « coûts » ou « quitter Vercel ».
+- Historique et runbook de la migration Vercel → VPS OVH + Dokploy (terminée le 2026-09-12) :
+  `docs/infra/migration-vps-ovh.md` — à lire avant tout chantier « hébergement », « coûts »
+  ou « quitter Supabase » (phase 2 : Postgres + PostgREST sur le VPS, non déclenchée).

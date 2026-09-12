@@ -15,7 +15,7 @@ import type { NextRequest } from "next/server";
  * `x-forwarded-host` forgé par le client (Traefik supprime les `x-forwarded-*`
  * non fiables mais transmet `Host` tel quel : seule sa règle de routage
  * `Host(...)` fait barrage, et un routeur catch-all ou un CDN mal configuré la
- * contourne ; Vercel réécrit ces en-têtes), un attaquant peut demander un lien
+ * contourne), un attaquant peut demander un lien
  * de récupération pour la victime : l'e-mail légitime contiendra alors un lien vers
  * `https://attaquant.tld/recovery?token=…` et la victime, en cliquant, livre
  * son token de connexion (empoisonnement de lien par l'en-tête Host).

@@ -7,7 +7,7 @@ import { memberHouseholdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 
 // Marge pour l'enveloppe multipart autour du fichier audio (MAX_VOICE_FILE_SIZE).
-// Corps refusé AVANT lecture (Vercel plafonnait à 4,5 Mo, Traefik ne plafonne rien).
+// Corps refusé AVANT lecture (Traefik ne plafonne pas le corps en amont).
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {

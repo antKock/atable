@@ -33,9 +33,8 @@ type ResetSummary = {
   purgedTokens: number
 }
 
-// Vercel Cron sends a GET request (not POST). Exporting GET ensures the
-// scheduled job declared in vercel.json actually runs instead of 405-ing.
-// Même contrat pour la crontab du VPS : `curl -H "Authorization: Bearer $CRON_SECRET"`.
+// Appelé en GET par la crontab du VPS (`/etc/cron.d/mijote-demo-reset`, posée
+// par scripts/vps/bootstrap.sh) : `curl -H "Authorization: Bearer $CRON_SECRET"`.
 export async function GET(request: NextRequest) {
   if (!isCronAuthorized(request.headers.get('authorization'))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -52,8 +51,8 @@ export async function GET(request: NextRequest) {
   )
 
   // Moniteur Sentry (Crons) : un check-in par exécution ; Sentry alerte si le
-  // cron ne se déclenche pas (03:00 UTC) ou dépasse 10 min — utile après la
-  // migration du cron Vercel vers la crontab du VPS (docs/infra/migration-vps-ovh.md).
+  // cron ne se déclenche pas (03:00 UTC) ou dépasse 10 min — seule garantie
+  // que la crontab du VPS tourne (docs/infra/migration-vps-ovh.md).
   // Un échec bloquant (delete des recettes) est LEVÉ depuis le callback : le
   // check-in passe en erreur (sinon le moniteur restait vert avec un 500), puis
   // le handler l'attrape et répond 500.

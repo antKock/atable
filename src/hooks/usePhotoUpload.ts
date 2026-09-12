@@ -4,7 +4,7 @@ import { resizeImageToBlob } from "@/lib/image-resize";
 import { useT } from "@/lib/i18n/client";
 import type { Dictionary } from "@/lib/i18n/types";
 
-// Matches the server-side cap on /api/recipes/[id]/photo (Vercel body limit).
+// Matches the server-side cap on /api/recipes/[id]/photo (MAX_PHOTO_BYTES).
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 // Fonction pure (testable hors React) ; le hook ci-dessous lie le dictionnaire

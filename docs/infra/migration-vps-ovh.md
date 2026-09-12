@@ -1,12 +1,14 @@
 # Plan de migration infra — Vercel → VPS OVH + Dokploy
 
-> **Statut : DNS basculé le 2026-09-06** (décidé le 2026-09-05, VPS livré et validé le
-> 2026-09-06 au matin, bascule le même jour vers 11 h 40 Paris) : `mijote` et `staging.mijote`
-> sont des enregistrements A → 217.182.206.61 (TTL 300), Let's Encrypt via Traefik, cron
-> demo-reset sur le VPS, cron Vercel retiré. **Vercel reste en secours** (projet et domaines
-> conservés) : rollback = remettre les deux CNAME `282c7e9a9146f6d0.vercel-dns-017.com.` via
-> `scripts/ovh.mjs`. Reste : période d'observation (calendrier ci-dessous), retrait des
-> domaines côté Vercel après 24 h sans incident. Revue infra du 2026-09-06 intégrée : `bootstrap.sh` reproduit l'état réel du serveur (règle DOCKER-USER,
+> **Statut : MIGRATION TERMINÉE, Vercel retiré le 2026-09-12.** DNS basculé le 2026-09-06
+> (décidé le 2026-09-05, VPS livré et validé le 2026-09-06 au matin, bascule le même jour
+> vers 11 h 40 Paris) : `mijote` et `staging.mijote` sont des enregistrements A →
+> 217.182.206.61 (TTL 300), Let's Encrypt via Traefik, cron demo-reset sur le VPS. Après six
+> jours sans incident, le **projet Vercel `atable` a été supprimé** (domaines, variables,
+> intégration Git) et le repo nettoyé — cf. « Retrait de Vercel (2026-09-12) ». **Il n'y a
+> plus de secours Vercel** : le plan de reprise est « nouveau VPS + `scripts/vps/bootstrap.sh`
+> + image GHCR + variables Dokploy », cf. « Reprise après perte du VPS ». Revue infra du
+> 2026-09-06 intégrée : `bootstrap.sh` reproduit l'état réel du serveur (règle DOCKER-USER,
 > sshd, logs Docker, cron), workflow durci (actions épinglées, `checks` bloquant,
 > vérification post-déploiement). En cas d'écart doc ↔ code réel, **le code fait foi**. Le pendant PM (contexte, historique) vit dans le
 > vault Obsidian d'Anthony (`Perso/Mijote/Plan migration infra (VPS OVH).md`, backlog #18).
@@ -70,11 +72,10 @@ se font par SSH et par l'API Dokploy.
       Sans ce middleware, Traefik transmet le body en streaming et
       seule la garde applicative s'applique — acceptable, mais le body est alors lu jusqu'au
       413.
-- [ ] Reprendre `vercel.json` : la région n'a plus d'objet ; le cron **reste tant que le
-      projet Vercel existe** (il tourne sur la même base que la crontab du VPS : deux appels
-      par nuit, idempotents) → à retirer **dans la PR de bascule DNS, pas avant**.
-- [ ] Liste exhaustive des variables d'environnement par scope (`vercel env pull` prod +
-      preview) → à recopier dans Dokploy.
+- [x] Reprendre `vercel.json` : cron retiré dans la PR de bascule DNS (2026-09-06), fichier
+      supprimé avec le retrait de Vercel (2026-09-12).
+- [x] Liste exhaustive des variables d'environnement par scope → recopiées dans Dokploy
+      (vérifié nom par nom le 2026-09-12 avant suppression du projet Vercel).
 
 ## Vérifié le 2026-09-06 (build local)
 
@@ -256,7 +257,7 @@ Calendrier :
 | T+2 h | Sentry `runtime:vps` sans nouvelle issue ; pings DAU qui arrivent dans `/admin/stats` (preuve que les apps iOS/Android suivent le DNS) ; aucun 5xx Traefik |
 | T+12 h | Enrichissements bloqués = 0 ; lignes `ai_costs` récentes (imports, images) ; mémoire et disque stables (`free -m`, `df -h`) |
 | T+24 h | Le cron demo-reset a tourné à 03:00 UTC (check-in Sentry OK, `stats_daily` alimenté, 30 recettes seed présentes) ; DAU du jour comparable aux jours précédents ; un e-mail de récupération reçu avec un lien sur le bon domaine |
-| T+48 h | Taux d'erreur Sentry vs semaine précédente ; certificats Let's Encrypt OK ; uptime 100 % ; puis retirer les domaines de Vercel (garder le projet) |
+| T+48 h | Taux d'erreur Sentry vs semaine précédente ; certificats Let's Encrypt OK ; uptime 100 % ; puis retirer les domaines de Vercel (garder le projet) — **fait le 2026-09-12, projet supprimé dans la foulée** |
 
 ## Cron demo-reset
 
@@ -410,7 +411,8 @@ until=168h`, hebdo) et jamais sur GHCR : le rollback reste possible à tout mome
    le domaine ne change pas, iOS et Android suivent instantanément. Vérifier quand même
    `/api/aasa` et `/api/assetlinks` derrière Traefik (Content-Type, pas de redirection).
 9. **Retirer les domaines côté Vercel** après 24 h sans incident ; garder le projet Vercel
-   quelques semaines (rollback = remettre les enregistrements DNS).
+   quelques semaines (rollback = remettre les enregistrements DNS). **Fait le 2026-09-12**
+   (projet supprimé directement, cf. section suivante).
 10. Mettre à jour la doc : ce fichier, `CLAUDE.md` (repères rapides), le vault (notes
     « Environnements & Déploiement », « Opérations & Pièges », « Historique & Décisions ») et
     la mémoire Claude Code.
@@ -475,3 +477,47 @@ until=168h`, hebdo) et jamais sur GHCR : le rollback reste possible à tout mome
 - **SSH** vers le VPS : tout ce qui se passe dans la machine.
 - **API Dokploy** : déploiements, logs, variables, sauvegardes.
 - Jetons dans `.env.local` (gitignoré), comme pour App Store Connect.
+
+## Retrait de Vercel (2026-09-12)
+
+Six jours après la bascule DNS, sans incident (cron OK, Sentry calme, certificats Let's
+Encrypt renouvelés). Ce qui a été fait :
+
+- **Côté Vercel** : vérification nom par nom que chaque variable des scopes Production et
+  Preview (staging) existait dans l'environnement Dokploy correspondant (prod en a même plus :
+  clés App Store Connect, digest), puis `DELETE /v9/projects/<id>` via l'API REST (le CLI n'a
+  pas de mode non interactif pour `project rm`). La suppression du projet détache ses
+  domaines (`mijote`, `staging.mijote`, `atable-beryl.vercel.app`) et l'intégration Git.
+  Le domaine apex `anthonykocken.fr` **reste dans le compte Vercel** : d'autres projets
+  (tictactoe, hello-world) l'utilisent encore.
+- **Côté repo** : `vercel.json` supprimé, devDependency `vercel` retirée (seul
+  `@sentry/vercel-edge`, transitif de `@sentry/nextjs`, subsiste dans le lock), replis
+  `VERCEL_ENV` / `NEXT_PUBLIC_VERCEL_ENV` / `VERCEL_GIT_COMMIT_SHA` retirés des configs Sentry
+  et de `next.config.ts` (`SENTRY_ENVIRONMENT` et `GIT_COMMIT_SHA` sont la seule source), tag
+  Sentry `runtime` conservé (`vps` par le Dockerfile, `local` sinon) parce que des recherches
+  filtrent dessus, commentaires dépoussiérés, README réécrit.
+- **Juridique** : politique de confidentialité FR/EN (`/legal/confidentialite`) et
+  `docs/politique-confidentialite.md` : OVHcloud (France, Gravelines) remplace Vercel dans la
+  table des sous-traitants, date de mise à jour 2026-09-12. À répercuter dans les
+  déclarations stores si elles nomment l'hébergeur.
+
+## Reprise après perte du VPS
+
+Sans Vercel, la reprise n'est plus un retour DNS mais une reconstruction. La sauvegarde
+automatisée OVH est active (vérifié le 2026-09-12 : `GET /vps/<name>/automatedBackup` →
+`enabled`, 00:45, rotation 1 = un seul point de restauration) : première voie =
+`POST /vps/<name>/automatedBackup/restore` ou l'espace client. Sinon, reconstruction à froid :
+
+1. Commander un VPS (`scripts/ovh.mjs`, cf. « Runbook »), y installer la clé SSH.
+2. `scripts/vps/bootstrap.sh` (Dokploy, règles réseau, crontab demo-reset, `/etc/mijote/cron.env`).
+3. Recréer les deux applications Dokploy depuis les images GHCR `ghcr.io/antkock/atable:main`
+   et `:staging`, recopier les variables (source de vérité : `.env.local` d'Anthony pour prod,
+   `.env.staging.local` pour staging ; aucune n'est stockée ailleurs), poser les domaines et
+   le middleware Traefik `buffering`.
+4. Repointer les A `mijote` / `staging.mijote` (`scripts/ovh.mjs`), `settings.reloadTraefik`
+   après propagation, mettre à jour `DOKPLOY_URL`/`DOKPLOY_APP_ID` dans les environnements
+   GitHub.
+
+Les données (Postgres, photos) sont chez Supabase et ne sont pas concernées par la perte du
+VPS. Le jour où elles migrent sur le VPS (phase 2), un pg_dump nocturne hors site devient un
+prérequis, pas une option.

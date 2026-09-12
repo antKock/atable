@@ -5,7 +5,7 @@ import { z } from "zod";
 // (instrumentation.ts → register, runtime Node uniquement). Leçon du
 // 2026-09-06 : deux incidents nés de variables mal posées et SILENCIEUSES —
 // `I18N_EN_ENABLED` absente (tout en FR), `DEMO_HOUSEHOLD_ID_EN=[SENSITIVE]`
-// (placeholder d'un export Vercel copié tel quel : démo EN en erreur, cron
+// (placeholder d'un export d'hébergeur copié tel quel : démo EN en erreur, cron
 // condamné). Le code retombait sur un mode dégradé sans rien dire.
 //
 // Politique : on RAPPORTE, on ne bloque jamais le démarrage (dev, CI, E2E
@@ -38,8 +38,8 @@ type EnvRule = {
   missingInProduction?: string;
 };
 
-// Placeholders laissés par un export d'hébergeur : `vercel env pull` écrit
-// `[SENSITIVE]` pour les variables sensibles, Dokploy affiche `[hidden]`.
+// Placeholders laissés par un export d'hébergeur (`[SENSITIVE]`, `[hidden]`
+// chez Dokploy) copié tel quel dans l'environnement.
 const PLACEHOLDER = /^\[[^\]]*\]$/;
 
 // `z.guid()` et non `z.uuid()` : les foyers démo ont des ids fixes hors RFC 4122

@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { getClientIp } from "./request-ip";
 
 describe("getClientIp", () => {
-  it("préfère x-real-ip (posé par Vercel et Traefik)", () => {
+  it("préfère x-real-ip (posé par Traefik)", () => {
     const h = new Headers({ "x-real-ip": "203.0.113.7", "x-forwarded-for": "198.51.100.1, 10.0.0.1" });
     expect(getClientIp(h)).toBe("203.0.113.7");
   });

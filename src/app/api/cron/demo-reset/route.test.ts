@@ -67,7 +67,7 @@ function alertCalls() {
 }
 
 describe("GET /api/cron/demo-reset — authentification", () => {
-  it("exposes a GET handler (Vercel Cron sends GET, not POST)", () => {
+  it("exposes a GET handler (the VPS crontab calls GET, not POST)", () => {
     expect(typeof GET).toBe("function");
   });
 

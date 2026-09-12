@@ -6,7 +6,6 @@
 .next
 .next-e2e
 .next-e2e-verify
-.vercel
 node_modules
 .env
 .env.*

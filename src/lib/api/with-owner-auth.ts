@@ -36,7 +36,7 @@ const READ_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
  * erreur non attrapée en 500 générique loggé + Sentry. Unique guard des routes
  * household-scopées depuis le décommissionnement du hid (Lot 4).
  * Refuse aussi (413) tout corps annoncé au-delà de `maxBodyBytes` AVANT de le
- * lire — Vercel plafonnait à 4,5 Mo, Traefik ne plafonne rien.
+ * lire — Traefik ne plafonne pas le corps en amont.
  *
  * Garde démo PAR DÉFAUT (stratégie C « monde gelé », incidents 2026-06 et
  * 2026-09) : toute requête non-GET d'un owner démo est refusée AVANT le handler

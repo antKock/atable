@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-// Mijote runs as a Capacitor shell whose WebView loads the live Vercel
+// Mijote runs as a Capacitor shell whose WebView loads the live web
 // origin directly (first-party) — see docs/app-store-roadmap.md §1.
 //
 // server.url is environment-driven, resolved at `cap sync` time:

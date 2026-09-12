@@ -1,8 +1,8 @@
 import { lookup } from "node:dns/promises";
 
 // SSRF guard for server-side fetches of user-supplied URLs: the import
-// pipeline must never be able to read Vercel-internal or private-network
-// endpoints (metadata services, other functions, future internal APIs).
+// pipeline must never be able to read private-network endpoints (the VPS's
+// other containers, Dokploy, the OVH metadata service, future internal APIs).
 // Known limit: DNS is resolved here then again by fetch (TOCTOU/rebinding);
 // closing that would require pinning the resolved IP via a custom dispatcher.
 
