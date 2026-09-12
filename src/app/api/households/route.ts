@@ -1,22 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
-import { cookies } from 'next/headers'
 import { getClientIp } from '@/lib/request-ip'
 import { createServerClient } from '@/lib/supabase/server'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { generateJoinCode } from '@/lib/auth/join-code'
 import { getDeviceName } from '@/lib/auth/device-name'
-import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
-import { resolveOwnerContext } from '@/lib/auth/owner-context'
+import { signSession, setSessionCookie } from '@/lib/auth/session'
+import { resolveSessionOwnerFromCookie } from '@/lib/auth/session-owner'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { resolveDemoTrialStart } from '@/lib/queries/demo-conversion'
 import { enforceHouseholdCreateQuota } from '@/lib/import-quota'
 import { aliasForOwner } from '@/lib/alias'
 import { getLocale, getT } from '@/lib/i18n/server'
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
 
 export async function POST(request: NextRequest) {
   const t = await getT()
   try {
+    // Route publique : corps annoncé au-delà du plafond refusé avant lecture
+    // (Traefik ne plafonne pas en amont ; withOwnerAuth le fait pour les autres).
+    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
+    if (tooLarge) return tooLarge
+
     // Unauthenticated route, and every new household gets a fresh daily
     // import quota — rate limit per IP to keep both bounded.
     const ip = getClientIp(request)
@@ -60,9 +65,7 @@ export async function POST(request: NextRequest) {
     // membre sur CET owner — pas de nouvelle session ni de cookie réécrit. Un
     // owner démo (monde gelé) déclenche au contraire une CONVERSION : il retombe
     // sur le chemin « owner neuf » ci-dessous (le membership démo est abandonné).
-    const sessionCookie = (await cookies()).get('atable_session')?.value
-    const sessionPayload = sessionCookie ? await verifySession(sessionCookie) : null
-    const existingOwner = sessionPayload ? await resolveOwnerContext(sessionPayload.sid) : null
+    const existingOwner = await resolveSessionOwnerFromCookie(request)
 
     if (existingOwner && !isDemoOwner(existingOwner)) {
       const { data: addHousehold, error: addHouseholdError } = await supabase

@@ -44,6 +44,17 @@ function request(body: unknown): NextRequest {
 }
 
 describe("POST /api/households/join (Fix 1.2)", () => {
+  it("refuse (413) un corps annoncé au-delà du plafond, avant toute lecture", async () => {
+    const res = await POST(
+      new NextRequest("https://test.local/api/households/join", {
+        method: "POST",
+        headers: { "content-type": "application/json", "content-length": String(2 * 1024 * 1024) },
+      }),
+    );
+    expect(res.status).toBe(413);
+    expect(supa.calls).toHaveLength(0);
+  });
+
   /** Queue the 4 results a successful join consumes (Lot 3 : résolution du code
    *  contre join_code OU guest_join_code → tableau, ici un lien MEMBRE). */
   function queueSuccess(name = "Famille Dupont") {

@@ -665,6 +665,7 @@ export const en: Dictionary = {
     screenshotExtractFailed: "Couldn't extract the recipe from the images",
     tokenMissing: "Missing token",
     recipeNotFound: "Recipe not found",
+    memberNotFound: "Member not found",
     targetHouseholdMissing: "Missing destination cookbook",
     unauthorized: "Unauthorized",
     forbidden: "Forbidden",
@@ -682,6 +683,8 @@ export const en: Dictionary = {
     imageRequired: "At least one image is required",
     imagesMax: "5 images max",
     urlInvalid: "Invalid URL",
+    tagNameRequired: "Tag name is required",
+    tagNameTooLong: "Tag name too long (50 characters max)",
     httpsOnly: "Only HTTPS URLs are accepted",
   },
 

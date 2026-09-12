@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
+import { purgeRecipePhotos } from "@/lib/storage/photos";
 import { enrichRecipe } from "@/lib/enrichment";
+import { isBearerAuthorized } from "@/lib/cron-auth";
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from "@/lib/body-limit";
 
 export const maxDuration = 60;
 
@@ -10,11 +12,13 @@ export async function POST(request: NextRequest) {
   // every household's recipes, so it must not share credentials with the
   // low-stakes cron. Fails closed when the env var is missing — otherwise
   // `Bearer undefined` would authenticate.
-  const secret = process.env.BATCH_ENRICH_SECRET;
-  const authHeader = request.headers.get("authorization");
-  if (!secret || authHeader !== `Bearer ${secret}`) {
+  if (!isBearerAuthorized(request.headers.get("authorization"), process.env.BATCH_ENRICH_SECRET)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  // Pas de corps attendu : un corps annoncé au-delà du plafond est refusé
+  // (Traefik ne plafonne pas en amont).
+  const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES);
+  if (tooLarge) return tooLarge;
 
   const { searchParams } = new URL(request.url);
   const reset = searchParams.get("reset") === "true";
@@ -36,20 +40,9 @@ export async function POST(request: NextRequest) {
       .from("recipes")
       .select("id, photo_url, generated_image_url");
 
-    if (allRecipes) {
-      const paths: string[] = [];
-      for (const r of allRecipes) {
-        for (const url of [r.photo_url, r.generated_image_url]) {
-          if (url) {
-            const path = photoPathFromUrl(url as string);
-            if (path) paths.push(path);
-          }
-        }
-      }
-      if (paths.length > 0) {
-        await getPhotoStore().remove(paths);
-        console.log(`[batch-enrich] Deleted ${paths.length} files from storage`);
-      }
+    const purged = await purgeRecipePhotos(allRecipes ?? []);
+    if (purged > 0) {
+      console.log(`[batch-enrich] Deleted ${purged} files from storage`);
     }
 
     // Reset all recipe fields

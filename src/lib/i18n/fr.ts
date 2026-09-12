@@ -706,6 +706,7 @@ export const t = {
     screenshotExtractFailed: "Impossible d'extraire la recette depuis les images",
     tokenMissing: "Token manquant",
     recipeNotFound: "Recette introuvable",
+    memberNotFound: "Membre introuvable",
     targetHouseholdMissing: "Carnet cible manquant",
     unauthorized: "Non autorisé",
     forbidden: "Accès refusé",
@@ -723,6 +724,8 @@ export const t = {
     imageRequired: "Au moins une image est requise",
     imagesMax: "Maximum 5 images",
     urlInvalid: "URL invalide",
+    tagNameRequired: "Le nom du tag est requis",
+    tagNameTooLong: "Nom de tag trop long (50 caractères max)",
     httpsOnly: "Seules les URLs HTTPS sont acceptées",
   },
 

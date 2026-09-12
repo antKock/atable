@@ -14,6 +14,9 @@ vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
   return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("@/lib/import-quota", () => ({
+  enforceShareCopyQuota: vi.fn().mockResolvedValue(null),
+}));
 
 const mockHeaders = headers as unknown as Mock;
 
@@ -60,6 +63,18 @@ describe("POST /api/recipes/copy", () => {
     mockHeaders.mockResolvedValue(new Headers());
     const res = await POST(request({ token: "abc" }));
     expect(res.status).toBe(401);
+  });
+
+  it("returns 429 when the per-owner share quota is exhausted, before any DB read", async () => {
+    const { enforceShareCopyQuota } = await import("@/lib/import-quota");
+    const { NextResponse } = await import("next/server");
+    vi.mocked(enforceShareCopyQuota).mockResolvedValueOnce(
+      NextResponse.json({ error: "quota" }, { status: 429 }),
+    );
+    const res = await POST(request({ token: "abcdefgh" }));
+    expect(res.status).toBe(429);
+    expect(enforceShareCopyQuota).toHaveBeenCalledWith("owner-test");
+    expect(supa.calls).toHaveLength(0);
   });
 
   it("returns 422 when the token is missing", async () => {

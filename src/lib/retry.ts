@@ -41,3 +41,24 @@ export async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promis
   }
   throw new Error("Unreachable");
 }
+
+/**
+ * Plafond de durée sur une promesse : rejette avec `onTimeout()` après `ms`.
+ * Le travail sous-jacent n'est pas annulé (pas d'AbortSignal transmis) — il
+ * s'agit de rendre la main au client avant SON timeout, pas d'économiser l'appel.
+ */
+export async function withDeadline<T>(
+  work: Promise<T>,
+  ms: number,
+  onTimeout: () => Error,
+): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(onTimeout()), ms);
+  });
+  try {
+    return await Promise.race([work, deadline]);
+  } finally {
+    clearTimeout(timer);
+  }
+}

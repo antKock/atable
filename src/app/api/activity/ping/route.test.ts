@@ -93,6 +93,20 @@ describe("POST /api/activity/ping", () => {
     expect(res.status).toBe(401);
   });
 
+  it("répond 204 (pas 401) pour un owner sans foyer : le client ne doit pas purger le cookie", async () => {
+    vi.mocked(getOwnerContext).mockResolvedValueOnce({
+      ownerId: "owner-alone",
+      ownerName: null,
+      ownerAlias: null,
+      recoveryEmail: null,
+      sessionId: "session-alone",
+      memberships: [],
+    });
+    const res = await POST(postRequest({ platform: "web" }));
+    expect(res.status).toBe(204);
+    expect(supa.calls).toHaveLength(0);
+  });
+
   // Opt-out de la garde démo par défaut de withOwnerAuth : le heartbeat d'un
   // visiteur démo alimente l'attribution démo du rollup 032.
   it("accepte le heartbeat d'un visiteur démo (opt-out allowDemoMutation)", async () => {

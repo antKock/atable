@@ -8,6 +8,7 @@ import {
 } from "@/lib/api/with-owner-auth";
 import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
+import type { Dictionary } from "@/lib/i18n/types";
 
 export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const supabase = createServerClient();
@@ -30,13 +31,17 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   return NextResponse.json({ tags: data ?? [] });
 });
 
-const CreateTagSchema = z.object({
-  name: z.string().min(1).max(50),
-});
+// Messages localisés (revue 2026-09-12 : les messages zod bruts partaient en
+// anglais dans le toast).
+const buildCreateTagSchema = (t: Dictionary) =>
+  z.object({
+    name: z.string().trim().min(1, t.validation.tagNameRequired).max(50, t.validation.tagNameTooLong),
+  });
 
 export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
-  const body = await request.json();
-  const result = CreateTagSchema.safeParse(body);
+  const t = await getT();
+  const body = await request.json().catch(() => null);
+  const result = buildCreateTagSchema(t).safeParse(body);
 
   if (!result.success) {
     return NextResponse.json(
@@ -53,7 +58,7 @@ export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const householdId =
     target instanceof NextResponse ? memberHouseholdIds(owner)[0] : target.householdId;
   if (!householdId) {
-    return forbiddenResponse(await getT());
+    return forbiddenResponse(t);
   }
   // Monde gelé : un tag custom d'un visiteur démo persisterait pour tous les
   // visiteurs suivants — refusé par la garde par défaut de withOwnerAuth.

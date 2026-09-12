@@ -17,19 +17,20 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
   }
   const householdId = memberIds[0];
 
-  const quotaResponse = await enforceImportQuota(householdId);
-  if (quotaResponse) return quotaResponse;
-
   try {
-    const body = await request.json();
+    // Valider AVANT de consommer le quota : une URL invalide ne coûte rien.
+    const body = await request.json().catch(() => null);
     const parsed = buildImportUrlSchema(t).safeParse(body);
 
     if (!parsed.success) {
       return NextResponse.json(
-        { error: parsed.error.issues[0]?.message ?? "URL invalide" },
+        { error: parsed.error.issues[0]?.message ?? t.validation.urlInvalid, code: "INVALID_DATA" },
         { status: 400 },
       );
     }
+
+    const quotaResponse = await enforceImportQuota(householdId);
+    if (quotaResponse) return quotaResponse;
 
     const formData = await extractRecipeFromUrl(parsed.data.url, { householdId });
     return NextResponse.json(formData);
@@ -37,7 +38,8 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
     console.error("[import/url] Error:", error);
 
     if (error instanceof ImportError) {
-      const status = error.code === "SITE_BLOCKED" ? 422 : 502;
+      const status =
+        error.code === "SITE_BLOCKED" ? 422 : error.code === "TIMEOUT" ? 504 : 502;
       return NextResponse.json(
         { error: error.message, code: error.code },
         { status },

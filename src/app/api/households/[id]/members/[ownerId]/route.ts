@@ -62,7 +62,7 @@ export const PATCH = withOwnerAuth(
       .maybeSingle()
     if (targetError) throw new Error(targetError.message)
     if (!target) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      return NextResponse.json({ error: t.api.memberNotFound }, { status: 404 })
     }
 
     // No-op explicite (rôle déjà à la valeur voulue) : succès sans garde.
@@ -113,7 +113,7 @@ export const DELETE = withOwnerAuth(
       .maybeSingle()
     if (targetError) throw new Error(targetError.message)
     if (!target) {
-      return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      return NextResponse.json({ error: t.api.memberNotFound }, { status: 404 })
     }
 
     // Retirer le dernier membre laisserait le foyer ingérable (retirer un

@@ -4,6 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
 import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
 import { getT } from "@/lib/i18n/server";
+import { enforceShareCopyQuota } from "@/lib/import-quota";
 
 // Duplicate a bucket-hosted image into a path owned by the new recipe so the
 // copy is self-contained — if the original owner later deletes their recipe or
@@ -42,6 +43,11 @@ export const POST = withOwnerAuth(
     if (!token) {
       return NextResponse.json({ error: t.api.tokenMissing }, { status: 422 });
     }
+
+    // Une copie résout un jeton de partage sans scoping foyer : même plafond
+    // que les lectures /r/[token] (énumération), par owner ici.
+    const quotaResponse = await enforceShareCopyQuota(owner.ownerId);
+    if (quotaResponse) return quotaResponse;
 
     // Copie = écriture : foyer cible explicite (multi-foyer) ou repli mono-foyer,
     // toujours un foyer où l'owner est membre.

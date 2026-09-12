@@ -3,20 +3,35 @@ import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { demoSessionRateLimit } from "@/lib/redis";
 
 vi.mock("@/lib/supabase/server");
+// Limiteur par IP (5/h) : compteur en mémoire par clé, comme le ferait Redis.
+vi.mock("@/lib/redis", () => ({
+  demoSessionRateLimit: { limit: vi.fn() },
+}));
 
 let supa: SupabaseMock;
 
 beforeEach(() => {
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
+  const hits = new Map<string, number>();
+  vi.mocked(demoSessionRateLimit.limit).mockImplementation(async (key: string) => {
+    const n = (hits.get(key) ?? 0) + 1;
+    hits.set(key, n);
+    return { success: n <= 5 } as never;
+  });
 });
 
-function request(): NextRequest {
+function request(headers: Record<string, string> = {}): NextRequest {
   return new NextRequest("https://test.local/api/demo/session", {
     method: "POST",
-    headers: { "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)" },
+    headers: {
+      "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+      "x-forwarded-for": "203.0.113.7",
+      ...headers,
+    },
   });
 }
 
@@ -96,5 +111,26 @@ describe("POST /api/demo/session (Fix 1.2)", () => {
         (c) => c.table === "owners" && c.ops.some((op) => op.method === "delete"),
       ),
     ).toBe(true);
+  });
+
+  it("limite à 5 sessions démo par IP et par heure : le 6e appel répond 429 (revue 2026-09-12)", async () => {
+    for (let i = 0; i < 5; i++) {
+      queueSuccess();
+      expect((await POST(request())).status).toBe(200);
+    }
+    const before = supa.calls.length;
+    const res = await POST(request());
+    expect(res.status).toBe(429);
+    expect((await res.json()).code).toBe("DEMO_QUOTA");
+    expect(supa.calls.length).toBe(before); // aucune écriture
+    // Une autre IP n'est pas affectée.
+    queueSuccess();
+    expect((await POST(request({ "x-forwarded-for": "198.51.100.9" }))).status).toBe(200);
+  });
+
+  it("refuse (413) un corps annoncé au-delà du plafond, avant toute écriture", async () => {
+    const res = await POST(request({ "content-length": String(2 * 1024 * 1024) }));
+    expect(res.status).toBe(413);
+    expect(supa.calls).toHaveLength(0);
   });
 });

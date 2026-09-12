@@ -3,6 +3,8 @@ import {
   importRateLimit,
   recipeCreateRateLimit,
   householdCreateRateLimit,
+  demoSessionRateLimit,
+  shareRateLimit,
 } from "@/lib/redis";
 import { getT } from "@/lib/i18n/server";
 import type { Ratelimit } from "@upstash/ratelimit";
@@ -43,4 +45,14 @@ export function enforceRecipeCreateQuota(householdId: string): Promise<NextRespo
 /** Household creation quota, keyed by IP (the route is unauthenticated). */
 export function enforceHouseholdCreateQuota(ip: string): Promise<NextResponse | null> {
   return enforceQuota(householdCreateRateLimit, ip, (t) => t.join.rateLimited, "HOUSEHOLD_QUOTA");
+}
+
+/** Demo session quota, keyed by IP (the route is unauthenticated). */
+export function enforceDemoSessionQuota(ip: string): Promise<NextResponse | null> {
+  return enforceQuota(demoSessionRateLimit, ip, (t) => t.join.rateLimited, "DEMO_QUOTA");
+}
+
+/** Copie d'une recette partagée (résolution de jeton), plafond par owner — même limiteur que /r/[token]. */
+export function enforceShareCopyQuota(ownerId: string): Promise<NextResponse | null> {
+  return enforceQuota(shareRateLimit, ownerId, (t) => t.join.rateLimited, "SHARE_QUOTA");
 }

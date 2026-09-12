@@ -49,6 +49,15 @@ export const householdCreateRateLimit = new Ratelimit({
   prefix: 'rl:hh:',
 })
 
+// Une session démo = un owner + un membership + une session en base, sans
+// aucune authentification. Même plafond par IP que la création de carnet
+// (revue 2026-09-12) : une boucle scriptée ne remplit pas la table owners.
+export const demoSessionRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(5, '1 h'),
+  prefix: 'rl:demo:',
+})
+
 // Per-IP limit on public share-link lookups (/r/[token]): makes token
 // enumeration impractical without slowing legitimate readers.
 export const shareRateLimit = new Ratelimit({

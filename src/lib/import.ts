@@ -1,6 +1,6 @@
 import openai from "@/lib/openai";
 import { AI_MODELS, withEffortFallback } from "@/lib/ai-models";
-import { withRetry } from "@/lib/retry";
+import { withRetry, withDeadline } from "@/lib/retry";
 import { recordAiCost, textCostUsd, type AiCallType } from "@/lib/ai-cost";
 import {
   runApifyActor,
@@ -32,7 +32,12 @@ export type ImportMeta = { householdId: string };
 export class ImportError extends Error {
   constructor(
     message: string,
-    public readonly code: "SITE_BLOCKED" | "SITE_UNREACHABLE" | "EXTRACTION_FAILED" | "TRANSCRIPTION_FAILED",
+    public readonly code:
+      | "SITE_BLOCKED"
+      | "SITE_UNREACHABLE"
+      | "EXTRACTION_FAILED"
+      | "TRANSCRIPTION_FAILED"
+      | "TIMEOUT",
   ) {
     super(message);
     this.name = "ImportError";
@@ -530,7 +535,24 @@ async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedR
   return structureRecipeFromText(markdown, { callType: "import_url_crawler", meta });
 }
 
-export async function extractRecipeFromUrl(
+// Budget global d'un import URL (fetch direct → crawler Apify → extraction),
+// sous le timeout client de 60 s (ImportSelector.tsx) : le client reçoit une
+// vraie réponse (code TIMEOUT) plutôt qu'un abandon silencieux. Chaque appel
+// OpenAI est déjà plafonné à 45 s (lib/openai.ts).
+export const URL_IMPORT_BUDGET_MS = 55_000;
+
+export function extractRecipeFromUrl(
+  url: string,
+  meta?: ImportMeta,
+): Promise<ImportedRecipeData> {
+  return withDeadline(
+    extractRecipeFromUrlUnbounded(url, meta),
+    URL_IMPORT_BUDGET_MS,
+    () => new ImportError("Import timed out", "TIMEOUT"),
+  );
+}
+
+async function extractRecipeFromUrlUnbounded(
   url: string,
   meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {

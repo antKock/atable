@@ -151,3 +151,41 @@ export function photoPathFromUrl(url: string, env: Env = process.env): string | 
   const legacy = url.match(new RegExp(`/${LEGACY_BUCKET}/([^?]+)`));
   return legacy ? decodeURIComponent(legacy[1]) : null;
 }
+
+/** Colonnes photo d'une recette telles que lues en base. */
+export type RecipePhotoColumns = {
+  photo_url: string | null;
+  generated_image_url: string | null;
+};
+
+/**
+ * Chemins bucket des photos hébergées par nous d'un lot de recettes (photo
+ * utilisateur + image générée) ; les URLs externes sont ignorées.
+ */
+export function recipePhotoPaths(recipes: RecipePhotoColumns[], env: Env = process.env): string[] {
+  const paths: string[] = [];
+  for (const r of recipes) {
+    for (const url of [r.photo_url, r.generated_image_url]) {
+      if (!url) continue;
+      const path = photoPathFromUrl(url, env);
+      if (path) paths.push(path);
+    }
+  }
+  return paths;
+}
+
+/**
+ * Purge du stockage les photos d'un lot de recettes. La suppression de la
+ * ligne en base (cascade ou DELETE direct) n'atteint jamais le bucket : chaque
+ * chemin de suppression (recette, foyer, reset batch) doit appeler ceci —
+ * Apple 5.1.1(v) exige une suppression effective côté serveur.
+ * @returns le nombre d'objets demandés en suppression.
+ */
+export async function purgeRecipePhotos(
+  recipes: RecipePhotoColumns[],
+  store: PhotoStore = getPhotoStore(),
+): Promise<number> {
+  const paths = recipePhotoPaths(recipes);
+  if (paths.length > 0) await store.remove(paths);
+  return paths.length;
+}

@@ -2,16 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/request-ip'
-import { redis, recoveryVerifyRateLimit } from '@/lib/redis'
+import { recoveryVerifyRateLimit } from '@/lib/redis'
 import {
   consumeMagicToken,
   createOwnerSession,
   executeMergeOwners,
 } from '@/lib/queries/recovery'
-import { resolveOwnerContext } from '@/lib/auth/owner-context'
+import { resolveSessionOwnerFromCookie } from '@/lib/auth/session-owner'
 import { getDeviceName } from '@/lib/auth/device-name'
-import { signSession, verifySession, setSessionCookie } from '@/lib/auth/session'
+import { signSession, setSessionCookie } from '@/lib/auth/session'
 import { getT } from '@/lib/i18n/server'
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
 
 // Alphabet share-token, longueur défensive large : le vrai filtre est le hash.
 const TOKEN_REGEX = /^[2-9A-HJ-NP-Za-km-np-z]{8,64}$/
@@ -28,6 +29,11 @@ const TOKEN_REGEX = /^[2-9A-HJ-NP-Za-km-np-z]{8,64}$/
 export async function POST(request: NextRequest) {
   const t = await getT()
   try {
+    // Route publique : corps annoncé au-delà du plafond refusé avant lecture
+    // (Traefik ne plafonne pas en amont ; withOwnerAuth le fait pour les autres).
+    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
+    if (tooLarge) return tooLarge
+
     let body: unknown
     try {
       body = await request.json()
@@ -52,13 +58,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (consumed.purpose === 'merge') {
-      // Route publique : le proxy ne passe pas ici, donc ni x-session-id
-      // ni le check de révocation Redis. On refait les deux à la main — une
-      // session révoquée ne doit pas servir de source de fusion.
-      const raw = request.cookies.get('atable_session')?.value
-      const payload = raw ? await verifySession(raw) : null
-      const revoked = payload ? await redis.get(`revoked:${payload.sid}`) : null
-      const source = payload && !revoked ? await resolveOwnerContext(payload.sid) : null
+      // Route publique : session + révocation résolues à la main (cf.
+      // session-owner.ts) — une session révoquée ne doit pas servir de source
+      // de fusion.
+      const source = await resolveSessionOwnerFromCookie(request)
       const sourceIsDemo = source?.memberships.some((m) => m.isDemo) ?? false
       if (source && source.ownerId !== consumed.ownerId && !sourceIsDemo) {
         await executeMergeOwners(source.ownerId, consumed.ownerId)
