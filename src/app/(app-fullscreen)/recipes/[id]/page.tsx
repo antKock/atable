@@ -13,8 +13,9 @@ import {
 import WakeLockActivator from "@/components/recipes/WakeLockActivator";
 import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
 import RecipeView from "@/components/recipes/RecipeView";
+import { getT } from "@/lib/i18n/server";
 import RecipeActionPill from "@/components/recipes/RecipeActionPill";
-import BackCircleButton from "@/components/recipes/BackCircleButton";
+import BackButton from "@/components/ui/BackButton";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -98,6 +99,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   if (!result || !owner) notFound();
   const { recipe, householdId } = result;
+  const t = await getT();
 
   trackView(id, recipe.viewCount);
   trackPersonView(owner, householdId);
@@ -139,7 +141,7 @@ export default async function RecipeDetailPage({ params }: Props) {
   const heroOverlay = (
     <>
       {/* Back button — clean white circle */}
-      <BackCircleButton href="/home" />
+      <BackButton variant="circle" href="/home" />
 
       {/* Pill d'actions (client). Un INVITÉ n'a que « Partager » (le reste —
           éditer/supprimer/déplacer — reste réservé aux membres via canManage).
@@ -162,7 +164,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         enrichmentStatus={recipe.enrichmentStatus}
         imageStatus={recipe.imageStatus}
       />
-      <RecipeView recipe={recipe} householdName={householdName} heroOverlay={heroOverlay} />
+      <RecipeView recipe={recipe} householdName={householdName} heroOverlay={heroOverlay} t={t} />
     </>
   );
 }

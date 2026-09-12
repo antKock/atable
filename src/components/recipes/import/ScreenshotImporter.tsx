@@ -4,7 +4,7 @@ import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import NextImage from "next/image";
 import { Image as ImageIcon, ChevronRight, Upload, Plus, X } from "lucide-react";
 import * as Sentry from "@sentry/nextjs";
-import { Capacitor } from "@capacitor/core";
+import { getPlatform } from "@/lib/native";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useT } from "@/lib/i18n/client";
 import ImportCard from "./ImportCard";
+import { isPickerCancellation, pickGalleryImagesAsFiles, takePhotoAsFile } from "@/lib/native/camera";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_FILES = 5;
@@ -27,47 +28,10 @@ const MAX_FILES = 5;
 // donne un snapshot serveur stable (false) puis la vraie valeur côté client
 // (même pattern que InAppBackButton).
 const subscribeNoop = () => () => {};
-const readIsAndroid = () => Capacitor.getPlatform() === "android";
+const readIsAndroid = () => getPlatform() === "android";
 const readIsAndroidServer = () => false;
 function useIsAndroid(): boolean {
   return useSyncExternalStore(subscribeNoop, readIsAndroid, readIsAndroidServer);
-}
-
-// @capacitor/camera reject codes that mean "the user backed out", not a real
-// failure — these stay silent. Anything else is a genuine error worth surfacing.
-const CAMERA_CANCEL_CODES = new Set([
-  "OS-PLUG-CAMR-0006", // TakePhotoCancelled
-  "OS-PLUG-CAMR-0013", // EditPhotoCancelled
-  "OS-PLUG-CAMR-0020", // ChooseMediaCancelled
-]);
-
-function isPickerCancellation(e: unknown): boolean {
-  const code = (e as { code?: string })?.code;
-  if (code) return CAMERA_CANCEL_CODES.has(code);
-  // Legacy/iOS path rejects with a message, not a code.
-  return ((e as { message?: string })?.message ?? "")
-    .toLowerCase()
-    .includes("cancel");
-}
-
-// Fetch a Capacitor camera result back into a File so it flows through the
-// same addFiles() pipeline as <input>-selected files. Prefer webPath; fall
-// back to convertFileSrc(uri) so a native uri-only result still loads.
-async function mediaResultToFile(
-  result: { webPath?: string; uri?: string },
-  name: string,
-): Promise<File | null> {
-  const src = result.webPath ?? (result.uri && Capacitor.convertFileSrc(result.uri));
-  if (!src) return null;
-  try {
-    const blob = await (await fetch(src)).blob();
-    const ext = (blob.type.split("/")[1] || "jpg").split("+")[0];
-    return new File([blob], `${name}.${ext}`, {
-      type: blob.type || "image/jpeg",
-    });
-  } catch {
-    return null;
-  }
 }
 
 interface FileWithKey {
@@ -102,7 +66,9 @@ export default function ScreenshotImporter({
   // cleanup closes over the first render's (empty) array and would revoke
   // nothing — full-resolution previews would leak on every visit.
   const entriesRef = useRef<FileWithKey[]>([]);
-  entriesRef.current = fileEntries;
+  useEffect(() => {
+    entriesRef.current = fileEntries;
+  }, [fileEntries]);
   useEffect(() => {
     return () => {
       entriesRef.current.forEach((e) => URL.revokeObjectURL(e.previewUrl));
@@ -157,12 +123,8 @@ export default function ScreenshotImporter({
   // addFiles() like the <input>.
   async function pickFromCamera() {
     setSourceDialogOpen(false);
-    const { Camera } = await import("@capacitor/camera");
     try {
-      const photo = await Camera.takePhoto({});
-      const file = await mediaResultToFile(photo, `photo-${Date.now()}`);
-      if (!file) throw new Error("camera photo could not be read");
-      addFiles([file]);
+      addFiles([await takePhotoAsFile()]);
     } catch (e) {
       handlePickerError(e);
     }
@@ -172,22 +134,9 @@ export default function ScreenshotImporter({
     setSourceDialogOpen(false);
     const remaining = MAX_FILES - fileEntries.length;
     if (remaining <= 0) return;
-
-    const { Camera } = await import("@capacitor/camera");
-    const stamp = Date.now();
     try {
-      const { results } = await Camera.chooseFromGallery({
-        allowMultipleSelection: true,
-        limit: remaining,
-      });
-      if (results.length === 0) return; // nothing selected
-      const files = (
-        await Promise.all(
-          results.map((r, i) => mediaResultToFile(r, `photo-${stamp}-${i}`)),
-        )
-      ).filter((f): f is File => f !== null);
-      if (files.length === 0) throw new Error("gallery images could not be read");
-      addFiles(files);
+      const files = await pickGalleryImagesAsFiles(remaining);
+      if (files.length > 0) addFiles(files);
     } catch (e) {
       handlePickerError(e);
     }

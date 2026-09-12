@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { t } from "@/lib/i18n/fr";
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
 import RecipeView from "./RecipeView";
@@ -33,19 +34,19 @@ const baseRecipe: Recipe = {
 
 describe("RecipeView — servings suffix (spec #12)", () => {
   it("shows « pour N pers. » next to the Ingrédients heading", () => {
-    render(<RecipeView recipe={{ ...baseRecipe, servings: 4 }} />);
+    render(<RecipeView t={t} recipe={{ ...baseRecipe, servings: 4 }} />);
     const heading = screen.getByRole("heading", { name: /Ingrédients/ });
     expect(heading.textContent).toContain("— pour 4 pers.");
   });
 
   it("shows the singular form for 1 person", () => {
-    render(<RecipeView recipe={{ ...baseRecipe, servings: 1 }} />);
+    render(<RecipeView t={t} recipe={{ ...baseRecipe, servings: 1 }} />);
     const heading = screen.getByRole("heading", { name: /Ingrédients/ });
     expect(heading.textContent).toContain("— pour 1 pers.");
   });
 
   it("renders no suffix when servings is null", () => {
-    render(<RecipeView recipe={baseRecipe} />);
+    render(<RecipeView t={t} recipe={baseRecipe} />);
     const heading = screen.getByRole("heading", { name: /Ingrédients/ });
     expect(heading.textContent).not.toContain("pour");
   });
@@ -53,13 +54,13 @@ describe("RecipeView — servings suffix (spec #12)", () => {
 
 describe("RecipeView — flat lists (no sections)", () => {
   it("renders each ingredient line as a list item", () => {
-    render(<RecipeView recipe={baseRecipe} />);
+    render(<RecipeView t={t} recipe={baseRecipe} />);
     expect(screen.getByText("1 poulet")).not.toBeNull();
     expect(screen.getByText("Champignons")).not.toBeNull();
   });
 
   it("numbers steps from 1 without any section heading", () => {
-    const { container } = render(<RecipeView recipe={baseRecipe} />);
+    const { container } = render(<RecipeView t={t} recipe={baseRecipe} />);
     const numbers = [...container.querySelectorAll("ol li span")].map(
       (el) => el.textContent,
     );
@@ -76,7 +77,7 @@ describe("RecipeView — '//' sections", () => {
   };
 
   it("renders section titles as headings", () => {
-    render(<RecipeView recipe={sectioned} />);
+    render(<RecipeView t={t} recipe={sectioned} />);
     const headings = screen.getAllByRole("heading", { level: 3 });
     expect(headings.map((h) => h.textContent)).toEqual([
       "Pour le poulet",
@@ -87,7 +88,7 @@ describe("RecipeView — '//' sections", () => {
   });
 
   it("restarts step numbering at 1 in each section", () => {
-    const { container } = render(<RecipeView recipe={sectioned} />);
+    const { container } = render(<RecipeView t={t} recipe={sectioned} />);
     const numbers = [...container.querySelectorAll("ol li span")].map(
       (el) => el.textContent,
     );
@@ -95,7 +96,7 @@ describe("RecipeView — '//' sections", () => {
   });
 
   it("groups ingredients under their section", () => {
-    const { container } = render(<RecipeView recipe={sectioned} />);
+    const { container } = render(<RecipeView t={t} recipe={sectioned} />);
     const lists = container.querySelectorAll("ul");
     expect(lists.length).toBe(2);
     expect(lists[0].textContent).toContain("1 poulet");
@@ -107,7 +108,7 @@ describe("RecipeView — '//' sections", () => {
       ...baseRecipe,
       steps: "Préchauffer le four\n// Pour la sauce\nRéduire la crème",
     };
-    const { container } = render(<RecipeView recipe={recipe} />);
+    const { container } = render(<RecipeView t={t} recipe={recipe} />);
     const headings = [...container.querySelectorAll("h3")].map(
       (h) => h.textContent,
     );
@@ -122,7 +123,7 @@ describe("RecipeView — '//' sections", () => {
 describe("RecipeView — notes (spec #13)", () => {
   it("renders the notes text as recorded, not as a list", () => {
     const { container } = render(
-      <RecipeView
+      <RecipeView t={t}
         recipe={{ ...baseRecipe, notes: "Se congèle très bien.\nEncore meilleur le lendemain." }}
       />
     );
@@ -139,10 +140,10 @@ describe("RecipeView — notes (spec #13)", () => {
   });
 
   it("renders no Notes section when notes is null or blank", () => {
-    render(<RecipeView recipe={baseRecipe} />);
+    render(<RecipeView t={t} recipe={baseRecipe} />);
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
     cleanup();
-    render(<RecipeView recipe={{ ...baseRecipe, notes: "  \n " }} />);
+    render(<RecipeView t={t} recipe={{ ...baseRecipe, notes: "  \n " }} />);
     expect(screen.queryByRole("heading", { name: "Notes" })).toBeNull();
   });
 });

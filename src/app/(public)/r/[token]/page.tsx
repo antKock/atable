@@ -8,7 +8,7 @@ import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import { resolveOwnerContext, householdIds } from "@/lib/auth/owner-context";
 import RecipeView from "@/components/recipes/RecipeView";
-import { getLocale } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { dictionaries, LOCALES } from "@/lib/i18n";
 import { ogLocaleTag } from "@/lib/i18n/locale";
 import { tagLabel } from "@/lib/i18n/labels";
@@ -93,6 +93,8 @@ export default async function SharedRecipePage({ params }: Props) {
   if (!result) notFound();
 
   const { recipe, householdId } = result;
+  // Langue du LECTEUR (pas l'indice `?l=` réservé aux métadonnées OG).
+  const t = await getT();
 
   // Viewer context from the session cookie (the route itself is public).
   const cookieStore = await cookies();
@@ -116,7 +118,7 @@ export default async function SharedRecipePage({ params }: Props) {
       className="min-h-dvh bg-background pb-40"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <RecipeView recipe={recipe} heroOverlay={<InAppBackButton />} />
+      <RecipeView recipe={recipe} heroOverlay={<InAppBackButton />} t={t} />
       <ShareRecipeActions
         token={token}
         viewerState={viewerState}

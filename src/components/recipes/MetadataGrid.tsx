@@ -1,6 +1,4 @@
-"use client";
-
-import { useT } from "@/lib/i18n/client";
+import type { Dictionary } from "@/lib/i18n/types";
 import { complexityLabel, cookTimeLabel, costLabel } from "@/lib/i18n/labels";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -10,6 +8,8 @@ interface MetadataGridProps {
   cost: string | null;
   complexity: string | null;
   isLoading: boolean;
+  /** Dictionnaire de la langue courante (composant serveur-compatible : pas de useT). */
+  t: Dictionary;
 }
 
 function MetadataValue({ value, isLoading }: { value: string | null; isLoading: boolean }) {
@@ -30,8 +30,8 @@ export default function MetadataGrid({
   cost,
   complexity,
   isLoading,
+  t,
 }: MetadataGridProps) {
-  const t = useT();
   return (
     <div
       className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-4 gap-y-3 rounded-lg px-4 py-3"

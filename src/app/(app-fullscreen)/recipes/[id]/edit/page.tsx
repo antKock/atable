@@ -1,8 +1,7 @@
 export const dynamic = "force-dynamic";
 
 import { notFound } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import BackButton from "@/components/ui/BackButton";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { getOwnerContext, householdIds, roleForHousehold } from "@/lib/auth/owner-context";
@@ -39,13 +38,7 @@ export default async function EditRecipePage({ params }: Props) {
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <div className="mb-8 flex items-center gap-3">
-        <Link
-          href={`/recipes/${id}`}
-          aria-label={t.a11y.backButton}
-          className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-        >
-          <ArrowLeft size={20} strokeWidth={1.75} />
-        </Link>
+        <BackButton variant="header" href={`/recipes/${id}`} />
         <h1 className="display"
           style={{
             fontStyle: "italic",

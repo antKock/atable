@@ -1,8 +1,6 @@
-"use client";
-
 import Image from "next/image";
 import type { ReactNode } from "react";
-import { useT } from "@/lib/i18n/client";
+import type { Dictionary } from "@/lib/i18n/types";
 import { tagLabel } from "@/lib/i18n/labels";
 import { Skeleton } from "@/components/ui/skeleton";
 import Chip from "@/components/recipes/Chip";
@@ -62,13 +60,16 @@ type Props = {
   // header…). Lets the authenticated detail page and the public share page
   // share the exact recipe rendering while supplying their own chrome.
   heroOverlay?: ReactNode;
+  /** Dictionnaire de la langue courante, fourni par la page (`await getT()`). */
+  t: Dictionary;
 };
 
 // Presentational recipe body (hero + title + metadata + ingredients + steps +
 // tags). Pure rendering — no data fetching, polling, or view tracking; the
-// caller wraps it with whatever behavior it needs.
-export default function RecipeView({ recipe, householdName, heroOverlay }: Props) {
-  const t = useT();
+// caller wraps it with whatever behavior it needs. Composant SERVEUR (revue
+// 2026-09-12) : `t` arrive en prop, plus de « use client » pour un simple
+// useT — la fiche publique /r/[token] n'embarque plus ce rendu côté client.
+export default function RecipeView({ recipe, householdName, heroOverlay, t }: Props) {
   const ingredientSections = parseSections(recipe.ingredients);
   const stepSections = parseSections(recipe.steps);
 
@@ -129,6 +130,7 @@ export default function RecipeView({ recipe, householdName, heroOverlay }: Props
         {/* MetadataGrid */}
         <div className="mt-4">
           <MetadataGrid
+            t={t}
             prepTime={recipe.prepTime}
             cookTime={recipe.cookTime}
             cost={recipe.cost}

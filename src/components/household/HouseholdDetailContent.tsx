@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronLeft, ChevronRight, Eye, UserPlus } from 'lucide-react'
+import { ChevronRight, Eye, UserPlus } from 'lucide-react'
 import { useT } from '@/lib/i18n/client'
+import BackButton from '@/components/ui/BackButton'
 import { apiRequest } from '@/lib/api-client'
 import type { MembershipRole } from '@/lib/auth/owner-context'
 import InlineEditableField from './InlineEditableField'
@@ -135,13 +136,7 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
 
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
-      <Link
-        href="/household"
-        aria-label={t.a11y.backButton}
-        className="mb-2 -ml-2 flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <ChevronLeft size={22} strokeWidth={2} aria-hidden="true" />
-      </Link>
+      <BackButton href="/household" />
 
       {/* Nom du foyer, éditable inline (readOnly + badge si démo ou invité) */}
       <div className="mb-1 flex items-center gap-2">

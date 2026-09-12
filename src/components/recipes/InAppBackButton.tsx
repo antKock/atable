@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { isNativeApp } from "@/lib/native";
-import BackCircleButton from "@/components/recipes/BackCircleButton";
+import BackButton from "@/components/ui/BackButton";
 
 // Never changes after load → no real subscription needed.
 const subscribe = () => () => {};
@@ -22,5 +22,5 @@ export default function InAppBackButton() {
   );
 
   if (!isNative) return null;
-  return <BackCircleButton href="/home" />;
+  return <BackButton variant="circle" href="/home" />;
 }

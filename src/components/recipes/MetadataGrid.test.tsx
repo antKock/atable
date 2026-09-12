@@ -9,7 +9,7 @@ afterEach(() => cleanup());
 describe("MetadataGrid", () => {
   it("renders all four metadata labels", () => {
     render(
-      <MetadataGrid prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
+      <MetadataGrid t={t} prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
     );
     expect(screen.getByText(t.metadata.prepTime)).not.toBeNull();
     expect(screen.getByText(t.metadata.cookTime)).not.toBeNull();
@@ -19,7 +19,7 @@ describe("MetadataGrid", () => {
 
   it("shows dash for null values when not loading", () => {
     render(
-      <MetadataGrid prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
+      <MetadataGrid t={t} prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
     );
     const dashes = screen.getAllByText("—");
     expect(dashes).toHaveLength(4);
@@ -27,7 +27,7 @@ describe("MetadataGrid", () => {
 
   it("shows actual values when provided", () => {
     render(
-      <MetadataGrid prepTime="10-20 min" cookTime="< 15 min" cost="€" complexity="facile" isLoading={false} />,
+      <MetadataGrid t={t} prepTime="10-20 min" cookTime="< 15 min" cost="€" complexity="facile" isLoading={false} />,
     );
     expect(screen.getByText("10-20 min")).not.toBeNull();
     expect(screen.getByText("< 15 min")).not.toBeNull();
@@ -38,7 +38,7 @@ describe("MetadataGrid", () => {
 
   it("shows shimmer blocks when loading", () => {
     const { container } = render(
-      <MetadataGrid prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={true} />,
+      <MetadataGrid t={t} prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={true} />,
     );
     const shimmers = container.querySelectorAll("[aria-busy='true']");
     expect(shimmers.length).toBe(4);
@@ -46,7 +46,7 @@ describe("MetadataGrid", () => {
 
   it("has aria-live for enrichment completion announcements", () => {
     const { container } = render(
-      <MetadataGrid prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
+      <MetadataGrid t={t} prepTime={null} cookTime={null} cost={null} complexity={null} isLoading={false} />,
     );
     expect(container.querySelector("[aria-live='polite']")).not.toBeNull();
   });
