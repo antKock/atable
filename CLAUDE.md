@@ -52,8 +52,11 @@ une note `.md` par item, avec un `id` numérique unique en frontmatter (plus `zo
   serveur : `ssh mijote-vps`, `scripts/dokploy.mjs`, `scripts/ovh.mjs`, `scripts/vps/bootstrap.sh`.
 - Branche de travail : `staging` (déploiement auto). `main` = prod, **protégée** :
   promotion via `gh pr create` + `gh pr merge --admin`, avec le compte gh **antKock**.
-- Migrations DB : `supabase/migrations/`, appliquées via `supabase db push --linked`
-  (re-link pour changer d'env staging ↔ prod).
+- **Base et photos sur le VPS depuis le 2026-09-12** (`docs/infra/migration-supabase-vps.md`) :
+  Postgres + PostgREST Dokploy par env, photos sur OVH Object Storage S3, sauvegardes
+  nocturnes S3. Migrations DB : `supabase/migrations/`, **appliquées par ssh sur les deux
+  bases VPS** (procédure « Migrations SQL après la bascule » de la doc) — `supabase db push
+  --linked` ne sert plus (les projets Supabase sont conservés une semaine puis supprimés).
 - Les gotchas connus (Dokploy/Traefik, Supabase, Capacitor) sont dans la note
   `Opérations & Pièges.md` du vault — la lire avant toute opération d'infra.
   App Store Connect : `scripts/apple-connect.mjs`
