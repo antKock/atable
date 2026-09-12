@@ -451,29 +451,16 @@ export default function PrivacyFr() {
               <Td>
                 <strong>OVHcloud</strong>
               </Td>
-              <Td>Hébergement de l&apos;application (serveur privé virtuel)</Td>
-              <Td>Données techniques de requête, journaux</Td>
+              <Td>
+                Hébergement de l&apos;application, base de données, stockage
+                des photos et limitation de débit (serveur privé virtuel et
+                stockage d&apos;objets)
+              </Td>
+              <Td>
+                Carnets, recettes, sessions, photos, adresse IP, données
+                techniques de requête, journaux, sauvegardes
+              </Td>
               <Td>France (Gravelines)</Td>
-            </tr>
-            <tr>
-              <Td>
-                <strong>Supabase</strong>
-              </Td>
-              <Td>Base de données et stockage des photos</Td>
-              <Td>Carnets, recettes, sessions, photos</Td>
-              <Td>
-                Union européenne (Irlande, <code>eu-west-1</code>)
-              </Td>
-            </tr>
-            <tr>
-              <Td>
-                <strong>Upstash</strong>
-              </Td>
-              <Td>Limitation de débit (sécurité)</Td>
-              <Td>Adresse IP, identifiants de session</Td>
-              <Td>
-                Royaume-Uni (Londres, <code>eu-west-2</code>)
-              </Td>
             </tr>
             <tr>
               <Td>
@@ -539,9 +526,8 @@ export default function PrivacyFr() {
           7. Transferts de données hors Union européenne
         </H2>
         <P>
-          <strong>OVHcloud</strong> et <strong>Supabase</strong>, qui hébergent
-          l&apos;essentiel de vos données, opèrent{" "}
-          <strong>au sein de l&apos;Union européenne</strong>. Plusieurs
+          <strong>OVHcloud</strong>, qui héberge l&apos;essentiel de vos
+          données, opère <strong>en France</strong>. Plusieurs
           sous-traitants traitent néanmoins des données en dehors de
           l&apos;UE :
         </P>
@@ -560,18 +546,13 @@ export default function PrivacyFr() {
           </li>
           <li>
             <strong>Resend</strong> (e-mails de récupération d&apos;accès) opère
-            aux <strong>États-Unis</strong> ;
-          </li>
-          <li>
-            <strong>Upstash</strong> (limitation de débit) opère au{" "}
-            <strong>Royaume-Uni</strong>.
+            aux <strong>États-Unis</strong>.
           </li>
         </UL>
         <P>
           Ces transferts sont encadrés par des garanties appropriées au sens
-          du RGPD : clauses contractuelles types de la Commission européenne,
-          décision d&apos;adéquation Royaume-Uni du 28 juin 2021, et/ou adhésion
-          au cadre de protection des données UE–États-Unis (
+          du RGPD : clauses contractuelles types de la Commission européenne
+          et/ou adhésion au cadre de protection des données UE–États-Unis (
           <em>EU–US Data Privacy Framework</em>) pour les prestataires établis
           aux États-Unis.
         </P>

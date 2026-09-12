@@ -166,9 +166,7 @@ suivants, qui agissent en qualité de **sous-traitants** pour notre compte :
 
 | Prestataire | Rôle | Données concernées | Localisation |
 |---|---|---|---|
-| **OVHcloud** | Hébergement de l'application (serveur privé virtuel) | Données techniques de requête, journaux | France (Gravelines) |
-| **Supabase** | Base de données et stockage des photos | Foyers, recettes, sessions, photos | Union européenne (Irlande, `eu-west-1`) |
-| **Upstash** | Limitation de débit (sécurité) | Adresse IP, identifiants de session | Royaume-Uni (Londres, `eu-west-2`) |
+| **OVHcloud** | Hébergement de l'application, base de données, stockage des photos et limitation de débit (serveur privé virtuel et stockage d'objets) | Foyers, recettes, sessions, photos, adresse IP, données techniques de requête, journaux, sauvegardes | France (Gravelines) |
 | **OpenAI** | Transcription audio, lecture d'images, structuration de texte | Contenu soumis aux imports (section 5) | États-Unis |
 | **Apify** | Récupération du contenu de pages web lors de l'import par lien (Instagram, sites protégeant l'accès automatisé) | Adresse de la page à importer | États-Unis |
 | **Sentry** | Journalisation des erreurs et rapports de plantage | Messages d'erreur, contexte technique (type d'appareil, système, identifiant de session) | États-Unis |
@@ -184,21 +182,18 @@ API.
 
 ## 7. Transferts de données hors Union européenne
 
-OVHcloud et Supabase, qui hébergent l'essentiel de vos données, opèrent
-**au sein de l'Union européenne**. Deux sous-traitants traitent néanmoins
-des données en dehors de l'UE :
+OVHcloud, qui héberge l'essentiel de vos données, opère **en France**.
+Plusieurs sous-traitants traitent néanmoins des données en dehors de l'UE :
 
 - **OpenAI** (imports IA) opère aux **États-Unis** ;
 - **Apify** (import par lien) opère aux **États-Unis** ;
 - **Sentry** (rapports d'erreur) opère aux **États-Unis** ;
-- **Resend** (e-mails de récupération d'accès) opère aux **États-Unis** ;
-- **Upstash** (limitation de débit) opère au **Royaume-Uni**.
+- **Resend** (e-mails de récupération d'accès) opère aux **États-Unis**.
 
 Ces transferts sont encadrés par des garanties appropriées au sens du RGPD :
-clauses contractuelles types de la Commission européenne, décision
-d'adéquation Royaume-Uni du 28 juin 2021, et/ou adhésion au cadre de
-protection des données UE–États-Unis (*EU–US Data Privacy Framework*) pour les
-prestataires établis aux États-Unis.
+clauses contractuelles types de la Commission européenne et/ou adhésion au
+cadre de protection des données UE–États-Unis (*EU–US Data Privacy Framework*)
+pour les prestataires établis aux États-Unis.
 
 ---
 
