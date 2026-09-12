@@ -24,6 +24,18 @@ const PINNED_DEFAULTS: Record<string, string> = {
   // Pinné explicitement pour ne pas dépendre de .env.local ; les specs FR
   // restent FR car le contexte Playwright envoie `locale: "fr-FR"`.
   I18N_EN_ENABLED: "1",
+  // Migration Supabase → VPS (2026-09-12) : .env.local porte désormais le
+  // PostgREST staging (via tunnel SSH) et le S3 OVH. Sans ces pins, le serveur
+  // E2E écrirait dans la base STAGING et non dans le Supabase local — vécu le
+  // 2026-09-12 (foyers de test nettoyés à la main). Vide = repli Supabase local.
+  DATABASE_REST_URL: "",
+  DATABASE_REST_KEY: "",
+  S3_ACCESS_KEY_ID: "",
+  S3_SECRET_ACCESS_KEY: "",
+  S3_BUCKET: "",
+  S3_ENDPOINT: "",
+  S3_REGION: "",
+  S3_PUBLIC_URL: "",
 };
 
 const REQUIRED_KEYS = [
