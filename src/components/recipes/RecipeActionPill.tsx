@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Pencil, FolderInput } from "lucide-react";
 import { toast } from "sonner";
 import { useT } from "@/lib/i18n/client";
+import { useApiMutation } from "@/hooks/useApiMutation";
 import ShareButton from "./ShareButton";
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import HouseholdPickerDialog, {
@@ -40,7 +41,9 @@ export default function RecipeActionPill({
   const t = useT();
   const router = useRouter();
   const [moveOpen, setMoveOpen] = useState(false);
-  const [moving, setMoving] = useState(false);
+  const { run: runMove, loading: moving } = useApiMutation({
+    fallbackError: t.household.picker.moveError,
+  });
 
   // « Déplacer » n'a de sens que pour un membre, avec au moins un AUTRE foyer membre.
   const canMove = canManage && memberFoyers.some((f) => f.id !== currentHouseholdId);
@@ -53,31 +56,18 @@ export default function RecipeActionPill({
   }));
 
   async function handleMove(householdId: string) {
-    setMoving(true);
-    try {
-      const res = await fetch(`/api/recipes/${recipeId}/move`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ householdId }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error((data as { error?: string }).error ?? t.household.picker.moveError);
-      }
-      const target = memberFoyers.find((f) => f.id === householdId);
-      setMoveOpen(false);
-      toast.success(
-        target ? t.household.picker.moved(target.name) : t.feedback.recipeUpdated,
-        { duration: 2500 },
-      );
-      router.refresh();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t.household.picker.moveError, {
-        duration: Infinity,
-      });
-    } finally {
-      setMoving(false);
-    }
+    const data = await runMove(`/api/recipes/${recipeId}/move`, {
+      method: "PATCH",
+      body: { householdId },
+    });
+    if (!data) return;
+    const target = memberFoyers.find((f) => f.id === householdId);
+    setMoveOpen(false);
+    toast.success(
+      target ? t.household.picker.moved(target.name) : t.feedback.recipeUpdated,
+      { duration: 2500 },
+    );
+    router.refresh();
   }
 
   return (

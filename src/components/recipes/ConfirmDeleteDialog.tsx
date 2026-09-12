@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useSWRConfig } from "swr";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +15,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { useT } from "@/lib/i18n/client";
+import { useApiMutation } from "@/hooks/useApiMutation";
+import { useInvalidateRecipeLists } from "@/lib/swr";
 
 interface ConfirmDeleteDialogProps {
   recipeId: string;
@@ -34,35 +35,17 @@ export default function ConfirmDeleteDialog({
 }: ConfirmDeleteDialogProps) {
   const t = useT();
   const router = useRouter();
-  const { mutate } = useSWRConfig();
+  const invalidateRecipeLists = useInvalidateRecipeLists();
   const [open, setOpen] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const { run, loading: isDeleting } = useApiMutation({ fallbackError: t.feedback.deleteError });
 
   async function handleDelete() {
-    setIsDeleting(true);
-    try {
-      const response = await fetch(`/api/recipes/${recipeId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.error ?? t.feedback.deleteError);
-      }
-
-      setOpen(false);
-      toast.success(t.feedback.recipeDeleted, { duration: 2500 });
-      mutate("/api/carousels");
-      mutate("/api/library");
-      router.push("/home");
-    } catch (err) {
-      setOpen(false);
-      toast.error(
-        err instanceof Error ? err.message : t.feedback.deleteError,
-        { duration: Infinity }
-      );
-      setIsDeleting(false);
-    }
+    const data = await run(`/api/recipes/${recipeId}`, { method: "DELETE" });
+    setOpen(false);
+    if (!data) return;
+    toast.success(t.feedback.recipeDeleted, { duration: 2500 });
+    invalidateRecipeLists();
+    router.push("/home");
   }
 
   return (

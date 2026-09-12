@@ -1,22 +1,18 @@
 "use client";
 
 import { useReducer, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useSWRConfig } from "swr";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useT } from "@/lib/i18n/client";
-import { usePhotoUpload } from "@/hooks/usePhotoUpload";
-import { maybeRequestReview } from "@/lib/review";
-import { notifyShareExtensionDone } from "@/lib/share-extension";
+import { useRecipeSave } from "./useRecipeSave";
+import { formReducer, initFormState } from "./recipe-form-state";
 import PhotoManager from "./PhotoManager";
 import TagInput from "./TagInput";
 import ChipSelector from "./ChipSelector";
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 import HouseholdPickerDialog from "@/components/household/HouseholdPickerDialog";
-import type { Recipe, Tag } from "@/types/recipe";
+import type { Recipe } from "@/types/recipe";
 import type { RecipeSource } from "@/lib/schemas/recipe";
 
 /** Foyer membre proposé au choix à l'enregistrement (multi-foyer, Lot 4). */
@@ -65,107 +61,6 @@ interface EditProps {
 }
 
 type RecipeFormProps = CreateProps | EditProps;
-
-// ---------------------------------------------------------------------------
-// Form state — one reducer instead of 13 useState hooks. The photo actions
-// encode the coupled invariants (replacing a photo cancels removal and
-// regeneration, etc.) in one place instead of in scattered callbacks.
-// ---------------------------------------------------------------------------
-
-type FormState = {
-  title: string;
-  ingredients: string;
-  steps: string;
-  notes: string;
-  selectedTags: Tag[];
-  photoFile: File | null;
-  photoRemoved: boolean;
-  regenerateRequested: boolean;
-  isSaving: boolean;
-  prepTime: string | null;
-  cookTime: string | null;
-  cost: string | null;
-  complexity: string | null;
-  seasons: string[];
-  servings: number | null;
-};
-
-type FormAction =
-  | { type: "setText"; field: "title" | "ingredients" | "steps" | "notes"; value: string }
-  | { type: "setMetadata"; field: "prepTime" | "cookTime" | "cost" | "complexity"; value: string | null }
-  | { type: "setSeasons"; seasons: string[] }
-  | { type: "setServings"; value: number | null }
-  | { type: "addTag"; tag: Tag }
-  | { type: "removeTag"; tagId: string }
-  | { type: "replacePhoto"; file: File }
-  | { type: "removePhoto" }
-  | { type: "requestRegenerate" }
-  | { type: "saveStarted" }
-  | { type: "saveFailed" };
-
-function formReducer(state: FormState, action: FormAction): FormState {
-  switch (action.type) {
-    case "setText":
-      return { ...state, [action.field]: action.value };
-    case "setMetadata":
-      return { ...state, [action.field]: action.value };
-    case "setSeasons":
-      return { ...state, seasons: action.seasons };
-    case "setServings":
-      return { ...state, servings: action.value };
-    case "addTag":
-      if (state.selectedTags.some((t) => t.id === action.tag.id)) return state;
-      return { ...state, selectedTags: [...state.selectedTags, action.tag] };
-    case "removeTag":
-      return {
-        ...state,
-        selectedTags: state.selectedTags.filter((t) => t.id !== action.tagId),
-      };
-    case "replacePhoto":
-      return {
-        ...state,
-        photoFile: action.file,
-        photoRemoved: false,
-        regenerateRequested: false,
-      };
-    case "removePhoto":
-      return {
-        ...state,
-        photoFile: null,
-        photoRemoved: true,
-        regenerateRequested: false,
-      };
-    case "requestRegenerate":
-      return { ...state, regenerateRequested: true, photoFile: null };
-    case "saveStarted":
-      return { ...state, isSaving: true };
-    case "saveFailed":
-      return { ...state, isSaving: false };
-  }
-}
-
-function initFormState({ initialData, isEdit }: {
-  initialData: RecipeFormProps["initialData"];
-  isEdit: boolean;
-}): FormState {
-  return {
-    title: initialData?.title ?? "",
-    ingredients: initialData?.ingredients ?? "",
-    steps: initialData?.steps ?? "",
-    notes: initialData?.notes ?? "",
-    selectedTags: isEdit && initialData && "tags" in initialData ? initialData.tags : [],
-    photoFile: null,
-    photoRemoved: false,
-    regenerateRequested: false,
-    isSaving: false,
-    prepTime: initialData?.prepTime ?? null,
-    cookTime: initialData?.cookTime ?? null,
-    cost: initialData?.cost ?? null,
-    complexity: initialData?.complexity ?? null,
-    seasons: initialData?.seasons ?? [],
-    servings: initialData?.servings ?? null,
-  };
-}
 
 function ActLabel({
   children,
@@ -301,12 +196,12 @@ function ServingsStepper({
 
 export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension, memberFoyers = [] }: RecipeFormProps) {
   const t = useT();
-  const router = useRouter();
-  const { mutate } = useSWRConfig();
   const isEdit = mode === "edit";
-  const { uploadPhoto } = usePhotoUpload();
 
   const [form, dispatch] = useReducer(formReducer, { initialData, isEdit }, initFormState);
+  const { save } = useRecipeSave(
+    isEdit ? { mode: "edit", recipeId } : { mode: "create", source, shareExtension },
+  );
   // Dialog de choix de foyer à l'enregistrement (multi-foyer, Lot 4).
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -326,129 +221,8 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
 
   async function runSave(chosenHouseholdId?: string) {
     dispatch({ type: "saveStarted" });
-    try {
-      const payload: Record<string, unknown> = {
-        title: form.title.trim(),
-        ingredients: form.ingredients.trim() || null,
-        steps: form.steps.trim() || null,
-        notes: form.notes.trim() || null,
-        tagIds: form.selectedTags.map((t) => t.id),
-        prepTime: form.prepTime || null,
-        cookTime: form.cookTime || null,
-        cost: form.cost || null,
-        complexity: form.complexity || null,
-        seasons: form.seasons,
-        servings: form.servings,
-      };
-
-      if (isEdit) {
-        if (form.photoRemoved) {
-          payload.photoUrl = null;
-        }
-        if (form.regenerateRequested) {
-          payload.regenerateImage = true;
-        }
-
-        const response = await fetch(`/api/recipes/${recipeId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          // `.catch` : une page d'erreur HTML (proxy, 502) n'est pas du JSON —
-          // sans lui le toast affichait « Unexpected token '<' » à l'infini.
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error ?? t.feedback.updateError);
-        }
-
-        toast.success(t.feedback.recipeUpdated, { duration: 2500 });
-        mutate("/api/carousels");
-        mutate("/api/library");
-        router.push(`/recipes/${recipeId}`);
-
-        if (form.photoFile) {
-          uploadPhoto(form.photoFile, recipeId).then((result) => {
-            if ("error" in result) {
-              toast.error(t.feedback.photoError, { duration: Infinity });
-            }
-          });
-        }
-      } else {
-        payload.source = source ?? "manual";
-        // Foyer de destination explicite (dialog de choix) ; absent en
-        // mono-foyer → le serveur retombe sur l'unique foyer membre.
-        if (chosenHouseholdId) {
-          payload.householdId = chosenHouseholdId;
-        }
-        // Tell the server a user photo is coming so enrichment skips (and
-        // doesn't bill) an AI image that the upload would immediately hide.
-        if (form.photoFile) {
-          payload.willUploadPhoto = true;
-        }
-
-        const response = await fetch("/api/recipes", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const data = await response.json().catch(() => ({}));
-          throw new Error(data.error ?? t.feedback.saveError);
-        }
-
-        const created = (await response.json().catch(() => null)) as { id?: string } | null;
-        if (!created?.id) throw new Error(t.feedback.saveError);
-        toast.success(t.feedback.recipeSaved, { duration: 2500 });
-        mutate("/api/carousels");
-        mutate("/api/library");
-        // Ask for an App Store rating once they've added their 3rd recipe
-        // (native-only, once ever).
-        void maybeRequestReview();
-        if (shareExtension) {
-          // Inside the iOS Share Extension: dismiss its sheet instead of
-          // navigating (the WebView is about to be torn down).
-          notifyShareExtensionDone();
-        } else {
-          // Land on the new recipe so the user sees the result of their
-          // import/save. replace: keep /recipes/new?view=form out of the back
-          // stack so back-from-fiche lands on the chooser, not a stale form.
-          router.replace(`/recipes/${created.id}`);
-        }
-
-        if (form.photoFile) {
-          uploadPhoto(form.photoFile, created.id).then((result) => {
-            if ("error" in result) {
-              toast.error(t.feedback.photoError, { duration: Infinity });
-              // Image generation was skipped in anticipation of this photo;
-              // since it failed, fall back to generating an AI image so the
-              // recipe isn't left imageless.
-              void fetch(`/api/recipes/${created.id}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  title: payload.title,
-                  ingredients: payload.ingredients,
-                  steps: payload.steps,
-                  regenerateImage: true,
-                }),
-              });
-            }
-          });
-        }
-      }
-    } catch (err) {
-      toast.error(
-        err instanceof Error
-          ? err.message
-          : isEdit
-            ? t.feedback.updateError
-            : t.feedback.saveError,
-        { duration: Infinity }
-      );
-      dispatch({ type: "saveFailed" });
-    }
+    const ok = await save(form, chosenHouseholdId);
+    if (!ok) dispatch({ type: "saveFailed" });
   }
 
   return (
