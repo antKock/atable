@@ -34,10 +34,10 @@ export default async function NewRecipePage() {
       (data ?? []).map((h) => [
         h.id,
         {
-          name: h.name as string,
+          name: h.name,
           // recipes(count) → [{ count }]
           recipeCount:
-            (h.recipes as unknown as { count: number }[])?.[0]?.count ?? 0,
+            h.recipes[0]?.count ?? 0,
         },
       ]),
     );

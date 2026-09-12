@@ -33,7 +33,7 @@ async function getRecipe(id: string, owner: OwnerContext | null) {
     .in("household_id", householdIds(owner))
     .single();
   if (!data) return null;
-  return { recipe: mapDbRowToRecipe(data), householdId: data.household_id as string };
+  return { recipe: mapDbRowToRecipe(data), householdId: data.household_id };
 }
 
 function trackView(id: string, currentViewCount: number) {
@@ -116,7 +116,7 @@ export default async function RecipeDetailPage({ params }: Props) {
       .select("name")
       .eq("id", householdId)
       .single();
-    householdName = (data?.name as string | undefined) ?? null;
+    householdName = data?.name ?? null;
   }
 
   // Destinations de « Déplacer » : les foyers où l'owner est membre (noms lus
@@ -132,7 +132,7 @@ export default async function RecipeDetailPage({ params }: Props) {
       const byId = new Map((data ?? []).map((h) => [h.id, h.name]));
       memberFoyers = memberIds
         .filter((mid) => byId.has(mid))
-        .map((mid) => ({ id: mid, name: byId.get(mid) as string }));
+        .map((mid) => ({ id: mid, name: byId.get(mid) ?? "" }));
     }
   }
 

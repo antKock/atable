@@ -7,13 +7,6 @@ import HouseholdDetailContent from '@/components/household/HouseholdDetailConten
 
 type Props = { params: Promise<{ id: string }> }
 
-// Ligne PostgREST : memberships du foyer + nom de l'owner (FK → objet).
-type MemberRow = {
-  owner_id: string
-  role: string
-  owners: { name: string | null; alias: string | null } | null
-}
-
 type Member = {
   ownerId: string
   displayName: string
@@ -67,7 +60,7 @@ export default async function HouseholdDetailPage({ params }: Props) {
       throw new Error(`household detail: chargement des membres impossible (${membersError.message})`)
     }
 
-    members = ((memberData ?? []) as unknown as MemberRow[]).map((row) => ({
+    members = (memberData ?? []).map((row) => ({
       ownerId: row.owner_id,
       // Nom choisi > alias stocké (031) > alias dérivé (repli pré-backfill).
       displayName: row.owners?.name ?? row.owners?.alias ?? aliasForOwner(row.owner_id, locale),

@@ -1,4 +1,5 @@
 import { PostgrestClient } from "@supabase/postgrest-js";
+import type { Database } from "@/lib/db/types";
 
 // Client base de données côté serveur (jamais dans le navigateur).
 //
@@ -18,7 +19,11 @@ import { PostgrestClient } from "@supabase/postgrest-js";
 // Forme minimale de process.env (index signature) : testable avec un objet nu.
 type Env = { [key: string]: string | undefined };
 
-export type DbClient = PostgrestClient;
+// Typé par le schéma généré (src/lib/db/types.ts, `npm run db:types`) : les
+// noms de tables, colonnes, payloads d'insert/update et RPC sont vérifiés à la
+// compilation. Version PostgREST épinglée : v14 sur le VPS (Dokploy), v12+ sur
+// Supabase — le repli local du harnais E2E est aussi ≥ 12.
+export type DbClient = PostgrestClient<Database, { PostgrestVersion: "14" }>;
 
 export function databaseRestConfig(env: Env = process.env): {
   url: string;
@@ -35,7 +40,7 @@ export function databaseRestConfig(env: Env = process.env): {
 
 export function createServerClient(): DbClient {
   const { url, key } = databaseRestConfig();
-  return new PostgrestClient(url, {
+  return new PostgrestClient<Database, { PostgrestVersion: "14" }>(url, {
     headers: { apikey: key, Authorization: `Bearer ${key}` },
   });
 }

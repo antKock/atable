@@ -64,7 +64,7 @@ export default async function HomeHints() {
       .select('join_code')
       .eq('id', installHouseholdId)
       .single()
-    installCode = (data?.join_code as string | undefined) ?? null
+    installCode = data?.join_code ?? null
   }
 
   const shareDismissed = cookieStore.get('mijote_share_hint_dismissed')?.value === '1'
