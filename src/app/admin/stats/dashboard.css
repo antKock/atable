@@ -94,6 +94,13 @@
 .mijote-dash .hot .h .ref.up::before { content: "▲ "; color: var(--d-accent-deep); font-size: 9px; }
 .mijote-dash .hot .h .ref.down::before { content: "▼ "; color: var(--d-terra); font-size: 9px; }
 .mijote-dash .hot .h .hint { font-size: 10.5px; color: var(--d-faint); }
+.mijote-dash .mini-tip { position: absolute; z-index: 6; pointer-events: none; white-space: nowrap; }
+@media (max-width: 900px) {
+  .mijote-dash .mini-tip {
+    position: static; transform: none !important; margin-top: 8px; white-space: normal; pointer-events: auto;
+    box-shadow: none !important; width: 100%;
+  }
+}
 .mijote-dash table.weeks { border-collapse: collapse; width: 100%; font-size: 12.5px; }
 .mijote-dash table.weeks th { font-size: 11px; color: var(--d-muted); font-weight: 600; text-align: right; padding: 5px 6px; border-bottom: 1px solid var(--d-border); white-space: nowrap; }
 .mijote-dash table.weeks th:first-child, .mijote-dash table.weeks td:first-child { text-align: left; }
