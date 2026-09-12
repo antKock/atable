@@ -14,6 +14,8 @@ vi.mock("@/lib/redis", () => ({
   importRateLimit: { limit: vi.fn() },
   recipeCreateRateLimit: { limit: vi.fn() },
   householdCreateRateLimit: { limit: vi.fn() },
+  demoSessionRateLimit: { limit: vi.fn() },
+  shareRateLimit: { limit: vi.fn() },
 }));
 
 beforeEach(() => {

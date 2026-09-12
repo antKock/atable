@@ -124,7 +124,8 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
         body: JSON.stringify({ name: query.trim() }),
       });
       if (res.ok) {
-        const tag: Tag = await res.json();
+        const tag = (await res.json().catch(() => null)) as Tag | null;
+        if (!tag) return;
         setAllTags((prev) => [...prev, tag]);
         selectTag(tag);
       }

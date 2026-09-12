@@ -47,7 +47,12 @@ export function useEnrichmentPolling(
       try {
         const res = await fetch(`/api/recipes/${recipeId}/status`);
         if (!res.ok) return;
-        const { enrichmentStatus, imageStatus } = await res.json();
+        const parsed = (await res.json().catch(() => null)) as {
+          enrichmentStatus?: string;
+          imageStatus?: string;
+        } | null;
+        if (typeof parsed?.enrichmentStatus !== "string" || typeof parsed.imageStatus !== "string") return;
+        const { enrichmentStatus, imageStatus } = parsed;
 
         if (
           enrichmentStatus !== lastEnrichmentRef.current ||

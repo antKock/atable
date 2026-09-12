@@ -323,6 +323,39 @@ describe("regenerateImage", () => {
     expect(typeof finalUpdate.generated_image_url).toBe("string");
   });
 
+  it("ne refacture pas la génération quand seul l'upload échoue puis réussit (revue 2026-09-12)", async () => {
+    vi.useFakeTimers();
+    try {
+      supa.queueResults([
+        { data: { title: "Tarte", ingredients: "pommes", steps: "cuire", image_prompt: "p" } },
+        { error: null }, // image_status pending
+        { error: null }, // image_prompt refresh
+        { error: null }, // final update
+      ]);
+      mockChat.mockResolvedValue(chatCompletion({ imagePrompt: "A pie" }));
+      mockImages.mockResolvedValue(imageResponse());
+      // Erreur réseau transitoire (retryable) au premier upload, succès au second.
+      photos.upload
+        .mockRejectedValueOnce(Object.assign(new Error("socket hang up"), { code: "ECONNRESET" }))
+        .mockResolvedValueOnce(undefined);
+
+      const run = regenerateImage("recipe-1");
+      await vi.runAllTimersAsync();
+      await run;
+
+      const { recordAiCost } = await import("@/lib/ai-cost");
+      expect(mockImages).toHaveBeenCalledTimes(1);
+      expect(photos.upload).toHaveBeenCalledTimes(2);
+      const imageCosts = vi
+        .mocked(recordAiCost)
+        .mock.calls.filter(([c]) => (c as { callType: string }).callType === "image");
+      expect(imageCosts).toHaveLength(1);
+      expect(updatePayloads("recipes").find((u) => u.image_status === "generated")).toBeDefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("falls back to the stored prompt when the recompute fails", async () => {
     supa.queueResults([
       {

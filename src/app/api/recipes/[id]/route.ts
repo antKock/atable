@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse, after } from "next/server";
 import { revalidatePath } from "next/cache";
+import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { buildRecipeUpdateSchema } from "@/lib/schemas/recipe";
@@ -7,6 +8,7 @@ import { enrichRecipe, regenerateImage } from "@/lib/enrichment";
 import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
+import { purgeRecipePhotos } from "@/lib/storage/photos";
 
 export const maxDuration = 60;
 
@@ -175,7 +177,7 @@ export const DELETE = withOwnerAuth(
 
     const { data: existing } = await supabase
       .from("recipes")
-      .select("id, household_id, is_seed")
+      .select("id, household_id, is_seed, photo_url, generated_image_url")
       .eq("id", id)
       .in("household_id", householdIds(owner))
       .single();
@@ -197,7 +199,18 @@ export const DELETE = withOwnerAuth(
 
     if (error) throw error;
 
+    // La ligne est partie : purger ses photos du bucket (photo + image
+    // générée), sinon elles restent orphelines. Une purge qui échoue ne rend
+    // pas la suppression en erreur — la recette n'existe plus — mais remonte
+    // dans Sentry.
+    try {
+      await purgeRecipePhotos([existing]);
+    } catch (purgeError) {
+      Sentry.captureException(purgeError);
+    }
+
     revalidatePath("/home");
+    revalidatePath("/library");
 
     return new NextResponse(null, { status: 204 });
   },

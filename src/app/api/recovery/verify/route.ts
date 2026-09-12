@@ -12,6 +12,7 @@ import {
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
 import { getT } from '@/lib/i18n/server'
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
 
 const CODE_REGEX = /^\d{6}$/
 
@@ -25,6 +26,11 @@ const CODE_REGEX = /^\d{6}$/
 export async function POST(request: NextRequest) {
   const t = await getT()
   try {
+    // Route publique : corps annoncé au-delà du plafond refusé avant lecture
+    // (Traefik ne plafonne pas en amont ; withOwnerAuth le fait pour les autres).
+    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
+    if (tooLarge) return tooLarge
+
     let body: unknown
     try {
       body = await request.json()

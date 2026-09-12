@@ -5,24 +5,34 @@ import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
 import { aliasForOwner } from '@/lib/alias'
 import { getLocale, getT } from '@/lib/i18n/server'
+import { getClientIp } from '@/lib/request-ip'
+import { enforceDemoSessionQuota } from '@/lib/import-quota'
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
 
 export async function POST(request: NextRequest) {
   const t = await getT()
-  console.log(`[demo/session] POST start`)
   try {
+    // Route publique sans corps utile : un corps annoncé au-delà du plafond
+    // est refusé avant toute lecture (Traefik ne plafonne pas en amont).
+    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
+    if (tooLarge) return tooLarge
+
+    // Chaque session démo crée un owner : plafond par IP (5/h, comme la
+    // création de carnet).
+    const quotaResponse = await enforceDemoSessionQuota(getClientIp(request))
+    if (quotaResponse) return quotaResponse
+
     // Version EN (Lot 3) : un appareil anglais atterrit sur le foyer démo EN
     // s'il est configuré, sinon sur le FR (dégradé mais jamais vide).
     const locale = await getLocale()
     const demoHouseholdId =
       (locale === 'en' && process.env.DEMO_HOUSEHOLD_ID_EN) || process.env.DEMO_HOUSEHOLD_ID
-    console.log(`[demo/session] DEMO_HOUSEHOLD_ID present=${!!demoHouseholdId} locale=${locale}`)
     if (!demoHouseholdId) {
       return NextResponse.json({ error: 'Demo not configured' }, { status: 503 })
     }
 
     const ua = request.headers.get('user-agent') ?? ''
     const deviceName = getDeviceName(ua)
-    console.log(`[demo/session] deviceName=${deviceName}`)
 
     const supabase = createServerClient()
 
@@ -53,8 +63,6 @@ export async function POST(request: NextRequest) {
       .select('id')
       .single()
 
-    console.log(`[demo/session] insert session: id=${session?.id} error=${error?.message ?? 'none'}`)
-
     if (error || !session) {
       // Owner delete cascades the membership
       await supabase.from('owners').delete().eq('id', ownerId)
@@ -62,7 +70,6 @@ export async function POST(request: NextRequest) {
     }
 
     const token = await signSession({ sid: session.id })
-    console.log(`[demo/session] token signed, length=${token.length}`)
 
     // Set the session cookie on a 200 JSON response instead of a 303 redirect:
     // cookies attached to redirects are unreliable in WKWebView. The client

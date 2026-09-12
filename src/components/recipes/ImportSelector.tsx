@@ -106,7 +106,8 @@ export default function ImportSelector({
         throw new Error(mapError(body?.code as string | undefined));
       }
 
-      const data: ImportedRecipeData = await res.json();
+      const data = (await res.json().catch(() => null)) as ImportedRecipeData | null;
+      if (!data) throw new Error(mapError(undefined));
       void haptics.success();
       onImportComplete(data, source);
     } catch (err) {

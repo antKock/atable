@@ -4,7 +4,8 @@ import type { SessionPayload } from '@/types/household'
 
 // This is the ONLY file that imports jose directly.
 
-const COOKIE_NAME = 'atable_session'
+export const SESSION_COOKIE_NAME = 'atable_session'
+const COOKIE_NAME = SESSION_COOKIE_NAME
 
 // Sliding session: tokens expire after 6 months, but the proxy re-signs
 // any token older than the renewal window on each authenticated request. A

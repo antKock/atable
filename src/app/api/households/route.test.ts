@@ -8,6 +8,8 @@ vi.mock("@/lib/supabase/server");
 vi.mock("@/lib/import-quota", () => ({
   enforceHouseholdCreateQuota: vi.fn().mockResolvedValue(null),
 }));
+// Révocation Redis (session-owner.ts) : par défaut rien n'est révoqué.
+vi.mock("@/lib/redis", () => ({ redis: { get: vi.fn().mockResolvedValue(null) } }));
 // cookies() : « Créer un foyer » est additif quand une session existe (Lot 4).
 // Par défaut aucun cookie → chemin « owner neuf » (caractérisation historique).
 vi.mock("next/headers", () => ({
@@ -44,6 +46,17 @@ function queueSuccess() {
 }
 
 describe("POST /api/households (Fix 1.2)", () => {
+  it("refuse (413) un corps annoncé au-delà du plafond, avant le quota et toute écriture", async () => {
+    const res = await POST(
+      new NextRequest("https://test.local/api/households", {
+        method: "POST",
+        headers: { "content-type": "application/json", "content-length": String(2 * 1024 * 1024) },
+      }),
+    );
+    expect(res.status).toBe(413);
+    expect(supa.calls).toHaveLength(0);
+  });
+
   it("returns 429 when the per-IP creation quota is exhausted", async () => {
     const { enforceHouseholdCreateQuota } = await import("@/lib/import-quota");
     const { NextResponse } = await import("next/server");
@@ -150,5 +163,26 @@ describe("POST /api/households (Fix 1.2)", () => {
       );
     expect(deleted("households")).toBe(true);
     expect(deleted("owners")).toBe(true);
+  });
+
+  it("une session RÉVOQUÉE ne rend pas la création additive : owner neuf + cookie (revue 2026-09-12)", async () => {
+    const { redis } = await import("@/lib/redis");
+    const { signSession } = await import("@/lib/auth/session");
+    vi.mocked(redis.get).mockResolvedValueOnce("1");
+    const jwt = await signSession({ sid: "revoked-sid" });
+    queueSuccess();
+    const res = await POST(
+      new NextRequest("https://test.local/api/households", {
+        method: "POST",
+        headers: { "content-type": "application/json", cookie: `atable_session=${jwt}` },
+        body: JSON.stringify({ name: "Chez nous" }),
+      }),
+    );
+    expect(res.status).toBe(200);
+    // Chemin « owner neuf » : la session révoquée n'a pas été résolue en base
+    // (aucune lecture de device_sessions) et un nouveau cookie est posé.
+    expect(supa.calls.some((c) => c.table === "device_sessions" && c.ops[0].method === "select")).toBe(false);
+    expect(supa.calls.some((c) => c.table === "owners" && c.ops[0].method === "insert")).toBe(true);
+    expect(res.cookies.get("atable_session")?.value).toBeTruthy();
   });
 });

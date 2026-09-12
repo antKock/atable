@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useSyncExternalStore } from "react";
 import NextImage from "next/image";
 import { Image as ImageIcon, ChevronRight, Upload, Plus, X } from "lucide-react";
 import * as Sentry from "@sentry/nextjs";
@@ -21,8 +21,17 @@ const MAX_FILES = 5;
 // Android only: the WebView's <input type=file> can't offer a camera/gallery
 // choice (it's gallery-only without `capture`, camera-only with it), so a
 // dialog asks first. iOS/Web keep the native <input> below — its picker
-// already offers both.
-const IS_ANDROID = Capacitor.getPlatform() === "android";
+// already offers both. Jamais lu au niveau module : au prerender la
+// plateforme est « web », et un rendu client différent au premier passage
+// provoquait un désaccord d'hydratation sur Android. useSyncExternalStore
+// donne un snapshot serveur stable (false) puis la vraie valeur côté client
+// (même pattern que InAppBackButton).
+const subscribeNoop = () => () => {};
+const readIsAndroid = () => Capacitor.getPlatform() === "android";
+const readIsAndroidServer = () => false;
+function useIsAndroid(): boolean {
+  return useSyncExternalStore(subscribeNoop, readIsAndroid, readIsAndroidServer);
+}
 
 // @capacitor/camera reject codes that mean "the user backed out", not a real
 // failure — these stay silent. Anything else is a genuine error worth surfacing.
@@ -83,6 +92,7 @@ export default function ScreenshotImporter({
   onSubmit,
 }: ScreenshotImporterProps) {
   const t = useT();
+  const isAndroid = useIsAndroid();
   const [fileEntries, setFileEntries] = useState<FileWithKey[]>([]);
   const [sourceDialogOpen, setSourceDialogOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -184,7 +194,7 @@ export default function ScreenshotImporter({
   }
 
   function handleAddClick(inputRef: React.RefObject<HTMLInputElement | null>) {
-    if (IS_ANDROID) {
+    if (isAndroid) {
       setSourceDialogOpen(true);
     } else {
       inputRef.current?.click();
@@ -290,7 +300,7 @@ export default function ScreenshotImporter({
 
       {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
-      {IS_ANDROID && (
+      {isAndroid && (
         <Dialog open={sourceDialogOpen} onOpenChange={setSourceDialogOpen}>
           <DialogContent showCloseButton={false} aria-describedby={undefined}>
             <DialogHeader>

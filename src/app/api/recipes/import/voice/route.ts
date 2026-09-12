@@ -20,23 +20,21 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
   }
   const householdId = memberIds[0];
 
-  const quotaResponse = await enforceImportQuota(householdId);
-  if (quotaResponse) return quotaResponse;
-
   try {
-    const formData = await request.formData();
-    const audio = formData.get("audio");
+    // Valider AVANT de consommer le quota : un fichier invalide ne coûte rien.
+    const formData = await request.formData().catch(() => null);
+    const audio = formData?.get("audio");
 
     if (!audio || !(audio instanceof File)) {
       return NextResponse.json(
-        { error: t.api.audioRequired },
+        { error: t.api.audioRequired, code: "INVALID_DATA" },
         { status: 400 },
       );
     }
 
     if (audio.size > MAX_VOICE_FILE_SIZE) {
       return NextResponse.json(
-        { error: t.api.audioTooLarge },
+        { error: t.api.audioTooLarge, code: "INVALID_DATA" },
         { status: 400 },
       );
     }
@@ -44,10 +42,13 @@ export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
     const mimeBase = audio.type.split(";")[0];
     if (!VALID_VOICE_MIME_TYPES.includes(mimeBase as typeof VALID_VOICE_MIME_TYPES[number])) {
       return NextResponse.json(
-        { error: t.api.audioFormatUnsupported },
+        { error: t.api.audioFormatUnsupported, code: "INVALID_DATA" },
         { status: 400 },
       );
     }
+
+    const quotaResponse = await enforceImportQuota(householdId);
+    if (quotaResponse) return quotaResponse;
 
     const result = await extractRecipeFromVoice(audio, { householdId });
     return NextResponse.json(result);

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { getPhotoStore, photoPathFromUrl } from '@/lib/storage/photos'
+import { purgeRecipePhotos } from '@/lib/storage/photos'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
 import { withOwnerAuth, requireMember, forbiddenResponse } from '@/lib/api/with-owner-auth'
@@ -146,20 +146,7 @@ export const DELETE = withOwnerAuth(
         .from('recipes')
         .select('photo_url, generated_image_url')
         .eq('household_id', householdId)
-      if (recipesToDelete && recipesToDelete.length > 0) {
-        const paths: string[] = []
-        for (const r of recipesToDelete) {
-          for (const url of [r.photo_url, r.generated_image_url]) {
-            if (url) {
-              const path = photoPathFromUrl(url as string)
-              if (path) paths.push(path)
-            }
-          }
-        }
-        if (paths.length > 0) {
-          await getPhotoStore().remove(paths)
-        }
-      }
+      await purgeRecipePhotos(recipesToDelete ?? [])
       // Delete household — since migration 027 the CASCADE reaches recipes,
       // memberships and device_sessions (owner rows of other devices remain:
       // an owner is an identity, not an access).

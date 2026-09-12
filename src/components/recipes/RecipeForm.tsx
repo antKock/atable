@@ -356,7 +356,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         });
 
         if (!response.ok) {
-          const data = await response.json();
+          // `.catch` : une page d'erreur HTML (proxy, 502) n'est pas du JSON —
+          // sans lui le toast affichait « Unexpected token '<' » à l'infini.
+          const data = await response.json().catch(() => ({}));
           throw new Error(data.error ?? t.feedback.updateError);
         }
 
@@ -392,11 +394,12 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         });
 
         if (!response.ok) {
-          const data = await response.json();
+          const data = await response.json().catch(() => ({}));
           throw new Error(data.error ?? t.feedback.saveError);
         }
 
-        const created = await response.json();
+        const created = (await response.json().catch(() => null)) as { id?: string } | null;
+        if (!created?.id) throw new Error(t.feedback.saveError);
         toast.success(t.feedback.recipeSaved, { duration: 2500 });
         mutate("/api/carousels");
         mutate("/api/library");

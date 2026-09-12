@@ -1,24 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as Sentry from '@sentry/nextjs'
-import { headers, cookies } from 'next/headers'
+import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/request-ip'
 import { createServerClient } from '@/lib/supabase/server'
 import { JoinCodeSchema } from '@/lib/schemas/household'
 import { resolveInviteCode } from '@/lib/auth/invite-code'
 import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
 import { getDeviceName } from '@/lib/auth/device-name'
-import { signSession, setSessionCookie, verifySession } from '@/lib/auth/session'
-import { resolveOwnerContext, roleForHousehold, planRoleMerge } from '@/lib/auth/owner-context'
+import { signSession, setSessionCookie } from '@/lib/auth/session'
+import { roleForHousehold, planRoleMerge } from '@/lib/auth/owner-context'
+import { resolveSessionOwnerFromCookie } from '@/lib/auth/session-owner'
 import { isDemoOwner } from '@/lib/api/with-owner-auth'
 import { resolveDemoTrialStart } from '@/lib/queries/demo-conversion'
 import { aliasForOwner } from '@/lib/alias'
 import { getLocale, getT } from '@/lib/i18n/server'
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
 
 export async function POST(request: NextRequest) {
   const t = await getT()
   try {
-    const body = await request.json()
-    const result = JoinCodeSchema.safeParse(body.code)
+    // Route publique : corps annoncé au-delà du plafond refusé avant lecture
+    // (Traefik ne plafonne pas en amont ; withOwnerAuth le fait pour les autres).
+    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
+    if (tooLarge) return tooLarge
+
+    const body = (await request.json().catch(() => null)) as { code?: unknown } | null
+    const result = JoinCodeSchema.safeParse(body?.code)
     if (!result.success) {
       return NextResponse.json({ error: t.api.codeInvalidFormat }, { status: 400 })
     }
@@ -63,9 +70,7 @@ export async function POST(request: NextRequest) {
     // de nouvelle session ni de réécriture de cookie. Un owner démo (monde gelé)
     // ne reçoit jamais de membership : il retombe sur le chemin « device neuf »
     // ci-dessous (= sortie de la démo, owner neuf).
-    const sessionCookie = (await cookies()).get('atable_session')?.value
-    const sessionPayload = sessionCookie ? await verifySession(sessionCookie) : null
-    const existingOwner = sessionPayload ? await resolveOwnerContext(sessionPayload.sid) : null
+    const existingOwner = await resolveSessionOwnerFromCookie(request)
 
     if (existingOwner && !isDemoOwner(existingOwner)) {
       const currentRole = roleForHousehold(existingOwner, invite.householdId)

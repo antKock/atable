@@ -7,6 +7,7 @@ import { recoveryIpRateLimit, recoveryEmailRateLimit } from '@/lib/redis'
 import { findOwnerByEmail, createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
 import { getT } from '@/lib/i18n/server'
+import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
 import { getRequestOrigin } from '@/lib/request-origin'
 
 // Demande de récupération (#14, §4) — route PUBLIQUE (proxy).
@@ -18,6 +19,11 @@ import { getRequestOrigin } from '@/lib/request-origin'
 export async function POST(request: NextRequest) {
   const t = await getT()
   try {
+    // Route publique : corps annoncé au-delà du plafond refusé avant lecture
+    // (Traefik ne plafonne pas en amont ; withOwnerAuth le fait pour les autres).
+    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
+    if (tooLarge) return tooLarge
+
     let body: unknown
     try {
       body = await request.json()

@@ -9,7 +9,15 @@ import { timingSafeEqual } from 'node:crypto'
  * secret n'est pas un secret).
  */
 export function isCronAuthorized(authHeader: string | null): boolean {
-  const secret = process.env.CRON_SECRET
+  return isBearerAuthorized(authHeader, process.env.CRON_SECRET)
+}
+
+/**
+ * Même contrôle, secret en paramètre : partagé avec les routes qui portent
+ * leur propre secret (admin/batch-enrich → BATCH_ENRICH_SECRET). Secret absent
+ * ou vide → toujours faux.
+ */
+export function isBearerAuthorized(authHeader: string | null, secret: string | undefined): boolean {
   if (!secret) return false
   const expected = Buffer.from(`Bearer ${secret}`)
   const received = Buffer.from(authHeader ?? '')

@@ -75,14 +75,19 @@ async function generateImagePrompt(
 
 // ---------- Image pipeline ----------
 
-async function generateAndUploadImage(
+const IMAGE_QUALITY = "low";
+const IMAGE_SIZE = "1024x1024";
+
+/**
+ * Appel gpt-image-1 SEUL : facture le coût (`ai_costs`) et renvoie les octets
+ * WebP. Séparé de l'upload pour que le retry de l'upload ne relance jamais la
+ * génération (double facturation constatée à la revue du 2026-09-12).
+ */
+async function generateImageBytes(
   recipeId: string,
   imagePrompt: string,
   householdId: string,
-): Promise<string> {
-  const IMAGE_QUALITY = "low";
-  const IMAGE_SIZE = "1024x1024";
-  // Generate with gpt-image-1
+): Promise<Buffer> {
   const imageResponse = await openai.images.generate({
     model: AI_MODELS.image,
     prompt: `${imagePrompt}. Flat realistic illustration, overhead angle, neutral warm background, soft natural lighting. Show only the dish exactly as described above, plated simply and without any added garnish or decoration.`,
@@ -113,17 +118,19 @@ async function generateAndUploadImage(
   const b64 = imageData.b64_json;
 
   // Get image buffer (base64 or URL download)
-  let imageBuffer: Buffer;
   if (b64) {
-    imageBuffer = Buffer.from(b64, "base64");
-  } else if (tempUrl) {
+    return Buffer.from(b64, "base64");
+  }
+  if (tempUrl) {
     const imageRes = await fetch(tempUrl);
     if (!imageRes.ok) throw new Error(`Failed to download image: ${imageRes.status}`);
-    imageBuffer = Buffer.from(await imageRes.arrayBuffer());
-  } else {
-    throw new Error("No image data (url or b64) returned");
+    return Buffer.from(await imageRes.arrayBuffer());
   }
+  throw new Error("No image data (url or b64) returned");
+}
 
+/** Upload des octets générés vers le stockage photos ; renvoie l'URL publique versionnée. */
+async function uploadGeneratedImage(recipeId: string, imageBuffer: Buffer): Promise<string> {
   // Upload to the photo store (S3 / Supabase Storage, cf. lib/storage/photos)
   const photos = getPhotoStore();
   const storagePath = `generated/${recipeId}/ai-image.webp`;
@@ -135,6 +142,20 @@ async function generateAndUploadImage(
   // the same <Image src> and the CDN/browser serves the 30-day-cached old
   // image, making "regenerate" look like a no-op.
   return `${photos.publicUrl(storagePath)}?v=${Date.now()}`;
+}
+
+/**
+ * Génère puis héberge l'image d'une recette. Chaque étape a SON retry : une
+ * erreur transitoire d'upload ne rejoue que l'upload (une seule facturation,
+ * une seule ligne `ai_costs`).
+ */
+async function generateAndUploadImage(
+  recipeId: string,
+  imagePrompt: string,
+  householdId: string,
+): Promise<string> {
+  const bytes = await withRetry(() => generateImageBytes(recipeId, imagePrompt, householdId));
+  return withRetry(() => uploadGeneratedImage(recipeId, bytes));
 }
 
 // ---------- Main enrichment pipeline ----------
@@ -323,9 +344,7 @@ export async function enrichRecipe(
       }
       console.log(`[enrichment] ${recipeId} — calling DALL-E`);
       try {
-        const imageUrl = await withRetry(() =>
-          generateAndUploadImage(recipeId, imagePrompt, recipe.household_id),
-        );
+        const imageUrl = await generateAndUploadImage(recipeId, imagePrompt, recipe.household_id);
         await supabase
           .from("recipes")
           .update({
@@ -404,9 +423,7 @@ export async function regenerateImage(recipeId: string): Promise<void> {
       return;
     }
 
-    const imageUrl = await withRetry(() =>
-      generateAndUploadImage(recipeId, imagePrompt, recipe.household_id),
-    );
+    const imageUrl = await generateAndUploadImage(recipeId, imagePrompt, recipe.household_id);
 
     await supabase
       .from("recipes")

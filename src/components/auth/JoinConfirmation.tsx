@@ -30,8 +30,8 @@ export default function JoinConfirmation({ householdName, joinCode, role = 'memb
         body: JSON.stringify({ code: joinCode }),
       })
 
-      const data = await response.json()
-      if (!response.ok) {
+      const data = (await response.json().catch(() => ({}))) as { error?: string; redirect?: string }
+      if (!response.ok || !data.redirect) {
         setError(data.error ?? t.joinLink.notFound)
         setLoading(false)
         return
