@@ -19,42 +19,6 @@ export const PALETTE = {
   border: "#E8E0CC",
 } as const;
 
-// Add-method series colours (keyed by recipes.source). 'shared' = copie d'une
-// recette partagée (026) — absente de la palette jusqu'à la v2 du dashboard.
-export const METHOD_COLORS = {
-  manual: PALETTE.olive,
-  url: PALETTE.ochre,
-  photo: PALETTE.terracotta,
-  voice: PALETTE.sage,
-  shared: PALETTE.clay,
-  unknown: "#C9C2B2",
-} as const;
-
-// Method display labels (French).
-export const METHOD_LABELS = {
-  manual: "Saisie manuelle",
-  url: "Import URL",
-  photo: "Photo",
-  voice: "Vocal",
-  shared: "Partagée",
-  unknown: "Indéterminé",
-} as const;
-
-// Platform series colours (keyed by device_sessions.platform).
-export const PLATFORM_COLORS = {
-  ios: "#6E7A38",
-  android: "#C0922F",
-  web: "#B85C3D",
-  unknown: "#C9C2B2",
-} as const;
-
-export const PLATFORM_LABELS = {
-  ios: "iOS",
-  android: "Android",
-  web: "Web",
-  unknown: "Indéterminé",
-} as const;
-
 // Rampe séquentielle olive pour les strates de cohortes (MAU par génération) —
 // lightness monotone, la plus ancienne génération la plus foncée. Module
 // partagé (sans "use client") : utilisée par le chart ET la légende serveur.
@@ -94,7 +58,7 @@ export const FONT = "var(--font-inter), system-ui, sans-serif";
 export const MONO = "var(--font-dm-mono), ui-monospace, monospace";
 
 // Shared Recharts axis / grid / tooltip styling.
-export const axisTick = {
+const axisTick = {
   fontFamily: FONT,
   fontSize: 11,
   fill: PALETTE.faint,

@@ -182,6 +182,7 @@ pas toutes dans l'export `vercel env pull` :
 | `SENTRY_ENVIRONMENT` | `production` / `staging` | `VERCEL_ENV` n'existe plus |
 | `DEMO_SEED_MIN` | optionnelle (défaut 30) | Seuil d'alerte Sentry sur les recettes seed ; valeur illisible ⇒ 30 + warn dans les logs (avant : alerte désactivée en silence) |
 | `APPLE_CONNECT_KEY`, `APPLE_CONNECT_KEY_ID`, `APPLE_CONNECT_ISSUER_ID`, `APPLE_CONNECT_APP_ID` | **prod seulement** : clé App Store Connect de rôle Admin (corps base64 du `.p8`), id de clé, issuer, id numérique de l'app (`6772487648`) — mêmes valeurs que `.env.local` | Cron `/api/cron/app-store-sync` (stats App Store dans `/admin/stats`, backlog #19). Sans elles : 503, section 00 vide, pas d'alerte. La clé vaut un accès Admin ASC : ne la poser que sur prod |
+| `DIGEST_TO` | **prod seulement** : `kocken.anthony@gmail.com` | Cron `/api/cron/weekly-digest` (digest hebdo du dashboard, stats v3). Sans elle : 503, pas d'alerte |
 
 ⚠ **Piège vécu (2026-09-06)** : les variables marquées *sensitive* sur Vercel ne sont pas
 exportables (`vercel env pull` écrit littéralement `[SENSITIVE]`). La copie Vercel → Dokploy
@@ -296,6 +297,17 @@ Calendrier :
   Dokploy prod (cf. tableau). Test manuel : `sudo sh -c '. /etc/mijote/cron.env; curl -fsS -H
   "Authorization: Bearer $CRON_SECRET" https://<hôte>/api/cron/app-store-sync'` — réponse
   JSON `{ requestId, reports: { downloads, engagement } }` avec `processed`/`skipped`.
+
+## Cron weekly-digest (digest hebdo du dashboard, 2026-09-12)
+
+- `bootstrap.sh` pose `/etc/cron.d/mijote-weekly-digest` : **lundi 07:00 heure de Paris**
+  (fuseau système, volontairement sans garde `date -u`), `GET https://<APP_HOST>/api/cron/weekly-digest`,
+  même secret. La route envoie le bloc 1 de `/admin/stats` (dernière semaine ISO close) à
+  `DIGEST_TO` via Resend (`EMAIL_FROM`), et journalise la semaine dans `digests_sent` (043) :
+  idempotent, un passage manuel ne renvoie rien, un lundi manqué se rattrape au prochain appel.
+- Pas de moniteur Sentry Crons (un seul seat) : un échec part en `captureException` ; si aucun
+  e-mail n'arrive le lundi, appeler la route à la main (test manuel identique aux autres crons)
+  et lire la réponse JSON (`sent`, `week`, `reason`).
 
 ## Rollback par tag
 

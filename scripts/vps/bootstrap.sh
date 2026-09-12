@@ -33,8 +33,8 @@
 #   6. Docker : rotation des logs (daemon.json), règle DOCKER-USER persistante qui
 #      rejette le port 3000 publié par Docker depuis l'extérieur (Docker contourne ufw),
 #      purge hebdomadaire des images
-#   7. crontabs demo-reset (03:00 UTC) et app-store-sync (10:00 UTC) via `date -u`,
-#      secret dans /etc/mijote/cron.env (root 600)
+#   7. crontabs demo-reset (03:00 UTC), app-store-sync (10:00 UTC) via `date -u`, et
+#      weekly-digest (lundi 07:00 Paris) ; secret dans /etc/mijote/cron.env (root 600)
 #   8. installation de Dokploy (installe Docker + Traefik + sa base + son Redis), installeur
 #      épinglé par sha256
 
@@ -241,14 +241,14 @@ cat > /etc/cron.d/mijote-docker-prune <<'EOF'
 EOF
 chmod 644 /etc/cron.d/mijote-docker-prune
 
-echo "==> 7/8 Crons demo-reset + app-store-sync"
+echo "==> 7/8 Crons demo-reset + app-store-sync + weekly-digest"
 # Secret lu depuis un fichier root-only, jamais dans la crontab ni dans ce script.
 install -d -m 700 /etc/mijote
 if [ ! -f /etc/mijote/cron.env ]; then
   cat > /etc/mijote/cron.env <<'EOF'
 # Posé par scripts/vps/bootstrap.sh (repo atable). Fichier root:root 600.
 # CRON_SECRET : même valeur que la variable CRON_SECRET de l'application (Dokploy),
-# celle que /api/cron/demo-reset et /api/cron/app-store-sync attendent en `Authorization: Bearer`.
+# celle que les routes /api/cron/* attendent en `Authorization: Bearer`.
 CRON_SECRET=
 EOF
   chmod 600 /etc/mijote/cron.env
@@ -279,6 +279,16 @@ EOF
 EOF
   chmod 644 /etc/cron.d/mijote-app-store-sync
   echo "    installé : https://${APP_HOST}/api/cron/app-store-sync à 10:00 UTC"
+  # Digest hebdo du dashboard (stats v3 §4.9) : lundi 07:00 heure de Paris — ici
+  # l'heure LOCALE du système (Europe/Paris) est voulue, pas d'astuce `date -u`.
+  # Idempotent par semaine ISO côté route : un second passage ne renvoie rien.
+  cat > /etc/cron.d/mijote-weekly-digest <<EOF
+# Posé par scripts/vps/bootstrap.sh (repo atable). Digest hebdo du dashboard, lundi
+# 07:00 heure de Paris (fuseau système). Secret : /etc/mijote/cron.env.
+0 7 * * 1 root set -a; . /etc/mijote/cron.env; set +a; curl -fsS -m 300 -H "Authorization: Bearer \$CRON_SECRET" "https://${APP_HOST}/api/cron/weekly-digest" >/dev/null
+EOF
+  chmod 644 /etc/cron.d/mijote-weekly-digest
+  echo "    installé : https://${APP_HOST}/api/cron/weekly-digest le lundi à 07:00 (Paris)"
 else
   echo "    APP_HOST non fourni : crontab demo-reset non installée (relancer avec APP_HOST=<hôte>)"
 fi
