@@ -25,7 +25,8 @@
 | Auth PostgREST | clé service role Supabase | JWT `role: service_role` (HS256, exp 2036) signé avec `PGRST_JWT_SECRET` du service ; rôles Postgres de `scripts/vps/postgrest-roles.sql` |
 | Photos | Supabase Storage (bucket public) | **OVH Object Storage S3**, région GRA, un bucket par env (`mijote-photos-staging`, `mijote-photos`), objets en **ACL `public-read`**, versioning activé ; `src/lib/storage/photos.ts` |
 | Sauvegardes | aucune (free tier) | **Dokploy Backups** : `pg_dump -Fc` nocturne (02:30 UTC) vers le bucket **`mijote-backups`** (destination `ovh-mijote-backups`), 14 derniers conservés |
-| Migrations | `supabase db push --linked` | `supabase db push --db-url postgres://…` **depuis le VPS** (la base n'est pas exposée) — cf. « Migrations » |
+| Migrations | `supabase db push --linked` | **`node scripts/vps/migrate.mjs staging\|prod\|all`** (ssh + `docker exec psql`, transaction + historique + `NOTIFY pgrst`) — cf. « Migrations » |
+| Redis (rate limits, révocations) | Upstash (REST) | Service Dokploy **Redis 7** par env (`mijote-<env>-redis`) + proxy REST **serverless-redis-http** (`mijote-<env>-srh`, `hiett/serverless-redis-http`, port 80 interne) : mêmes variables `UPSTASH_REDIS_REST_URL/TOKEN`, client inchangé — montage identique au harnais E2E |
 
 Variables d'environnement (app) : `DATABASE_REST_URL` + `DATABASE_REST_KEY` (base),
 `S3_BUCKET` / `S3_ENDPOINT` / `S3_REGION` / `S3_PUBLIC_URL` / `S3_ACCESS_KEY_ID` /
@@ -202,3 +203,18 @@ gunzip -c dump.sql.gz | sudo docker exec -i <conteneur db> pg_restore -U mijote 
   appliquée à la main sur les deux bases VPS + ligne d'historique + `NOTIFY pgrst`.
   Vérifié : landing, session démo, recettes (31 images S3), fiche, home, library, EN,
   RPC `analytics_v3_daily`. Reste : Redis → VPS, puis J+7 suppression Supabase.
+- **2026-09-12, 23 h** — **Outillage et Redis** (« Go »). `scripts/vps/migrate.mjs` (testé :
+  migration valide appliquée avec historique, migration cassée annulée sans trace) ; ports
+  PostgREST 3100/3101 publiés sur le VPS et rejetés en public (règle DOCKER-USER étendue,
+  vérifié depuis l'extérieur), `scripts/vps/tunnel.sh`, `DATABASE_REST_*` dans `.env.local`
+  et `.env.staging.local` ; scripts démo (`restore-demo-from-staging`, `demo-en`,
+  `sync-staging-demo-from-prod`) sur `scripts/lib/env.mjs` (`dbClient`, `rehostPhoto`),
+  validés (dry-run + sync réelle), `backfill-webp.mjs` supprimé. **Redis Upstash → VPS** :
+  staging puis prod (Redis 7 + serverless-redis-http par env, ids Dokploy staging
+  `o6DKD0XPb2iw7g6hWQN08` / `oNrLnYRm0MH6_cvvs8GSa`, prod `W3RgydUtLMx3t0uv2Sb_A` /
+  `6EJSLycyUb2i6cartyFEJ`), rate limit vérifié (429 au 6e essai de code), 5 clés
+  `revoked:*` reportées avec leur TTL. Upstash n'est plus utilisé par l'app ; le poste
+  (`.env.local`) y pointe encore pour `npm run dev` — à remplacer par le Redis local du
+  harnais E2E avant de fermer le compte Upstash. Reste : J+7 (≈ 2026-09-19) suppression
+  des projets Supabase + rôle `mijote_dump`, retrait de `@supabase/supabase-js` et du
+  pilote Storage de repli, harnais E2E sur Postgres + PostgREST + MinIO.
