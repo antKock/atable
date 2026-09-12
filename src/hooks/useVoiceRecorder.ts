@@ -32,12 +32,14 @@ const detectMediaSupport = () =>
   !!navigator.mediaDevices?.getUserMedia;
 const ssrMediaSupport = () => false;
 
+/** Détection seule (sans enregistreur) — le sélecteur d'import s'en sert pour
+ *  ne pas proposer la puce « Dicter » quand VoiceImporter rend null. */
+export function useVoiceSupported(): boolean {
+  return useSyncExternalStore(noopSubscribe, detectMediaSupport, ssrMediaSupport);
+}
+
 export function useVoiceRecorder(): VoiceRecorderState {
-  const isSupported = useSyncExternalStore(
-    noopSubscribe,
-    detectMediaSupport,
-    ssrMediaSupport,
-  );
+  const isSupported = useVoiceSupported();
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
   const [waveformData, setWaveformData] = useState<number[]>(() =>

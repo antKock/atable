@@ -107,7 +107,7 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   // Création via l'UI (saisie manuelle) → le dialog de choix apparaît (2 foyers).
   const title = uniqueName("Recette choisie");
   await v.page.goto("/recipes/new");
-  await v.page.getByText("Saisie manuelle").click();
+  await v.page.getByText("Écrire moi-même").click();
   await v.page.locator("#title").fill(title);
   await v.page.getByRole("button", { name: "Enregistrer" }).click();
   await expect(v.page.getByText("Dans quel carnet ?")).toBeVisible();
@@ -123,7 +123,7 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   await createHouseholdViaUI(mono.page, uniqueName("Foyer Mono"));
   const monoTitle = uniqueName("Recette mono");
   await mono.page.goto("/recipes/new");
-  await mono.page.getByText("Saisie manuelle").click();
+  await mono.page.getByText("Écrire moi-même").click();
   await mono.page.locator("#title").fill(monoTitle);
   await mono.page.getByRole("button", { name: "Enregistrer" }).click();
   // Pas de dialog → navigation directe vers la fiche créée.

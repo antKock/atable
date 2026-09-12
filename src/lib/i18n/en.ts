@@ -297,10 +297,12 @@ export const en: Dictionary = {
   // Import
   import: {
     title: "New recipe",
-    subtitle: "How do you want to add your recipe?",
+    question: "Where's your recipe from?",
+    orRather: "Or rather",
     screenshot: {
-      title: "From a photo",
-      description: "Import a screenshot or a photo of a recipe",
+      title: "Take a photo",
+      description: "A cookbook, a screenshot, a handwritten note.",
+      chip: "Photo",
       upload: "Choose images",
       uploadHint: "Multiple images allowed — JPG, PNG — 10 MB max",
       sourceTitle: "Add an image",
@@ -312,8 +314,9 @@ export const en: Dictionary = {
       count: (n: number) => `${n} image${n === 1 ? "" : "s"} selected`,
     },
     voice: {
-      title: "Voice dictation",
-      description: "Dictate your recipe out loud",
+      title: "Dictate",
+      description: "Tell it like you would to a friend: ingredients, amounts, steps.",
+      chip: "Dictate",
       record: "Tap to dictate",
       recording: "Recording…",
       processing: "Transcribing…",
@@ -325,13 +328,15 @@ export const en: Dictionary = {
       errorUnsupported: "Your browser doesn't support audio recording",
     },
     url: {
-      title: "From a link",
-      description: "Paste the URL of an online recipe or an Instagram post",
+      title: "Paste a link",
+      description: "Instagram, a food blog, any recipe site… Mijote sorts it out.",
+      chip: "Link",
       placeholder: "https://allrecipes.com/… or instagram.com/reel/…",
     },
     manual: {
-      title: "Type it in",
-      description: "Fill in the form directly",
+      title: "Write it myself",
+      description: "The form, at your own pace.",
+      chip: "Write",
     },
     divider: "or",
     error: "Couldn't extract the recipe. Try again or type it in manually.",

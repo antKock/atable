@@ -2,10 +2,11 @@
 
 import { useState, useRef, useEffect } from "react";
 import * as Sentry from "@sentry/nextjs";
-import { AlignLeft, ChevronRight } from "lucide-react";
+import { Camera, Link2, Mic, PenLine, type LucideIcon } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
 import { haptics } from "@/lib/haptics";
 import { resizeImageToBase64 } from "@/lib/image-resize";
+import { useVoiceSupported } from "@/hooks/useVoiceRecorder";
 import ScreenshotImporter from "./import/ScreenshotImporter";
 import VoiceImporter from "./import/VoiceImporter";
 import UrlImporter from "./import/UrlImporter";
@@ -37,6 +38,7 @@ export default function ImportSelector({
   autoImportUrl,
 }: ImportSelectorProps) {
   const t = useT();
+  const voiceSupported = useVoiceSupported();
   const [expanded, setExpanded] = useState<ExpandedCard>(null);
   // Démarre déjà en loading si un auto-import est prévu (partage / deep link) :
   // évite de peindre le sélecteur de cartes une fraction de seconde avant que
@@ -176,74 +178,127 @@ export default function ImportSelector({
     return <ImportLoading />;
   }
 
+  // Spec #24 : la tuile choisie devient le panneau d'action ; les autres
+  // méthodes se replient en puces « Ou plutôt » sous le panneau. Les trois
+  // importeurs restent MONTÉS (masqués par `hidden`, jamais démontés) :
+  // démonter VoiceImporter en cours de dictée détruirait l'enregistreur.
+  const cards: { key: Exclude<ExpandedCard, null>; icon: LucideIcon; chip: string }[] = [
+    { key: "url", icon: Link2, chip: t.import.url.chip },
+    { key: "screenshot", icon: Camera, chip: t.import.screenshot.chip },
+    ...(voiceSupported ? [{ key: "voice" as const, icon: Mic, chip: t.import.voice.chip }] : []),
+  ];
+  const hide = (card: ExpandedCard) => expanded !== null && expanded !== card;
+
   return (
-    <div className="flex flex-col gap-3.5">
-      {!autoImportUrl && (
-        <p className="mb-4 text-[15px] text-muted-foreground">
-          {t.import.subtitle}
-        </p>
+    <div className="flex flex-col gap-3">
+      {!autoImportUrl && !expanded && (
+        <h2
+          className="mb-1 text-[22px] font-semibold tracking-[-0.015em]"
+          style={{
+            fontFamily: "var(--font-fraunces)",
+            fontVariationSettings: '"opsz" 144',
+          }}
+        >
+          {t.import.question}
+        </h2>
       )}
 
-      <ScreenshotImporter
-        expanded={expanded === "screenshot"}
-        onToggle={() => toggleCard("screenshot")}
-        error={expanded === "screenshot" ? error : null}
-        onError={setError}
-        onSubmit={submitScreenshots}
-      />
-
-      <VoiceImporter
-        expanded={expanded === "voice"}
-        onToggle={() => toggleCard("voice")}
-        error={expanded === "voice" ? error : null}
-        processing={voiceProcessing}
-        onError={(msg) => {
-          setVoiceProcessing(false); // recorder failed → release the spinner
-          setError(msg);
-        }}
-        onBlobReady={submitVoiceBlob}
-        onStopRequested={() => setVoiceProcessing(true)}
-      />
-
-      <UrlImporter
-        expanded={expanded === "url"}
-        onToggle={() => toggleCard("url")}
-        error={expanded === "url" ? error : null}
-        onSubmit={submitUrl}
-        initialUrl={autoImportUrl ?? undefined}
-      />
-
-      {/* Divider */}
-      <div className="mx-1 flex items-center gap-3.5 py-1.5">
-        <div className="h-px flex-1 bg-border" />
-        <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          {t.import.divider}
-        </span>
-        <div className="h-px flex-1 bg-border" />
+      <div hidden={hide("url")}>
+        <UrlImporter
+          expanded={expanded === "url"}
+          onToggle={() => toggleCard("url")}
+          error={expanded === "url" ? error : null}
+          onSubmit={submitUrl}
+          initialUrl={autoImportUrl ?? undefined}
+        />
       </div>
 
-      {/* Manual card */}
-      <button
-        type="button"
-        onClick={onManual}
-        className="flex w-full cursor-pointer items-center gap-4 rounded-[18px] border-[1.5px] border-dashed border-border bg-transparent p-3.5 text-left transition-all hover:border-muted-foreground active:scale-[0.985]"
-      >
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-secondary">
-          <AlignLeft size={20} className="text-muted-foreground" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="text-[15px] font-medium text-muted-foreground">
-            {t.import.manual.title}
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            {t.import.manual.description}
-          </p>
-        </div>
-        <ChevronRight
-          size={16}
-          className="shrink-0 text-muted-foreground opacity-50"
+      <div hidden={hide("screenshot")}>
+        <ScreenshotImporter
+          expanded={expanded === "screenshot"}
+          onToggle={() => toggleCard("screenshot")}
+          error={expanded === "screenshot" ? error : null}
+          onError={setError}
+          onSubmit={submitScreenshots}
         />
-      </button>
+      </div>
+
+      <div hidden={hide("voice")}>
+        <VoiceImporter
+          expanded={expanded === "voice"}
+          onToggle={() => toggleCard("voice")}
+          error={expanded === "voice" ? error : null}
+          processing={voiceProcessing}
+          onError={(msg) => {
+            setVoiceProcessing(false); // recorder failed → release the spinner
+            setError(msg);
+          }}
+          onBlobReady={submitVoiceBlob}
+          onStopRequested={() => setVoiceProcessing(true)}
+        />
+      </div>
+
+      {expanded === null ? (
+        <>
+          {/* Séparateur + carte manuel : un cran sous les trois imports (icône
+              neutre, ombre légère), mais une vraie carte — ≈ 1 recette sur 9,
+              1 première recette sur 5. */}
+          <div className="mx-1 mt-2 flex items-center gap-3.5 py-1.5">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+              {t.import.divider}
+            </span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <button
+            type="button"
+            onClick={onManual}
+            className="flex w-full cursor-pointer items-center gap-4 rounded-[22px] border-[1.5px] border-border bg-surface px-[18px] py-3.5 text-left transition-all hover:border-accent active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            style={{ boxShadow: "var(--card-shadow-sm)" }}
+          >
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-secondary">
+              <PenLine size={22} className="text-muted-foreground" aria-hidden="true" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="text-[16px] font-medium">{t.import.manual.title}</h3>
+              <p className="mt-0.5 text-[13.5px] leading-snug text-muted-foreground">
+                {t.import.manual.description}
+              </p>
+            </div>
+          </button>
+        </>
+      ) : (
+        <div className="mt-2">
+          <p className="mx-1 mb-2.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+            {t.import.orRather}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {cards
+              .filter((c) => c.key !== expanded)
+              .map((c) => (
+                <button
+                  key={c.key}
+                  type="button"
+                  onClick={() => toggleCard(c.key)}
+                  className="flex h-10 cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface pl-2.5 pr-3.5 text-sm font-medium text-foreground transition-all hover:border-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                  style={{ boxShadow: "var(--card-shadow-sm)" }}
+                >
+                  <c.icon size={18} className="text-accent" aria-hidden="true" />
+                  {c.chip}
+                </button>
+              ))}
+            <button
+              type="button"
+              onClick={onManual}
+              className="flex h-10 cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface pl-2.5 pr-3.5 text-sm font-medium text-foreground transition-all hover:border-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              style={{ boxShadow: "var(--card-shadow-sm)" }}
+            >
+              <PenLine size={18} className="text-muted-foreground" aria-hidden="true" />
+              {t.import.manual.chip}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
