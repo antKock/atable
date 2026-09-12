@@ -87,10 +87,8 @@ export default function LandingScreen() {
           draggable={false}
         />
         <h1
-          className="landing-title mt-7 text-center"
+          className="display landing-title mt-7 text-center"
           style={{
-            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
-            fontVariationSettings: '"opsz" 144',
             fontWeight: 700,
             fontSize: 'clamp(72px, 23vw, 92px)',
             lineHeight: 0.95,

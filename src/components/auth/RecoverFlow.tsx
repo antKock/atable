@@ -138,7 +138,7 @@ export default function RecoverFlow({ onBack }: Props) {
 
   if (step === 'sent') {
     return (
-      <div className="fixed inset-0 flex flex-col overflow-y-auto bg-gradient-to-b from-background to-[#EDE8E0]">
+      <div className="fixed inset-0 flex flex-col overflow-y-auto bg-page-gradient">
         {backButton}
         <div
           className="mx-auto flex w-full max-w-[400px] flex-col items-center px-6 text-center"
@@ -148,10 +148,8 @@ export default function RecoverFlow({ onBack }: Props) {
             <Mail size={33} aria-hidden="true" />
           </div>
           <h1
-            className="text-foreground"
+            className="display text-foreground"
             style={{
-              fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
-              fontVariationSettings: '"opsz" 144',
               fontWeight: 600,
               fontSize: 25,
               letterSpacing: '-0.02em',
@@ -203,7 +201,7 @@ export default function RecoverFlow({ onBack }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 flex flex-col overflow-hidden bg-gradient-to-b from-background to-[#EDE8E0]">
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-page-gradient">
       {backButton}
       <form
         onSubmit={handleSubmit}
@@ -214,10 +212,8 @@ export default function RecoverFlow({ onBack }: Props) {
         }}
       >
         <h1
-          className="text-foreground"
+          className="display text-foreground"
           style={{
-            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
-            fontVariationSettings: '"opsz" 144',
             fontWeight: 700,
             fontSize: '32px',
             letterSpacing: '-0.02em',

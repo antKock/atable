@@ -126,10 +126,10 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
   `RecipeForm:352-448`, `LeaveHouseholdDialog:44-62`, `MemberActionDialog:55-97`,
   `RecipeActionPill:58-77`, `ProfileForm:40-75`, `MergeVerifyScreen:48-80`,
   `HouseholdDetailContent:47-58`, `ShareButton:33-63`). Inclut le `.json().catch`.
-- [ ] `<CenteredState illustration title body cta />` : état vide identique dans
+- [x] `<CenteredState illustration title body cta />` : état vide identique dans
   `HomeContent.tsx:123-152` et `LibraryContent.tsx:206-235`, même structure que
   `LoadErrorState.tsx:13-40`.
-- [ ] Police d'affichage : déclarer `--font-display` (Fraunces) dans `@theme` de
+- [x] Police d'affichage : déclarer `--font-display` (Fraunces) dans `@theme` de
   `src/app/globals.css` + utilitaires (`display-xl`, `display-md`, `display-italic`) ;
   remplacer les 27 blocs inline (23 fichiers). Variabiliser le dégradé `#EDE8E0` (4
   fichiers) et une utilitaire `.card-surface` (5 sites). `invalidateRecipeLists()` dans

@@ -98,10 +98,8 @@ export default function MergeVerifyScreen({ email, onCancel }: Props) {
           <CheckCircle2 size={33} aria-hidden="true" />
         </div>
         <h1
-          className="text-foreground"
+          className="display text-foreground"
           style={{
-            fontFamily: 'var(--font-fraunces)',
-            fontVariationSettings: '"opsz" 144',
             fontSize: 25,
             fontWeight: 600,
             letterSpacing: '-0.02em',

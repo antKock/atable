@@ -16,10 +16,8 @@ export default function RecipeCarousel({ title, recipes }: RecipeCarouselProps) 
   return (
     <section role="region" aria-label={t.a11y.carousel(title)}>
       <h2
-        className="mb-3 px-4 text-foreground"
+        className="display mb-3 px-4 text-foreground"
         style={{
-          fontFamily: "var(--font-fraunces)",
-          fontVariationSettings: '"opsz" 144',
           fontSize: 18,
           fontWeight: 500,
           letterSpacing: "-0.01em",

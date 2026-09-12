@@ -22,14 +22,7 @@ export default async function LibraryPage({ searchParams }: Props) {
   return (
     <div className="pb-8 pt-6">
       <h1
-        className="mb-4 px-4 text-foreground"
-        style={{
-          fontFamily: "var(--font-fraunces)",
-          fontVariationSettings: '"opsz" 144',
-          fontSize: 32,
-          fontWeight: 600,
-          letterSpacing: "-0.02em",
-        }}
+        className="display-xl mb-4 px-4 text-foreground"
       >
         {t.nav.library}
       </h1>

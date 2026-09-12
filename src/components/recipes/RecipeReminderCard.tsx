@@ -32,9 +32,8 @@ export default function RecipeReminderCard({ recipeId, title, photoUrl }: Props)
           {t.share.reminderLabel}
         </div>
         <div
-          className="truncate text-foreground"
+          className="display truncate text-foreground"
           style={{
-            fontFamily: "var(--font-fraunces)",
             fontWeight: 700,
             fontSize: 15,
           }}

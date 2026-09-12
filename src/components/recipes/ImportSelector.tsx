@@ -194,11 +194,7 @@ export default function ImportSelector({
     <div className="flex flex-col gap-3">
       {!autoImportUrl && !expanded && (
         <h2
-          className="mb-1 text-[22px] font-semibold tracking-[-0.015em]"
-          style={{
-            fontFamily: "var(--font-fraunces)",
-            fontVariationSettings: '"opsz" 144',
-          }}
+          className="display mb-1 text-[22px] font-semibold tracking-[-0.015em]"
         >
           {t.import.question}
         </h2>

@@ -55,14 +55,9 @@ export default function RecipeCard({
     <Link
       href={`/recipes/${recipe.id}`}
       aria-label={recipe.title}
-      className={`group block overflow-hidden rounded-xl border border-border/40 transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+      className={`group card-surface block transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         isCarousel ? "w-[62vw] flex-none lg:w-65" : "w-full"
       }`}
-      style={{
-        background: "var(--card-gradient)",
-        boxShadow: "var(--card-shadow-sm)",
-        borderBottom: "1px solid var(--card-border-accent)",
-      }}
     >
       <div
         className={`relative w-full ${

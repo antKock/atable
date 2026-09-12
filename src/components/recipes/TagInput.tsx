@@ -243,10 +243,8 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
                     aria-label={tagCategoryLabel(t, category)}
                   >
                     <div
-                      className="px-3 pt-2 pb-1"
+                      className="display px-3 pt-2 pb-1"
                       style={{
-                        fontFamily: "var(--font-fraunces)",
-                        fontVariationSettings: '"opsz" 144',
                         fontStyle: "italic",
                         fontWeight: 500,
                         fontSize: 12,

@@ -71,10 +71,8 @@ function ActLabel({
 }) {
   return (
     <div className="mb-4 mt-2">
-      <div
+      <div className="display"
         style={{
-          fontFamily: "var(--font-fraunces)",
-          fontVariationSettings: '"opsz" 144',
           fontStyle: "italic",
           fontWeight: 500,
           fontSize: 18,

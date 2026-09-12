@@ -88,14 +88,7 @@ export default function ProfileForm({ initialName, alias, initialEmail }: Props)
       </Link>
 
       <h1
-        className="mb-6 text-foreground"
-        style={{
-          fontFamily: 'var(--font-fraunces)',
-          fontVariationSettings: '"opsz" 144',
-          fontSize: 32,
-          fontWeight: 600,
-          letterSpacing: '-0.02em',
-        }}
+        className="display-xl mb-6 text-foreground"
       >
         {t.profile.title}
       </h1>
