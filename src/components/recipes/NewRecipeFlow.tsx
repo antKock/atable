@@ -94,10 +94,8 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
           >
             <ArrowLeft size={20} strokeWidth={1.75} />
           </button>
-          <h1
+          <h1 className="display"
             style={{
-              fontFamily: "var(--font-fraunces)",
-              fontVariationSettings: '"opsz" 144',
               fontStyle: "italic",
               fontWeight: 500,
               fontSize: 28,

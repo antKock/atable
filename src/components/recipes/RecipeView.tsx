@@ -19,11 +19,9 @@ function SectionLabel({
   children: ReactNode;
 }) {
   return (
-    <h2
+    <h2 className="display"
       id={id}
       style={{
-        fontFamily: "var(--font-fraunces)",
-        fontVariationSettings: '"opsz" 144',
         fontWeight: 500,
         fontSize: 20,
         color: "var(--accent)",
@@ -39,10 +37,8 @@ function SectionLabel({
 // Heading for a "// Nom" group inside ingredients or steps.
 function SubsectionLabel({ children }: { children: ReactNode }) {
   return (
-    <h3
+    <h3 className="display"
       style={{
-        fontFamily: "var(--font-fraunces)",
-        fontVariationSettings: '"opsz" 144',
         fontStyle: "italic",
         fontWeight: 500,
         fontSize: 17,
@@ -111,10 +107,8 @@ export default function RecipeView({ recipe, householdName, heroOverlay }: Props
       {/* Recipe content */}
       <div className="px-4 pt-6">
         <h1
-          className="text-foreground"
+          className="display text-foreground"
           style={{
-            fontFamily: "var(--font-fraunces)",
-            fontVariationSettings: '"opsz" 144',
             fontSize: 28,
             fontWeight: 600,
             lineHeight: 1.05,
@@ -194,11 +188,9 @@ export default function RecipeView({ recipe, householdName, heroOverlay }: Props
                     {section.items.map((line, i) => (
                       <li key={i} className="flex gap-3">
                         <span
-                          className="flex-shrink-0"
+                          className="display flex-shrink-0"
                           style={{
                             minWidth: 28,
-                            fontFamily: "var(--font-fraunces)",
-                            fontVariationSettings: '"opsz" 144',
                             fontStyle: "italic",
                             fontWeight: 500,
                             fontSize: 24,

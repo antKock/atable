@@ -37,14 +37,7 @@ export default function SwitchHouseholdScreen() {
       </Link>
 
       <h1
-        className="mb-3 text-foreground"
-        style={{
-          fontFamily: 'var(--font-fraunces)',
-          fontVariationSettings: '"opsz" 144',
-          fontSize: 32,
-          fontWeight: 600,
-          letterSpacing: '-0.02em',
-        }}
+        className="display-xl mb-3 text-foreground"
       >
         {t.switchHousehold.title}
       </h1>

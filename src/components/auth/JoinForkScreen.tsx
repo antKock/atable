@@ -46,10 +46,8 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
           <KeyRound size={30} aria-hidden="true" />
         </div>
         <h1
-          className="mt-6"
+          className="display mt-6"
           style={{
-            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
-            fontVariationSettings: '"opsz" 144',
             fontWeight: 700,
             fontSize: 36,
             letterSpacing: '-0.02em',

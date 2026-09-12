@@ -68,7 +68,7 @@ export default function CreateHouseholdForm({
 
   return (
     <div
-      className="fixed inset-0 flex flex-col overflow-hidden bg-gradient-to-b from-background to-[#EDE8E0]"
+      className="fixed inset-0 flex flex-col overflow-hidden bg-page-gradient"
     >
       <button
         type="button"
@@ -103,15 +103,7 @@ export default function CreateHouseholdForm({
         {headerSlot && <div style={{ marginBottom: 22 }}>{headerSlot}</div>}
 
         <h1
-          className="text-foreground"
-          style={{
-            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
-            fontVariationSettings: '"opsz" 144',
-            fontWeight: 700,
-            fontSize: '38px',
-            letterSpacing: '-0.02em',
-            lineHeight: 1.05,
-          }}
+          className="display-hero text-foreground"
         >
           {(askName ? t.household.createHeading : t.household.createHeadingQuick)[0]}
           <br />

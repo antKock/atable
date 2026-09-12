@@ -46,10 +46,8 @@ export default async function EditRecipePage({ params }: Props) {
         >
           <ArrowLeft size={20} strokeWidth={1.75} />
         </Link>
-        <h1
+        <h1 className="display"
           style={{
-            fontFamily: "var(--font-fraunces)",
-            fontVariationSettings: '"opsz" 144',
             fontStyle: "italic",
             fontWeight: 500,
             fontSize: 28,

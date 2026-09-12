@@ -41,14 +41,7 @@ export default async function HouseholdMenuContent({
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <h1
-        className="mb-6 text-foreground"
-        style={{
-          fontFamily: 'var(--font-fraunces)',
-          fontVariationSettings: '"opsz" 144',
-          fontSize: 32,
-          fontWeight: 600,
-          letterSpacing: '-0.02em',
-        }}
+        className="display-xl mb-6 text-foreground"
       >
         {t.household.menu}
       </h1>

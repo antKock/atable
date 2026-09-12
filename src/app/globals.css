@@ -8,6 +8,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+  /* Police d'affichage (titres, états, libellés éditoriaux) : Fraunces —
+     `font-display` en utilitaire Tailwind ; les utilitaires `display-*` plus
+     bas ajoutent l'axe optique 144 et les combinaisons récurrentes. */
+  --font-display: var(--font-fraunces), "Times New Roman", serif;
   --color-surface: var(--surface);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -103,10 +107,82 @@
     0 2px 6px rgba(93, 106, 46, 0.22),
     0 8px 18px rgba(93, 106, 46, 0.12);
   --nav-inactive: #B5B3AD;
+  /* Fond des écrans d'onboarding / récupération (crème → sable). */
+  --page-gradient: linear-gradient(to bottom, var(--background), #EDE8E0);
   --divider: linear-gradient(90deg, transparent, var(--border), transparent);
 }
 
 /* Dark mode not supported in V1 */
+
+/* Police d'affichage — Fraunces opsz 144 (revue 2026-09-12 : 27 blocs inline
+   remplacés). `display` seul pose la famille + l'axe optique ; les variantes
+   nommées figent les combinaisons récurrentes. Taille/graisse restent en
+   utilitaires Tailwind ou inline quand la combinaison est unique. */
+@utility display {
+  font-family: var(--font-fraunces), "Times New Roman", serif;
+  font-variation-settings: "opsz" 144;
+}
+/* Titre de page (Bibliothèque, Profil, menu du carnet, changer de carnet). */
+@utility display-xl {
+  font-family: var(--font-fraunces), "Times New Roman", serif;
+  font-variation-settings: "opsz" 144;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+/* Titre d'écran d'onboarding (créer / rejoindre / code). */
+@utility display-hero {
+  font-family: var(--font-fraunces), "Times New Roman", serif;
+  font-variation-settings: "opsz" 144;
+  font-size: 38px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+/* Titre italique des états centrés (vide, échec de chargement). */
+@utility display-italic-lg {
+  font-family: var(--font-fraunces), "Times New Roman", serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+/* Idem, resserré (aucun résultat de recherche). */
+@utility display-italic-md {
+  font-family: var(--font-fraunces), "Times New Roman", serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+/* Libellé éditorial italique (actes du formulaire, sous-sections de fiche). */
+@utility display-italic {
+  font-family: var(--font-fraunces), "Times New Roman", serif;
+  font-variation-settings: "opsz" 144;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+}
+
+/* Fond dégradé des écrans d'onboarding (5 copies de `to-[#EDE8E0]`). */
+@utility bg-page-gradient {
+  background-image: var(--page-gradient);
+}
+
+/* Surface de carte recette (carte réelle et squelettes) : dégradé, ombre
+   douce, liseré bas accentué. */
+@utility card-surface {
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  border: 1px solid color-mix(in oklab, var(--border) 40%, transparent);
+  border-bottom: 1px solid var(--card-border-accent);
+  background: var(--card-gradient);
+  box-shadow: var(--card-shadow-sm);
+}
 
 @layer base {
   * {
