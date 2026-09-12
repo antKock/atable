@@ -314,21 +314,15 @@ export default function PrivacyEn() {
           <tbody>
             <tr>
               <Td><strong>OVHcloud</strong></Td>
-              <Td>Application hosting (virtual private server)</Td>
-              <Td>Technical request data, logs</Td>
+              <Td>
+                Application hosting, database, photo storage and rate limiting (virtual
+                private server and object storage)
+              </Td>
+              <Td>
+                Cookbooks, recipes, sessions, photos, IP address, technical request data,
+                logs, backups
+              </Td>
               <Td>France (Gravelines)</Td>
-            </tr>
-            <tr>
-              <Td><strong>Supabase</strong></Td>
-              <Td>Database and photo storage</Td>
-              <Td>Cookbooks, recipes, sessions, photos</Td>
-              <Td>European Union (Ireland, <code>eu-west-1</code>)</Td>
-            </tr>
-            <tr>
-              <Td><strong>Upstash</strong></Td>
-              <Td>Rate limiting (security)</Td>
-              <Td>IP address, session identifiers</Td>
-              <Td>United Kingdom (London, <code>eu-west-2</code>)</Td>
             </tr>
             <tr>
               <Td><strong>OpenAI</strong></Td>
@@ -365,8 +359,8 @@ export default function PrivacyEn() {
 
         <H2 id="transferts">7. Data transfers outside the European Union</H2>
         <P>
-          <strong>OVHcloud</strong> and <strong>Supabase</strong>, which host most of your data,
-          operate <strong>within the European Union</strong>. Several processors nevertheless
+          <strong>OVHcloud</strong>, which hosts most of your data, operates{" "}
+          <strong>in France</strong>. Several processors nevertheless
           process data outside the EU:
         </P>
         <UL>
@@ -381,16 +375,13 @@ export default function PrivacyEn() {
           </li>
           <li>
             <strong>Resend</strong> (access-recovery emails) operates in the{" "}
-            <strong>United States</strong>;
-          </li>
-          <li>
-            <strong>Upstash</strong> (rate limiting) operates in the <strong>United Kingdom</strong>.
+            <strong>United States</strong>.
           </li>
         </UL>
         <P>
           These transfers are covered by appropriate safeguards under the GDPR: the European
-          Commission&apos;s standard contractual clauses, the UK adequacy decision of June 28, 2021,
-          and/or participation in the <em>EU–US Data Privacy Framework</em> for providers
+          Commission&apos;s standard contractual clauses and/or participation in the{" "}
+          <em>EU–US Data Privacy Framework</em> for providers
           established in the United States.
         </P>
 
