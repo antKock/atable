@@ -48,6 +48,16 @@ export type HealthRow = {
   tokens_burned: number;
 };
 export type SharingRow = { links: number; links_dated_estimate: boolean; copies: number };
+export type DailyRow = {
+  day: string;
+  trials: number;
+  trials_ios: number;
+  trials_web: number;
+  trials_android: number;
+  new_people: number;
+  recipes: number;
+  active_people: number;
+};
 export type CarnetRow = {
   id: string;
   name: string;
@@ -69,6 +79,8 @@ export type RawV3 = {
   appStore: AppStoreDailyRow[];
   sharing: SharingRow;
   carnets: CarnetRow[];
+  /** Série quotidienne (044), ≥ 91 jours, aujourd'hui inclus (partiel). */
+  daily: DailyRow[];
   billedUsd: number | null;
   demoSeedMin: number;
   now: Date;
@@ -95,6 +107,33 @@ export type KpiTile = {
   trend?: "up" | "down" | "flat";
   bench?: string;
   spark?: number[];
+};
+
+export type HotIndicator = {
+  id: string;
+  label: string;
+  /** Valeur des 7 derniers jours clos (J-7 → J-1). */
+  value: number;
+  /** Médiane des 3 semaines précédentes (J-28 → J-8), même unité. */
+  ref: number;
+  trend: "up" | "down" | "flat";
+  /** 14 dernières valeurs quotidiennes (J-14 → J-1). */
+  bars: number[];
+  unit?: string;
+  hint?: string;
+};
+
+export type StoreWeek = {
+  weekStart: string;
+  label: string;
+  impressions: number;
+  downloads: number;
+  opens: number;
+  carnets: number;
+  imprToDl: number | null;
+  dlToOpen: number | null;
+  openToCarnet: number | null;
+  fragile: boolean;
 };
 
 export type Health = {
@@ -252,6 +291,57 @@ export function assembleV3(raw: RawV3) {
   };
   const costPerActive = activeNow ? num(h.ai_cost_usd) / activeNow : 0;
 
+  // ---------------- bloc 0 : 7 derniers jours (données chaudes) ----------------
+  const yesterday = addDays(today, -1);
+  const dailyByDay = new Map(raw.daily.map((r) => [r.day.slice(0, 10), r]));
+  const dlByDay = new Map<string, number>();
+  for (const r of raw.appStore) dlByDay.set(r.day, (dlByDay.get(r.day) ?? 0) + num(r.dl_first_time));
+  const dayList = (n: number, end: string) => Array.from({ length: n }, (_, i) => addDays(end, -(n - 1 - i)));
+  const median = (xs: number[]) => {
+    const a = [...xs].sort((x, y) => x - y);
+    return a.length ? (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2) : 0;
+  };
+  const hotOf = (id: string, label: string, get: (day: string) => number, opts: { avg?: boolean; unit?: string; hint?: string } = {}): HotIndicator => {
+    const win = (end: string) => {
+      const vals = dayList(7, end).map(get);
+      const tot = vals.reduce((a, b) => a + b, 0);
+      return opts.avg ? +(tot / 7).toFixed(1) : tot;
+    };
+    const value = win(yesterday);
+    const ref = +median([win(addDays(yesterday, -7)), win(addDays(yesterday, -14)), win(addDays(yesterday, -21))]).toFixed(1);
+    return { id, label, value, ref, trend: value > ref ? "up" : value < ref ? "down" : "flat", bars: dayList(14, yesterday).map(get), unit: opts.unit, hint: opts.hint };
+  };
+  const hot: HotIndicator[] = [
+    hotOf("downloads", "Téléchargements App Store", (d) => dlByDay.get(d) ?? 0, { hint: appStoreLastDay ? `Apple jusqu'au ${shortDate(appStoreLastDay)}` : undefined }),
+    hotOf("trials", "Essais démo", (d) => num(dailyByDay.get(d)?.trials)),
+    hotOf("new", "Nouvelles personnes", (d) => num(dailyByDay.get(d)?.new_people)),
+    hotOf("recipes", "Recettes ajoutées", (d) => num(dailyByDay.get(d)?.recipes)),
+    hotOf("active", "Personnes actives / jour", (d) => num(dailyByDay.get(d)?.active_people), { avg: true, hint: "moyenne des 7 jours" }),
+  ];
+
+  // ---------------- funnel App Store par semaine ----------------
+  const storeWeekly: StoreWeek[] = starts12.map((ws) => {
+    const days = dayList(7, addDays(ws, 6));
+    const rowsW = raw.appStore.filter((r) => r.day >= ws && r.day <= addDays(ws, 6));
+    const impressions = sum(rowsW, (r) => num(r.eng_impressions));
+    const downloads = sum(rowsW, (r) => num(r.dl_first_time));
+    const opens = days.reduce((a, d) => a + num(dailyByDay.get(d)?.trials_ios), 0);
+    const carnets = newPeople(people, { from: ws, to: addDays(ws, 6) }).ios;
+    const pct1 = (n: number, d: number) => (d > 0 ? +((n / d) * 100).toFixed(1) : null);
+    return {
+      weekStart: ws,
+      label: ws.slice(8, 10) + "/" + ws.slice(5, 7),
+      impressions,
+      downloads,
+      opens,
+      carnets,
+      imprToDl: pct1(downloads, impressions),
+      dlToOpen: pct1(opens, downloads),
+      openToCarnet: pct1(carnets, opens),
+      fragile: downloads < 20,
+    };
+  });
+
   // ---------------- bloc 1 : tuiles ----------------
   const trend = (cur: number, prev: number): KpiTile["trend"] => (cur > prev ? "up" : cur < prev ? "down" : "flat");
   const fmtR = (r: Ratio) => `${pctLabel(r)} (${nLabel(r)})`;
@@ -329,6 +419,8 @@ export function assembleV3(raw: RawV3) {
 
   const overview = {
     dataDate: today,
+    hot,
+    hotWindow: { from: addDays(yesterday, -6), to: yesterday },
     weekLabel: `semaine du ${shortDate(starts12[WEEKS - 1])}`,
     northStar: {
       value: activeNow,
@@ -353,6 +445,7 @@ export function assembleV3(raw: RawV3) {
       lastDay: appStoreLastDay,
       sources: appStoreSources,
       weekly: downloadsWeekly,
+      funnelWeekly: storeWeekly,
       pageToInstall: ratio(appStore.downloads, appStore.pageViews),
       impressionToInstall: appStore.impressions ? +((appStore.downloads / appStore.impressions) * 100).toFixed(1) : null,
     },

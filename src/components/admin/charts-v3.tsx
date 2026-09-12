@@ -203,3 +203,35 @@ export function Dist({ data, height = 170, color = P.olive }: { data: { label: s
     </ResponsiveContainer>
   );
 }
+
+/** Mini-barres (14 jours) pour le bloc « 7 derniers jours » : les 7 derniers en olive, les 7 d'avant en gris. */
+export function MiniBars({ values, height = 34 }: { values: number[]; height?: number }) {
+  const max = Math.max(1, ...values);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height }} aria-hidden="true">
+      {values.map((v, i) => (
+        <div key={i} style={{ flex: 1, height: `${Math.max(6, (v / max) * 100)}%`, background: i >= values.length - 7 ? P.olive : P.grid, borderRadius: 2, opacity: v === 0 ? 0.45 : 1 }} title={String(v)} />
+      ))}
+    </div>
+  );
+}
+
+/** Taux du funnel App Store par semaine (3 courbes en %). */
+export function StoreRates({ data, height = 200 }: { data: { label: string; imprToDl: number | null; dlToOpen: number | null; openToCarnet: number | null }[]; height?: number }) {
+  if (data.every((d) => d.imprToDl == null && d.dlToOpen == null)) return <Empty height={height} sub="Se remplit avec les semaines de données Apple (depuis le 16 août)." />;
+  return (
+    <ResponsiveContainer width="100%" height={height}>
+      <LineChart data={data} margin={{ top: 8, right: 12, left: -8, bottom: 0 }}>
+        <CartesianGrid {...gridProps} />
+        <XAxis dataKey="label" {...axisProps} interval="preserveStartEnd" minTickGap={30} />
+        {/* Axe gauche : taux « pleins » (peuvent dépasser 100 % : ouvertures > téléchargements seuillés par Apple). Axe droit : impression → téléchargement (quelques %). */}
+        <YAxis yAxisId="left" {...axisProps} width={40} domain={[0, (max: number) => Math.max(100, Math.ceil(max / 20) * 20)]} tickFormatter={(v: number) => `${v}%`} />
+        <YAxis yAxisId="right" orientation="right" {...axisProps} width={40} domain={[0, (max: number) => Math.max(5, Math.ceil(max))]} tickFormatter={(v: number) => `${v}%`} />
+        <Tooltip content={<Tip suffix=" %" />} />
+        <Line yAxisId="right" type="monotone" dataKey="imprToDl" name="Impression → téléchargement (axe droit)" stroke={P.ochre} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />
+        <Line yAxisId="left" type="monotone" dataKey="dlToOpen" name="Téléchargement → 1ʳᵉ ouverture" stroke={P.olive} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />
+        <Line yAxisId="left" type="monotone" dataKey="openToCarnet" name="Ouverture → 1er carnet" stroke={P.terracotta} strokeWidth={2} dot={{ r: 3 }} connectNulls={false} isAnimationActive={false} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}

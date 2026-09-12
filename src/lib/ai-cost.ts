@@ -107,6 +107,13 @@ export async function recordAiCost(rec: AiCostRecord): Promise<void> {
       console.warn("[ai-cost] recipe gone before cost recorded — keeping row without recipe_id");
       ({ error } = await supabase.from("ai_costs").insert({ ...row, recipe_id: null }));
     }
+    // Same race one level up: the household itself was deleted while the
+    // enrichment was still running (seen on staging, 2026-09-12). household_id
+    // is NOT NULL and the row would be cascaded away anyway — drop it, no page.
+    if (error?.code === "23503") {
+      console.warn("[ai-cost] household gone before cost recorded — row dropped");
+      return;
+    }
     if (error) throw new Error(error.message);
   } catch (err) {
     Sentry.captureException(err);

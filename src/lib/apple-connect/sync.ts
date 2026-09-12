@@ -10,7 +10,7 @@
 // Un échec de téléchargement lève (le moniteur Sentry passe en erreur) mais
 // les instances déjà intégrées restent acquises : le passage suivant reprend.
 
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from "@/lib/supabase/server";
 import {
   type AppleConnectClient,
   findOngoingRequestId,
@@ -48,7 +48,7 @@ function aggregate(kind: ReportKind, tsv: string): Map<string, Rows> {
 
 export async function syncAppStore(opts: {
   client: AppleConnectClient;
-  supabase: SupabaseClient;
+  supabase: DbClient;
   appId: string;
   /** Plafond d'instances intégrées par rapport et par passage (rattrapage borné). */
   maxPerRun?: number;

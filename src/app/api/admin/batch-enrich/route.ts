@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
 import { enrichRecipe } from "@/lib/enrichment";
 
 export const maxDuration = 60;
@@ -40,15 +41,13 @@ export async function POST(request: NextRequest) {
       for (const r of allRecipes) {
         for (const url of [r.photo_url, r.generated_image_url]) {
           if (url) {
-            // `[^?]+` : exclut le cache-buster `?v=…` (sinon clé Storage
-            // inexistante → remove() no-op).
-            const match = (url as string).match(/recipe-photos\/([^?]+)/);
-            if (match) paths.push(decodeURIComponent(match[1]));
+            const path = photoPathFromUrl(url as string);
+            if (path) paths.push(path);
           }
         }
       }
       if (paths.length > 0) {
-        await supabase.storage.from("recipe-photos").remove(paths);
+        await getPhotoStore().remove(paths);
         console.log(`[batch-enrich] Deleted ${paths.length} files from storage`);
       }
     }

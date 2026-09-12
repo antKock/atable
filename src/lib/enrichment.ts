@@ -4,6 +4,7 @@ import { AI_MODELS, withEffortFallback } from "@/lib/ai-models";
 import { withRetry } from "@/lib/retry";
 import { recordAiCost, textCostUsd, imageCostUsd } from "@/lib/ai-cost";
 import { createServerClient } from "@/lib/supabase/server";
+import { getPhotoStore } from "@/lib/storage/photos";
 import { EnrichmentResponseSchema } from "@/lib/schemas/enrichment";
 import type { EnrichmentResponse } from "@/lib/schemas/enrichment";
 import {
@@ -123,32 +124,17 @@ async function generateAndUploadImage(
     throw new Error("No image data (url or b64) returned");
   }
 
-  // Upload to Supabase Storage
-  const supabase = createServerClient();
+  // Upload to the photo store (S3 / Supabase Storage, cf. lib/storage/photos)
+  const photos = getPhotoStore();
   const storagePath = `generated/${recipeId}/ai-image.webp`;
-
-  const { error: uploadError } = await supabase.storage
-    .from("recipe-photos")
-    .upload(storagePath, imageBuffer, {
-      contentType: "image/webp",
-      upsert: true,
-      // Long cache: images are served directly (unoptimized), so let the CDN /
-      // browser cache them and keep Supabase egress low.
-      cacheControl: "2592000", // 30 days
-    });
-
-  if (uploadError) throw uploadError;
-
-  const { data: urlData } = supabase.storage
-    .from("recipe-photos")
-    .getPublicUrl(storagePath);
+  await photos.upload(storagePath, imageBuffer, "image/webp");
 
   // The storage path is deterministic (upsert overwrites in place), so the
   // public URL is identical on every regeneration. Append a cache-busting
   // version param so the stored URL actually changes — otherwise React keeps
   // the same <Image src> and the CDN/browser serves the 30-day-cached old
   // image, making "regenerate" look like a no-op.
-  return `${urlData.publicUrl}?v=${Date.now()}`;
+  return `${photos.publicUrl(storagePath)}?v=${Date.now()}`;
 }
 
 // ---------- Main enrichment pipeline ----------

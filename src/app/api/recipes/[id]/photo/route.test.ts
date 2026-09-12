@@ -4,8 +4,11 @@ import { headers } from "next/headers";
 import { POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { getPhotoStore } from "@/lib/storage/photos";
+import { createPhotoStoreMock, type PhotoStoreMock } from "@/test/photo-store-mock";
 
 vi.mock("@/lib/supabase/server");
+vi.mock("@/lib/storage/photos");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
 vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
@@ -18,10 +21,13 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 const mockHeaders = headers as unknown as Mock;
 
 let supa: SupabaseMock;
+let photos: PhotoStoreMock;
 
 beforeEach(() => {
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
+  photos = createPhotoStoreMock();
+  vi.mocked(getPhotoStore).mockReturnValue(photos);
   mockHeaders.mockResolvedValue(new Headers({ "x-household-id": "household-1" }));
 });
 
@@ -56,7 +62,7 @@ describe("POST /api/recipes/[id]/photo", () => {
     const res = await POST(photoRequest(webp()), ctx());
 
     expect(res.status).toBe(200);
-    expect(supa.uploadMock).toHaveBeenCalledTimes(1);
+    expect(photos.upload).toHaveBeenCalledTimes(1);
     const update = recipeUpdate();
     expect(update?.image_status).toBe("none");
     expect(typeof update?.photo_url).toBe("string");
@@ -68,7 +74,7 @@ describe("POST /api/recipes/[id]/photo", () => {
     const res = await POST(photoRequest(webp()), ctx("missing"));
 
     expect(res.status).toBe(404);
-    expect(supa.uploadMock).not.toHaveBeenCalled();
+    expect(photos.upload).not.toHaveBeenCalled();
     expect(recipeUpdate()).toBeUndefined();
   });
 
@@ -76,7 +82,7 @@ describe("POST /api/recipes/[id]/photo", () => {
     const gif = new File([new Uint8Array([1])], "p.gif", { type: "image/gif" });
     const res = await POST(photoRequest(gif), ctx());
     expect(res.status).toBe(400);
-    expect(supa.uploadMock).not.toHaveBeenCalled();
+    expect(photos.upload).not.toHaveBeenCalled();
   });
 
   it("returns 401 without a household header", async () => {

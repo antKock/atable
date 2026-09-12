@@ -79,6 +79,21 @@ describe("recordAiCost", () => {
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
+  // Contexte : Sentry JAVASCRIPT-NEXTJS-K (2026-09-12) — le foyer entier est
+  // supprimé pendant l'enrichissement : household_id est NOT NULL et la ligne
+  // serait cascadée de toute façon → abandon silencieux, pas de page Sentry.
+  it("abandonne sans Sentry quand le foyer a été supprimé entre-temps (FK 23503 persistante)", async () => {
+    const insert = vi.fn().mockResolvedValue({ error: { code: "23503", message: "violates foreign key constraint \"ai_costs_household_id_fkey\"" } });
+    vi.mocked(createServerClient).mockReturnValue({
+      from: () => ({ insert }),
+    } as unknown as ReturnType<typeof createServerClient>);
+
+    await recordAiCost({ householdId: "h-gone", recipeId: "r1", callType: "image", model: "m", costUsd: 0.011 });
+
+    expect(insert).toHaveBeenCalledTimes(2);
+    expect(Sentry.captureException).not.toHaveBeenCalled();
+  });
+
   it("remonte à Sentry les autres erreurs sans jamais throw", async () => {
     const insert = vi.fn().mockResolvedValue({ error: { code: "42P01", message: "relation missing" } });
     vi.mocked(createServerClient).mockReturnValue({

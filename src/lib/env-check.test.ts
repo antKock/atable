@@ -67,6 +67,28 @@ describe("checkEnv", () => {
     expect(issues).toHaveLength(2);
   });
 
+  it("cible base : couple PostgREST complet, sans Supabase, avec S3 → aucun problème", () => {
+    const without = (env: Record<string, string | undefined>, ...names: string[]) =>
+      Object.fromEntries(Object.entries(env).filter(([k]) => !names.includes(k)));
+    const vps = {
+      ...without(VALID, "NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"),
+      DATABASE_REST_URL: "http://postgrest:3000",
+      DATABASE_REST_KEY: "j".repeat(40),
+      S3_BUCKET: "mijote-photos",
+      S3_ENDPOINT: "https://s3.gra.io.cloud.ovh.net",
+      S3_PUBLIC_URL: "https://mijote-photos.s3.gra.io.cloud.ovh.net",
+      S3_ACCESS_KEY_ID: "ak",
+      S3_SECRET_ACCESS_KEY: "sk",
+    };
+    expect(checkEnv(vps)).toEqual([]);
+    // Sans S3, le repli Storage exige encore le couple Supabase.
+    expect(issueFor(checkEnv(without(vps, "S3_BUCKET")), "NEXT_PUBLIC_SUPABASE_URL")?.level).toBe("error");
+    // Couple PostgREST à moitié posé → error sur la manquante.
+    expect(issueFor(checkEnv(without(vps, "DATABASE_REST_KEY")), "DATABASE_REST_KEY")?.level).toBe("error");
+    // S3_BUCKET sans identifiants → error.
+    expect(issueFor(checkEnv(without(vps, "S3_SECRET_ACCESS_KEY")), "S3_SECRET_ACCESS_KEY")?.level).toBe("error");
+  });
+
   it("URL invalide ou hors http(s) → signalée", () => {
     expect(issueFor(checkEnv({ ...VALID, NEXT_PUBLIC_SUPABASE_URL: "xyz.supabase.co" }), "NEXT_PUBLIC_SUPABASE_URL")?.level).toBe("error");
     expect(issueFor(checkEnv({ ...VALID, APP_ORIGIN: "ftp://mijote.fr" }), "APP_ORIGIN")?.level).toBe("warn");
@@ -120,6 +142,13 @@ describe("checkEnv", () => {
     expect(issueFor(prod, "I18N_EN_ENABLED")?.reason).toBe(
       "absente en production : version EN désactivée (tout en FR)",
     );
+  });
+
+  it("staging (SENTRY_ENVIRONMENT=staging) : les règles « absente en production » ne s'appliquent pas", () => {
+    const staging = { ...VALID, NODE_ENV: "production", SENTRY_ENVIRONMENT: "staging", APP_ORIGIN: "https://staging.mijote.fr" };
+    expect(checkEnv(staging)).toEqual([]);
+    // Sans SENTRY_ENVIRONMENT, NODE_ENV=production vaut production (prudence).
+    expect(checkEnv({ ...VALID, NODE_ENV: "production" }).length).toBeGreaterThan(0);
   });
 
   it("production complète → aucun problème", () => {

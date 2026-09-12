@@ -81,6 +81,26 @@
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1); font-size: 12px; color: var(--d-muted); line-height: 1.45;
 }
 
+/* ===== Bloc 0 : 7 derniers jours ===== */
+.mijote-dash .hot { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.mijote-dash .hot .h {
+  background: var(--d-surface); border: 1px solid var(--d-border); border-radius: 12px; padding: 12px 14px 10px;
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+}
+.mijote-dash .hot .h .lab { font-size: 11.5px; font-weight: 600; color: var(--d-muted); }
+.mijote-dash .hot .h .val { font-family: var(--d-mono); font-size: 26px; line-height: 1.1; }
+.mijote-dash .hot .h .val small { font-size: 12px; color: var(--d-faint); margin-left: 4px; }
+.mijote-dash .hot .h .ref { font-size: 11.5px; color: var(--d-muted); }
+.mijote-dash .hot .h .ref.up::before { content: "▲ "; color: var(--d-accent-deep); font-size: 9px; }
+.mijote-dash .hot .h .ref.down::before { content: "▼ "; color: var(--d-terra); font-size: 9px; }
+.mijote-dash .hot .h .hint { font-size: 10.5px; color: var(--d-faint); }
+.mijote-dash table.weeks { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+.mijote-dash table.weeks th { font-size: 11px; color: var(--d-muted); font-weight: 600; text-align: right; padding: 5px 6px; border-bottom: 1px solid var(--d-border); white-space: nowrap; }
+.mijote-dash table.weeks th:first-child, .mijote-dash table.weeks td:first-child { text-align: left; }
+.mijote-dash table.weeks td { font-family: var(--d-mono); text-align: right; padding: 5px 6px; border-bottom: 1px solid var(--d-grid); white-space: nowrap; }
+.mijote-dash table.weeks td.fragile { color: var(--d-faint); }
+.mijote-dash table.weeks td .n { font-family: var(--d-sans); font-size: 10.5px; color: var(--d-faint); margin-left: 4px; }
+
 /* ===== Bloc 1 ===== */
 .mijote-dash .glance { display: grid; grid-template-columns: 5fr 7fr; gap: 16px; }
 .mijote-dash .north {
@@ -190,6 +210,7 @@
   .mijote-dash .toplinks { width: 100%; font-size: 11.5px; gap: 12px; }
   .mijote-dash .toplinks span { display: none; }
   .mijote-dash .glance { grid-template-columns: 1fr; }
+  .mijote-dash .hot { grid-template-columns: repeat(2, 1fr); }
   .mijote-dash .inputs { grid-template-columns: repeat(2, 1fr); }
   .mijote-dash .cards { grid-template-columns: 1fr 1fr; }
   .mijote-dash .card { grid-column: span 2 !important; }

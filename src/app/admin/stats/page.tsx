@@ -9,7 +9,7 @@ import { METRIC_EPOCHS, PRODUCT_EVENTS } from "@/lib/admin/epochs";
 import { CHANNEL_LABELS } from "@/lib/admin/v3/people";
 import { PALETTE as P, cohortColor } from "@/lib/admin/palette";
 import { Topbar, SectionHead, Card, Funnel, BarRow, BigStats, RatioText, Legend } from "@/components/admin/ui";
-import { Spark, NorthStarChart, StackedWeekly, ActivationWeekly, RetentionCurves, CohortCake, Dist } from "@/components/admin/charts-v3";
+import { Spark, NorthStarChart, StackedWeekly, ActivationWeekly, RetentionCurves, CohortCake, Dist, MiniBars, StoreRates } from "@/components/admin/charts-v3";
 import "./dashboard.css";
 
 export const dynamic = "force-dynamic";
@@ -31,8 +31,27 @@ export default async function DashboardPage() {
     <div className="mijote-dash">
       <Topbar current="stats" dataDate={dataDate} />
       <div className="page">
-        {/* ============ 1 · EN UN COUP D'ŒIL ============ */}
+        {/* ============ 0 · 7 DERNIERS JOURS (données chaudes) ============ */}
         <div className="section" style={{ marginTop: 8 }}>
+          <SectionHead n="0" title="7 derniers jours" q={`Du ${shortDate(o.hotWindow.from)} au ${shortDate(o.hotWindow.to)} · repère = médiane des 3 semaines précédentes · comptes seulement`} />
+          <div className="hot">
+            {o.hot.map((h) => (
+              <div className="h" key={h.id}>
+                <div className="lab">{h.label}</div>
+                <div className="val">
+                  {String(h.value).replace(".", ",")}
+                  {h.unit && <small>{h.unit}</small>}
+                </div>
+                <div className={"ref " + h.trend}>repère {String(h.ref).replace(".", ",")}</div>
+                <MiniBars values={h.bars} />
+                {h.hint && <div className="hint">{h.hint}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ============ 1 · EN UN COUP D'ŒIL ============ */}
+        <div className="section">
           <SectionHead n="1" title="En un coup d'œil" q={`Dernière semaine close (${o.weekLabel}) vs les 4 précédentes · le même contenu part chaque lundi par e-mail`} />
           <div className="glance">
             <div className="north">
@@ -161,6 +180,50 @@ export default async function DashboardPage() {
                 markerLabel={acq.listingMarker >= 0 ? acq.weekly[acq.listingMarker]?.label : null}
                 markerGlyph="1.3"
               />
+            </Card>
+            <Card
+              span={12}
+              title="Funnel App Store par semaine"
+              sub="Impressions → téléchargements → 1ʳᵉ ouverture iOS → 1er carnet iOS · 12 semaines closes · taux grisé sous 20 téléchargements"
+              def={<>Impressions et téléchargements : Apple (depuis le 16 août 2026). 1ʳᵉ ouverture = sessions démo créées depuis l&apos;app iOS dans la semaine (par plateforme depuis le 12 sept. ; avant, sessions vivantes 30 j). 1er carnet = nouvelles personnes dont la première session est iOS. Les vues de fiche, seuillées par Apple, ne sont pas un maillon fiable et restent hors du tableau.</>}
+              footer={<Legend items={[{ label: "Impression → téléchargement (axe droit)", color: P.ochre }, { label: "Téléchargement → 1ʳᵉ ouverture", color: P.olive }, { label: "Ouverture → 1er carnet", color: P.terracotta }]} />}
+            >
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 7fr) minmax(0, 5fr)", gap: 18, alignItems: "start" }}>
+                <div style={{ overflowX: "auto" }}>
+                  <table className="weeks">
+                    <thead>
+                      <tr>
+                        <th>Semaine</th>
+                        <th>Impr.</th>
+                        <th>Téléch.</th>
+                        <th>Ouvert.</th>
+                        <th>Carnets</th>
+                        <th>Impr → tél.</th>
+                        <th>Tél → ouv.</th>
+                        <th>Ouv → carnet</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...acq.appStore.funnelWeekly].reverse().slice(0, 8).map((w) => {
+                        const r = (v: number | null) => (v == null ? "—" : `${String(v).replace(".", ",")} %`);
+                        return (
+                          <tr key={w.weekStart}>
+                            <td>{w.label}</td>
+                            <td>{w.impressions.toLocaleString("fr-FR")}</td>
+                            <td>{w.downloads}</td>
+                            <td>{w.opens}</td>
+                            <td>{w.carnets}</td>
+                            <td className={w.fragile ? "fragile" : undefined}>{r(w.imprToDl)}</td>
+                            <td className={w.fragile ? "fragile" : undefined}>{r(w.dlToOpen)}</td>
+                            <td className={w.fragile ? "fragile" : undefined}>{r(w.openToCarnet)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                <StoreRates data={acq.appStore.funnelWeekly} />
+              </div>
             </Card>
             <Card span={4} title="Origine des téléchargements · 4 sem." sub="Source App Store, referrers nommés" def={<>Source du premier téléchargement telle que rapportée par Apple : recherche, navigation, ouverture de la fiche depuis une autre app (referrer, ex. ChatGPT) ou depuis le web. Sans lien possible avec une personne côté Mijote.</>}>
               {acq.appStore.sources.length ? (

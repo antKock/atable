@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from "@/lib/supabase/server";
 import { isDemoOwner } from "@/lib/api/with-owner-auth";
 import type { OwnerContext } from "@/lib/auth/owner-context";
 
@@ -15,7 +15,7 @@ import type { OwnerContext } from "@/lib/auth/owner-context";
  * conversion comptée — préférable à un trou dans le funnel).
  */
 export async function resolveDemoTrialStart(
-  supabase: SupabaseClient,
+  supabase: DbClient,
   existingOwner: OwnerContext | null,
 ): Promise<string | null> {
   if (!existingOwner || !isDemoOwner(existingOwner)) return null;

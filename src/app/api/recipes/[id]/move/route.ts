@@ -3,10 +3,8 @@ import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
 import { getT } from "@/lib/i18n/server";
-
-const BUCKET = "recipe-photos";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -17,25 +15,25 @@ type RouteContext = { params: Promise<{ id: string }> };
 // elles suivent la recette sans déplacement. Retourne { url, sourcePath } quand
 // un objet foyer-scopé a été copié, sinon null.
 async function relocateFoyerScopedImage(
-  supabase: SupabaseClient,
   imageUrl: string | null,
   sourceHid: string,
   destHid: string,
 ): Promise<{ url: string; sourcePath: string } | null> {
   if (!imageUrl) return null;
-  const match = imageUrl.match(/recipe-photos\/([^?]+)/);
-  if (!match) return null; // URL externe — référencée telle quelle
-  const sourcePath = decodeURIComponent(match[1]);
+  const sourcePath = photoPathFromUrl(imageUrl);
+  if (!sourcePath) return null; // URL externe — référencée telle quelle
   // Seuls les objets rangés SOUS le foyer source se déplacent (photo uploadée).
   if (!sourcePath.startsWith(`${sourceHid}/`)) return null;
   const destPath = `${destHid}/${sourcePath.slice(sourceHid.length + 1)}`;
 
-  const { error } = await supabase.storage.from(BUCKET).copy(sourcePath, destPath);
-  if (error) return null; // échec de copie → on garde l'URL source (best-effort)
-
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(destPath);
+  const photos = getPhotoStore();
+  try {
+    await photos.copy(sourcePath, destPath);
+  } catch {
+    return null; // échec de copie → on garde l'URL source (best-effort)
+  }
   // Cache-buster : chemin déterministe, fichier caché 30 j → forcer le refetch.
-  return { url: `${data.publicUrl}?v=${Date.now()}`, sourcePath };
+  return { url: `${photos.publicUrl(destPath)}?v=${Date.now()}`, sourcePath };
 }
 
 // PATCH /api/recipes/[id]/move { householdId }
@@ -82,9 +80,7 @@ export const PATCH = withOwnerAuth(
     }
 
     // 1) Copier l'image foyer-scopée vers le chemin du foyer cible (best-effort).
-    const relocated = await relocateFoyerScopedImage(
-      supabase,
-      recipe.photo_url,
+    const relocated = await relocateFoyerScopedImage(recipe.photo_url,
       sourceHid,
       destHid,
     );
@@ -112,7 +108,7 @@ export const PATCH = withOwnerAuth(
     // 3) Supprimer l'objet source SEULEMENT après le succès du update (jamais
     //    l'inverse : une image orpheline vaut mieux qu'une recette sans image).
     if (relocated) {
-      await supabase.storage.from(BUCKET).remove([relocated.sourcePath]);
+      await getPhotoStore().remove([relocated.sourcePath]);
     }
 
     revalidatePath("/home");

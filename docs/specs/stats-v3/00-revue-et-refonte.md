@@ -358,3 +358,28 @@ Règle : le repère s'affiche en gris sous la valeur (« repère marché ≈ 34 
 - **Écarts avec la maquette** : la cohorte « ≤ mai » n'apparaît que si plus de 5 mois sont actifs ; les
   cohortes d'avant mai 2026 (modèle d'identité différent) sortent de la table ; « Vues de fiche » peut
   être inférieur aux téléchargements (seuillage Apple) — dit dans la définition de la carte.
+
+### 5.1 Compléments du 2026-09-12 (après relecture d'Anthony)
+
+- **Bloc 0 « 7 derniers jours »** au-dessus du bloc 1 (données chaudes) : cinq comptes sur J-7 → J-1
+  (téléchargements App Store à J-1, essais démo, nouvelles personnes, recettes ajoutées, personnes
+  actives / jour en moyenne), chacun avec son **repère = médiane des trois semaines précédentes**
+  (même unité de 7 jours) et 14 jours en mini-barres. Comptes seulement, jamais de %. Flèche ▲/▼ vs repère.
+- **Funnel App Store par semaine** (bloc 2, pleine largeur) : par semaine ISO close, impressions,
+  téléchargements, 1ʳᵉ ouverture iOS (sessions démo iOS), 1er carnet iOS, et les trois taux
+  impression → téléchargement (axe droit, quelques %), téléchargement → ouverture, ouverture → carnet ;
+  taux grisés sous 20 téléchargements ; table des 8 dernières semaines + courbes sur 12. Les vues de
+  fiche restent hors du funnel (seuillage Apple). Les ouvertures par plateforme ne sont historisées
+  que depuis le 12 sept. (colonne `stats_daily.demo_trials_ios`) — avant, sessions vivantes 30 j.
+- Migration **044** : `analytics_v3_daily(p_days)` (essais par plateforme, nouvelles personnes,
+  recettes, actives par jour).
+
+## 6. Lectures à revoir (journal)
+
+- **2026-09-12 — canal « invitation »** = partage de **carnet** (code membre ou invité en lecture), jamais
+  de recette (le lien `/r/…` ne crée pas de personne : 6 copies au total). Depuis juin, jugeables à J+7 :
+  App Store 30 personnes / 12 activées / 12,1 recettes ; invitation 12 / 0 activée / 0,3 recette mais
+  5 encore actives à 28 j. Lecture : l'invitation est un levier de **rétention du carnet** (conjoint
+  consommateur), pas d'acquisition ; le critère d'activation « 3 recettes + retour » est aveugle pour
+  ces profils → à relire avec la consultation (`recipe_views_daily`) vers mi-octobre. Pistes : proposer
+  l'invitation après la 3ᵉ recette ; faire de la page publique `/r/…` une boucle vers l'App Store.

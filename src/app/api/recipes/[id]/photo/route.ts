@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
+import { getPhotoStore } from "@/lib/storage/photos";
 import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
@@ -74,23 +75,11 @@ export const POST = withOwnerAuth(
     const householdId = existing.household_id;
 
     const path = `${householdId}/${id}/photo.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("recipe-photos")
-      .upload(path, await photo.arrayBuffer(), {
-        upsert: true,
-        contentType: mime,
-        // Long cache: served directly (unoptimized) → keep Supabase egress low.
-        cacheControl: "2592000", // 30 days
-      });
-
-    if (uploadError) throw new Error(uploadError.message);
-
-    const { data: urlData } = supabase.storage
-      .from("recipe-photos")
-      .getPublicUrl(path);
+    const photos = getPhotoStore();
+    await photos.upload(path, await photo.arrayBuffer(), mime);
     // Cache-buster: the path is stable across replacements but the file is
     // cached 30 days, so a fresh query param forces clients to refetch.
-    const url = `${urlData.publicUrl}?v=${Date.now()}`;
+    const url = `${photos.publicUrl(path)}?v=${Date.now()}`;
 
     const { error: updateError } = await supabase
       .from("recipes")

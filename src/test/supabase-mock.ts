@@ -1,5 +1,5 @@
 import { vi } from "vitest";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from "@/lib/supabase/server";
 
 // ---------------------------------------------------------------------------
 // Supabase client mock.
@@ -21,15 +21,13 @@ export type RecordedCall = { table: string; ops: Op[] };
 
 export type SupabaseMock = {
   /** Fake client — return this from a mocked createServerClient(). */
-  client: SupabaseClient;
+  client: DbClient;
   /** Queue one result, consumed (FIFO) by the next terminal query. */
   queueResult: (r: QueryResult) => void;
   /** Queue several results, in execution order. */
   queueResults: (rs: QueryResult[]) => void;
   /** Every .from() chain, recorded in order. */
   calls: RecordedCall[];
-  /** storage `.upload()` mock — inspect calls or override behaviour. */
-  uploadMock: ReturnType<typeof vi.fn>;
 };
 
 const CHAIN_METHODS = [
@@ -39,11 +37,7 @@ const CHAIN_METHODS = [
   "order", "limit", "range", "filter", "or",
 ] as const;
 
-function buildClient(
-  results: QueryResult[],
-  calls: RecordedCall[],
-  uploadMock: ReturnType<typeof vi.fn>,
-): SupabaseClient {
+function buildClient(results: QueryResult[], calls: RecordedCall[]): DbClient {
   const nextResult = (): QueryResult =>
     results.shift() ?? { data: null, error: null, count: null };
 
@@ -76,31 +70,19 @@ function buildClient(
       calls.push({ table: `rpc:${fn}`, ops: [{ method: "rpc", args: [args] }] });
       return Promise.resolve(nextResult());
     }),
-    storage: {
-      from: vi.fn(() => ({
-        upload: uploadMock,
-        getPublicUrl: vi.fn((path: string) => ({
-          data: { publicUrl: `https://test.supabase.co/storage/${path}` },
-        })),
-      })),
-    },
   };
-  return client as unknown as SupabaseClient;
+  return client as unknown as DbClient;
 }
 
 export function createSupabaseMock(): SupabaseMock {
   const results: QueryResult[] = [];
   const calls: RecordedCall[] = [];
-  const uploadMock = vi.fn(() =>
-    Promise.resolve({ data: { path: "uploaded" }, error: null }),
-  );
-  const client = buildClient(results, calls, uploadMock);
+  const client = buildClient(results, calls);
   return {
     client,
     queueResult: (r) => results.push(r),
     queueResults: (rs) => results.push(...rs),
     calls,
-    uploadMock,
   };
 }
 
