@@ -5,7 +5,7 @@ import { enrichRecipe } from "@/lib/enrichment";
 export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
-  // Dedicated secret, NOT the Vercel CRON_SECRET: this endpoint can rewrite
+  // Dedicated secret, NOT the CRON_SECRET of the crontab: this endpoint can rewrite
   // every household's recipes, so it must not share credentials with the
   // low-stakes cron. Fails closed when the env var is missing — otherwise
   // `Bearer undefined` would authenticate.

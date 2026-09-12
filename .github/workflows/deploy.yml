@@ -14,7 +14,7 @@
 #
 # Le job `checks` (lint, types, tests) bloque le build : rien n'est publié si la
 # CI échoue. Tant que DOKPLOY_TOKEN n'est pas défini, le workflow se contente de
-# construire et publier l'image sur GHCR : aucun effet sur Vercel. Les applications
+# construire et publier l'image sur GHCR, sans déployer. Les applications
 # Dokploy créées depuis une image n'ont pas de webhook : on appelle son API
 # `application.deploy` (x-api-key), qui tire le tag de branche et redémarre.
 #

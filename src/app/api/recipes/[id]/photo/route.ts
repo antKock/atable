@@ -6,9 +6,9 @@ import { householdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 
 // 4 Mo : le client redimensionne les photos (~150-300 Ko WebP) avant envoi,
-// la limite ne concerne que le repli « fichier brut ». Historiquement calée
-// sous le plafond Vercel de 4,5 Mo ; derrière Traefik il n'y a plus de plafond
-// amont, d'où le `maxBodyBytes` ci-dessous (corps refusé AVANT lecture).
+// la limite ne concerne que le repli « fichier brut ». Traefik ne plafonne
+// pas le corps en amont, d'où le `maxBodyBytes` ci-dessous (corps refusé
+// AVANT lecture).
 const MAX_PHOTO_BYTES = 4 * 1024 * 1024;
 // Marge pour l'enveloppe multipart (boundary, en-têtes de partie).
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;

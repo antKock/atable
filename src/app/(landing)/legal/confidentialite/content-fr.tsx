@@ -18,7 +18,7 @@ export const metadataFr: Metadata = {
   },
 };
 
-const updatedAt = "5 septembre 2026";
+const updatedAt = "12 septembre 2026";
 const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -449,13 +449,11 @@ export default function PrivacyFr() {
           <tbody>
             <tr>
               <Td>
-                <strong>Vercel</strong>
+                <strong>OVHcloud</strong>
               </Td>
-              <Td>Hébergement de l&apos;application</Td>
+              <Td>Hébergement de l&apos;application (serveur privé virtuel)</Td>
               <Td>Données techniques de requête, journaux</Td>
-              <Td>
-                Union européenne (Paris, <code>cdg1</code>)
-              </Td>
+              <Td>France (Gravelines)</Td>
             </tr>
             <tr>
               <Td>
@@ -541,7 +539,7 @@ export default function PrivacyFr() {
           7. Transferts de données hors Union européenne
         </H2>
         <P>
-          <strong>Vercel</strong> et <strong>Supabase</strong>, qui hébergent
+          <strong>OVHcloud</strong> et <strong>Supabase</strong>, qui hébergent
           l&apos;essentiel de vos données, opèrent{" "}
           <strong>au sein de l&apos;Union européenne</strong>. Plusieurs
           sous-traitants traitent néanmoins des données en dehors de

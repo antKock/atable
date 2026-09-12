@@ -4,16 +4,13 @@ import * as Sentry from "@sentry/nextjs";
 // errors are otherwise invisible). No-op when the DSN env var is absent.
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  // Inliné au build : NEXT_PUBLIC_VERCEL_ENV sur Vercel, NEXT_PUBLIC_SENTRY_ENVIRONMENT
-  // passé en build-arg par le Dockerfile (auto-hébergement).
-  environment:
-    process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ??
-    process.env.NEXT_PUBLIC_VERCEL_ENV ??
-    "development",
+  // Inliné au build : NEXT_PUBLIC_SENTRY_ENVIRONMENT est passé en build-arg
+  // par le Dockerfile (production / staging).
+  environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
   tracesSampleRate: 0,
-  // Distingue l'hébergement (vercel / vps) pendant la migration et après :
-  // filtre `runtime:vps` dans Sentry. Posé par le Dockerfile pour l'image.
-  initialScope: { tags: { runtime: process.env.NEXT_PUBLIC_SENTRY_RUNTIME ?? "vercel" } },
+  // Tag d'hébergement (`runtime:vps`, posé par le Dockerfile) : conservé pour
+  // les recherches et alertes Sentry qui filtrent dessus.
+  initialScope: { tags: { runtime: process.env.NEXT_PUBLIC_SENTRY_RUNTIME ?? "local" } },
 });
 
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

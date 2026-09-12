@@ -8,7 +8,7 @@
 > ⚠️ Document de qualité production mais non relu par un juriste : une revue
 > RGPD/CNIL reste recommandée avant communication large.
 
-**Dernière mise à jour : 5 septembre 2026**
+**Dernière mise à jour : 12 septembre 2026**
 
 ---
 
@@ -166,7 +166,7 @@ suivants, qui agissent en qualité de **sous-traitants** pour notre compte :
 
 | Prestataire | Rôle | Données concernées | Localisation |
 |---|---|---|---|
-| **Vercel** | Hébergement de l'application | Données techniques de requête, journaux | Union européenne (Paris, `cdg1`) |
+| **OVHcloud** | Hébergement de l'application (serveur privé virtuel) | Données techniques de requête, journaux | France (Gravelines) |
 | **Supabase** | Base de données et stockage des photos | Foyers, recettes, sessions, photos | Union européenne (Irlande, `eu-west-1`) |
 | **Upstash** | Limitation de débit (sécurité) | Adresse IP, identifiants de session | Royaume-Uni (Londres, `eu-west-2`) |
 | **OpenAI** | Transcription audio, lecture d'images, structuration de texte | Contenu soumis aux imports (section 5) | États-Unis |
@@ -184,7 +184,7 @@ API.
 
 ## 7. Transferts de données hors Union européenne
 
-Vercel et Supabase, qui hébergent l'essentiel de vos données, opèrent
+OVHcloud et Supabase, qui hébergent l'essentiel de vos données, opèrent
 **au sein de l'Union européenne**. Deux sous-traitants traitent néanmoins
 des données en dehors de l'UE :
 

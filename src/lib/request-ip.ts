@@ -2,7 +2,7 @@
  * IP du client, pour les rate limits par IP (recovery, join, partage).
  *
  * Ordre de résolution :
- *   1. `x-real-ip` — posé par Vercel ET par Traefik (Dokploy) avec l'adresse
+ *   1. `x-real-ip` — posé par Traefik (Dokploy) avec l'adresse
  *      du pair TCP, donc non forgeable par le client tant que le proxy est le
  *      seul à parler au serveur Node ;
  *   2. premier élément de `x-forwarded-for` (chaîne « client, proxy1, … ») ;

@@ -53,7 +53,7 @@ describe("checkEnv", () => {
     expect(issueFor(optional, "DEMO_HOUSEHOLD_ID_EN")?.level).toBe("warn");
   });
 
-  it("placeholder [SENSITIVE] / [hidden] (export Vercel/Dokploy) → signalé, sans la valeur", () => {
+  it("placeholder [SENSITIVE] / [hidden] (export d'hébergeur) → signalé, sans la valeur", () => {
     const issues = checkEnv({
       ...VALID,
       DEMO_HOUSEHOLD_ID_EN: "[SENSITIVE]",
