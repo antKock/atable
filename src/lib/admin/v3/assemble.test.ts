@@ -55,6 +55,13 @@ function raw(over: Partial<RawV3> = {}): RawV3 {
       { id: "b", name: "B", created_at: "2026-07-01", origin: "demo_conversion", members: 1, guests: 1, recipes: 4, shared_links: 0, last_active_day: null },
       { id: "c", name: "C", created_at: "2026-08-01", origin: "landing", members: 1, guests: 0, recipes: 1, shared_links: 0, last_active_day: null },
     ],
+    daily: Array.from({ length: 40 }, (_, i) => {
+      const d = new Date("2026-09-11T00:00:00Z"); d.setUTCDate(d.getUTCDate() - i);
+      const day = d.toISOString().slice(0, 10);
+      // 7 derniers jours : 2 essais, 1 recette, 3 actifs / jour ; avant : 1, 0, 2.
+      const recent = i < 7;
+      return { day, trials: recent ? 2 : 1, trials_ios: recent ? 2 : 1, trials_web: 0, trials_android: 0, new_people: 0, recipes: recent ? 1 : 0, active_people: recent ? 3 : 2 };
+    }),
     billedUsd: 3.7,
     demoSeedMin: 30,
     now: NOW,
@@ -130,6 +137,32 @@ describe("assembleV3", () => {
     expect(d.overview.moved.length).toBeGreaterThan(0);
     expect(d.overview.moved.length).toBeLessThanOrEqual(3);
     expect(d.overview.moved[0]).toMatch(/nouvelle/);
+  });
+});
+
+describe("bloc 0 et funnel hebdo", () => {
+  const d = assembleV3(raw());
+  it("7 derniers jours : valeur J-7 → J-1, repère = médiane des 3 semaines d'avant, 14 barres", () => {
+    expect(d.overview.hotWindow).toEqual({ from: "2026-09-05", to: "2026-09-11" });
+    const by = Object.fromEntries(d.overview.hot.map((h) => [h.id, h]));
+    expect(by.trials).toMatchObject({ value: 14, ref: 7, trend: "up" });
+    expect(by.recipes).toMatchObject({ value: 7, ref: 0, trend: "up" });
+    expect(by.active).toMatchObject({ value: 3, ref: 2, trend: "up" });
+    expect(by.downloads.value).toBe(0); // 01/09 et 02/09 sont hors des 7 derniers jours…
+    expect(by.downloads.bars).toHaveLength(14);
+    expect(by.downloads.bars.reduce((a, b) => a + b, 0)).toBe(9); // …mais dans les 14 barres
+    expect(by.new.value).toBe(0); // new_people de la série quotidienne (0 ici)
+  });
+  it("funnel App Store par semaine : comptes et taux, grisé sous 20 téléchargements", () => {
+    const w = d.acquisition.appStore.funnelWeekly;
+    expect(w).toHaveLength(12);
+    const last = w[11];
+    expect(last).toMatchObject({ label: "31/08", impressions: 100, downloads: 9, carnets: 1, fragile: true });
+    expect(last.imprToDl).toBe(9);
+    expect(last.opens).toBe(9); // 31/08 → 04/09 : 1 / jour, 05 et 06/09 : 2 / jour
+    expect(last.dlToOpen).toBe(100);
+    const empty = w[0];
+    expect(empty.imprToDl).toBeNull();
   });
 });
 

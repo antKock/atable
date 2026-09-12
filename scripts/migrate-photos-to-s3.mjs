@@ -51,12 +51,24 @@ const s3 = new S3Client({
 
 // Supabase liste par « dossier » (les entrées sans id sont des préfixes) :
 // parcours récursif, pages de 1000.
+// Le free tier Supabase répond « Too many connections issued to the database »
+// sous une rafale de listings : on retente avec un délai croissant.
+async function withRetry(label, fn, attempts = 5) {
+  for (let i = 1; ; i++) {
+    const { data, error } = await fn();
+    if (!error) return data;
+    if (i >= attempts) throw new Error(`${label}: ${error.message}`);
+    const wait = 1500 * 2 ** (i - 1);
+    console.warn(`… ${label} : ${error.message} — nouvel essai dans ${wait} ms`);
+    await new Promise((r) => setTimeout(r, wait));
+  }
+}
+
 async function listAll(prefix = "") {
   const out = [];
   let offset = 0;
   for (;;) {
-    const { data, error } = await supabase.storage.from(BUCKET).list(prefix, { limit: 1000, offset });
-    if (error) throw new Error(`list ${prefix}: ${error.message}`);
+    const data = await withRetry(`list ${prefix}`, () => supabase.storage.from(BUCKET).list(prefix, { limit: 1000, offset }));
     for (const entry of data) {
       const path = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (entry.id) out.push({ path, size: entry.metadata?.size ?? null, mime: entry.metadata?.mimetype ?? null });
@@ -79,12 +91,14 @@ async function existsWithSize(key, size) {
 
 const objects = await listAll();
 console.log(`${objects.length} objets dans ${BUCKET} (${env.NEXT_PUBLIC_SUPABASE_URL})`);
-let copied = 0, skipped = 0, bytes = 0;
+let copied = 0, skipped = 0, bytes = 0, failed = 0;
 for (const obj of objects) {
   if (!force && (await existsWithSize(obj.path, obj.size))) { skipped++; continue; }
   if (dryRun) { console.log(`[dry-run] ${obj.path} (${obj.size ?? "?"} o)`); copied++; continue; }
-  const { data, error } = await supabase.storage.from(BUCKET).download(obj.path);
-  if (error) { console.error(`✗ ${obj.path}: ${error.message}`); continue; }
+  let data;
+  try {
+    data = await withRetry(`download ${obj.path}`, () => supabase.storage.from(BUCKET).download(obj.path));
+  } catch (err) { console.error(`✗ ${err.message}`); failed++; continue; }
   const body = new Uint8Array(await data.arrayBuffer());
   await s3.send(new PutObjectCommand({
     Bucket: env.S3_BUCKET,
@@ -97,4 +111,5 @@ for (const obj of objects) {
   copied++; bytes += body.byteLength;
   if (copied % 25 === 0) console.log(`… ${copied} copiés`);
 }
-console.log(`copiés: ${copied}, déjà présents: ${skipped}, ${(bytes / 1e6).toFixed(1)} Mo transférés${dryRun ? " (dry-run)" : ""}`);
+console.log(`copiés: ${copied}, déjà présents: ${skipped}, échecs: ${failed}, ${(bytes / 1e6).toFixed(1)} Mo transférés${dryRun ? " (dry-run)" : ""}`);
+if (failed > 0) process.exit(1);
