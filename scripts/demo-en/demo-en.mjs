@@ -13,11 +13,10 @@
 //        taper PROD (sauf --dry-run ou --yes).
 //
 // L'id du foyer EN est ensuite à poser en env : DEMO_HOUSEHOLD_ID_EN.
-import { createClient } from "@supabase/supabase-js";
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ENV_FILES, confirmProd, loadEnvLocal } from "../lib/env.mjs";
+import { ENV_FILES, confirmProd, dbClient, loadEnvLocal, rehostPhoto, restConfig } from "../lib/env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const JSON_PATH = path.join(HERE, "recipes.en.json");
@@ -38,7 +37,7 @@ const dryRun = args.includes("--dry-run");
 if (cmd === "translate") {
   const staging = loadEnvLocal(ENV_FILES.staging);
   const prodEnv = loadEnvLocal(ENV_FILES.prod);
-  const sb = createClient(staging.NEXT_PUBLIC_SUPABASE_URL, staging.SUPABASE_SERVICE_ROLE_KEY);
+  const sb = await dbClient(staging);
   const { data: rows, error } = await sb.from("recipes")
     .select("id,title,ingredients,steps,notes,prep_time,cook_time,cost,complexity,seasons,servings,generated_image_url,image_prompt,created_at,recipe_tags(tags(name))")
     .eq("household_id", staging.DEMO_HOUSEHOLD_ID).eq("is_seed", true).order("created_at");
@@ -78,8 +77,8 @@ Rules:
   if (!envName) throw new Error("--env staging|prod requis");
   const envFile = envName === "prod" ? ENV_FILES.prod : ENV_FILES.staging;
   const env = loadEnvLocal(envFile);
-  const sb = createClient(env.NEXT_PUBLIC_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
-  const host = new URL(env.NEXT_PUBLIC_SUPABASE_URL).host;
+  const sb = await dbClient(env);
+  const host = new URL(restConfig(env).url).host;
   const recipes = JSON.parse(readFileSync(JSON_PATH, "utf8"));
   console.log(`${envName} (${host}) : ${recipes.length} recettes EN${dryRun ? " [dry-run]" : ""}`);
   const { data: tags, error: tagsError } = await sb.from("tags").select("id,name").is("household_id", null);
@@ -88,9 +87,11 @@ Rules:
     process.exit(1);
   }
   const tagId = new Map(tags.map((t) => [t.name, t.id]));
-  // Les images FR vivent dans le Storage de CHAQUE env au même chemin ; on
-  // ré-héberge l'URL sur l'env cible et on vérifie qu'elle répond.
-  const rehost = (url) => (url ? url.replace(/^https:\/\/[^/]+/, `https://${host}`) : null);
+  // Les images FR vivent dans le bucket photos de CHAQUE env au même chemin ;
+  // le JSON porte les URLs de staging (source de la traduction) : on les
+  // ré-héberge sur l'env cible.
+  const stagingEnv = envName === "prod" ? loadEnvLocal(ENV_FILES.staging) : env;
+  const rehost = (url) => rehostPhoto(url, stagingEnv, env);
   if (dryRun) { for (const r of recipes) console.log(`  [dry] ${r.title} (${r.tags.length} tags)`); process.exit(0); }
   await confirmProd("création / mise à jour du foyer démo EN", { envFile });
   // Codes d'invitation fixes et devinables : sans risque, resolveInviteCode

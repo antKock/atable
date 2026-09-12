@@ -6,25 +6,24 @@
 // corrigé par assertNotDemoSeedMutation).
 //
 // Idempotent : upsert par id (les ids de staging sont ceux de la copie du
-// 2026-06-18). Les images sont référencées dans le Storage PROD aux mêmes
-// chemins que staging (vérifié : les 30 fichiers y sont toujours). Les tags
-// sont résolus par nom dans la table `tags` globale de prod.
+// 2026-06-18). Les images sont référencées dans le bucket photos de PROD aux
+// mêmes chemins que staging (vérifié : les 30 fichiers y sont toujours). Les
+// tags sont résolus par nom dans la table `tags` globale de prod.
 //
-// Requiert : .env.local (prod) et .env.staging.local (staging).
+// Requiert : .env.local (prod) et .env.staging.local (staging), et le tunnel
+// `scripts/vps/tunnel.sh` (bases sur le VPS depuis le 2026-09-12).
 // Usage : node scripts/restore-demo-from-staging.mjs [--dry-run] [--yes]
 //   Écrit en PROD : demande de taper PROD (sauf --dry-run ou --yes).
 //   Une recette en échec n'arrête pas les autres ; récapitulatif final et
 //   code de sortie 1 s'il y a eu au moins un échec.
-import { createClient } from "@supabase/supabase-js";
-import { ENV_FILES, confirmProd, loadEnvLocal } from "./lib/env.mjs";
+import { ENV_FILES, confirmProd, dbClient, loadEnvLocal, rehostPhoto } from "./lib/env.mjs";
 
 const dryRun = process.argv.includes("--dry-run");
 const prodEnv = loadEnvLocal(ENV_FILES.prod);
 const stagingEnv = loadEnvLocal(ENV_FILES.staging);
-const prod = createClient(prodEnv.NEXT_PUBLIC_SUPABASE_URL, prodEnv.SUPABASE_SERVICE_ROLE_KEY);
-const staging = createClient(stagingEnv.NEXT_PUBLIC_SUPABASE_URL, stagingEnv.SUPABASE_SERVICE_ROLE_KEY);
+const prod = await dbClient(prodEnv);
+const staging = await dbClient(stagingEnv);
 const DEMO = prodEnv.DEMO_HOUSEHOLD_ID;
-const prodStorageHost = new URL(prodEnv.NEXT_PUBLIC_SUPABASE_URL).host;
 
 const { data: hh, error: hhError } = await prod.from("households").select("id,name,is_demo").eq("id", DEMO).single();
 if (hhError || !hh?.is_demo) throw new Error(`foyer démo prod introuvable ou non démo : ${hhError?.message}`);
@@ -46,9 +45,9 @@ const tagId = new Map(tags.map((t) => [t.name, t.id]));
 
 if (!dryRun) await confirmProd("restauration des recettes seed démo", { envFile: ENV_FILES.prod });
 
-const rehost = (url) => (url ? url.replace(/^https:\/\/[^/]+/, `https://${prodStorageHost}`) : null);
+const rehost = (url) => rehostPhoto(url, stagingEnv, prodEnv);
 // Les deux images (photo importée et image générée) sont ré-hébergées sur le
-// Storage prod : on vérifie que chacune y répond avant de la référencer.
+// bucket prod : on vérifie que chacune y répond avant de la référencer.
 async function checkImage(url, title, kind) {
   if (!url) return;
   const head = await fetch(url, { method: "HEAD" });

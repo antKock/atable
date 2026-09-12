@@ -203,10 +203,16 @@ if [ -z "$iface" ]; then
   exit 1
 fi
 iptables -N DOCKER-USER 2>/dev/null || true
-set -- -i "$iface" -p tcp -m conntrack --ctorigdstport 3000 -j REJECT --reject-with tcp-reset
-if ! iptables -C DOCKER-USER "$@" 2>/dev/null; then
-  iptables -I DOCKER-USER "$@"
-fi
+# Ports publiés par Docker mais réservés à la machine (tunnel ssh depuis le poste) :
+# 3000 = app Next (historique), 3100/3101 = PostgREST prod/staging
+# (docs/infra/migration-supabase-vps.md, « Accès depuis le poste »). Tout le reste
+# du trafic public vers les conteneurs passe par Traefik (80/443).
+for port in 3000 3100 3101; do
+  set -- -i "$iface" -p tcp -m conntrack --ctorigdstport "$port" -j REJECT --reject-with tcp-reset
+  if ! iptables -C DOCKER-USER "$@" 2>/dev/null; then
+    iptables -I DOCKER-USER "$@"
+  fi
+done
 # Docker ajoute lui-même `-j RETURN` en fin de chaîne ; on le garantit si la chaîne
 # a été créée ici avant Docker.
 iptables -C DOCKER-USER -j RETURN 2>/dev/null || iptables -A DOCKER-USER -j RETURN

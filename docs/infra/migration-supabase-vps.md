@@ -115,24 +115,33 @@ Fait pour staging le 2026-09-12 ; à rejouer pour prod (`<env>` = `prod`, ref Su
 11. **Après une semaine** : supprimer le rôle `mijote_dump` côté Supabase, puis le projet
     Supabase (Anthony).
 
+## Accès depuis le poste (scripts d'exploitation, `npm run dev`)
+
+Les PostgREST sont publiés par Dokploy sur le VPS (`3100` prod, `3101` staging) et
+**rejetés depuis l'extérieur** par la règle DOCKER-USER de `bootstrap.sh` (vérifié : `curl
+217.182.206.61:3100` refusé, `127.0.0.1:3100` OK sur le VPS). `scripts/vps/tunnel.sh` ouvre
+le tunnel ssh (`-f` pour l'arrière-plan) ; `.env.local` et `.env.staging.local` portent
+`DATABASE_REST_URL=http://127.0.0.1:310x` + `DATABASE_REST_KEY`. Les scripts
+`restore-demo-from-staging.mjs`, `demo-en/demo-en.mjs`, `sync-staging-demo-from-prod.mjs`
+passent par `scripts/lib/env.mjs` (`dbClient`, `restConfig`, `rehostPhoto`) — validés le
+2026-09-12 (dry-run des deux premiers, sync réelle). `backfill-webp.mjs` (one-off de juin)
+supprimé. Postgres lui-même n'est pas publié : migrations et SQL brut passent par
+`docker exec`.
+
 ## Migrations SQL après la bascule
 
 La base n'est pas exposée hors du VPS, et **`supabase db push --linked` n'atteint plus que
 les projets Supabase, que l'app n'utilise plus** (piège vécu le soir même : la 044 poussée
 sur Supabase prod par une session parallèle → `Could not find the function
-analytics_v3_daily` sur `/admin/stats` jusqu'à son application sur le VPS). Procédure,
-pour chaque environnement (`mijote-staging-db-iglfwv`, `mijote-prod-db-s9yapl`) :
-```sh
-scp supabase/migrations/045_xxx.sql mijote-vps:/tmp/m.sql
-ssh mijote-vps 'C=$(sudo docker ps -q -f name=mijote-prod-db); \
-  sudo docker exec -i $C psql -v ON_ERROR_STOP=1 -U mijote -d mijote < /tmp/m.sql && \
-  sudo docker exec -i $C psql -U mijote -d mijote -c "INSERT INTO supabase_migrations.schema_migrations (version, name) VALUES ('"'"'045'"'"','"'"'xxx'"'"') ON CONFLICT DO NOTHING; NOTIFY pgrst, '"'"'reload schema'"'"';"; rm /tmp/m.sql'
-```
-Le `NOTIFY pgrst` recharge le cache de schéma de PostgREST (il l'écoute sur ce canal ; les
-DDL sont aussi captés par son écouteur d'événements, la notification est une ceinture).
-Vérifier `select count(*) from supabase_migrations.schema_migrations` = nombre de fichiers
-du repo. Toujours **migration avant code** pour les ajouts, **après** pour les suppressions.
-À faire : un script `scripts/vps/migrate.mjs` qui enchaîne ces étapes pour les deux bases.
+analytics_v3_daily` sur `/admin/stats` jusqu'à son application sur le VPS).
+
+**Script : `node scripts/vps/migrate.mjs staging|prod|all [--dry-run] [--only NNN]`** —
+compare les fichiers du repo à `schema_migrations` de chaque base, applique les manquantes
+dans l'ordre, chacune dans une transaction avec sa ligne d'historique, puis `NOTIFY pgrst`
+(rechargement du cache de schéma PostgREST). Une erreur SQL annule la migration fautive
+et arrête le script (testé le 2026-09-12 avec une migration valide et une cassée). Les
+`BEGIN` des corps PL/pgSQL ne gênent pas. Toujours **migration avant code** pour les
+ajouts, **après** pour les suppressions.
 
 ## Rollback complet (sans perte) vers Supabase
 
