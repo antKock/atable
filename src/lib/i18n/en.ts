@@ -412,6 +412,8 @@ export const en: Dictionary = {
     createTitle: "Create a cookbook",
     createError: "Couldn't create the cookbook. Try again.",
     createSubmit: "Create the cookbook",
+    defaultName: "My cookbook",
+    createHeadingQuick: ["Create your cookbook", "in one tap"],
     createHeading: ["Name your", "cookbook"],
     createBody: "A cookbook to share with the people close to you. Your recipes end up together, in one place.",
     nameEmpty: "The name can't be empty",

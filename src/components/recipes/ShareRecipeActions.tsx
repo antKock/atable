@@ -106,6 +106,7 @@ export default function ShareRecipeActions({
         onSuccess={handleGuestSuccess}
         headerSlot={reminderCard}
         secondary={{ label: t.share.haveHousehold, onClick: () => setFlow("join") }}
+        askName={false}
       />
     );
   }

@@ -3,22 +3,39 @@
 import { useState } from 'react'
 import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
-import CreateHouseholdForm from './CreateHouseholdForm'
+import { createHouseholdQuick } from '@/lib/household-create'
 import CodeEntryForm from './CodeEntryForm'
 import JoinForkScreen from './JoinForkScreen'
 import RecoverFlow from './RecoverFlow'
 
 // « join » = fork « Rejoindre un foyer » (#14, maquette 1.2) : code
 // d'invitation OU récupération par email — la clé anti-doublon d'owner.
-type View = 'menu' | 'create' | 'join' | 'joinCode' | 'recover'
+// Plus de vue « create » : « Créer un carnet » crée EN UN TAP (spec #23).
+type View = 'menu' | 'join' | 'joinCode' | 'recover'
 
 export default function LandingScreen() {
   const t = useT()
   const [view, setView] = useState<View>('menu')
   const [demoLoading, setDemoLoading] = useState(false)
+  const [createLoading, setCreateLoading] = useState(false)
   const [demoError, setDemoError] = useState<string | null>(null)
+  const busy = demoLoading || createLoading
+
+  async function handleCreate() {
+    if (busy) return
+    setCreateLoading(true)
+    setDemoError(null)
+    try {
+      const { redirect } = await createHouseholdQuick(t.household.createError)
+      window.location.href = redirect
+    } catch (err) {
+      setDemoError(err instanceof Error ? err.message : t.household.createError)
+      setCreateLoading(false)
+    }
+  }
 
   async function handleTryApp() {
+    if (busy) return
     setDemoLoading(true)
     setDemoError(null)
     try {
@@ -33,10 +50,6 @@ export default function LandingScreen() {
       setDemoError(err instanceof Error ? err.message : t.household.leaveError)
       setDemoLoading(false)
     }
-  }
-
-  if (view === 'create') {
-    return <CreateHouseholdForm onCancel={() => setView('menu')} />
   }
 
   if (view === 'join') {
@@ -107,7 +120,7 @@ export default function LandingScreen() {
         <button
           type="button"
           onClick={handleTryApp}
-          disabled={demoLoading}
+          disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
         >
           {demoLoading ? '…' : t.landing.tryApp}
@@ -116,11 +129,12 @@ export default function LandingScreen() {
         {/* Secondary — ghost outlined pill (1.5px cream @55%) */}
         <button
           type="button"
-          onClick={() => setView('create')}
-          className="flex h-[54px] items-center justify-center rounded-[27px] bg-transparent text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
+          onClick={handleCreate}
+          disabled={busy}
+          className="flex h-[54px] items-center justify-center rounded-[27px] bg-transparent text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
           style={{ boxShadow: 'inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)' }}
         >
-          {t.landing.createHousehold}
+          {createLoading ? '…' : t.landing.createHousehold}
         </button>
 
         {/* Tertiary — text link */}

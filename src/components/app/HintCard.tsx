@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, ShieldCheck, Users, Sparkles, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { useT } from '@/lib/i18n/client'
-import CreateHouseholdForm from '@/components/auth/CreateHouseholdForm'
+import { createHouseholdQuick } from '@/lib/household-create'
 
 const DISMISS_MAX_AGE = 60 * 60 * 24 * 180 // 180 jours, comme install
 
@@ -48,6 +48,19 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
   const Icon = ICONS[variant]
   const isDemo = variant === 'demo'
 
+  // Conversion démo → carnet EN UN TAP (spec #23) : plus de formulaire de nom.
+  async function convert() {
+    if (creating) return
+    setCreating(true)
+    try {
+      const { redirect } = await createHouseholdQuick(t.household.createError)
+      window.location.href = redirect
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t.household.createError)
+      setCreating(false)
+    }
+  }
+
   function dismiss() {
     if (isDemo) return
     document.cookie = `${COOKIES[variant]}=1; max-age=${DISMISS_MAX_AGE}; path=/`
@@ -80,8 +93,8 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
           <p className="text-[13.5px] font-semibold text-foreground">{title}</p>
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{body}</p>
           {isDemo ? (
-            <button type="button" onClick={() => setCreating(true)} className={ctaClasses}>
-              {cta}
+            <button type="button" onClick={convert} disabled={creating} className={ctaClasses}>
+              {creating ? '…' : cta}
               <ArrowRight size={13} strokeWidth={2.2} aria-hidden="true" />
             </button>
           ) : (
@@ -93,14 +106,6 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
         </div>
       </div>
 
-      {/* Conversion : le formulaire plein écran passe AU-DESSUS de la nav
-          flottante (z-50). CreateHouseholdForm est déjà `fixed inset-0` ; on
-          l'enveloppe pour établir le contexte d'empilement. */}
-      {isDemo && creating && (
-        <div className="fixed inset-0 z-[60]">
-          <CreateHouseholdForm onCancel={() => setCreating(false)} />
-        </div>
-      )}
     </div>
   )
 }

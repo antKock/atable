@@ -23,16 +23,27 @@ export async function POST(request: NextRequest) {
     const quotaResponse = await enforceHouseholdCreateQuota(ip)
     if (quotaResponse) return quotaResponse
 
-    const body = await request.json()
-    const result = HouseholdCreateSchema.safeParse(body.name)
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.issues[0].message },
-        { status: 422 }
-      )
+    // Spec #23 : le nom est OPTIONNEL. Absent ou vide → nom par défaut selon la
+    // locale de l'appareil (« Mon carnet » / « My cookbook ») ; la personne
+    // renomme plus tard depuis le détail du foyer si elle y tient. Un nom
+    // fourni (carnet additif depuis le hub) reste validé comme avant.
+    const body = (await request.json().catch(() => ({}))) as { name?: unknown } | null
+    const rawName = body?.name
+    const nameOmitted =
+      rawName === undefined || rawName === null || (typeof rawName === 'string' && rawName.trim() === '')
+    let name: string
+    if (nameOmitted) {
+      name = t.household.defaultName
+    } else {
+      const result = HouseholdCreateSchema.safeParse(rawName)
+      if (!result.success) {
+        return NextResponse.json(
+          { error: result.error.issues[0].message },
+          { status: 422 }
+        )
+      }
+      name = result.data
     }
-
-    const name = result.data
     const joinCode = generateJoinCode()
     // Second lien stable pour le rôle invité (Lot 3, décision n°3). Distinct du
     // lien membre au sein du foyer : un même code ne doit jamais porter deux

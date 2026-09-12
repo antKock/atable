@@ -78,8 +78,23 @@ describe("POST /api/households (Fix 1.2)", () => {
     expect(res.status).not.toBe(303);
   });
 
-  it("rejects an empty name with 422", async () => {
-    const res = await POST(request({ name: "" }));
+  // Spec #23 : le nom est optionnel — absent ou vide = nom par défaut (FR ici,
+  // la locale du test étant fr). Un nom trop long reste refusé.
+  it("creates with the default name when the name is omitted or empty", async () => {
+    for (const body of [{}, { name: "" }, { name: "   " }]) {
+      queueSuccess();
+      const res = await POST(request(body));
+      expect(res.status).toBe(200);
+      const householdInsert = supa.calls
+        .filter((c) => c.table === "households")
+        .at(-1)!
+        .ops.find((op) => op.method === "insert");
+      expect((householdInsert!.args[0] as { name: string }).name).toBe("Mon carnet");
+    }
+  });
+
+  it("rejects a name over 50 characters with 422", async () => {
+    const res = await POST(request({ name: "x".repeat(51) }));
     expect(res.status).toBe(422);
   });
 

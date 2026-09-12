@@ -16,9 +16,20 @@ type Props = {
   // Optional override of the bottom secondary link. Defaults to a Cancel button
   // wired to onCancel; the share flow swaps it for "join an existing foyer".
   secondary?: { label: ReactNode; onClick: () => void }
+  // Spec #23 : `false` = pas de champ de nom (le serveur pose le nom par
+  // défaut). Le formulaire garde son rôle d'écran intermédiaire là où il faut
+  // encore choisir (partage : créer OU rejoindre). Le carnet additif depuis le
+  // hub garde le champ : avec plusieurs carnets, un nom sert à les distinguer.
+  askName?: boolean
 }
 
-export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, secondary }: Props) {
+export default function CreateHouseholdForm({
+  onCancel,
+  onSuccess,
+  headerSlot,
+  secondary,
+  askName = true,
+}: Props) {
   const t = useT()
   const [name, setName] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -27,14 +38,14 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     const trimmed = name.trim()
-    if (!trimmed || submitting) return
+    if ((askName && !trimmed) || submitting) return
     setSubmitting(true)
     setError(null)
     try {
       const response = await fetch('/api/households', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: trimmed }),
+        body: JSON.stringify(askName ? { name: trimmed } : {}),
       })
       const data = await response.json().catch(() => ({}))
       if (!response.ok) {
@@ -102,9 +113,9 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             lineHeight: 1.05,
           }}
         >
-          {t.household.createHeading[0]}
+          {(askName ? t.household.createHeading : t.household.createHeadingQuick)[0]}
           <br />
-          {t.household.createHeading[1]}
+          {(askName ? t.household.createHeading : t.household.createHeadingQuick)[1]}
         </h1>
 
         <p
@@ -120,6 +131,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
           {t.household.createBody}
         </p>
 
+        {askName && (
         <div className="relative" style={{ marginTop: '28px' }}>
           <span
             className="pointer-events-none absolute top-1/2 -translate-y-1/2"
@@ -171,6 +183,7 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
             }}
           />
         </div>
+        )}
 
         {error && (
           <p
@@ -184,10 +197,10 @@ export default function CreateHouseholdForm({ onCancel, onSuccess, headerSlot, s
 
         <button
           type="submit"
-          disabled={!name.trim() || submitting}
+          disabled={(askName && !name.trim()) || submitting}
           className="w-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
           style={{
-            marginTop: '18px',
+            marginTop: askName ? '18px' : '28px',
             height: '54px',
             borderRadius: '27px',
             fontWeight: 600,

@@ -417,6 +417,11 @@ export const t = {
     createError: "Impossible de créer le carnet. Réessaie.",
     createSubmit: "Créer le carnet",
     createHeading: ["Donne un nom", "à ton carnet"],
+    // Spec #23 : création sans nom. `defaultName` = valeur STOCKÉE côté serveur
+    // (pas dérivée à l'affichage) ; `createHeadingQuick` = en-tête du formulaire
+    // en mode sans champ (partage de recette : créer OU rejoindre).
+    defaultName: "Mon carnet",
+    createHeadingQuick: ["Crée ton carnet", "en un geste"],
     createBody: "Un carnet à partager avec tes proches. Vos recettes s'y retrouvent, réunies au même endroit.",
     nameEmpty: "Le nom ne peut pas être vide",
     menu: "Carnet & profil",

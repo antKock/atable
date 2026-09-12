@@ -17,12 +17,6 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
   // Recettes seed du foyer démo visibles
   await expect(page.getByText("Mousse au chocolat").first()).toBeVisible();
 
-  // CTA du hint démo = ouverture directe du formulaire « nom du carnet »
-  // (conversion), sans repasser par l'accueil. On referme pour la suite.
-  await page.getByRole("button", { name: "Créer mon carnet" }).click();
-  await expect(page.getByRole("heading", { name: /Donne un nom/ })).toBeVisible();
-  await page.getByRole("button", { name: "Annuler" }).click();
-
   // Hub foyer : badge Démo sur la ligne du foyer (sélecteurs adaptés au
   // Lot 1 : hub + détail) ; le détail est en lecture seule (pas de rename)
   await page.goto("/household");
@@ -53,6 +47,17 @@ test("démo : « Essayer l'app » → home démo, foyer en lecture seule, suppre
     .eq("id", env.DEMO_HOUSEHOLD_ID)
     .maybeSingle();
   expect(data).toBeTruthy();
+
+  // CTA du hint démo = conversion EN UN TAP (spec #23) : owner neuf, carnet au
+  // nom par défaut, plus de hint démo. Gardé en dernier : après, on n'est plus
+  // en démo.
+  await page.goto("/home");
+  await page.getByRole("button", { name: "Créer mon carnet" }).click();
+  await page.waitForURL(/\/home/);
+  await expect(page.getByText("Tu explores un compte démo")).toHaveCount(0);
+  await page.goto("/household");
+  await expect(page.getByText("Mon carnet", { exact: true })).toBeVisible();
+  await expect(page.getByText("Démo", { exact: true })).toHaveCount(0);
 
   await context.close();
 });
