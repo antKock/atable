@@ -188,7 +188,7 @@ export default async function DashboardPage() {
               def={<>Impressions et téléchargements : Apple (depuis le 16 août 2026). 1ʳᵉ ouverture = sessions démo créées depuis l&apos;app iOS dans la semaine (par plateforme depuis le 12 sept. ; avant, sessions vivantes 30 j). 1er carnet = nouvelles personnes dont la première session est iOS. Les vues de fiche, seuillées par Apple, ne sont pas un maillon fiable et restent hors du tableau.</>}
               footer={<Legend items={[{ label: "Impression → téléchargement (axe droit)", color: P.ochre }, { label: "Téléchargement → 1ʳᵉ ouverture", color: P.olive }, { label: "Ouverture → 1er carnet", color: P.terracotta }]} />}
             >
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 7fr) minmax(0, 5fr)", gap: 18, alignItems: "start" }}>
+              <div className="funnel-weekly">
                 <div style={{ overflowX: "auto" }}>
                   <table className="weeks">
                     <thead>
