@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
+import { getPhotoStore, photoPathFromUrl } from '@/lib/storage/photos'
 import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
 import { withOwnerAuth, requireMember, forbiddenResponse } from '@/lib/api/with-owner-auth'
@@ -150,16 +151,13 @@ export const DELETE = withOwnerAuth(
         for (const r of recipesToDelete) {
           for (const url of [r.photo_url, r.generated_image_url]) {
             if (url) {
-              // `[^?]+` et pas `(.+)$` : les URLs portent un cache-buster
-              // `?v=timestamp` (photo/route + enrichment) — le capturer donnerait
-              // une clé Storage inexistante et `remove()` no-op (images orphelines).
-              const match = (url as string).match(/recipe-photos\/([^?]+)/)
-              if (match) paths.push(decodeURIComponent(match[1]))
+              const path = photoPathFromUrl(url as string)
+              if (path) paths.push(path)
             }
           }
         }
         if (paths.length > 0) {
-          await supabase.storage.from('recipe-photos').remove(paths)
+          await getPhotoStore().remove(paths)
         }
       }
       // Delete household — since migration 027 the CASCADE reaches recipes,

@@ -5,8 +5,11 @@ import { DELETE, PUT } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { getPhotoStore } from "@/lib/storage/photos";
+import { createPhotoStoreMock, type PhotoStoreMock } from "@/test/photo-store-mock";
 
 vi.mock("@/lib/supabase/server");
+vi.mock("@/lib/storage/photos");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 // L'auth reste pilotée par les headers mockés (cf. owner-context-mock.ts)
 vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
@@ -19,10 +22,13 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 const mockHeaders = headers as unknown as Mock;
 
 let supa: SupabaseMock;
+let photos: PhotoStoreMock;
 
 beforeEach(() => {
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
+  photos = createPhotoStoreMock();
+  vi.mocked(getPhotoStore).mockReturnValue(photos);
   mockHeaders.mockResolvedValue(
     new Headers({ "x-household-id": "household-1", "x-session-id": "session-1" }),
   );
@@ -141,7 +147,7 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
     expect(res.status).toBe(403);
     // Aucune destruction : ni households, ni storage.
     expect(supa.calls.some((c) => c.table === "households")).toBe(false);
-    expect(supa.uploadMock).not.toHaveBeenCalled();
+    expect(photos.remove).not.toHaveBeenCalled();
   });
 
   it("allows action=leave for a GUEST (un invité peut quitter)", async () => {

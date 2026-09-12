@@ -1,4 +1,4 @@
-import type { SupabaseClient } from '@supabase/supabase-js'
+import type { DbClient } from "@/lib/supabase/server"
 import type { MembershipRole } from '@/lib/auth/owner-context'
 
 export type ResolvedInvite = {
@@ -28,7 +28,7 @@ export type ResolvedInvite = {
  * JoinCodeSchema) → aucune injection possible dans le filtre `.or()`.
  */
 export async function resolveInviteCode(
-  supabase: SupabaseClient,
+  supabase: DbClient,
   code: string,
 ): Promise<ResolvedInvite | null> {
   const { data, error } = await supabase

@@ -2,37 +2,32 @@ import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
-import type { SupabaseClient } from "@supabase/supabase-js";
+import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
 import { getT } from "@/lib/i18n/server";
-
-const BUCKET = "recipe-photos";
 
 // Duplicate a bucket-hosted image into a path owned by the new recipe so the
 // copy is self-contained — if the original owner later deletes their recipe or
 // photo, this copy keeps working. External URLs (not in our bucket) are
 // referenced as-is.
 async function duplicateImage(
-  supabase: SupabaseClient,
   sourceUrl: string | null,
   newRecipeId: string,
   suffix: string
 ): Promise<string | null> {
   if (!sourceUrl) return null;
-  // `[^?]+` : ne pas capturer le cache-buster `?v=timestamp` des URLs, sinon
-  // storage.copy() vise une clé inexistante et la copie retombe sur l'URL source
-  // (copie non self-contained).
-  const match = sourceUrl.match(/recipe-photos\/([^?]+)/);
-  if (!match) return sourceUrl; // not in our bucket — reference it directly
+  const fromPath = photoPathFromUrl(sourceUrl);
+  if (!fromPath) return sourceUrl; // not in our bucket — reference it directly
 
-  const fromPath = decodeURIComponent(match[1]);
   const ext = fromPath.split(".").pop() || "webp";
   const toPath = `copies/${newRecipeId}/${suffix}.${ext}`;
 
-  const { error } = await supabase.storage.from(BUCKET).copy(fromPath, toPath);
-  if (error) return sourceUrl; // fall back to referencing the original
-
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(toPath);
-  return data.publicUrl;
+  const photos = getPhotoStore();
+  try {
+    await photos.copy(fromPath, toPath);
+  } catch {
+    return sourceUrl; // fall back to referencing the original
+  }
+  return photos.publicUrl(toPath);
 }
 
 // POST /api/recipes/copy { token }
@@ -110,8 +105,8 @@ export const POST = withOwnerAuth(
 
     // Duplicate images into the new recipe's own storage paths.
     const [photoUrl, generatedImageUrl] = await Promise.all([
-      duplicateImage(supabase, source.photo_url, newId, "photo"),
-      duplicateImage(supabase, source.generated_image_url, newId, "generated"),
+      duplicateImage(source.photo_url, newId, "photo"),
+      duplicateImage(source.generated_image_url, newId, "generated"),
     ]);
 
     if (photoUrl || generatedImageUrl) {

@@ -34,6 +34,11 @@ const nextConfig: NextConfig = {
         pathname: "/storage/v1/object/public/**",
       },
       {
+        // OVH Object Storage S3 (photos, docs/infra/migration-supabase-vps.md)
+        protocol: "https",
+        hostname: "*.s3.gra.io.cloud.ovh.net",
+      },
+      {
         protocol: "https",
         hostname: "www.themealdb.com",
       },

@@ -61,8 +61,21 @@ const sha256Fingerprint = z.string().regex(/^([0-9a-f]{2}:){31}[0-9a-f]{2}$/i);
 
 const RULES: EnvRule[] = [
   // Socle : sans elles rien ne fonctionne.
-  { name: "NEXT_PUBLIC_SUPABASE_URL", required: true, shape: httpUrl, expected: "URL http(s)" },
-  { name: "SUPABASE_SERVICE_ROLE_KEY", required: true, shape: z.string(), expected: "clé service role" },
+  // Base : PostgREST auto-hébergé (DATABASE_REST_*) ou Supabase (repli) — voir
+  // lib/supabase/server. Les deux couples sont optionnels un par un ; la règle
+  // « au moins un couple complet » est vérifiée à part (checkDatabaseTarget).
+  { name: "DATABASE_REST_URL", required: false, shape: httpUrl, expected: "URL http(s)" },
+  { name: "DATABASE_REST_KEY", required: false, shape: z.string().min(20), expected: "JWT service_role" },
+  { name: "NEXT_PUBLIC_SUPABASE_URL", required: false, shape: httpUrl, expected: "URL http(s)" },
+  { name: "SUPABASE_SERVICE_ROLE_KEY", required: false, shape: z.string(), expected: "clé service role" },
+  // Photos : S3 (OVH Object Storage) dès que S3_BUCKET est posé, sinon Supabase
+  // Storage. Les variables S3 vont ensemble (checkPhotoStorage).
+  { name: "S3_BUCKET", required: false, shape: z.string(), expected: "nom de bucket" },
+  { name: "S3_ENDPOINT", required: false, shape: httpUrl, expected: "URL http(s)" },
+  { name: "S3_REGION", required: false, shape: z.string(), expected: "région (gra)" },
+  { name: "S3_PUBLIC_URL", required: false, shape: httpUrl, expected: "URL http(s)" },
+  { name: "S3_ACCESS_KEY_ID", required: false, shape: z.string(), expected: "clé d'accès" },
+  { name: "S3_SECRET_ACCESS_KEY", required: false, shape: z.string(), expected: "clé secrète" },
   {
     name: "SESSION_SIGNING_SECRET",
     required: true,
@@ -210,6 +223,55 @@ export function checkEnv(env: Env): EnvIssue[] {
       level: "error",
       reason: "absente alors que RESEND_API_KEY est posée : tout envoi d'e-mail échouera",
     });
+  }
+
+  // Valeur exploitable : non vide et pas un placeholder d'export.
+  const has = (name: string) => {
+    const value = env[name]?.trim();
+    return Boolean(value) && !PLACEHOLDER.test(value!);
+  };
+  // Une variable d'un couple actif est traitée comme requise : absente ou en
+  // placeholder → error ; forme invalide → le warn « optionnelle » de la règle
+  // unitaire devient une error.
+  const requireAll = (names: string[], reason: string) => {
+    for (const name of names) {
+      const existing = issues.find((issue) => issue.variable === name);
+      if (existing) {
+        existing.level = "error";
+      } else if (!has(name)) {
+        issues.push({ variable: name, level: "error", reason });
+      }
+    }
+  };
+
+  // Base : il faut un couple complet — PostgREST auto-hébergé (DATABASE_REST_*)
+  // ou Supabase (NEXT_PUBLIC_SUPABASE_URL + clé). Un couple à moitié posé est
+  // une erreur : le client retombe silencieusement sur l'autre cible.
+  const restTarget = has("DATABASE_REST_URL") || has("DATABASE_REST_KEY");
+  if (restTarget) {
+    requireAll(
+      ["DATABASE_REST_URL", "DATABASE_REST_KEY"],
+      "DATABASE_REST_URL et DATABASE_REST_KEY vont ensemble : sinon le client base retombe sur Supabase",
+    );
+  }
+  const supabaseNeeded = !restTarget || !has("S3_BUCKET");
+  if (supabaseNeeded) {
+    requireAll(
+      ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+      restTarget
+        ? "requise par le repli Supabase Storage tant que S3_BUCKET n'est pas posé"
+        : "cible base Supabase incomplète (ou poser DATABASE_REST_URL + DATABASE_REST_KEY)",
+    );
+  }
+
+  // Photos : S3_BUCKET active le pilote S3, qui exige endpoint, URL publique et
+  // identifiants. Sans S3_BUCKET, les photos restent sur Supabase Storage
+  // (repli de transition, couvert par le couple Supabase exigé ci-dessus).
+  if (has("S3_BUCKET")) {
+    requireAll(
+      ["S3_ENDPOINT", "S3_PUBLIC_URL", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
+      "absente alors que S3_BUCKET est posé : upload de photo impossible",
+    );
   }
   return issues;
 }

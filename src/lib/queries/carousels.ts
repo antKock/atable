@@ -1,4 +1,4 @@
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { DbClient } from "@/lib/supabase/server";
 import { buildCarouselCatalog } from "@/lib/carousels/catalog";
 import { getT } from "@/lib/i18n/server";
 import { bucket } from "@/lib/carousels/bucketing";
@@ -58,7 +58,7 @@ function mapRow(row: Record<string, any>): CarouselRecipeItem {
  * cappée et décide lui-même l'ordre d'affichage.
  */
 export async function fetchCarouselSections(
-  supabase: SupabaseClient,
+  supabase: DbClient,
   householdIds: string[],
 ): Promise<CarouselSection[]> {
   // Home multi-foyer (Lot 4) : carrousels mélangés sur l'union des foyers de

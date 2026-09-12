@@ -3,6 +3,8 @@ import openai from "@/lib/openai";
 import { createServerClient } from "@/lib/supabase/server";
 import { enrichRecipe, regenerateImage } from "./enrichment";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { getPhotoStore } from "@/lib/storage/photos";
+import { createPhotoStoreMock, type PhotoStoreMock } from "@/test/photo-store-mock";
 import { chatCompletion, enrichmentResult, imageResponse } from "@/test/openai-mock";
 import { recipeDbRow } from "@/test/fixtures";
 import { AI_MODELS } from "@/lib/ai-models";
@@ -23,16 +25,20 @@ vi.mock("@/lib/ai-cost", () => ({
   imageCostUsd: () => 0,
 }));
 vi.mock("@/lib/supabase/server");
+vi.mock("@/lib/storage/photos");
 
 const mockChat = openai.chat.completions.create as unknown as Mock;
 const mockImages = openai.images.generate as unknown as Mock;
 
 let supa: SupabaseMock;
+let photos: PhotoStoreMock;
 
 beforeEach(() => {
   vi.resetAllMocks();
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
+  photos = createPhotoStoreMock();
+  vi.mocked(getPhotoStore).mockReturnValue(photos);
 });
 
 /** All payloads passed to `.update()` on a given table, in order. */
@@ -107,7 +113,7 @@ describe("enrichRecipe — full enrichment", () => {
     expect(metadataUpdate.enrichment_status).toBe("enriched");
 
     expect(mockImages).toHaveBeenCalledTimes(1);
-    expect(supa.uploadMock).toHaveBeenCalledTimes(1);
+    expect(photos.upload).toHaveBeenCalledTimes(1);
     const imageUpdate = updates.find((u) => u.image_status === "generated")!;
     expect(imageUpdate).toBeDefined();
     expect(supa.calls.some((c) => c.table === "recipe_tags" &&
@@ -160,7 +166,7 @@ describe("enrichRecipe — full enrichment", () => {
     expect(mockChat).toHaveBeenCalledTimes(1);
     // ...but no image is generated, and image_status is left untouched.
     expect(mockImages).not.toHaveBeenCalled();
-    expect(supa.uploadMock).not.toHaveBeenCalled();
+    expect(photos.upload).not.toHaveBeenCalled();
     expect(updatePayloads("recipes").some((u) => "image_status" in u)).toBe(false);
   });
 
@@ -184,7 +190,7 @@ describe("enrichRecipe — full enrichment", () => {
     await enrichRecipe("recipe-1");
 
     expect(mockImages).not.toHaveBeenCalled();
-    expect(supa.uploadMock).not.toHaveBeenCalled();
+    expect(photos.upload).not.toHaveBeenCalled();
     // Sortie propre : ni image_status "failed", ni enrichment_status "failed".
     expect(updatePayloads("recipes")).toHaveLength(0);
     expect(log).toHaveBeenCalledWith(expect.stringContaining("supprimée entre-temps"));
@@ -304,7 +310,7 @@ describe("regenerateImage", () => {
     // The prompt was recomputed (LLM call) rather than the stored one replayed
     expect(mockChat).toHaveBeenCalledTimes(1);
     expect(mockImages).toHaveBeenCalledTimes(1);
-    expect(supa.uploadMock).toHaveBeenCalledTimes(1);
+    expect(photos.upload).toHaveBeenCalledTimes(1);
 
     const updates = updatePayloads("recipes");
     const promptUpdate = updates.find((u) => "image_prompt" in u)!;
