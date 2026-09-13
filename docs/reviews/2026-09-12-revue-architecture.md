@@ -202,11 +202,11 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
   déclaré no-op depuis la 027 : à supprimer.
 - [x] Réécrire les tests des routes concernées sur des mocks de fonctions `db/*` (le mock
   FIFO `src/test/supabase-mock.ts` ne reste que pour les tests de `src/lib/db/`).
-- [ ] Filet : E2E `01`, `02`, `03`, `08-demo`, `14-lot4-multi-foyer`,
+- [x] Filet : E2E `01`, `02`, `03`, `08-demo`, `14-lot4-multi-foyer`,
   `15-foyer-post-release-fixes`, et un test d'écriture réelle sur staging (créer, rejoindre,
-  démo) avant le go. *E2E 51/51 en local (PR #142). Le test réel sur staging reste à faire
-  APRÈS le merge de la PR — laissée ouverte, non mergée, pour respecter la « semaine de recul » :
-  Anthony décide de l'embarquer ou non.*
+  démo) avant le go. *E2E 51/51 en local (PR #142). **Embarqué** sur décision d'Anthony le
+  2026-09-13 : PR mergée, déployée sur staging, test réel passé (créer, rejoindre par code,
+  démo → conversion avec marqueur, carnet additif), données nettoyées.*
 
 *Sémantique des compensations écrite en tête de `src/lib/db/onboarding.ts` : supprimer ce que
 la saga a créé, dans l'ordre inverse — le foyer seulement s'il vient d'être créé (jamais un
@@ -389,7 +389,7 @@ conteneur, Sentry.
 | #139 | 4 | one-off, exports morts, rangement `components/`, page stats en sections, i18n serveur, `ES2022` | 884 |
 | #140 | 4 | Prettier (passe unique + `--check` en CI) | 884 |
 | #141 | 6 | `runExtraction`, coûts par voie testés, Instagram / Apify, invariant de tarification, cron `enrich-stale`, `sections.ts` d'`assembleV3` | 920 |
-| #142 | 5 | sagas d'onboarding — **PR ouverte, NON mergée** (semaine de recul) | 924 |
+| #142 | 5 | sagas d'onboarding — mergée le 2026-09-13 sur décision d'Anthony, test réel staging passé | 924 |
 
 Contrôle d'écriture réel sur staging après le lot 4 : créer un carnet → rejoindre en invité
 → créer une recette → invité refusé en écriture (403) → supprimer la recette → supprimer le
@@ -397,8 +397,7 @@ carnet, puis nettoyage des owners de test via PostgREST.
 
 ### Au moment du go (checklist)
 
-1. Décider du lot 5 (PR #142) : merger sur `staging` puis refaire le contrôle d'écriture
-   réel (créer, rejoindre, démo) avant de promouvoir — ou le laisser pour plus tard.
+1. ~~Décider du lot 5~~ — fait, mergé et vérifié sur staging.
 2. `gh pr create --base main --head staging` + `gh pr merge --admin` (compte antKock).
 3. **Migration 045 en prod** : `node scripts/vps/migrate.mjs prod --dry-run` puis `prod`
    (après le déploiement : le code ne référence plus la v2 depuis la 043).
