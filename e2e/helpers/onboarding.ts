@@ -9,11 +9,16 @@ import { db, getHouseholdByName } from "./db";
  */
 export async function newVisitor(
   browser: Browser,
-  options: { arm?: AbArm } = {},
+  options: { arm?: AbArm; probe?: boolean } = {},
 ): Promise<{ context: BrowserContext; page: Page }> {
   const ip = `10.${rand(254)}.${rand(254)}.${1 + rand(253)}`;
+  // Sonde (#26) par défaut : le harnais est un agent, ses requêtes portent
+  // `x-mijote-probe` comme en prod. `probe: false` = un vrai visiteur.
   const context = await browser.newContext({
-    extraHTTPHeaders: { "x-forwarded-for": ip },
+    extraHTTPHeaders: {
+      "x-forwarded-for": ip,
+      ...(options.probe === false ? {} : { "x-mijote-probe": "1" }),
+    },
   });
   await pinAbArm(context, options.arm ?? "a");
   const page = await context.newPage();

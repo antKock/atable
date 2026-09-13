@@ -340,6 +340,7 @@ export const t = {
     start: "Commencer",
     haveCookbook: "J'ai déjà un carnet",
     seeExample: "Voir un exemple",
+    probeBadge: "Sonde · hors stats",
   },
 
   // Join via invite link

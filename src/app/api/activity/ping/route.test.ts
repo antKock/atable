@@ -128,3 +128,18 @@ describe("POST /api/activity/ping", () => {
     });
   });
 });
+
+describe("POST /api/activity/ping — sonde (#26)", () => {
+  it("x-probe: 1 → 204 sans aucune écriture (plateforme laissée à unknown)", async () => {
+    const res = await POST(
+      new NextRequest("https://test.local/api/activity/ping", {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-probe": "1" },
+        body: JSON.stringify({ platform: "ios" }),
+      }),
+    );
+    expect(res.status).toBe(204);
+    expect(findCall(supa, "daily_activity")).toBeUndefined();
+    expect(findCall(supa, "device_sessions")).toBeUndefined();
+  });
+});

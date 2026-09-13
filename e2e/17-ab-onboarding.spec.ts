@@ -40,7 +40,8 @@ test("A/B : premier rendu sans cookie → bras tiré, cookie 1 an, affectation c
   browser,
 }) => {
   const before = await assignedToday();
-  const { context, page } = await newVisitor(browser, { arm: "none" });
+  // Vrai visiteur (pas une sonde) : c'est lui qui doit être compté.
+  const { context, page } = await newVisitor(browser, { arm: "none", probe: false });
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Mijote" })).toBeVisible();
 
@@ -140,5 +141,56 @@ test("A/B bras A : landing inchangée, bras persisté sur l'owner créé", async
   await page.getByRole("button", { name: "Créer un carnet" }).click();
   await page.waitForURL(/\/home/);
   expect(await currentOwnerVariant(page)).toBe("a");
+  await context.close();
+});
+
+test("Sonde (#26) : bras attribué mais rien de compté, owner et foyer marqués is_probe", async ({
+  browser,
+}) => {
+  const before = await assignedToday();
+  const { context, page } = await newVisitor(browser, { arm: "none" }); // sonde par défaut
+  await page.goto("/");
+  await expect(page.getByText("Sonde · hors stats")).toBeVisible();
+  const cookie = (await context.cookies()).find((c) => c.name === "mijote_ab_onboarding");
+  expect(["a", "b"]).toContain(cookie?.value);
+  await page.waitForTimeout(800);
+  expect(await assignedToday()).toBe(before);
+
+  const primary = cookie!.value === "b" ? "Commencer" : "Créer un carnet";
+  await page.getByRole("button", { name: primary }).click();
+  await page.waitForURL(/\/(home|recipes\/new)/);
+  const sid = JSON.parse(
+    Buffer.from(
+      (await context.cookies()).find((c) => c.name === "atable_session")!.value.split(".")[1],
+      "base64url",
+    ).toString("utf8"),
+  ).sid as string;
+  const { data: session } = await db()
+    .from("device_sessions")
+    .select("owner_id, household_id")
+    .eq("id", sid)
+    .single();
+  const { data: owner } = await db()
+    .from("owners")
+    .select("is_probe")
+    .eq("id", session!.owner_id as string)
+    .single();
+  const { data: household } = await db()
+    .from("households")
+    .select("is_probe")
+    .eq("id", session!.household_id as string)
+    .single();
+  expect(owner?.is_probe).toBe(true);
+  expect(household?.is_probe).toBe(true);
+  await context.close();
+});
+
+test("Sonde (#26) : ?probe=1 pose le cookie mijote_probe pour un an", async ({ browser }) => {
+  const { context, page } = await newVisitor(browser, { probe: false });
+  await page.goto("/?probe=1");
+  const cookie = (await context.cookies()).find((c) => c.name === "mijote_probe");
+  expect(cookie?.value).toBe("1");
+  expect(cookie!.expires - Date.now() / 1000).toBeGreaterThan(360 * 24 * 3600);
+  await expect(page.getByText("Sonde · hors stats")).toBeVisible();
   await context.close();
 });

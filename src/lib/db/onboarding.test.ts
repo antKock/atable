@@ -167,6 +167,30 @@ describe("provisionOwnerWithHousehold — foyer existant (rejoindre, démo)", ()
     expect("onboarding_variant" in (payloadOf("owners", "insert") as object)).toBe(false);
   });
 
+  it("sonde (#26) : is_probe écrit sur l'owner et sur le foyer créé", async () => {
+    supa.queueResults([
+      { error: null },
+      { data: { id: "hh-1" } },
+      { error: null },
+      { data: { id: "sid-1" } },
+    ]);
+    await provisionOwnerWithHousehold(supa.client, {
+      owner: { id: "owner-1", alias: "A", isProbe: true },
+      household: {
+        kind: "create",
+        name: "Mon carnet",
+        joinCode: "OLIVE-4821",
+        guestJoinCode: "THYME-0001",
+        origin: "landing",
+        isProbe: true,
+      },
+      role: "member",
+      deviceName: "curl",
+    });
+    expect(payloadOf("owners", "insert")).toMatchObject({ is_probe: true });
+    expect(payloadOf("households", "insert")).toMatchObject({ is_probe: true });
+  });
+
   it("A/B onboarding (#25) : le bras fourni est écrit sur l'owner (démo comprise)", async () => {
     supa.queueResults([{ error: null }, { error: null }, { data: { id: "sid-1" } }]);
     await provisionOwnerWithHousehold(supa.client, {

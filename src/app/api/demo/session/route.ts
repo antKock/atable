@@ -9,6 +9,7 @@ import { provisionOwnerWithHousehold } from "@/lib/db/onboarding";
 import { getClientIp } from "@/lib/request-ip";
 import { enforceDemoSessionQuota } from "@/lib/import-quota";
 import { AB_ONBOARDING_COOKIE, variantForNewOwner } from "@/lib/ab-onboarding";
+import { isProbeHeaders } from "@/lib/probe";
 
 export const POST = withPublicRoute(async (request: NextRequest) => {
   // Chaque session démo crée un owner : plafond par IP (5/h, comme la
@@ -40,6 +41,8 @@ export const POST = withPublicRoute(async (request: NextRequest) => {
       alias: aliasForOwner(ownerId, locale),
       // A/B onboarding (#25) : bras vu à la landing, pour compter les essais démo par bras.
       onboardingVariant: variantForNewOwner(request.cookies.get(AB_ONBOARDING_COOKIE)?.value),
+      // Sonde (#26) : session démo d'un appareil d'Anthony ou d'un agent, hors stats.
+      isProbe: isProbeHeaders(request.headers),
     },
     household: { kind: "existing", householdId: demoHouseholdId },
     role: "member",

@@ -31,6 +31,7 @@ export type ProvisionTarget =
       joinCode: string;
       guestJoinCode: string;
       origin: HouseholdOrigin;
+      isProbe?: boolean;
     }
   | { kind: "existing"; householdId: string };
 
@@ -90,7 +91,13 @@ export async function provisionOwnerWithHousehold(
  */
 export async function attachNewHouseholdToOwner(
   db: DbClient,
-  input: { ownerId: string; name: string; joinCode: string; guestJoinCode: string },
+  input: {
+    ownerId: string;
+    name: string;
+    joinCode: string;
+    guestJoinCode: string;
+    isProbe?: boolean;
+  },
 ): Promise<{ householdId: string }> {
   const householdId = await insertHousehold(db, { ...input, origin: "additif" });
   try {
