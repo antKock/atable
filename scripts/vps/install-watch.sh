@@ -16,6 +16,7 @@ if [ ! -f /etc/mijote/watch.env ]; then
 # Veilleur ops (scripts/vps/watch.sh). Jamais commité.
 SENTRY_DSN=
 ADMIN_API_SECRET=
+ADMIN_API_SECRET_STAGING=
 HOST_PROD=mijote.anthonykocken.fr
 HOST_STAGING=staging.mijote.anthonykocken.fr
 ENV

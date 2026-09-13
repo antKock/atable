@@ -48,6 +48,8 @@ sentry_event() { # level fingerprint message env extra_json
 
 env_of_host() { case "$1" in "$HOST_PROD") echo production ;; "$HOST_STAGING") echo staging ;; *) echo other ;; esac; }
 app_url_of_env() { case "$1" in production) echo "https://$HOST_PROD" ;; staging) echo "https://$HOST_STAGING" ;; esac; }
+# Secret admin par app (ADMIN_API_SECRET_STAGING, repli ADMIN_API_SECRET)
+admin_secret_of_host() { case "$1" in "$HOST_STAGING") echo "${ADMIN_API_SECRET_STAGING:-${ADMIN_API_SECRET:-}}" ;; *) echo "${ADMIN_API_SECRET:-}" ;; esac; }
 
 container_id() { docker ps -q -f "name=$1" | head -1; }
 app_containers() { docker ps --format '{{.Names}}' | grep -E '^mijote-(prod|staging)-[a-z0-9]{6}\.' ; }
@@ -75,7 +77,7 @@ tick() {
     cut -f1-4 <<<"$lines" | sort | uniq -c | sort -rn | head -20 | while read -r n host method path status; do
       local env; env=$(env_of_host "$host")
       local clients; clients=$(awk -F'\t' -v h="$host" -v m="$method" -v p="$path" -v s="$status" '$1==h&&$2==m&&$3==p&&$4==s{print $5}' <<<"$lines" | sort -u | head -3 | paste -sd, -)
-      sentry_event error "traefik-5xx/$host/$method/$path/$status" \
+      sentry_event error "traefik-5xx/$host/$method $path/$status" \
         "Traefik $status × $n — $method $host$path" "$env" \
         "$(jq -cn --arg n "$n" --arg c "$clients" --arg from "$cursor" --arg to "$now" '{count:($n|tonumber), clients:$c, window:{from:$from,to:$to}}')"
     done
@@ -108,10 +110,11 @@ tick() {
   if [ -n "${ADMIN_API_SECRET:-}" ]; then
     for host in "$HOST_PROD" "$HOST_STAGING"; do
       local f="$STATE_DIR/5xx-$host-$(date -u +%F)"; [ -f "$f" ] || continue
+      local secret; secret=$(admin_secret_of_host "$host")
       local total; total=$(cat "$f")
       local sent="$f.sent"; [ "$(cat "$sent" 2>/dev/null)" = "$total" ] && continue
       if curl -sS -m 20 -o /dev/null -f -X POST "https://$host/api/admin/watch" \
-          -H "Authorization: Bearer $ADMIN_API_SECRET" -H "Content-Type: application/json" \
+          -H "Authorization: Bearer $secret" -H "Content-Type: application/json" \
           -d "$(jq -cn --arg d "$(date -u +%F)" --arg n "$total" '{day:$d, traefik5xx:($n|tonumber)}')"; then
         echo "$total" > "$sent"
       else
@@ -132,7 +135,8 @@ daily() {
   if [ -n "${ADMIN_API_SECRET:-}" ]; then
     for env in production staging; do
       local url; url=$(app_url_of_env "$env")
-      local body; body=$(curl -sS -m 90 -f -H "Authorization: Bearer $ADMIN_API_SECRET" "$url/api/admin/health" 2>/dev/null)
+      local secret; secret=$(admin_secret_of_host "${url#https://}")
+      local body; body=$(curl -sS -m 90 -f -H "Authorization: Bearer $secret" "$url/api/admin/health" 2>/dev/null)
       if [ -z "$body" ]; then sentry_event error "health-unreachable/$env" "GET /api/admin/health injoignable ($env)" "$env"; continue; fi
       jq -r '.checks | to_entries[] | select(.value.ok == false) | "\(.key)\t\(.value.detail)"' <<<"$body" | while IFS=$'\t' read -r check detail; do
         [ -z "$check" ] && continue

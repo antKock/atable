@@ -20,7 +20,7 @@ source de vérité, le veilleur ne fait que relayer `ok: false`.
 
 ```
 bash scripts/vps/install-watch.sh        # copie le script, pose /etc/cron.d/mijote-watch
-ssh mijote-vps sudo nano /etc/mijote/watch.env   # SENTRY_DSN (= NEXT_PUBLIC_SENTRY_DSN), ADMIN_API_SECRET
+ssh mijote-vps sudo nano /etc/mijote/watch.env   # SENTRY_DSN (= NEXT_PUBLIC_SENTRY_DSN), ADMIN_API_SECRET (prod), ADMIN_API_SECRET_STAGING
 ssh mijote-vps sudo mijote-watch test    # un événement de test doit apparaître dans Sentry
 ```
 
