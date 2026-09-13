@@ -19,7 +19,12 @@ export type StatsDailyField =
   | "recovery_tokens_used"
   | "merge_tokens_sent"
   | "merge_tokens_used"
-  | "tokens_burned";
+  | "tokens_burned"
+  // A/B onboarding (#25, migration 046) : affectations par bras à la pose du
+  // cookie, premières ouvertures de la landing depuis le shell iOS.
+  | "ab_onboarding_a"
+  | "ab_onboarding_b"
+  | "landing_first_open_ios";
 
 export function trackStat(field: StatsDailyField): void {
   try {

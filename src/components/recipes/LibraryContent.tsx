@@ -1,18 +1,18 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef } from "react";
-import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { useT } from "@/lib/i18n/client";
 import { useRecipeSearch } from "@/hooks/useRecipeSearch";
 import { Skeleton } from "@/components/ui/skeleton";
-import FilterBar from "./FilterBar";
-import RecipeCard from "./RecipeCard";
-import CocotteIllustration from "./CocotteIllustration";
-import CarnetIllustration from "./CarnetIllustration";
-import LoadErrorState from "./LoadErrorState";
+import FilterBar from "@/components/recipes/FilterBar";
+import RecipeCard from "@/components/recipes/card/RecipeCard";
+import CocotteIllustration from "@/components/illustrations/CocotteIllustration";
+import EmptyLibraryState from "@/components/recipes/EmptyLibraryState";
+import CenteredState from "@/components/ui/CenteredState";
+import LoadErrorState from "@/components/recipes/LoadErrorState";
 import { swrFetcher } from "@/lib/swr";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
@@ -32,7 +32,8 @@ function parseFiltersFromParams(params: URLSearchParams): FilterState {
   return {
     season: params.get("season") === "1",
     tagIds: params.get("tags")?.split(",").filter(Boolean) ?? [],
-    duration: duration && VALID_DURATIONS.has(duration) ? (duration as FilterState["duration"]) : null,
+    duration:
+      duration && VALID_DURATIONS.has(duration) ? (duration as FilterState["duration"]) : null,
     cost: cost && VALID_COSTS.has(cost) ? (cost as FilterState["cost"]) : null,
     foyerIds: params.get("foyers")?.split(",").filter(Boolean) ?? [],
   };
@@ -57,32 +58,26 @@ export default function LibraryContent({
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: libraryData, isLoading, error, mutate } = useSWR<{
+  const {
+    data: libraryData,
+    isLoading,
+    error,
+    mutate,
+  } = useSWR<{
     recipes: LibraryRecipeItem[];
     tags: Tag[];
     households: { id: string; name: string }[];
   }>("/api/library", swrFetcher, { revalidateOnMount: true });
 
-  const liveRecipes = useMemo(
-    () => libraryData?.recipes ?? [],
-    [libraryData?.recipes],
-  );
-  const liveTags = useMemo(
-    () => libraryData?.tags ?? [],
-    [libraryData?.tags],
-  );
-  const foyers = useMemo(
-    () => libraryData?.households ?? [],
-    [libraryData?.households],
-  );
+  const liveRecipes = useMemo(() => libraryData?.recipes ?? [], [libraryData?.recipes]);
+  const liveTags = useMemo(() => libraryData?.tags ?? [], [libraryData?.tags]);
+  const foyers = useMemo(() => libraryData?.households ?? [], [libraryData?.households]);
   // Marqueur d'origine (label texte discret) et pill « Foyer » : seulement en
   // multi-foyer (maquette 2.3, décision n°11).
   const multiFoyer = foyers.length > 1;
 
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<FilterState>(() =>
-    parseFiltersFromParams(searchParams),
-  );
+  const [filters, setFilters] = useState<FilterState>(() => parseFiltersFromParams(searchParams));
 
   const searchResults = useRecipeSearch(liveRecipes, query);
   const isSearching = query.trim().length > 0;
@@ -133,15 +128,7 @@ export default function LibraryContent({
         </div>
         <div className="grid grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="overflow-hidden rounded-xl border border-border/40"
-              style={{
-                background: "var(--card-gradient)",
-                boxShadow: "var(--card-shadow-sm)",
-                borderBottom: "1px solid var(--card-border-accent)",
-              }}
-            >
+            <div key={i} className="card-surface">
               <Skeleton className="aspect-3/4 w-full rounded-none" />
               <div className="px-3 py-2.5">
                 <Skeleton className="h-4 w-4/5" />
@@ -203,61 +190,18 @@ export default function LibraryContent({
       {/* Recipe grid */}
       {displayedRecipes.length === 0 ? (
         liveRecipes.length === 0 ? (
-          <div className="mx-auto mt-16 max-w-xs px-4 text-center">
-            <div className="mb-5 flex justify-center">
-              <CarnetIllustration size={72} accent="var(--accent)" />
-            </div>
-            <p
-              className="text-foreground"
-              style={{
-                fontFamily: "var(--font-fraunces)",
-                fontVariationSettings: '"opsz" 144',
-                fontStyle: "italic",
-                fontWeight: 500,
-                fontSize: 22,
-                lineHeight: 1.15,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {t.empty.libraryTitle}
-            </p>
-            <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
-            {/* Pas de CTA de création pour un invité (lecture seule, Lot 3). */}
-            {!isGuest && (
-              <Link
-                href="/recipes/new"
-                className="mt-6 inline-flex min-h-11 items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
-                style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
-              >
-                {t.actions.addRecipe}
-              </Link>
-            )}
-          </div>
+          <EmptyLibraryState isGuest={isGuest} />
         ) : (
-          <div className="mx-auto mt-12 max-w-xs px-4 text-center">
-            <div className="mb-4 flex justify-center" style={{ opacity: 0.6 }}>
-              <CocotteIllustration size={56} accent="var(--accent)" />
-            </div>
-            <p
-              className="text-foreground"
-              style={{
-                fontFamily: "var(--font-fraunces)",
-                fontVariationSettings: '"opsz" 144',
-                fontStyle: "italic",
-                fontWeight: 500,
-                fontSize: 20,
-                lineHeight: 1.15,
-                letterSpacing: "-0.01em",
-              }}
-            >
-              {isSearching ? t.empty.searchTitle : t.filters.noResults}
-            </p>
-            {isSearching && (
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t.empty.searchBody}
-              </p>
-            )}
-          </div>
+          <CenteredState
+            compact
+            illustration={
+              <span style={{ opacity: 0.6 }}>
+                <CocotteIllustration size={56} accent="var(--accent)" />
+              </span>
+            }
+            title={isSearching ? t.empty.searchTitle : t.filters.noResults}
+            body={isSearching ? t.empty.searchBody : undefined}
+          />
         )
       ) : (
         <div className="grid grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">

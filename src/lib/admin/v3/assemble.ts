@@ -2,6 +2,14 @@
 // app_store_daily). Aucune I/O : testable, et partagé par la page et le digest
 // hebdo (bloc 1). Les lectures Supabase sont dans data.ts.
 
+import {
+  dayList,
+  hotIndicator,
+  num,
+  pct1,
+  weeklyActiveSeries,
+  weeklyRecipesSeries,
+} from "@/lib/admin/v3/sections";
 import { sourceLabel } from "@/lib/admin/app-store";
 import type { AppStoreDailyRow } from "@/lib/admin/app-store";
 import {
@@ -9,6 +17,7 @@ import {
   type Channel,
   CHANNEL_LABELS,
   METHOD_LABELS,
+  abOnboardingFunnel,
   activationByFirstMethod,
   activationFunnel,
   activationWeekly,
@@ -20,10 +29,24 @@ import {
   rollingM1,
 } from "@/lib/admin/v3/people";
 import { type Ratio, deltaPts, nLabel, pctLabel, ratio } from "@/lib/admin/v3/ratio";
-import { type Window, addDays, inWindow, iso, lastSunday, shortDate, weekStarts, weeksEnding } from "@/lib/admin/v3/weeks";
-import { PRODUCT_EVENTS } from "@/lib/admin/epochs";
+import {
+  type Window,
+  addDays,
+  inWindow,
+  iso,
+  lastSunday,
+  shortDate,
+  weekStarts,
+  weeksEnding,
+} from "@/lib/admin/v3/weeks";
+import { METRIC_EPOCHS, PRODUCT_EVENTS } from "@/lib/admin/epochs";
 
-export type WeeklyActiveRow = { week_end: string; cohort_month: string; active: number; engaged: number };
+export type WeeklyActiveRow = {
+  week_end: string;
+  cohort_month: string;
+  active: number;
+  engaged: number;
+};
 export type WeeklyRecipesRow = { week_start: string; source: string; recipes: number };
 export type DemoRow = { platform: string; trials: number; conversions: number };
 export type HealthRow = {
@@ -48,6 +71,14 @@ export type HealthRow = {
   tokens_burned: number;
 };
 export type SharingRow = { links: number; links_dated_estimate: boolean; copies: number };
+/** Affectations A/B et premières ouvertures iOS par jour (046). */
+export type AbDailyRow = {
+  day: string;
+  assigned_a: number;
+  assigned_b: number;
+  first_open_ios: number;
+};
+
 export type DailyRow = {
   day: string;
   trials: number;
@@ -81,14 +112,15 @@ export type RawV3 = {
   carnets: CarnetRow[];
   /** Série quotidienne (044), ≥ 91 jours, aujourd'hui inclus (partiel). */
   daily: DailyRow[];
+  /** Affectations A/B + premières ouvertures iOS par jour (046), même fenêtre que appStore. */
+  abOnboarding: AbDailyRow[];
   billedUsd: number | null;
   demoSeedMin: number;
   now: Date;
 };
 
 const WEEKS = 12;
-const num = (v: unknown) => Number(v) || 0;
-const sum = <T,>(rows: T[], f: (r: T) => number) => rows.reduce((s, r) => s + f(r), 0);
+const sum = <T>(rows: T[], f: (r: T) => number) => rows.reduce((s, r) => s + f(r), 0);
 
 export type KpiTile = {
   id: string;
@@ -154,7 +186,13 @@ function hoursSince(isoTs: string | null, now: Date): number | null {
 
 function fmtTs(isoTs: string | null): string {
   if (!isoTs) return "jamais";
-  return new Date(isoTs).toLocaleString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" });
+  return new Date(isoTs).toLocaleString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Paris",
+  });
 }
 
 const usd = (n: number) => `${n.toFixed(2).replace(".", ",")} $`;
@@ -167,69 +205,24 @@ export function assembleV3(raw: RawV3) {
   const starts12 = weekStarts(endSunday, WEEKS);
   const people = raw.people;
 
-  // ---------------- séries hebdo actifs ----------------
-  const activeByWeek = new Map<string, number>();
-  const engagedByWeek = new Map<string, number>();
-  const cohortMonths = new Set<string>();
-  for (const r of raw.weeklyActive) {
-    activeByWeek.set(r.week_end, (activeByWeek.get(r.week_end) ?? 0) + num(r.active));
-    engagedByWeek.set(r.week_end, (engagedByWeek.get(r.week_end) ?? 0) + num(r.engaged));
-    cohortMonths.add(r.cohort_month.slice(0, 7));
-  }
-  const weekEnds = starts12.map((s) => addDays(s, 6));
-  const activeSeries = weekEnds.map((we) => activeByWeek.get(we) ?? 0);
+  // ---------------- séries hebdo actifs (sections.ts) ----------------
+  const { activeByWeek, engagedByWeek, activeSeries, cake, cakeKeys, olderKey } =
+    weeklyActiveSeries(raw.weeklyActive, starts12);
   const activeNow = activeByWeek.get(endSunday) ?? 0;
   const active4wAgo = activeByWeek.get(addDays(endSunday, -28)) ?? 0;
 
-  // Layer cake : semaine × mois d'arrivée (mois ≤ 4e plus ancien regroupés).
-  const months = [...cohortMonths].sort();
-  const cakeMonths = months.length > 5 ? [...months.slice(-4)] : months;
-  const olderKey = months.length > 5 ? months[months.length - 5] : null;
-  const cakeKeys = olderKey ? [olderKey, ...cakeMonths] : cakeMonths;
-  const cake = weekEnds.map((we, i) => {
-    const row: Record<string, number | string> = { label: starts12[i].slice(8, 10) + "/" + starts12[i].slice(5, 7), weekEnd: we };
-    for (const k of cakeKeys) row[k] = 0;
-    for (const r of raw.weeklyActive) {
-      if (r.week_end !== we) continue;
-      const m = r.cohort_month.slice(0, 7);
-      const key = olderKey && m <= olderKey ? olderKey : m;
-      row[key] = num(row[key]) + num(r.active);
-    }
-    return row;
-  });
-
-  // ---------------- recettes hebdo ----------------
-  const recipesByWeek = new Map<string, number>();
-  const mixByWeek = new Map<string, Record<string, number>>();
-  for (const r of raw.weeklyRecipes) {
-    const ws = r.week_start.slice(0, 10);
-    recipesByWeek.set(ws, (recipesByWeek.get(ws) ?? 0) + num(r.recipes));
-    const m = mixByWeek.get(ws) ?? {};
-    m[r.source] = (m[r.source] ?? 0) + num(r.recipes);
-    mixByWeek.set(ws, m);
-  }
-  const recipesIn = (w: Window) => sum(starts12.concat(weekStarts(addDays(endSunday, -28), 4)).filter((s) => inWindow(s, w)), (s) => recipesByWeek.get(s) ?? 0);
+  // ---------------- recettes hebdo (sections.ts) ----------------
+  const METHODS = ["url", "photo", "voice", "manual", "shared", "unknown"];
+  const { recipesByWeek, methodMix } = weeklyRecipesSeries(raw.weeklyRecipes, starts12, METHODS);
+  const recipesIn = (w: Window) =>
+    sum(
+      starts12.concat(weekStarts(addDays(endSunday, -28), 4)).filter((s) => inWindow(s, w)),
+      (s) => recipesByWeek.get(s) ?? 0,
+    );
   const recipes4 = recipesIn(cur4);
   const recipesPrev4 = recipesIn(prev4);
   const perActive = activeNow ? +(recipes4 / activeNow).toFixed(1) : 0;
   const perActivePrev = active4wAgo ? +(recipesPrev4 / active4wAgo).toFixed(1) : 0;
-  const METHODS = ["url", "photo", "voice", "manual", "shared", "unknown"];
-  const methodMix = starts12.map((s) => {
-    const m = mixByWeek.get(s) ?? {};
-    const tot = METHODS.reduce((a, k) => a + (m[k] ?? 0), 0);
-    const row: Record<string, number | string> = { label: s.slice(8, 10) + "/" + s.slice(5, 7), total: tot };
-    // Parts arrondies qui somment à 100 : la dernière méthode non nulle absorbe l'écart.
-    let acc = 0;
-    let lastKey: string | null = null;
-    for (const k of METHODS) {
-      const v = tot ? Math.round(((m[k] ?? 0) / tot) * 100) : 0;
-      row[k] = v;
-      acc += v;
-      if (v > 0) lastKey = k;
-    }
-    if (lastKey && acc !== 100) row[lastKey] = num(row[lastKey]) + (100 - acc);
-    return row;
-  });
 
   // ---------------- personnes ----------------
   const np = newPeople(people, cur4);
@@ -265,12 +258,23 @@ export function assembleV3(raw: RawV3) {
     const l = sourceLabel(r.source_type, r.source_info);
     sources.set(l, (sources.get(l) ?? 0) + num(r.dl_first_time));
   }
-  const appStoreSources = [...sources.entries()].map(([label, downloads]) => ({ label, downloads })).sort((a, b) => b.downloads - a.downloads);
-  const appStoreLastDay = raw.appStore.reduce<string | null>((m, r) => (m == null || r.day > m ? r.day : m), null);
-  const downloadsWeekly = starts12.map((s) => sum(raw.appStore.filter((r) => inWindow(r.day, { from: s, to: addDays(s, 6) })), (r) => num(r.dl_first_time)));
+  const appStoreSources = [...sources.entries()]
+    .map(([label, downloads]) => ({ label, downloads }))
+    .sort((a, b) => b.downloads - a.downloads);
+  const appStoreLastDay = raw.appStore.reduce<string | null>(
+    (m, r) => (m == null || r.day > m ? r.day : m),
+    null,
+  );
+  const downloadsWeekly = starts12.map((s) =>
+    sum(
+      raw.appStore.filter((r) => inWindow(r.day, { from: s, to: addDays(s, 6) })),
+      (r) => num(r.dl_first_time),
+    ),
+  );
 
   // ---------------- démo par plateforme ----------------
-  const demoBy = (p: string) => raw.demo.find((d) => d.platform === p) ?? { platform: p, trials: 0, conversions: 0 };
+  const demoBy = (p: string) =>
+    raw.demo.find((d) => d.platform === p) ?? { platform: p, trials: 0, conversions: 0 };
   const demoIos = demoBy("ios");
   const demoWeb = demoBy("web");
   const demoAndroid = demoBy("android");
@@ -278,8 +282,11 @@ export function assembleV3(raw: RawV3) {
 
   // ---------------- santé ----------------
   const h = raw.health;
-  const enrichedRate = num(h.recipes_created) ? num(h.recipes_enriched) / num(h.recipes_created) : 1;
-  const pipelineOk = num(h.recipes_failed) === 0 && num(h.recipes_pending_stale) === 0 && enrichedRate >= 0.95;
+  const enrichedRate = num(h.recipes_created)
+    ? num(h.recipes_enriched) / num(h.recipes_created)
+    : 1;
+  const pipelineOk =
+    num(h.recipes_failed) === 0 && num(h.recipes_pending_stale) === 0 && enrichedRate >= 0.95;
   const rollupH = hoursSince(h.last_rollup, raw.now);
   const syncH = hoursSince(h.last_app_store_sync, raw.now);
   const cronsOk = rollupH != null && rollupH < 36 && syncH != null && syncH < 36;
@@ -290,39 +297,47 @@ export function assembleV3(raw: RawV3) {
       ok: pipelineOk,
       detail: `${Math.round(enrichedRate * 100)} % enrichies sur 4 sem. · ${num(h.recipes_failed)} en échec · ${num(h.recipes_pending_stale)} bloquée${num(h.recipes_pending_stale) > 1 ? "s" : ""}`,
     },
-    crons: { ok: cronsOk, detail: `demo-reset ${fmtTs(h.last_rollup)} · app-store-sync ${fmtTs(h.last_app_store_sync)}` },
-    demo: { ok: demoOk, detail: `${num(h.demo_seed_fr)} recettes seed FR · ${num(h.demo_seed_en)} EN (min ${raw.demoSeedMin})` },
+    crons: {
+      ok: cronsOk,
+      detail: `demo-reset ${fmtTs(h.last_rollup)} · app-store-sync ${fmtTs(h.last_app_store_sync)}`,
+    },
+    demo: {
+      ok: demoOk,
+      detail: `${num(h.demo_seed_fr)} recettes seed FR · ${num(h.demo_seed_en)} EN (min ${raw.demoSeedMin})`,
+    },
   };
   const costPerActive = activeNow ? num(h.ai_cost_usd) / activeNow : 0;
 
   // ---------------- bloc 0 : 7 derniers jours (données chaudes) ----------------
   const yesterday = addDays(today, -1);
   const dailyByDay = new Map(raw.daily.map((r) => [r.day.slice(0, 10), r]));
+  const abByDay = new Map(raw.abOnboarding.map((r) => [r.day.slice(0, 10), r]));
+  // « 1ʳᵉ ouverture iOS » : compteur du proxy (046) à partir de son époque,
+  // essais démo iOS avant (l'approximation historique — fausse dès le bras B).
+  const iosOpens = (d: string) =>
+    d >= METRIC_EPOCHS.landingFirstOpen
+      ? num(abByDay.get(d)?.first_open_ios)
+      : num(dailyByDay.get(d)?.trials_ios);
   const dlByDay = new Map<string, number>();
-  for (const r of raw.appStore) dlByDay.set(r.day, (dlByDay.get(r.day) ?? 0) + num(r.dl_first_time));
-  const dayList = (n: number, end: string) => Array.from({ length: n }, (_, i) => addDays(end, -(n - 1 - i)));
-  const median = (xs: number[]) => {
-    const a = [...xs].sort((x, y) => x - y);
-    return a.length ? (a.length % 2 ? a[(a.length - 1) / 2] : (a[a.length / 2 - 1] + a[a.length / 2]) / 2) : 0;
-  };
-  const hotOf = (id: string, label: string, get: (day: string) => number, opts: { avg?: boolean; unit?: string; hint?: string } = {}): HotIndicator => {
-    const win = (end: string) => {
-      const vals = dayList(7, end).map(get);
-      const tot = vals.reduce((a, b) => a + b, 0);
-      return opts.avg ? +(tot / 7).toFixed(1) : tot;
-    };
-    const value = win(yesterday);
-    const ref = +median([win(addDays(yesterday, -7)), win(addDays(yesterday, -14)), win(addDays(yesterday, -21))]).toFixed(1);
-    const barDays = dayList(14, yesterday);
-    const barRefs = barDays.map((d) => median([7, 14, 21, 28].map((k) => get(addDays(d, -k)))));
-    return { id, label, value, ref, trend: value > ref ? "up" : value < ref ? "down" : "flat", bars: barDays.map(get), barDays, barRefs, unit: opts.unit, hint: opts.hint };
-  };
+  for (const r of raw.appStore)
+    dlByDay.set(r.day, (dlByDay.get(r.day) ?? 0) + num(r.dl_first_time));
+  const hotOf = (
+    id: string,
+    label: string,
+    get: (day: string) => number,
+    opts: { avg?: boolean; unit?: string; hint?: string } = {},
+  ): HotIndicator => hotIndicator(id, label, get, yesterday, opts);
   const hot: HotIndicator[] = [
-    hotOf("downloads", "Téléchargements App Store", (d) => dlByDay.get(d) ?? 0, { hint: appStoreLastDay ? `Apple jusqu'au ${shortDate(appStoreLastDay)}` : undefined }),
+    hotOf("downloads", "Téléchargements App Store", (d) => dlByDay.get(d) ?? 0, {
+      hint: appStoreLastDay ? `Apple jusqu'au ${shortDate(appStoreLastDay)}` : undefined,
+    }),
     hotOf("trials", "Essais démo", (d) => num(dailyByDay.get(d)?.trials)),
     hotOf("new", "Nouvelles personnes", (d) => num(dailyByDay.get(d)?.new_people)),
     hotOf("recipes", "Recettes ajoutées", (d) => num(dailyByDay.get(d)?.recipes)),
-    hotOf("active", "Personnes actives / jour", (d) => num(dailyByDay.get(d)?.active_people), { avg: true, hint: "moyenne des 7 jours" }),
+    hotOf("active", "Personnes actives / jour", (d) => num(dailyByDay.get(d)?.active_people), {
+      avg: true,
+      hint: "moyenne des 7 jours",
+    }),
   ];
 
   // ---------------- funnel App Store par semaine ----------------
@@ -331,9 +346,8 @@ export function assembleV3(raw: RawV3) {
     const rowsW = raw.appStore.filter((r) => r.day >= ws && r.day <= addDays(ws, 6));
     const impressions = sum(rowsW, (r) => num(r.eng_impressions));
     const downloads = sum(rowsW, (r) => num(r.dl_first_time));
-    const opens = days.reduce((a, d) => a + num(dailyByDay.get(d)?.trials_ios), 0);
+    const opens = days.reduce((a, d) => a + iosOpens(d), 0);
     const carnets = newPeople(people, { from: ws, to: addDays(ws, 6) }).ios;
-    const pct1 = (n: number, d: number) => (d > 0 ? +((n / d) * 100).toFixed(1) : null);
     return {
       weekStart: ws,
       label: ws.slice(8, 10) + "/" + ws.slice(5, 7),
@@ -349,7 +363,8 @@ export function assembleV3(raw: RawV3) {
   });
 
   // ---------------- bloc 1 : tuiles ----------------
-  const trend = (cur: number, prev: number): KpiTile["trend"] => (cur > prev ? "up" : cur < prev ? "down" : "flat");
+  const trend = (cur: number, prev: number): KpiTile["trend"] =>
+    cur > prev ? "up" : cur < prev ? "down" : "flat";
   const fmtR = (r: Ratio) => `${pctLabel(r)} (${nLabel(r)})`;
   const tiles: KpiTile[] = [
     {
@@ -365,9 +380,15 @@ export function assembleV3(raw: RawV3) {
       label: "Activées à 7 j · 4 dernières sem. jugeables",
       value: pctLabel(actCur.activated),
       fragile: actCur.activated.fragile,
-      title: actCur.activated.margin != null ? `N = ${actCur.activated.total} : marge ± ${actCur.activated.margin} pts` : undefined,
+      title:
+        actCur.activated.margin != null
+          ? `N = ${actCur.activated.total} : marge ± ${actCur.activated.margin} pts`
+          : undefined,
       compare: `${nLabel(actCur.activated)} · vs ${fmtR(actPrev.activated)} avant · ≥ 3 recettes + 1 retour`,
-      trend: actCur.activated.pct != null && actPrev.activated.pct != null ? trend(actCur.activated.pct, actPrev.activated.pct) : undefined,
+      trend:
+        actCur.activated.pct != null && actPrev.activated.pct != null
+          ? trend(actCur.activated.pct, actPrev.activated.pct)
+          : undefined,
       spark: actWeekly.map((w) => (w.arrivals ? Math.round((w.activated / w.arrivals) * 100) : 0)),
     },
     {
@@ -400,27 +421,52 @@ export function assembleV3(raw: RawV3) {
   // ---------------- « ce qui a bougé » ----------------
   const moved: string[] = [];
   const lastWeek = npWeekly[npWeekly.length - 1];
-  if (lastWeek && lastWeek.total > 0 && lastWeek.total >= Math.max(...npWeekly.slice(0, -1).map((w) => w.total))) {
-    const chan = (["ios", "web", "invite", "android"] as Channel[]).filter((c) => lastWeek[c] > 0).map((c) => `${lastWeek[c]} ${CHANNEL_LABELS[c]}`).join(", ");
-    moved.push(`${lastWeek.total} nouvelle${lastWeek.total > 1 ? "s" : ""} personne${lastWeek.total > 1 ? "s" : ""} la semaine dernière (${chan}) — record sur 12 semaines.`);
+  if (
+    lastWeek &&
+    lastWeek.total > 0 &&
+    lastWeek.total >= Math.max(...npWeekly.slice(0, -1).map((w) => w.total))
+  ) {
+    const chan = (["ios", "web", "invite", "android"] as Channel[])
+      .filter((c) => lastWeek[c] > 0)
+      .map((c) => `${lastWeek[c]} ${CHANNEL_LABELS[c]}`)
+      .join(", ");
+    moved.push(
+      `${lastWeek.total} nouvelle${lastWeek.total > 1 ? "s" : ""} personne${lastWeek.total > 1 ? "s" : ""} la semaine dernière (${chan}) — record sur 12 semaines.`,
+    );
   }
   const m1d = deltaPts(m1.r, m1Prev.r);
   if (m1d != null && m1d !== 0) {
-    moved.push(`Rétention M1 glissante : ${pctLabel(m1.r)} (${nLabel(m1.r)}), ${m1d > 0 ? "+" : ""}${m1d} pts vs la semaine d'avant.`);
+    moved.push(
+      `Rétention M1 glissante : ${pctLabel(m1.r)} (${nLabel(m1.r)}), ${m1d > 0 ? "+" : ""}${m1d} pts vs la semaine d'avant.`,
+    );
   }
   const ad = deltaPts(actCur.activated, actPrev.activated);
   if (ad != null && Math.abs(ad) >= 5) {
-    moved.push(`Activation à 7 j : ${pctLabel(actCur.activated)} (${nLabel(actCur.activated)}), ${ad > 0 ? "+" : ""}${ad} pts vs les 4 semaines d'avant.`);
+    moved.push(
+      `Activation à 7 j : ${pctLabel(actCur.activated)} (${nLabel(actCur.activated)}), ${ad > 0 ? "+" : ""}${ad} pts vs les 4 semaines d'avant.`,
+    );
   }
-  if (appStore.downloads && appStorePrev.downloads && Math.abs(appStore.downloads - appStorePrev.downloads) / appStorePrev.downloads >= 0.3) {
-    moved.push(`Téléchargements App Store : ${appStore.downloads} sur 4 sem., contre ${appStorePrev.downloads} avant.`);
+  if (
+    appStore.downloads &&
+    appStorePrev.downloads &&
+    Math.abs(appStore.downloads - appStorePrev.downloads) / appStorePrev.downloads >= 0.3
+  ) {
+    moved.push(
+      `Téléchargements App Store : ${appStore.downloads} sur 4 sem., contre ${appStorePrev.downloads} avant.`,
+    );
   }
-  const best = byMethod.filter((m) => m.method !== "none" && m.r.total >= 5).sort((a, b) => (b.r.pct ?? 0) - (a.r.pct ?? 0));
+  const best = byMethod
+    .filter((m) => m.method !== "none" && m.r.total >= 5)
+    .sort((a, b) => (b.r.pct ?? 0) - (a.r.pct ?? 0));
   if (best.length >= 2 && moved.length < 3) {
-    moved.push(`Première recette par ${best[0].label} : ${nLabel(best[0].r)} activées ; par ${best[best.length - 1].label} : ${nLabel(best[best.length - 1].r)}.`);
+    moved.push(
+      `Première recette par ${best[0].label} : ${nLabel(best[0].r)} activées ; par ${best[best.length - 1].label} : ${nLabel(best[best.length - 1].r)}.`,
+    );
   }
   if (activeNow !== active4wAgo && moved.length < 3) {
-    moved.push(`Cuisiniers actifs 28 j : ${activeNow}, ${activeNow > active4wAgo ? "+" : ""}${activeNow - active4wAgo} vs 4 semaines plus tôt.`);
+    moved.push(
+      `Cuisiniers actifs 28 j : ${activeNow}, ${activeNow > active4wAgo ? "+" : ""}${activeNow - active4wAgo} vs 4 semaines plus tôt.`,
+    );
   }
 
   const overview = {
@@ -446,24 +492,59 @@ export function assembleV3(raw: RawV3) {
   const acquisition = {
     appStore: {
       ...appStore,
-      firstOpenIos: num(demoIos.trials),
+      firstOpenIos: dayList(28, today).reduce((a, d) => a + iosOpens(d), 0),
       firstCarnetIos: np28.ios,
       lastDay: appStoreLastDay,
       sources: appStoreSources,
       weekly: downloadsWeekly,
       funnelWeekly: storeWeekly,
       pageToInstall: ratio(appStore.downloads, appStore.pageViews),
-      impressionToInstall: appStore.impressions ? +((appStore.downloads / appStore.impressions) * 100).toFixed(1) : null,
+      impressionToInstall: appStore.impressions
+        ? +((appStore.downloads / appStore.impressions) * 100).toFixed(1)
+        : null,
     },
-    web: { trials: num(demoWeb.trials), conversions: num(demoWeb.conversions), firstCarnetWeb: np28.web },
+    web: {
+      trials: num(demoWeb.trials),
+      conversions: num(demoWeb.conversions),
+      firstCarnetWeb: np28.web,
+    },
     android: { trials: num(demoAndroid.trials), conversions: num(demoAndroid.conversions) },
-    demo: { ios: ratio(num(demoIos.conversions), num(demoIos.trials)), web: ratio(num(demoWeb.conversions), num(demoWeb.trials)), android: ratio(num(demoAndroid.conversions), num(demoAndroid.trials)) },
+    demo: {
+      ios: ratio(num(demoIos.conversions), num(demoIos.trials)),
+      web: ratio(num(demoWeb.conversions), num(demoWeb.trials)),
+      android: ratio(num(demoAndroid.conversions), num(demoAndroid.trials)),
+    },
     invites: np28.invite,
     weekly: npWeekly,
-    listingMarker: PRODUCT_EVENTS.appStoreListingV2 >= starts12[0] ? npWeekly.findIndex((w) => w.weekStart <= PRODUCT_EVENTS.appStoreListingV2 && addDays(w.weekStart, 6) >= PRODUCT_EVENTS.appStoreListingV2) : -1,
+    listingMarker:
+      PRODUCT_EVENTS.appStoreListingV2 >= starts12[0]
+        ? npWeekly.findIndex(
+            (w) =>
+              w.weekStart <= PRODUCT_EVENTS.appStoreListingV2 &&
+              addDays(w.weekStart, 6) >= PRODUCT_EVENTS.appStoreListingV2,
+          )
+        : -1,
   };
 
-  const activation = { funnel: actFunnelSinceJune, byMethod, weekly: actWeekly, current: actCur };
+  // A/B onboarding (#25) : chaîne par bras depuis le début du test.
+  const abSince = PRODUCT_EVENTS.abOnboardingStart;
+  const abAssigned = raw.abOnboarding
+    .filter((r) => r.day.slice(0, 10) >= abSince)
+    .reduce((acc, r) => ({ a: acc.a + num(r.assigned_a), b: acc.b + num(r.assigned_b) }), {
+      a: 0,
+      b: 0,
+    });
+  const ab = {
+    since: abSince,
+    arms: abOnboardingFunnel(people, abAssigned, abSince, today),
+  };
+  const activation = {
+    funnel: actFunnelSinceJune,
+    byMethod,
+    weekly: actWeekly,
+    current: actCur,
+    ab,
+  };
 
   const retention = {
     rolling: m1,
@@ -474,7 +555,8 @@ export function assembleV3(raw: RawV3) {
     cakeKeys,
     cakeLabels: cakeKeys.map((k, i) => (i === 0 && olderKey ? `≤ ${monthName(k)}` : monthName(k))),
     leaving: eng.leaving.length,
-    leavingWithEmailAndRecipes: eng.leaving.filter((p) => p.has_email && p.recipes_total >= 5).length,
+    leavingWithEmailAndRecipes: eng.leaving.filter((p) => p.has_email && p.recipes_total >= 5)
+      .length,
     activeWithoutEmail: eng.activeWithoutEmail,
   };
 
@@ -484,27 +566,77 @@ export function assembleV3(raw: RawV3) {
     methodMix,
     methodKeys: METHODS,
     methodLabels: METHODS.map((k) => METHOD_LABELS[k] ?? k),
-    sharing: { links: num(raw.sharing.links), estimate: raw.sharing.links_dated_estimate, copies: num(raw.sharing.copies), arrivals: newPeople(people, { from: addDays(today, -83), to: today }).invite },
+    sharing: {
+      links: num(raw.sharing.links),
+      estimate: raw.sharing.links_dated_estimate,
+      copies: num(raw.sharing.copies),
+      arrivals: newPeople(people, { from: addDays(today, -83), to: today }).invite,
+    },
     carnets: raw.carnets.length,
     sharedCarnets,
     carnetsWithGuests: raw.carnets.filter((c) => c.guests > 0).length,
   };
 
   const ops = {
-    cost: { total: num(h.ai_cost_usd), demo: num(h.ai_cost_demo_usd), billed: raw.billedUsd, perRecipe: num(h.recipes_created) ? num(h.ai_cost_usd) / num(h.recipes_created) : 0, aiCalls: num(h.ai_calls) },
-    pipeline: { created: num(h.recipes_created), enriched: num(h.recipes_enriched), failed: num(h.recipes_failed), stale: num(h.recipes_pending_stale), rate: Math.round(enrichedRate * 100) },
-    crons: { rollup: h.last_rollup, sync: h.last_app_store_sync, rollupLabel: fmtTs(h.last_rollup), syncLabel: fmtTs(h.last_app_store_sync) },
-    demo: { seedFr: num(h.demo_seed_fr), seedEn: num(h.demo_seed_en), trials: num(h.demo_trials), frozen: num(h.demo_frozen_hits), aiCalls: num(h.demo_ai_calls), recipes: num(h.demo_recipes) },
-    account: { withEmail: eng.withEmail, total: people.length, newWithEmail: people.filter((p) => inWindow(p.created_at.slice(0, 10), cur4) && p.has_email).length, newTotal: np.total, recoverySent: num(h.recovery_sent), recoveryUsed: num(h.recovery_used), merges: num(h.merge_used), burned: num(h.tokens_burned) },
+    cost: {
+      total: num(h.ai_cost_usd),
+      demo: num(h.ai_cost_demo_usd),
+      billed: raw.billedUsd,
+      perRecipe: num(h.recipes_created) ? num(h.ai_cost_usd) / num(h.recipes_created) : 0,
+      aiCalls: num(h.ai_calls),
+    },
+    pipeline: {
+      created: num(h.recipes_created),
+      enriched: num(h.recipes_enriched),
+      failed: num(h.recipes_failed),
+      stale: num(h.recipes_pending_stale),
+      rate: Math.round(enrichedRate * 100),
+    },
+    crons: {
+      rollup: h.last_rollup,
+      sync: h.last_app_store_sync,
+      rollupLabel: fmtTs(h.last_rollup),
+      syncLabel: fmtTs(h.last_app_store_sync),
+    },
+    demo: {
+      seedFr: num(h.demo_seed_fr),
+      seedEn: num(h.demo_seed_en),
+      trials: num(h.demo_trials),
+      frozen: num(h.demo_frozen_hits),
+      aiCalls: num(h.demo_ai_calls),
+      recipes: num(h.demo_recipes),
+    },
+    account: {
+      withEmail: eng.withEmail,
+      total: people.length,
+      newWithEmail: people.filter((p) => inWindow(p.created_at.slice(0, 10), cur4) && p.has_email)
+        .length,
+      newTotal: np.total,
+      recoverySent: num(h.recovery_sent),
+      recoveryUsed: num(h.recovery_used),
+      merges: num(h.merge_used),
+      burned: num(h.tokens_burned),
+    },
   };
 
-  return { overview, acquisition, activation, retention, engage, ops, windows: { cur4, prev4, endSunday, today } };
+  return {
+    overview,
+    acquisition,
+    activation,
+    retention,
+    engage,
+    ops,
+    windows: { cur4, prev4, endSunday, today },
+  };
 }
 
 export type DashboardV3 = ReturnType<typeof assembleV3>;
 export type Overview = DashboardV3["overview"];
 
 export function monthName(isoMonth: string): string {
-  const s = new Date(isoMonth.slice(0, 7) + "-01T00:00:00Z").toLocaleDateString("fr-FR", { month: "long", timeZone: "UTC" });
+  const s = new Date(isoMonth.slice(0, 7) + "-01T00:00:00Z").toLocaleDateString("fr-FR", {
+    month: "long",
+    timeZone: "UTC",
+  });
   return s.charAt(0).toUpperCase() + s.slice(1);
 }

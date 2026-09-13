@@ -60,26 +60,49 @@ describe("parseAcceptLanguage", () => {
 describe("resolveLocale", () => {
   it("tout éteint → fr quoi qu'il arrive (rollback : retirer I18N_EN_ENABLED)", () => {
     expect(
-      resolveLocale({ acceptLanguage: "en-US", previewCookie: "en", enEnabled: false, previewEnabled: false }),
+      resolveLocale({
+        acceptLanguage: "en-US",
+        previewCookie: "en",
+        enEnabled: false,
+        previewEnabled: false,
+      }),
     ).toBe("fr");
   });
   it("EN activé → suit Accept-Language", () => {
-    expect(resolveLocale({ acceptLanguage: "en-US", enEnabled: true, previewEnabled: false })).toBe("en");
-    expect(resolveLocale({ acceptLanguage: "fr-FR", enEnabled: true, previewEnabled: false })).toBe("fr");
+    expect(resolveLocale({ acceptLanguage: "en-US", enEnabled: true, previewEnabled: false })).toBe(
+      "en",
+    );
+    expect(resolveLocale({ acceptLanguage: "fr-FR", enEnabled: true, previewEnabled: false })).toBe(
+      "fr",
+    );
   });
   it("cookie de prévisualisation honoré seulement si le flag est posé", () => {
-    expect(resolveLocale({ previewCookie: "en", enEnabled: false, previewEnabled: true })).toBe("en");
-    expect(resolveLocale({ previewCookie: "en", enEnabled: false, previewEnabled: false })).toBe("fr");
+    expect(resolveLocale({ previewCookie: "en", enEnabled: false, previewEnabled: true })).toBe(
+      "en",
+    );
+    expect(resolveLocale({ previewCookie: "en", enEnabled: false, previewEnabled: false })).toBe(
+      "fr",
+    );
   });
   it("cookie de prévisualisation prime sur Accept-Language", () => {
     expect(
-      resolveLocale({ previewCookie: "fr", acceptLanguage: "en-US", enEnabled: true, previewEnabled: true }),
+      resolveLocale({
+        previewCookie: "fr",
+        acceptLanguage: "en-US",
+        enEnabled: true,
+        previewEnabled: true,
+      }),
     ).toBe("fr");
   });
   it("cookie invalide ignoré", () => {
-    expect(resolveLocale({ previewCookie: "de", acceptLanguage: "en", enEnabled: true, previewEnabled: true })).toBe(
-      "en",
-    );
+    expect(
+      resolveLocale({
+        previewCookie: "de",
+        acceptLanguage: "en",
+        enEnabled: true,
+        previewEnabled: true,
+      }),
+    ).toBe("en");
   });
 });
 
@@ -89,12 +112,18 @@ describe("readI18nFlags", () => {
 
   it("« 1 » et « true » (casse, espaces) allument les deux flags", () => {
     for (const value of ["1", "true", "TRUE ", " True"]) {
-      expect(flags(value), `valeur ${JSON.stringify(value)}`).toEqual({ enEnabled: true, previewEnabled: true });
+      expect(flags(value), `valeur ${JSON.stringify(value)}`).toEqual({
+        enEnabled: true,
+        previewEnabled: true,
+      });
     }
   });
   it("« 0 », vide, absent → éteint", () => {
     for (const value of ["0", "", undefined, "false", "yes"]) {
-      expect(flags(value), `valeur ${JSON.stringify(value)}`).toEqual({ enEnabled: false, previewEnabled: false });
+      expect(flags(value), `valeur ${JSON.stringify(value)}`).toEqual({
+        enEnabled: false,
+        previewEnabled: false,
+      });
     }
   });
   it("les deux flags sont indépendants", () => {

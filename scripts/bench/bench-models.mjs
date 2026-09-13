@@ -126,8 +126,16 @@ const IMPORT_JSON_SCHEMA = {
       servings: { type: ["integer", "null"] },
     },
     required: [
-      "title", "ingredients", "steps", "notes", "prepTime",
-      "cookTime", "cost", "complexity", "seasons", "servings",
+      "title",
+      "ingredients",
+      "steps",
+      "notes",
+      "prepTime",
+      "cookTime",
+      "cost",
+      "complexity",
+      "seasons",
+      "servings",
     ],
     additionalProperties: false,
   },
@@ -177,7 +185,16 @@ const ENRICH_JSON_SCHEMA = {
       servings: { type: ["integer", "null"] },
       imagePrompt: { type: "string" },
     },
-    required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "servings", "imagePrompt"],
+    required: [
+      "tags",
+      "seasons",
+      "prepTime",
+      "cookTime",
+      "cost",
+      "complexity",
+      "servings",
+      "imagePrompt",
+    ],
     additionalProperties: false,
   },
 };
@@ -336,9 +353,13 @@ async function callGeminiChat(model, messages, jsonSchema, label) {
         parseError = String(e);
       }
       return {
-        label, model, effort: null, ms,
+        label,
+        model,
+        effort: null,
+        ms,
         ...geminiUsage(model, json.usageMetadata),
-        output: parsed, parseError,
+        output: parsed,
+        parseError,
         finishReason: json.candidates?.[0]?.finishReason ?? null,
       };
     }
@@ -356,26 +377,39 @@ async function callGeminiChat(model, messages, jsonSchema, label) {
 async function callGeminiTranscribe(model, filePath, durationSec) {
   const buf = await readFile(filePath);
   const body = {
-    contents: [{
-      role: "user",
-      parts: [
-        // Même contrat que l'API transcription d'OpenAI : texte brut, pas de
-        // traduction, pas de commentaire — sinon la comparaison de WER est faussée.
-        { text: "Transcris intégralement et fidèlement cet enregistrement audio. Conserve la langue parlée. Ne traduis pas, n'ajoute aucun commentaire, ne corrige pas les hésitations : renvoie uniquement le texte transcrit." },
-        { inlineData: { mimeType: "audio/mp4", data: buf.toString("base64") } },
-      ],
-    }],
+    contents: [
+      {
+        role: "user",
+        parts: [
+          // Même contrat que l'API transcription d'OpenAI : texte brut, pas de
+          // traduction, pas de commentaire — sinon la comparaison de WER est faussée.
+          {
+            text: "Transcris intégralement et fidèlement cet enregistrement audio. Conserve la langue parlée. Ne traduis pas, n'ajoute aucun commentaire, ne corrige pas les hésitations : renvoie uniquement le texte transcrit.",
+          },
+          { inlineData: { mimeType: "audio/mp4", data: buf.toString("base64") } },
+        ],
+      },
+    ],
   };
   for (let attempt = 0; attempt < 3; attempt++) {
     const { ok, status, json, ms } = await geminiGenerate(model, body);
     if (ok) {
       // gemini-3.5-transcribe ne renvoie pas `parts[].text` mais
       // `parts[].audioTranscription.text` — on accepte les deux formes.
-      const text = (json.candidates?.[0]?.content?.parts
-        ?.map((p) => p.audioTranscription?.text ?? p.text ?? "")
-        .join("") ?? "").trim();
+      const text = (
+        json.candidates?.[0]?.content?.parts
+          ?.map((p) => p.audioTranscription?.text ?? p.text ?? "")
+          .join("") ?? ""
+      ).trim();
       const u = geminiUsage(model, json.usageMetadata);
-      return { model, ms, text, costUsd: u.costUsd, inputTokens: u.inputTokens, outputTokens: u.outputTokens };
+      return {
+        model,
+        ms,
+        text,
+        costUsd: u.costUsd,
+        inputTokens: u.inputTokens,
+        outputTokens: u.outputTokens,
+      };
     }
     if (status === 429 || status >= 500) {
       await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
@@ -393,14 +427,19 @@ async function callOpenAiChat(model, messages, jsonSchema, label) {
     messages,
   };
   const efforts = isReasoningModel(model)
-    ? effortByModel.has(model) ? [effortByModel.get(model)] : EFFORT_CANDIDATES
+    ? effortByModel.has(model)
+      ? [effortByModel.get(model)]
+      : EFFORT_CANDIDATES
     : [undefined];
 
   let lastErr = null;
   for (const effort of efforts) {
     const body = effort ? { ...base, reasoning_effort: effort } : base;
     for (let attempt = 0; attempt < 2; attempt++) {
-      const { ok, status, json, ms } = await postJson("https://api.openai.com/v1/chat/completions", body);
+      const { ok, status, json, ms } = await postJson(
+        "https://api.openai.com/v1/chat/completions",
+        body,
+      );
       if (ok) {
         if (effort) effortByModel.set(model, effort);
         const usage = json.usage ?? {};
@@ -416,10 +455,16 @@ async function callOpenAiChat(model, messages, jsonSchema, label) {
           parseError = String(e);
         }
         return {
-          label, model, effort: effort ?? null, ms,
-          inputTokens: inTok, outputTokens: outTok, reasoningTokens: reasoningTok,
+          label,
+          model,
+          effort: effort ?? null,
+          ms,
+          inputTokens: inTok,
+          outputTokens: outTok,
+          reasoningTokens: reasoningTok,
           costUsd: (inTok * p.input + outTok * p.output) / 1e6,
-          output: parsed, parseError,
+          output: parsed,
+          parseError,
         };
       }
       const message = json?.error?.message ?? `HTTP ${status}`;
@@ -463,7 +508,9 @@ async function callOpenAiTranscribe(model, filePath, durationSec) {
     if (res.ok) {
       const text = (await res.text()).trim();
       return {
-        model, ms: Date.now() - started, text,
+        model,
+        ms: Date.now() - started,
+        text,
         costUsd: (durationSec / 60) * (TRANSCRIBE_PRICING_PER_MIN[model] ?? 0),
       };
     }
@@ -497,15 +544,18 @@ function pLimit(n) {
     if (active >= n || queue.length === 0) return;
     active++;
     const { fn, resolve, reject } = queue.shift();
-    fn().then(resolve, reject).finally(() => {
-      active--;
+    fn()
+      .then(resolve, reject)
+      .finally(() => {
+        active--;
+        next();
+      });
+  };
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
       next();
     });
-  };
-  return (fn) => new Promise((resolve, reject) => {
-    queue.push({ fn, resolve, reject });
-    next();
-  });
 }
 const limit = pLimit(4);
 
@@ -518,7 +568,10 @@ async function benchText() {
     cases.push({ slug, userContent: `Extrais la recette depuis ce contenu :\n\n${text}` });
   }
   const insta = await readFile(path.join(FIX, "text", "insta-caption.txt"), "utf8");
-  cases.push({ slug: "insta-caption", userContent: `Extrais la recette depuis ce contenu :\n\n${insta}` });
+  cases.push({
+    slug: "insta-caption",
+    userContent: `Extrais la recette depuis ce contenu :\n\n${insta}`,
+  });
   for (const slug of ["voice-fr-hesitations", "voice-pt-caldo"]) {
     const t = await readFile(path.join(FIX, "text", `${slug}.txt`), "utf8");
     cases.push({
@@ -530,14 +583,23 @@ async function benchText() {
   const runs = [];
   for (const c of cases) {
     for (const model of TEXT_MODELS) {
-      runs.push(limit(async () => {
-        const r = await callChat(model, [
-          { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-          { role: "user", content: c.userContent },
-        ], IMPORT_JSON_SCHEMA, c.slug);
-        console.log(`text ${c.slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd?.toFixed(5)}`}`);
-        return r;
-      }));
+      runs.push(
+        limit(async () => {
+          const r = await callChat(
+            model,
+            [
+              { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+              { role: "user", content: c.userContent },
+            ],
+            IMPORT_JSON_SCHEMA,
+            c.slug,
+          );
+          console.log(
+            `text ${c.slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd?.toFixed(5)}`}`,
+          );
+          return r;
+        }),
+      );
     }
   }
   return Promise.all(runs);
@@ -555,17 +617,29 @@ async function benchOcr() {
       });
     }
     for (const model of OCR_MODELS) {
-      runs.push(limit(async () => {
-        const r = await callChat(model, [
-          { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: [{ type: "text", text: "Extrais la recette de cette/ces image(s) :" }, ...images],
-          },
-        ], IMPORT_JSON_SCHEMA, slug);
-        console.log(`ocr ${slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd?.toFixed(5)}`}`);
-        return r;
-      }));
+      runs.push(
+        limit(async () => {
+          const r = await callChat(
+            model,
+            [
+              { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+              {
+                role: "user",
+                content: [
+                  { type: "text", text: "Extrais la recette de cette/ces image(s) :" },
+                  ...images,
+                ],
+              },
+            ],
+            IMPORT_JSON_SCHEMA,
+            slug,
+          );
+          console.log(
+            `ocr ${slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd?.toFixed(5)}`}`,
+          );
+          return r;
+        }),
+      );
     }
   }
   return Promise.all(runs);
@@ -578,11 +652,15 @@ async function benchAudio() {
     const duration = audioDurationSec(file);
     const reference = await readFile(path.join(FIX, "text", `${slug}.txt`), "utf8");
     for (const model of TRANSCRIBE_MODELS) {
-      runs.push(limit(async () => {
-        const r = await callTranscribe(model, file, duration);
-        console.log(`audio ${slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, $${r.costUsd?.toFixed(5)}`}`);
-        return { label: slug, durationSec: duration, reference, ...r };
-      }));
+      runs.push(
+        limit(async () => {
+          const r = await callTranscribe(model, file, duration);
+          console.log(
+            `audio ${slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, $${r.costUsd?.toFixed(5)}`}`,
+          );
+          return { label: slug, durationSec: duration, reference, ...r };
+        }),
+      );
     }
   }
   return Promise.all(runs);
@@ -593,21 +671,32 @@ async function benchEnrich() {
   for (const recipe of ENRICH_RECIPES) {
     const userContent = `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients}\nPréparation:\n${recipe.steps}`;
     for (const model of TEXT_MODELS) {
-      runs.push(limit(async () => {
-        const r = await callChat(model, [
-          { role: "system", content: ENRICH_SYSTEM_PROMPT },
-          { role: "user", content: userContent },
-        ], ENRICH_JSON_SCHEMA, recipe.slug);
-        console.log(`enrich ${recipe.slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd?.toFixed(5)}`}`);
-        return r;
-      }));
+      runs.push(
+        limit(async () => {
+          const r = await callChat(
+            model,
+            [
+              { role: "system", content: ENRICH_SYSTEM_PROMPT },
+              { role: "user", content: userContent },
+            ],
+            ENRICH_JSON_SCHEMA,
+            recipe.slug,
+          );
+          console.log(
+            `enrich ${recipe.slug} × ${model} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd?.toFixed(5)}`}`,
+          );
+          return r;
+        }),
+      );
     }
   }
   return Promise.all(runs);
 }
 
 // ---------- Main ----------
-const only = process.argv.includes("--only") ? process.argv[process.argv.indexOf("--only") + 1] : null;
+const only = process.argv.includes("--only")
+  ? process.argv[process.argv.indexOf("--only") + 1]
+  : null;
 await mkdir(OUT, { recursive: true });
 
 const results = {};
@@ -631,7 +720,9 @@ for (const [task, runs] of Object.entries(results)) {
   }
   console.log(`\n=== ${task}`);
   for (const [m, s] of Object.entries(byModel)) {
-    console.log(`  ${m}: ${s.calls} appels, $${s.usd.toFixed(4)}, ${(s.ms / s.calls / 1000).toFixed(1)}s/appel en moyenne`);
+    console.log(
+      `  ${m}: ${s.calls} appels, $${s.usd.toFixed(4)}, ${(s.ms / s.calls / 1000).toFixed(1)}s/appel en moyenne`,
+    );
   }
 }
 console.log(`\nRésultats bruts : ${outFile}`);

@@ -6,9 +6,9 @@ import { Search } from "lucide-react";
 import useSWR from "swr";
 import { useT } from "@/lib/i18n/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import RecipeCarousel from "./RecipeCarousel";
-import CarnetIllustration from "./CarnetIllustration";
-import LoadErrorState from "./LoadErrorState";
+import RecipeCarousel from "@/components/recipes/card/RecipeCarousel";
+import EmptyLibraryState from "@/components/recipes/EmptyLibraryState";
+import LoadErrorState from "@/components/recipes/LoadErrorState";
 import { prepareForDisplay } from "@/lib/carousels/display";
 import { swrFetcher } from "@/lib/swr";
 import type { CarouselSection } from "@/lib/carousels/types";
@@ -20,22 +20,13 @@ const ENRICHMENT_POLL_INTERVAL = 4000;
 
 function hasPendingEnrichment(sections?: CarouselSection[]): boolean {
   return !!sections?.some((section) =>
-    section.recipes.some(
-      (r) => r.enrichmentStatus === "pending" || r.imageStatus === "pending",
-    ),
+    section.recipes.some((r) => r.enrichmentStatus === "pending" || r.imageStatus === "pending"),
   );
 }
 
 function CarouselCardSkeleton() {
   return (
-    <div
-      className="w-[62vw] flex-none overflow-hidden rounded-xl border border-border/40 lg:w-65"
-      style={{
-        background: "var(--card-gradient)",
-        boxShadow: "var(--card-shadow-sm)",
-        borderBottom: "1px solid var(--card-border-accent)",
-      }}
-    >
+    <div className="card-surface w-[62vw] flex-none lg:w-65">
       <Skeleton className="aspect-3/2 w-full rounded-none" />
       <div className="px-3 py-2.5">
         <Skeleton className="h-4 w-4/5" />
@@ -60,23 +51,23 @@ function CarouselSkeleton() {
 export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) {
   const t = useT();
   const [pollInterval, setPollInterval] = useState(0);
-  const { data: sections, isLoading, error, mutate } = useSWR<CarouselSection[]>(
-    "/api/carousels",
-    swrFetcher,
-    {
-      revalidateOnMount: true,
-      // A plain number (not the function form): SWR re-arms its polling timer
-      // whenever this value flips 0 ↔ 4000, which is exactly when a pending
-      // recipe appears in / disappears from the data.
-      refreshInterval: pollInterval,
-      // Must sit below refreshInterval, or the global 10s dedupingInterval
-      // (SWRProvider) swallows 2 polls out of 3 and the image takes ~12s
-      // instead of ~4s to show up.
-      dedupingInterval: 3000,
-      onSuccess: (data) =>
-        setPollInterval(hasPendingEnrichment(data) ? ENRICHMENT_POLL_INTERVAL : 0),
-    },
-  );
+  const {
+    data: sections,
+    isLoading,
+    error,
+    mutate,
+  } = useSWR<CarouselSection[]>("/api/carousels", swrFetcher, {
+    revalidateOnMount: true,
+    // A plain number (not the function form): SWR re-arms its polling timer
+    // whenever this value flips 0 ↔ 4000, which is exactly when a pending
+    // recipe appears in / disappears from the data.
+    refreshInterval: pollInterval,
+    // Must sit below refreshInterval, or the global 10s dedupingInterval
+    // (SWRProvider) swallows 2 polls out of 3 and the image takes ~12s
+    // instead of ~4s to show up.
+    dedupingInterval: 3000,
+    onSuccess: (data) => setPollInterval(hasPendingEnrichment(data) ? ENRICHMENT_POLL_INTERVAL : 0),
+  });
 
   const hasRecipes = sections && sections.length > 0;
 
@@ -120,36 +111,7 @@ export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) 
         // library — with cached data, the stale sections render below instead.
         <LoadErrorState onRetry={() => mutate()} />
       ) : !hasRecipes ? (
-        <div className="mx-auto mt-16 max-w-xs px-4 text-center">
-          <div className="mb-5 flex justify-center">
-            <CarnetIllustration size={72} accent="var(--accent)" />
-          </div>
-          <p
-            className="text-foreground"
-            style={{
-              fontFamily: "var(--font-fraunces)",
-              fontVariationSettings: '"opsz" 144',
-              fontStyle: "italic",
-              fontWeight: 500,
-              fontSize: 22,
-              lineHeight: 1.15,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {t.empty.libraryTitle}
-          </p>
-          <p className="mt-2 text-muted-foreground">{t.empty.libraryBody}</p>
-          {/* Pas de CTA de création pour un invité (lecture seule, Lot 3). */}
-          {!isGuest && (
-            <Link
-              href="/recipes/new"
-              className="mt-6 inline-flex min-h-11 items-center rounded-lg px-6 text-sm font-medium text-white transition-opacity hover:opacity-90"
-              style={{ background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" }}
-            >
-              {t.actions.addRecipe}
-            </Link>
-          )}
-        </div>
+        <EmptyLibraryState isGuest={isGuest} />
       ) : (
         <div className="flex flex-col gap-6">
           {orderedSections.map(({ key, title, recipes }) => (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CocotteLoader } from "./CocotteLoader";
+import { CocotteLoader } from "@/components/recipes/import/CocotteLoader";
 import { useT } from "@/lib/i18n/client";
 
 // Full-screen loading state shown while any recipe import is in flight (link,
@@ -31,10 +31,7 @@ export default function ImportLoading() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(
-      () => setStep((p) => (p + 1) % order.length),
-      PHRASE_INTERVAL_MS,
-    );
+    const id = setInterval(() => setStep((p) => (p + 1) % order.length), PHRASE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [order.length]);
 

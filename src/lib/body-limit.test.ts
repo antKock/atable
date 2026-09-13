@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { t as fr } from "@/lib/i18n/fr";
+import { frFull as fr } from "@/lib/i18n/full";
 import { declaredBodyLength, rejectOversizedBody } from "./body-limit";
 
 // getT lit Accept-Language via next/headers : hors requête Next on le remplace

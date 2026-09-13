@@ -26,8 +26,8 @@
   (`Curious Fox`). L'alias stocké à la création d'un owner prend la langue du
   créateur (c'est un pseudo-nom, identique pour tous) ; le repli d'affichage
   prend la langue du lecteur.
-- **Catalogue de carrousels** : `buildCarouselCatalog(t)` ; `CAROUSEL_CATALOG`
-  (FR figé) ne sert plus qu'au script `spec9-compare-carousels.ts`.
+- **Catalogue de carrousels** : `buildCarouselCatalog(t)` (le `CAROUSEL_CATALOG` FR figé
+  et le script `spec9-compare-carousels.ts` ont été retirés — revue 2026-09-12, lot 4).
 - `getLocale()` retombe sur `fr` hors portée de requête (handlers appelés
   directement en vitest) — aucun mock nécessaire dans les tests de routes.
 

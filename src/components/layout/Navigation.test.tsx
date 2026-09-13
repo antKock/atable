@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
-import Navigation from "./Navigation";
+import Navigation from "@/components/layout/Navigation";
 
 afterEach(() => cleanup());
 
@@ -19,9 +19,7 @@ describe("Navigation", () => {
 
   it("renders links pointing to correct hrefs", () => {
     const { container } = render(<Navigation />);
-    const hrefs = Array.from(container.querySelectorAll("a")).map((a) =>
-      a.getAttribute("href")
-    );
+    const hrefs = Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href"));
     expect(hrefs).toContain("/home");
     expect(hrefs).toContain("/library");
     expect(hrefs).toContain("/recipes/new");

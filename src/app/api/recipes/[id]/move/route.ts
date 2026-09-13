@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
+import type { TablesUpdate } from "@/lib/db/types";
 import { createServerClient } from "@/lib/supabase/server";
-import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
-import { householdIds } from "@/lib/auth/owner-context";
+import { withOwnerAuth, requireMember } from "@/lib/api/with-owner-auth";
+import { loadOwnedRecipe } from "@/lib/db/recipes";
+import { revalidateRecipePaths } from "@/lib/api/revalidate";
 import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
 import { getT } from "@/lib/i18n/server";
 
@@ -52,25 +53,17 @@ export const PATCH = withOwnerAuth(
 
     const supabase = createServerClient();
 
-    // La recette doit exister dans un foyer de l'owner ; on lit son foyer source.
-    const { data: recipe } = await supabase
-      .from("recipes")
-      .select("id, household_id, photo_url, is_seed")
-      .eq("id", id)
-      .in("household_id", householdIds(owner))
-      .single();
+    // Recette d'un foyer de l'owner + gardes d'écriture sur la SOURCE (membre,
+    // seed démo) — ordre commun 404 → membre → démo (loadOwnedRecipe).
+    const loaded = await loadOwnedRecipe(supabase, id, owner, {
+      columns: ["photo_url"],
+      write: true,
+    });
+    if (loaded instanceof NextResponse) return loaded;
+    const { recipe } = loaded;
+    const sourceHid = recipe.household_id;
 
-    if (!recipe) {
-      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
-    }
-    const sourceHid = recipe.household_id as string;
-    const frozen = await assertNotDemoSeedMutation(owner, { household_id: sourceHid, is_seed: recipe.is_seed });
-    if (frozen) return frozen;
-
-    // MEMBRE sur la source (déplacer = écriture) ET sur la destination (on
-    // n'écrit jamais dans un foyer invité). requireMember couvre les deux.
-    const sourceForbidden = await requireMember(owner, sourceHid);
-    if (sourceForbidden) return sourceForbidden;
+    // MEMBRE aussi sur la destination (on n'écrit jamais dans un foyer invité).
     const destForbidden = await requireMember(owner, destHid);
     if (destForbidden) return destForbidden;
 
@@ -80,17 +73,14 @@ export const PATCH = withOwnerAuth(
     }
 
     // 1) Copier l'image foyer-scopée vers le chemin du foyer cible (best-effort).
-    const relocated = await relocateFoyerScopedImage(recipe.photo_url,
-      sourceHid,
-      destHid,
-    );
+    const relocated = await relocateFoyerScopedImage(recipe.photo_url, sourceHid, destHid);
 
     // 2) Mettre à jour la recette (foyer + éventuelle nouvelle URL de photo).
     // last_moved_at : trace du déplacement pour le dashboard (032) — seul le
     // dernier déplacement est conservé, suffisant pour un compteur macro. Même
     // timestamp que updated_at : un déplacement EST la dernière modification.
     const movedAt = new Date().toISOString();
-    const update: Record<string, unknown> = {
+    const update: TablesUpdate<"recipes"> = {
       household_id: destHid,
       updated_at: movedAt,
       last_moved_at: movedAt,
@@ -111,9 +101,7 @@ export const PATCH = withOwnerAuth(
       await getPhotoStore().remove([relocated.sourcePath]);
     }
 
-    revalidatePath("/home");
-    revalidatePath("/library");
-    revalidatePath("/recipes/[id]", "page");
+    revalidateRecipePaths();
 
     return NextResponse.json({ ok: true, householdId: destHid });
   },

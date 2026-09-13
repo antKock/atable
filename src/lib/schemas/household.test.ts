@@ -1,9 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  HouseholdCreateSchema,
-  JoinCodeSchema,
-  RecoveryEmailSchema,
-} from "./household";
+import { HouseholdCreateSchema, JoinCodeSchema, RecoveryEmailSchema } from "./household";
 
 describe("HouseholdCreateSchema", () => {
   it("accepts a normal name", () => {

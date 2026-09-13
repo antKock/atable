@@ -1,29 +1,23 @@
-import Link from 'next/link'
-import { ChevronLeft, Users, Eye } from 'lucide-react'
-import { getT } from '@/lib/i18n/server'
-import CodeDisplay from './CodeDisplay'
-import InviteLinkDisplay from './InviteLinkDisplay'
+import { Users, Eye } from "lucide-react";
+import { getT } from "@/lib/i18n/server";
+import BackButton from "@/components/ui/BackButton";
+import CodeDisplay from "@/components/household/CodeDisplay";
+import InviteLinkDisplay from "@/components/household/InviteLinkDisplay";
 
 type Props = {
-  householdId: string
-  joinCode: string
-  guestJoinCode: string
-}
+  householdId: string;
+  joinCode: string;
+  guestJoinCode: string;
+};
 
 // Écran plein « Inviter » (maquette 2.1, Lot 3). Deux blocs de même grammaire
 // (icône + rôle + description, puis lien + code + copier), un par rôle. La
 // grammaire lien/code réutilise InviteLinkDisplay + CodeDisplay du Lot 1.
 export default async function InviteScreen({ householdId, joinCode, guestJoinCode }: Props) {
-  const t = await getT()
+  const t = await getT();
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
-      <Link
-        href={`/household/${householdId}`}
-        aria-label={t.a11y.backButton}
-        className="mb-2 -ml-2 flex h-11 w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-muted"
-      >
-        <ChevronLeft size={22} strokeWidth={2} aria-hidden="true" />
-      </Link>
+      <BackButton href={`/household/${householdId}`} />
 
       <h1 className="mb-6 text-2xl font-bold text-foreground">{t.household.invite.title}</h1>
 
@@ -63,5 +57,5 @@ export default async function InviteScreen({ householdId, joinCode, guestJoinCod
 
       <p className="text-sm text-muted-foreground">{t.household.invite.note}</p>
     </div>
-  )
+  );
 }

@@ -11,10 +11,7 @@
     "title": "Saumon teriyaki au riz",
     "ingredients": "4 pavés de saumon\n10 cl de sauce soja\n2 cuillères à soupe de miel\n1 gousse d'ail\ngingembre frais\n300 g de riz\ngraines de sésame\n2 oignons nouveaux",
     "steps": "Mélangez la sauce soja, le miel, l'ail et le gingembre râpés.\nFaites mariner le saumon 20 minutes.\nFaites cuire le riz.\nSaisissez le saumon à la poêle 3 minutes par face en arrosant de marinade.\nServez sur le riz, parsemé de sésame et d'oignons nouveaux.",
-    "forbiddenDietTags": [
-      "Végétarien",
-      "Végan"
-    ]
+    "forbiddenDietTags": ["Végétarien", "Végan"]
   },
   {
     "slug": "houmous",
@@ -28,18 +25,13 @@
     "title": "Poulet rôti aux herbes",
     "ingredients": "1 poulet fermier de 1,5 kg\n50 g de beurre\n2 gousses d'ail\n1 citron\nthym\nromarin\n1 kg de pommes de terre\nsel\npoivre",
     "steps": "Préchauffez le four à 200 °C.\nMélangez le beurre mou avec l'ail haché, le thym et le romarin.\nGlissez le beurre aux herbes sous la peau du poulet, salez et poivrez.\nPlacez le citron coupé en deux dans le poulet.\nDisposez les pommes de terre autour et enfournez 1 h 15 en arrosant régulièrement.\nLaissez reposer 10 minutes avant de découper.",
-    "forbiddenDietTags": [
-      "Végétarien",
-      "Végan"
-    ]
+    "forbiddenDietTags": ["Végétarien", "Végan"]
   },
   {
     "slug": "mousse-chocolat",
     "title": "Mousse au chocolat",
     "ingredients": "200 g de chocolat noir\n6 œufs\n1 pincée de sel\n30 g de sucre",
     "steps": "Faites fondre le chocolat au bain-marie.\nSéparez les blancs des jaunes.\nIncorporez les jaunes au chocolat fondu tiède.\nMontez les blancs en neige avec le sel, ajoutez le sucre à la fin.\nIncorporez délicatement les blancs au chocolat.\nRéservez au frais au moins 4 heures.",
-    "forbiddenDietTags": [
-      "Végan"
-    ]
+    "forbiddenDietTags": ["Végan"]
   }
 ]

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { Dictionary } from "@/lib/i18n/types";
-import { t as fr } from "@/lib/i18n/fr";
+import type { FullDictionary } from "@/lib/i18n/types";
+import { frFull as fr } from "@/lib/i18n/full";
 
 // How a recipe was added — the method that pre-filled the create form.
 export const RECIPE_SOURCES = ["manual", "url", "photo", "voice"] as const;
@@ -14,16 +14,12 @@ export const MAX_TEXT_LENGTH = 10_000;
 // Messages de validation localisés (chantier i18n) : les schémas sont des
 // factories prenant le dictionnaire de la requête ; les constantes FR
 // exportées plus bas restent le défaut (tests, imports historiques).
-function fields(t: Dictionary) {
+function fields(t: FullDictionary) {
   const titleField = z
     .string()
     .min(1, t.validation.titleRequired)
     .max(MAX_TITLE_LENGTH, t.validation.titleTooLong);
-  const textField = z
-    .string()
-    .max(MAX_TEXT_LENGTH, t.validation.textTooLong)
-    .nullable()
-    .optional();
+  const textField = z.string().max(MAX_TEXT_LENGTH, t.validation.textTooLong).nullable().optional();
   const servingsField = z
     .number()
     .int()
@@ -34,46 +30,49 @@ function fields(t: Dictionary) {
   return { titleField, textField, servingsField };
 }
 
-export function buildRecipeCreateSchema(t: Dictionary) {
+export function buildRecipeCreateSchema(t: FullDictionary) {
   const { titleField, textField, servingsField } = fields(t);
   return z.object({
-  title: titleField,
-  ingredients: textField,
-  steps: textField,
-  notes: textField,
-  photoUrl: z.string().url().nullable().optional(),
-  prepTime: z.string().nullable().optional(),
-  cookTime: z.string().nullable().optional(),
-  cost: z.string().nullable().optional(),
-  complexity: z.string().nullable().optional(),
-  seasons: z.array(z.string()).optional().default([]),
-  servings: servingsField,
-  tagIds: z.array(z.string()).optional().default([]),
-  source: z.enum(RECIPE_SOURCES).optional().default("manual"),
-  // Set by the create form when the user attached their own photo. The photo is
-  // uploaded *after* creation (the Storage path needs the recipe id), so without
-  // this hint enrichment would generate — and bill — an AI image that the photo
-  // immediately hides. When true, enrichment skips image generation.
-  willUploadPhoto: z.boolean().optional(),
+    title: titleField,
+    ingredients: textField,
+    steps: textField,
+    notes: textField,
+    photoUrl: z.string().url().nullable().optional(),
+    prepTime: z.string().nullable().optional(),
+    cookTime: z.string().nullable().optional(),
+    cost: z.string().nullable().optional(),
+    complexity: z.string().nullable().optional(),
+    seasons: z.array(z.string()).optional().default([]),
+    servings: servingsField,
+    tagIds: z.array(z.string()).optional().default([]),
+    source: z.enum(RECIPE_SOURCES).optional().default("manual"),
+    // Set by the create form when the user attached their own photo. The photo is
+    // uploaded *after* creation (the Storage path needs the recipe id), so without
+    // this hint enrichment would generate — and bill — an AI image that the photo
+    // immediately hides. When true, enrichment skips image generation.
+    willUploadPhoto: z.boolean().optional(),
+    // Foyer de destination (multi-foyer) ; absent → repli sur l'unique foyer
+    // membre, validé côté route (resolveWriteHousehold).
+    householdId: z.string().uuid().optional(),
   });
 }
 
-export function buildRecipeUpdateSchema(t: Dictionary) {
+export function buildRecipeUpdateSchema(t: FullDictionary) {
   const { titleField, textField, servingsField } = fields(t);
   return z.object({
-  title: titleField,
-  ingredients: textField,
-  steps: textField,
-  notes: textField,
-  photoUrl: z.string().url().nullable().optional(),
-  prepTime: z.string().nullable().optional(),
-  cookTime: z.string().nullable().optional(),
-  cost: z.string().nullable().optional(),
-  complexity: z.string().nullable().optional(),
-  seasons: z.array(z.string()).optional(),
-  servings: servingsField,
-  tagIds: z.array(z.string()).optional(),
-  regenerateImage: z.boolean().optional(),
+    title: titleField,
+    ingredients: textField,
+    steps: textField,
+    notes: textField,
+    photoUrl: z.string().url().nullable().optional(),
+    prepTime: z.string().nullable().optional(),
+    cookTime: z.string().nullable().optional(),
+    cost: z.string().nullable().optional(),
+    complexity: z.string().nullable().optional(),
+    seasons: z.array(z.string()).optional(),
+    servings: servingsField,
+    tagIds: z.array(z.string()).optional(),
+    regenerateImage: z.boolean().optional(),
   });
 }
 

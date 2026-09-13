@@ -1,8 +1,15 @@
 import { cache } from "react";
 import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
-import { dictionaries, type Dictionary } from "./index";
-import { DEFAULT_LOCALE, LOCALE_PREVIEW_COOKIE, readI18nFlags, resolveLocale, type Locale } from "./locale";
+import type { FullDictionary } from "./index";
+import { fullDictionaries } from "./full";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_PREVIEW_COOKIE,
+  readI18nFlags,
+  resolveLocale,
+  type Locale,
+} from "./locale";
 
 /**
  * Locale de la requête courante (Server Components, layouts, route handlers).
@@ -33,6 +40,6 @@ export const getLocale = cache(async (): Promise<Locale> => {
   }
 });
 
-export async function getT(): Promise<Dictionary> {
-  return dictionaries[await getLocale()];
+export async function getT(): Promise<FullDictionary> {
+  return fullDictionaries[await getLocale()];
 }

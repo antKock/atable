@@ -1,6 +1,6 @@
 import openai from "@/lib/openai";
 import { AI_MODELS, withEffortFallback } from "@/lib/ai-models";
-import { withRetry } from "@/lib/retry";
+import { withRetry, withDeadline } from "@/lib/retry";
 import { recordAiCost, textCostUsd, type AiCallType } from "@/lib/ai-cost";
 import {
   runApifyActor,
@@ -32,7 +32,12 @@ export type ImportMeta = { householdId: string };
 export class ImportError extends Error {
   constructor(
     message: string,
-    public readonly code: "SITE_BLOCKED" | "SITE_UNREACHABLE" | "EXTRACTION_FAILED" | "TRANSCRIPTION_FAILED",
+    public readonly code:
+      | "SITE_BLOCKED"
+      | "SITE_UNREACHABLE"
+      | "EXTRACTION_FAILED"
+      | "TRANSCRIPTION_FAILED"
+      | "TIMEOUT",
   ) {
     super(message);
     this.name = "ImportError";
@@ -146,10 +151,7 @@ function stripStepMarker(line: string): string {
  * Apply `strip` to every non-empty line, dropping blank lines. "// Nom"
  * section markers pass through untouched — they are structure, not list items.
  */
-function normaliseList(
-  text: string | null,
-  strip: (line: string) => string,
-): string | null {
+function normaliseList(text: string | null, strip: (line: string) => string): string | null {
   if (text == null) return text;
   const lines = text
     .split("\n")
@@ -185,8 +187,7 @@ function dedupeLines(text: string | null): string | null {
 function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoUrl"> {
   return {
     title: result.title.trim(),
-    ingredients:
-      dedupeLines(normaliseList(result.ingredients, stripIngredientMarker)) ?? "",
+    ingredients: dedupeLines(normaliseList(result.ingredients, stripIngredientMarker)) ?? "",
     steps: normaliseList(result.steps, stripStepMarker) ?? "",
     // Notes are free text rendered as recorded — no list normalisation.
     notes: result.notes?.trim() ?? "",
@@ -206,49 +207,29 @@ export async function extractRecipeFromImages(
   meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {
   console.log(`[import/screenshot] OCR extraction — ${base64Images.length} image(s)`);
-  return withRetry(async () => {
-    const imageContent = base64Images.map((img) => ({
-      type: "image_url" as const,
-      image_url: {
-        url: img.startsWith("data:") ? img : `data:image/jpeg;base64,${img}`,
+  const imageContent = base64Images.map((img) => ({
+    type: "image_url" as const,
+    image_url: {
+      url: img.startsWith("data:") ? img : `data:image/jpeg;base64,${img}`,
+    },
+  }));
+  return runExtraction({
+    model: AI_MODELS.vision,
+    callType: "ocr",
+    meta,
+    messages: [
+      { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: [
+          {
+            type: "text",
+            text: "Extrais la recette de cette/ces image(s) :",
+          },
+          ...imageContent,
+        ],
       },
-    }));
-
-    const response = await openai.chat.completions.create({
-      model: AI_MODELS.vision,
-      response_format: {
-        type: "json_schema",
-        json_schema: IMPORT_JSON_SCHEMA,
-      },
-      messages: [
-        { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: "Extrais la recette de cette/ces image(s) :",
-            },
-            ...imageContent,
-          ],
-        },
-      ],
-    });
-
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error("Empty response from OpenAI");
-    const parsed = ImportResultSchema.parse(JSON.parse(content));
-    if (meta) {
-      await recordAiCost({
-        householdId: meta.householdId,
-        callType: "ocr",
-        model: AI_MODELS.vision,
-        inputTokens: response.usage?.prompt_tokens ?? null,
-        outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd(AI_MODELS.vision, response.usage?.prompt_tokens, response.usage?.completion_tokens),
-      });
-    }
-    return toFormData(parsed);
+    ],
   });
 }
 
@@ -289,71 +270,49 @@ export async function extractRecipeFromVoice(
   }
 
   // Step 2: Structure transcription into recipe JSON
-  return withRetry(async () => {
-    const response = await withEffortFallback((effortParams) =>
-      openai.chat.completions.create({
-        model: AI_MODELS.text,
-        ...effortParams,
-        response_format: {
-          type: "json_schema",
-          json_schema: IMPORT_JSON_SCHEMA,
-        },
-        messages: [
-          { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: `Extrais la recette depuis cette transcription orale. Attention : peut contenir des hésitations, répétitions, ou corrections ('ah non, 200g pas 300') — utilise toujours la dernière valeur donnée :\n\n${transcription}`,
-          },
-        ],
-      }),
-    );
-
-    const content = response.choices[0].message.content;
-    if (!content) throw new Error("Empty response from OpenAI");
-    const parsed = ImportResultSchema.parse(JSON.parse(content));
-    if (meta) {
-      await recordAiCost({
-        householdId: meta.householdId,
-        callType: "import_voice",
-        model: AI_MODELS.text,
-        inputTokens: response.usage?.prompt_tokens ?? null,
-        outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
-      });
-    }
-    return toFormData(parsed);
+  return runExtraction({
+    model: AI_MODELS.text,
+    useEffortFallback: true,
+    callType: "import_voice",
+    meta,
+    messages: [
+      { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+      {
+        role: "user",
+        content: `Extrais la recette depuis cette transcription orale. Attention : peut contenir des hésitations, répétitions, ou corrections ('ah non, 200g pas 300') — utilise toujours la dernière valeur donnée :\n\n${transcription}`,
+      },
+    ],
   });
 }
 
 // ---------- Shared text → recipe structuring ----------
 
+type ExtractionMessages = Parameters<typeof openai.chat.completions.create>[0]["messages"];
+
 /**
- * Structure a free-text recipe (cleaned HTML, Instagram caption, crawler
- * markdown) into form data via le modèle texte. Shared by all URL-derived import
- * paths; `callType` attributes the cost to the right voie in the dashboard.
+ * Cœur commun des trois voies d'extraction (OCR, transcription, texte) —
+ * revue 2026-09-12 : appel du modèle en JSON strict (`IMPORT_JSON_SCHEMA`),
+ * retry sur erreur transitoire, validation zod, coût enregistré sur la voie
+ * (`callType`) quand un foyer est connu. `useEffortFallback` : modèle texte
+ * gpt-5.x (reasoning_effort « none », retenté sans le paramètre si l'API le
+ * refuse — cf. ai-models.ts).
  */
-async function structureRecipeFromText(
-  text: string,
-  opts: { callType: AiCallType; meta?: ImportMeta },
-): Promise<ImportedRecipeData> {
+async function runExtraction(opts: {
+  model: string;
+  messages: ExtractionMessages;
+  callType: AiCallType;
+  meta?: ImportMeta;
+  useEffortFallback?: boolean;
+}): Promise<ImportedRecipeData> {
   return withRetry(async () => {
-    const response = await withEffortFallback((effortParams) =>
+    const call = (extra: object) =>
       openai.chat.completions.create({
-        model: AI_MODELS.text,
-        ...effortParams,
-        response_format: {
-          type: "json_schema",
-          json_schema: IMPORT_JSON_SCHEMA,
-        },
-        messages: [
-          { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: `Extrais la recette depuis ce contenu :\n\n${text}`,
-          },
-        ],
-      }),
-    );
+        model: opts.model,
+        ...extra,
+        response_format: { type: "json_schema", json_schema: IMPORT_JSON_SCHEMA },
+        messages: opts.messages,
+      });
+    const response = opts.useEffortFallback ? await withEffortFallback(call) : await call({});
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
@@ -362,13 +321,38 @@ async function structureRecipeFromText(
       await recordAiCost({
         householdId: opts.meta.householdId,
         callType: opts.callType,
-        model: AI_MODELS.text,
+        model: opts.model,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(
+          opts.model,
+          response.usage?.prompt_tokens,
+          response.usage?.completion_tokens,
+        ),
       });
     }
     return toFormData(parsed);
+  });
+}
+
+/**
+ * Structure a free-text recipe (cleaned HTML, Instagram caption, crawler
+ * markdown) into form data via le modèle texte. Shared by all URL-derived import
+ * paths; `callType` attributes the cost to the right voie in the dashboard.
+ */
+function structureRecipeFromText(
+  text: string,
+  opts: { callType: AiCallType; meta?: ImportMeta },
+): Promise<ImportedRecipeData> {
+  return runExtraction({
+    model: AI_MODELS.text,
+    useEffortFallback: true,
+    callType: opts.callType,
+    meta: opts.meta,
+    messages: [
+      { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
+      { role: "user", content: `Extrais la recette depuis ce contenu :\n\n${text}` },
+    ],
   });
 }
 
@@ -488,7 +472,12 @@ async function extractRecipeFromInstagram(
   } catch {
     throw new ImportError("Instagram unreachable via Apify", "SITE_UNREACHABLE");
   }
-  await recordApifyCost(meta, "import_instagram", "instagram-reel-scraper", APIFY_PRICING.instagramReel);
+  await recordApifyCost(
+    meta,
+    "import_instagram",
+    "instagram-reel-scraper",
+    APIFY_PRICING.instagramReel,
+  );
 
   const item = items[0];
   const caption = item?.caption?.trim() || "";
@@ -520,7 +509,12 @@ async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedR
   } catch {
     throw new ImportError("Site unreachable via crawler", "SITE_UNREACHABLE");
   }
-  await recordApifyCost(meta, "import_url_crawler", "website-content-crawler", APIFY_PRICING.websiteCrawler);
+  await recordApifyCost(
+    meta,
+    "import_url_crawler",
+    "website-content-crawler",
+    APIFY_PRICING.websiteCrawler,
+  );
 
   const item = items[0];
   const markdown = (item?.markdown || item?.text || "").trim().slice(0, 50000);
@@ -530,7 +524,21 @@ async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedR
   return structureRecipeFromText(markdown, { callType: "import_url_crawler", meta });
 }
 
-export async function extractRecipeFromUrl(
+// Budget global d'un import URL (fetch direct → crawler Apify → extraction),
+// sous le timeout client de 60 s (ImportSelector.tsx) : le client reçoit une
+// vraie réponse (code TIMEOUT) plutôt qu'un abandon silencieux. Chaque appel
+// OpenAI est déjà plafonné à 45 s (lib/openai.ts).
+export const URL_IMPORT_BUDGET_MS = 55_000;
+
+export function extractRecipeFromUrl(url: string, meta?: ImportMeta): Promise<ImportedRecipeData> {
+  return withDeadline(
+    extractRecipeFromUrlUnbounded(url, meta),
+    URL_IMPORT_BUDGET_MS,
+    () => new ImportError("Import timed out", "TIMEOUT"),
+  );
+}
+
+async function extractRecipeFromUrlUnbounded(
   url: string,
   meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {

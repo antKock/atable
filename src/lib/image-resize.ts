@@ -2,10 +2,7 @@
  * Client-only: Resizes an image file to fit within maxDimension and returns a base64 data URI.
  * Uses browser Canvas API — do not import server-side.
  */
-export async function resizeImageToBase64(
-  file: File,
-  maxDimension = 2048,
-): Promise<string> {
+export async function resizeImageToBase64(file: File, maxDimension = 2048): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);

@@ -8,6 +8,7 @@ import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth"
 import { householdIds } from "@/lib/auth/owner-context";
 import { enforceRecipeCreateQuota } from "@/lib/import-quota";
 import { getT } from "@/lib/i18n/server";
+import { parseJsonBody } from "@/lib/api/body";
 
 export const maxDuration = 60;
 
@@ -29,10 +30,7 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
     : "id, title, ingredients, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))";
 
   // Union des foyers de l'owner (Lot 4) — plus de scoping sur un seul `hid`.
-  let query = supabase
-    .from("recipes")
-    .select(selectClause)
-    .in("household_id", ids);
+  let query = supabase.from("recipes").select(selectClause).in("household_id", ids);
 
   if (tagsParam) {
     const tagIds = tagsParam.split(",").filter(Boolean);
@@ -63,12 +61,15 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, owner) => {
     const t = await getT();
-    const body = await request.json();
+    // Validation AVANT le quota : un corps invalide ne consomme rien (et un
+    // JSON illisible répond 400, plus 500).
+    const result = await parseJsonBody(request, { t, schema: buildRecipeCreateSchema(t) });
+    if (result instanceof NextResponse) return result;
 
     // Foyer cible explicite (dialog de choix, multi-foyer) OU repli mono-foyer.
     // Validé MEMBRE : un invité (lecture seule) est refusé, et un foyer où
     // l'owner n'est pas membre ne peut pas recevoir de recette.
-    const target = await resolveWriteHousehold(owner, body?.householdId);
+    const target = await resolveWriteHousehold(owner, result.data.householdId);
     if (target instanceof NextResponse) return target;
     const { householdId } = target;
 
@@ -76,15 +77,6 @@ export const POST = withOwnerAuth(
     // import quota doesn't cover — cap it here.
     const quotaResponse = await enforceRecipeCreateQuota(householdId);
     if (quotaResponse) return quotaResponse;
-
-    const result = buildRecipeCreateSchema(t).safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.issues[0].message },
-        { status: 422 }
-      );
-    }
 
     const supabase = createServerClient();
     const { data, error } = await supabase
@@ -116,9 +108,9 @@ export const POST = withOwnerAuth(
 
     // Insert tags into recipe_tags junction table
     if (result.data.tagIds && result.data.tagIds.length > 0) {
-      await supabase.from("recipe_tags").insert(
-        result.data.tagIds.map((tagId) => ({ recipe_id: data.id, tag_id: tagId })),
-      );
+      await supabase
+        .from("recipe_tags")
+        .insert(result.data.tagIds.map((tagId) => ({ recipe_id: data.id, tag_id: tagId })));
     }
 
     revalidatePath("/home");

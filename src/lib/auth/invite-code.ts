@@ -1,11 +1,11 @@
-import type { DbClient } from "@/lib/supabase/server"
-import type { MembershipRole } from '@/lib/auth/owner-context'
+import type { DbClient } from "@/lib/supabase/server";
+import type { MembershipRole } from "@/lib/auth/owner-context";
 
 export type ResolvedInvite = {
-  householdId: string
-  householdName: string
-  role: MembershipRole
-}
+  householdId: string;
+  householdName: string;
+  role: MembershipRole;
+};
 
 /**
  * Résout un code d'invitation (déjà validé au format WORD-NNNN par
@@ -32,18 +32,18 @@ export async function resolveInviteCode(
   code: string,
 ): Promise<ResolvedInvite | null> {
   const { data, error } = await supabase
-    .from('households')
-    .select('id, name, join_code, guest_join_code')
+    .from("households")
+    .select("id, name, join_code, guest_join_code")
     .or(`join_code.eq.${code},guest_join_code.eq.${code}`)
-    .eq('is_demo', false)
-    .limit(2)
+    .eq("is_demo", false)
+    .limit(2);
 
-  if (error) throw error
-  if (!data || data.length === 0) return null
+  if (error) throw error;
+  if (!data || data.length === 0) return null;
 
-  const memberRow = data.find((h) => h.join_code === code)
-  const row = memberRow ?? data[0]
-  const role: MembershipRole = row.join_code === code ? 'member' : 'guest'
+  const memberRow = data.find((h) => h.join_code === code);
+  const row = memberRow ?? data[0];
+  const role: MembershipRole = row.join_code === code ? "member" : "guest";
 
-  return { householdId: row.id, householdName: row.name, role }
+  return { householdId: row.id, householdName: row.name, role };
 }

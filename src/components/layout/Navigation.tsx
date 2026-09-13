@@ -63,8 +63,7 @@ export default function Navigation({ isGuest = false }: { isGuest?: boolean }) {
           WebkitBackdropFilter: "blur(10px) saturate(140%)",
           border: "1px solid var(--border)",
           borderRadius: 999,
-          boxShadow:
-            "0 6px 18px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.05)",
+          boxShadow: "0 6px 18px rgba(0, 0, 0, 0.10), 0 2px 6px rgba(0, 0, 0, 0.05)",
           opacity: keyboardOpen ? 0 : 1,
           transform: `translateX(-50%) translateY(${keyboardOpen ? "100%" : "0"})`,
           transition: "opacity 0.2s, transform 0.25s ease-out",
@@ -97,12 +96,8 @@ export default function Navigation({ isGuest = false }: { isGuest?: boolean }) {
                       size={24}
                       strokeWidth={isActive ? 2.4 : 1.75}
                       style={{
-                        color: isActive
-                          ? "var(--accent)"
-                          : "var(--nav-inactive)",
-                        filter: isActive
-                          ? "drop-shadow(0 0 4px rgba(110, 122, 56, 0.35))"
-                          : "none",
+                        color: isActive ? "var(--accent)" : "var(--nav-inactive)",
+                        filter: isActive ? "drop-shadow(0 0 4px rgba(110, 122, 56, 0.35))" : "none",
                         transition: "color 0.2s, filter 0.2s",
                       }}
                     />

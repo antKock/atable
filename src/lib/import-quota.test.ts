@@ -4,16 +4,14 @@ import {
   enforceRecipeCreateQuota,
   enforceHouseholdCreateQuota,
 } from "./import-quota";
-import {
-  importRateLimit,
-  recipeCreateRateLimit,
-  householdCreateRateLimit,
-} from "@/lib/redis";
+import { importRateLimit, recipeCreateRateLimit, householdCreateRateLimit } from "@/lib/redis";
 
 vi.mock("@/lib/redis", () => ({
   importRateLimit: { limit: vi.fn() },
   recipeCreateRateLimit: { limit: vi.fn() },
   householdCreateRateLimit: { limit: vi.fn() },
+  demoSessionRateLimit: { limit: vi.fn() },
+  shareRateLimit: { limit: vi.fn() },
 }));
 
 beforeEach(() => {

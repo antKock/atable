@@ -4,6 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
 import { getPhotoStore, photoPathFromUrl } from "@/lib/storage/photos";
 import { getT } from "@/lib/i18n/server";
+import { enforceShareCopyQuota } from "@/lib/import-quota";
 
 // Duplicate a bucket-hosted image into a path owned by the new recipe so the
 // copy is self-contained — if the original owner later deletes their recipe or
@@ -12,7 +13,7 @@ import { getT } from "@/lib/i18n/server";
 async function duplicateImage(
   sourceUrl: string | null,
   newRecipeId: string,
-  suffix: string
+  suffix: string,
 ): Promise<string | null> {
   if (!sourceUrl) return null;
   const fromPath = photoPathFromUrl(sourceUrl);
@@ -43,6 +44,11 @@ export const POST = withOwnerAuth(
       return NextResponse.json({ error: t.api.tokenMissing }, { status: 422 });
     }
 
+    // Une copie résout un jeton de partage sans scoping foyer : même plafond
+    // que les lectures /r/[token] (énumération), par owner ici.
+    const quotaResponse = await enforceShareCopyQuota(owner.ownerId);
+    if (quotaResponse) return quotaResponse;
+
     // Copie = écriture : foyer cible explicite (multi-foyer) ou repli mono-foyer,
     // toujours un foyer où l'owner est membre.
     const target = await resolveWriteHousehold(owner, body?.householdId);
@@ -56,7 +62,7 @@ export const POST = withOwnerAuth(
     const { data: source, error: sourceError } = await supabase
       .from("recipes")
       .select(
-        "id, household_id, title, ingredients, steps, notes, photo_url, generated_image_url, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, recipe_tags(tag_id)"
+        "id, household_id, title, ingredients, steps, notes, photo_url, generated_image_url, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, recipe_tags(tag_id)",
       )
       .eq("share_token", token)
       .single();

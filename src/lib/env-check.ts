@@ -48,7 +48,12 @@ const uuid = z.guid();
 const commaList = (item: z.ZodType<string, string>) =>
   z
     .string()
-    .transform((value) => value.split(",").map((s) => s.trim()).filter(Boolean))
+    .transform((value) =>
+      value
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    )
     .pipe(z.array(item).min(1));
 const httpUrl = z.url({ protocol: /^https?$/ });
 // Interrupteur : même tolérance que readI18nFlags (casse et espaces ignorés).
@@ -65,9 +70,19 @@ const RULES: EnvRule[] = [
   // lib/supabase/server. Les deux couples sont optionnels un par un ; la règle
   // « au moins un couple complet » est vérifiée à part (checkDatabaseTarget).
   { name: "DATABASE_REST_URL", required: false, shape: httpUrl, expected: "URL http(s)" },
-  { name: "DATABASE_REST_KEY", required: false, shape: z.string().min(20), expected: "JWT service_role" },
+  {
+    name: "DATABASE_REST_KEY",
+    required: false,
+    shape: z.string().min(20),
+    expected: "JWT service_role",
+  },
   { name: "NEXT_PUBLIC_SUPABASE_URL", required: false, shape: httpUrl, expected: "URL http(s)" },
-  { name: "SUPABASE_SERVICE_ROLE_KEY", required: false, shape: z.string(), expected: "clé service role" },
+  {
+    name: "SUPABASE_SERVICE_ROLE_KEY",
+    required: false,
+    shape: z.string(),
+    expected: "clé service role",
+  },
   // Photos : S3 (OVH Object Storage) dès que S3_BUCKET est posé, sinon Supabase
   // Storage. Les variables S3 vont ensemble (checkPhotoStorage).
   { name: "S3_BUCKET", required: false, shape: z.string(), expected: "nom de bucket" },
@@ -105,13 +120,18 @@ const RULES: EnvRule[] = [
   },
   { name: "I18N_PREVIEW_COOKIE", required: false, shape: onOffFlag, expected: "1/true/0/false" },
 
+  // A/B onboarding (#25) : éteint = landing actuelle pour tout le monde, aucun
+  // cookie posé. Allumé = tirage 50/50 par appareil au premier rendu de la landing.
+  { name: "AB_ONBOARDING_ENABLED", required: false, shape: onOffFlag, expected: "1/true/0/false" },
+
   // Auto-hébergement : APP_ORIGIN coupe court aux en-têtes forgeables.
   {
     name: "APP_ORIGIN",
     required: false,
     shape: httpUrl,
     expected: "URL http(s)",
-    missingInProduction: "origine dérivée des en-têtes de la requête (Host forgeable — magic links)",
+    missingInProduction:
+      "origine dérivée des en-têtes de la requête (Host forgeable — magic links)",
   },
   {
     name: "SENTRY_ENVIRONMENT",
@@ -137,9 +157,19 @@ const RULES: EnvRule[] = [
     expected: "corps base64 de la clé .p8",
     missingInProduction: "stats App Store non synchronisées (section 00 du dashboard vide)",
   },
-  { name: "APPLE_CONNECT_KEY_ID", required: false, shape: z.string().min(1), expected: "identifiant de clé" },
+  {
+    name: "APPLE_CONNECT_KEY_ID",
+    required: false,
+    shape: z.string().min(1),
+    expected: "identifiant de clé",
+  },
   { name: "APPLE_CONNECT_ISSUER_ID", required: false, shape: uuid, expected: "uuid" },
-  { name: "APPLE_CONNECT_APP_ID", required: false, shape: positiveInt, expected: "id numérique de l'app" },
+  {
+    name: "APPLE_CONNECT_APP_ID",
+    required: false,
+    shape: positiveInt,
+    expected: "id numérique de l'app",
+  },
 
   // Digest hebdo du dashboard (stats v3) : sans elle la route répond 503.
   {
@@ -151,7 +181,12 @@ const RULES: EnvRule[] = [
   },
 
   // Fonctionnalités à interrupteur : absentes = éteintes, mais jamais malformées.
-  { name: "ADMIN_HOUSEHOLD_IDS", required: false, shape: commaList(uuid), expected: "liste d'uuid séparés par des virgules" },
+  {
+    name: "ADMIN_HOUSEHOLD_IDS",
+    required: false,
+    shape: commaList(uuid),
+    expected: "liste d'uuid séparés par des virgules",
+  },
   { name: "DEMO_SEED_MIN", required: false, shape: positiveInt, expected: "entier > 0" },
   {
     name: "RESEND_API_KEY",
@@ -162,7 +197,14 @@ const RULES: EnvRule[] = [
   },
   { name: "EMAIL_FROM", required: false, shape: z.string(), expected: "expéditeur" },
   { name: "BATCH_ENRICH_SECRET", required: false, shape: z.string(), expected: "secret" },
-  { name: "ALLOW_BATCH_RESET", required: false, shape: z.enum(["true", "false"]), expected: "true/false" },
+  // Garde par défaut de /api/admin/* dans le proxy (repli : BATCH_ENRICH_SECRET).
+  { name: "ADMIN_API_SECRET", required: false, shape: z.string(), expected: "secret" },
+  {
+    name: "ALLOW_BATCH_RESET",
+    required: false,
+    shape: z.enum(["true", "false"]),
+    expected: "true/false",
+  },
   {
     name: "APIFY_TOKEN",
     required: false,
@@ -187,7 +229,11 @@ function checkRule(rule: EnvRule, env: Env, production: boolean): EnvIssue | nul
   if (!value) {
     if (rule.required) return { variable: rule.name, level, reason: "absente ou vide" };
     if (production && rule.missingInProduction) {
-      return { variable: rule.name, level, reason: `absente en production : ${rule.missingInProduction}` };
+      return {
+        variable: rule.name,
+        level,
+        reason: `absente en production : ${rule.missingInProduction}`,
+      };
     }
     return null;
   }

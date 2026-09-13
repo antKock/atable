@@ -31,15 +31,33 @@ export type SupabaseMock = {
 };
 
 const CHAIN_METHODS = [
-  "select", "insert", "update", "delete", "upsert",
-  "eq", "neq", "is", "in", "not", "match", "contains",
-  "gte", "lte", "gt", "lt", "like", "ilike",
-  "order", "limit", "range", "filter", "or",
+  "select",
+  "insert",
+  "update",
+  "delete",
+  "upsert",
+  "eq",
+  "neq",
+  "is",
+  "in",
+  "not",
+  "match",
+  "contains",
+  "gte",
+  "lte",
+  "gt",
+  "lt",
+  "like",
+  "ilike",
+  "order",
+  "limit",
+  "range",
+  "filter",
+  "or",
 ] as const;
 
 function buildClient(results: QueryResult[], calls: RecordedCall[]): DbClient {
-  const nextResult = (): QueryResult =>
-    results.shift() ?? { data: null, error: null, count: null };
+  const nextResult = (): QueryResult => results.shift() ?? { data: null, error: null, count: null };
 
   function makeBuilder(table: string) {
     const ops: Op[] = [];
@@ -87,10 +105,7 @@ export function createSupabaseMock(): SupabaseMock {
 }
 
 /** First recorded `.from()` chain for a table. */
-export function findCall(
-  mock: SupabaseMock,
-  table: string,
-): RecordedCall | undefined {
+export function findCall(mock: SupabaseMock, table: string): RecordedCall | undefined {
   return mock.calls.find((c) => c.table === table);
 }
 
@@ -104,10 +119,6 @@ export function calledWith(
   return mock.calls.some(
     (c) =>
       c.table === table &&
-      c.ops.some(
-        (op) =>
-          op.method === method &&
-          JSON.stringify(op.args) === JSON.stringify(args),
-      ),
+      c.ops.some((op) => op.method === method && JSON.stringify(op.args) === JSON.stringify(args)),
   );
 }

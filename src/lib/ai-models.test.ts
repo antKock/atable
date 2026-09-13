@@ -14,7 +14,9 @@ describe("withEffortFallback", () => {
 
   it("retente une fois sans paramètre si l'API rejette reasoning_effort", async () => {
     const err = Object.assign(
-      new Error("400 Unsupported value: 'reasoning_effort' does not support 'none' with this model."),
+      new Error(
+        "400 Unsupported value: 'reasoning_effort' does not support 'none' with this model.",
+      ),
       { status: 400 },
     );
     const call = vi.fn().mockRejectedValueOnce(err).mockResolvedValue("ok");

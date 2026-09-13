@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderRecoveryEmail, sendRecoveryEmail } from "./send";
-import { t as fr } from "@/lib/i18n/fr";
+import { frFull as fr } from "@/lib/i18n/full";
 
 const PAYLOAD = {
   magicLink: "https://mijote.test/recover/VERtkn234ABCDe56",
@@ -67,9 +67,9 @@ describe("sendRecoveryEmail — sélection de transport", () => {
   it("clé présente sans EMAIL_FROM → erreur explicite, pas d'appel réseau", async () => {
     vi.stubEnv("RESEND_API_KEY", "re_test");
     vi.stubEnv("EMAIL_FROM", "");
-    await expect(
-      sendRecoveryEmail("a@ex.fr", { ...PAYLOAD, kind: "recovery" }),
-    ).rejects.toThrow(/EMAIL_FROM/);
+    await expect(sendRecoveryEmail("a@ex.fr", { ...PAYLOAD, kind: "recovery" })).rejects.toThrow(
+      /EMAIL_FROM/,
+    );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -77,8 +77,8 @@ describe("sendRecoveryEmail — sélection de transport", () => {
     vi.stubEnv("RESEND_API_KEY", "re_test");
     vi.stubEnv("EMAIL_FROM", "Mijote <acces@mijote.anthonykocken.fr>");
     fetchMock.mockResolvedValueOnce(new Response("quota", { status: 429 }));
-    await expect(
-      sendRecoveryEmail("a@ex.fr", { ...PAYLOAD, kind: "recovery" }),
-    ).rejects.toThrow(/429/);
+    await expect(sendRecoveryEmail("a@ex.fr", { ...PAYLOAD, kind: "recovery" })).rejects.toThrow(
+      /429/,
+    );
   });
 });

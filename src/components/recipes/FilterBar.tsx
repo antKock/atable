@@ -6,11 +6,7 @@ import { useT } from "@/lib/i18n/client";
 import { costLabel, tagLabel } from "@/lib/i18n/labels";
 import type { Tag } from "@/types/recipe";
 import type { FilterState } from "@/lib/filters";
-import {
-  FILTER_CATEGORIES,
-  DURATION_OPTIONS,
-  COST_OPTIONS,
-} from "@/lib/filters";
+import { FILTER_CATEGORIES, DURATION_OPTIONS, COST_OPTIONS } from "@/lib/filters";
 
 interface FilterBarProps {
   tags: Tag[];
@@ -21,12 +17,7 @@ interface FilterBarProps {
   foyers?: { id: string; name: string }[];
 }
 
-export default function FilterBar({
-  tags,
-  filters,
-  onFiltersChange,
-  foyers = [],
-}: FilterBarProps) {
+export default function FilterBar({ tags, filters, onFiltersChange, foyers = [] }: FilterBarProps) {
   const t = useT();
   const showFoyerPill = foyers.length > 1;
 
@@ -40,9 +31,8 @@ export default function FilterBar({
     if (key === "foyer") return filters.foyerIds.length;
     const dbCategory = FILTER_CATEGORIES.find((c) => c.key === key)?.dbCategory;
     if (!dbCategory) return 0;
-    return tags.filter(
-      (tag) => tag.category === dbCategory && filters.tagIds.includes(tag.id),
-    ).length;
+    return tags.filter((tag) => tag.category === dbCategory && filters.tagIds.includes(tag.id))
+      .length;
   };
 
   const toggleFoyer = (foyerId: string) => {
@@ -84,11 +74,7 @@ export default function FilterBar({
 
   // Le filtre « Foyer » passe en TÊTE de liste (avant « De saison ») dès qu'il y
   // a au moins 2 foyers — c'est l'axe de tri le plus structurant en multi-foyer.
-  const baseCategories = [
-    ...FILTER_CATEGORIES.map((c) => c.key),
-    "duration",
-    "cost",
-  ];
+  const baseCategories = [...FILTER_CATEGORIES.map((c) => c.key), "duration", "cost"];
 
   const optionButtonClass =
     "inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium transition-colors";
@@ -105,13 +91,9 @@ export default function FilterBar({
             onClick={() => toggleDuration(opt.id)}
             className={optionButtonClass}
             style={{
-              background: selected
-                ? "var(--chip-bg-selected)"
-                : "transparent",
+              background: selected ? "var(--chip-bg-selected)" : "transparent",
               color: selected ? "var(--chip-text-selected)" : "var(--foreground)",
-              border: selected
-                ? "1px solid transparent"
-                : "1px solid var(--border)",
+              border: selected ? "1px solid transparent" : "1px solid var(--border)",
             }}
           >
             {selected && <Check size={12} strokeWidth={2.5} />}
@@ -131,13 +113,9 @@ export default function FilterBar({
             onClick={() => toggleCost(opt.id)}
             className={optionButtonClass}
             style={{
-              background: selected
-                ? "var(--chip-bg-selected)"
-                : "transparent",
+              background: selected ? "var(--chip-bg-selected)" : "transparent",
               color: selected ? "var(--chip-text-selected)" : "var(--foreground)",
-              border: selected
-                ? "1px solid transparent"
-                : "1px solid var(--border)",
+              border: selected ? "1px solid transparent" : "1px solid var(--border)",
             }}
           >
             {selected && <Check size={12} strokeWidth={2.5} />}
@@ -181,13 +159,9 @@ export default function FilterBar({
             onClick={() => toggleTag(tag.id)}
             className={optionButtonClass}
             style={{
-              background: selected
-                ? "var(--chip-bg-selected)"
-                : "transparent",
+              background: selected ? "var(--chip-bg-selected)" : "transparent",
               color: selected ? "var(--chip-text-selected)" : "var(--foreground)",
-              border: selected
-                ? "1px solid transparent"
-                : "1px solid var(--border)",
+              border: selected ? "1px solid transparent" : "1px solid var(--border)",
             }}
           >
             {selected && <Check size={12} strokeWidth={2.5} />}
@@ -236,11 +210,7 @@ export default function FilterBar({
             className="z-50 max-w-[calc(100vw-24px)] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none"
           >
             <div className="flex flex-wrap gap-2">{renderPanel(key)}</div>
-            <Popover.Arrow
-              width={12}
-              height={6}
-              style={{ fill: "var(--popover)" }}
-            />
+            <Popover.Arrow width={12} height={6} style={{ fill: "var(--popover)" }} />
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>

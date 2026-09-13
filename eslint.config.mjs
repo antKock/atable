@@ -28,7 +28,8 @@ const eslintConfig = defineConfig([
         "error",
         {
           // request.nextUrl.origin / .href (lecture directe).
-          selector: "MemberExpression[object.property.name='nextUrl'][property.name=/^(origin|href)$/]",
+          selector:
+            "MemberExpression[object.property.name='nextUrl'][property.name=/^(origin|href)$/]",
           message:
             "nextUrl.origin / nextUrl.href sont faux derrière le reverse proxy : utiliser getRequestOrigin(request) (@/lib/request-origin).",
         },
@@ -41,7 +42,8 @@ const eslintConfig = defineConfig([
         },
         {
           // request.nextUrl.clone() : l'URL clonée porte l'origine d'écoute.
-          selector: "CallExpression[callee.object.property.name='nextUrl'][callee.property.name='clone']",
+          selector:
+            "CallExpression[callee.object.property.name='nextUrl'][callee.property.name='clone']",
           message:
             "nextUrl.clone() porte l'origine d'écoute (0.0.0.0:3000) : construire l'URL avec new URL(chemin, getRequestOrigin(request)).",
         },
@@ -61,7 +63,15 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/lib/i18n/fr", "**/i18n/fr", "./fr"],
+              group: [
+                "@/lib/i18n/fr",
+                "**/i18n/fr",
+                "./fr",
+                "@/lib/i18n/full",
+                "**/i18n/full",
+                "@/lib/i18n/fr.server",
+                "@/lib/i18n/en.server",
+              ],
               message:
                 "importer `t` de fr.ts fige la langue : useT() côté client, getT() côté serveur (règle CLAUDE.md)",
             },
@@ -94,6 +104,8 @@ const eslintConfig = defineConfig([
     // Default ignores of eslint-config-next:
     ".next/**",
     ".next-e2e/**",
+    ".next-e2e-verify/**",
+    ".next-build-check/**",
     "out/**",
     "build/**",
     "next-env.d.ts",

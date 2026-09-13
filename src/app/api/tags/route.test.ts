@@ -5,7 +5,7 @@ import { GET, POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, calledWith, type SupabaseMock } from "@/test/supabase-mock";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
@@ -76,14 +76,27 @@ describe("POST /api/tags", () => {
     expect(res.status).toBe(401);
   });
 
-  it("rejects an empty name with 422", async () => {
+  it("rejects an empty name with 422, message localisé (pas le zod brut)", async () => {
     const res = await POST(postRequest({ name: "" }));
     expect(res.status).toBe(422);
+    expect((await res.json()).error).toBe("Le nom du tag est requis");
   });
 
-  it("rejects a name over 50 characters with 422", async () => {
+  it("rejects a name over 50 characters with 422, message localisé", async () => {
     const res = await POST(postRequest({ name: "x".repeat(51) }));
     expect(res.status).toBe(422);
+    expect((await res.json()).error).toBe("Nom de tag trop long (50 caractères max)");
+  });
+
+  it("un corps non-JSON répond 400 (pas 500)", async () => {
+    const res = await POST(
+      new NextRequest("https://test.local/api/tags", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{oops",
+      }),
+    );
+    expect(res.status).toBe(400);
   });
 
   it("returns the existing tag instead of duplicating (case-insensitive)", async () => {

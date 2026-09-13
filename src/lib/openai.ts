@@ -8,6 +8,8 @@ import OpenAI from "openai";
 // Le Proxy conserve l'API `openai.chat…`, `openai.images…` pour les appelants.
 let client: OpenAI | null = null;
 
+export const OPENAI_TIMEOUT_MS = 45_000;
+
 function getClient(): OpenAI {
   if (!client) {
     // Clé nommée explicitement : sans `apiKey`, le SDK retombe en silence sur
@@ -19,7 +21,11 @@ function getClient(): OpenAI {
         "OPENAI_SERVICE_KEY manquante : la variable d'environnement est requise pour les appels OpenAI (enrichissement, imports IA)",
       );
     }
-    client = new OpenAI({ apiKey });
+    // Timeout par appel (45 s) : sans lui, un appel OpenAI qui pend gardait le
+    // handler ouvert jusqu'à `maxDuration` et le client abandonnait à 60 s sans
+    // réponse. `maxRetries: 0` : les reprises sont gérées par `withRetry`
+    // (lib/retry.ts) — le SDK ne doit pas les doubler.
+    client = new OpenAI({ apiKey, timeout: OPENAI_TIMEOUT_MS, maxRetries: 0 });
   }
   return client;
 }

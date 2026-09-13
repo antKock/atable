@@ -142,104 +142,61 @@ export const t = {
   tags: {
     addPlaceholder: "Ajouter un tag…",
     create: (name: string) => `Créer ‘${name}’`,
+    loadError: "Impossible de charger les tags",
+    createError: "Impossible de créer le tag",
   },
   // Tags prédéfinis (migration 004) — clés = noms canoniques stockés en base
   // (français, jamais traduits), valeurs = libellé affiché. Les tags libres
   // créés par l'utilisateur s'affichent tels quels.
   tagNames: {
-    "Entrée": "Entrée",
+    Entrée: "Entrée",
     "Plat principal": "Plat principal",
-    "Accompagnement": "Accompagnement",
-    "Dessert": "Dessert",
-    "Soupe": "Soupe",
-    "Salade": "Salade",
-    "Apéro": "Apéro",
+    Accompagnement: "Accompagnement",
+    Dessert: "Dessert",
+    Soupe: "Soupe",
+    Salade: "Salade",
+    Apéro: "Apéro",
     "Petit-déjeuner": "Petit-déjeuner",
-    "Goûter": "Goûter",
-    "Boisson": "Boisson",
+    Goûter: "Goûter",
+    Boisson: "Boisson",
     "Sauce / Condiment": "Sauce / Condiment",
     "Pain / Pâtisserie": "Pain / Pâtisserie",
-    "Végétarien": "Végétarien",
-    "Végan": "Végan",
+    Végétarien: "Végétarien",
+    Végan: "Végan",
     "Sans gluten": "Sans gluten",
     "Sans lactose": "Sans lactose",
-    "Léger": "Léger",
+    Léger: "Léger",
     "Comfort food": "Comfort food",
-    "Poulet": "Poulet",
-    "Bœuf": "Bœuf",
-    "Porc": "Porc",
-    "Agneau": "Agneau",
-    "Poisson": "Poisson",
+    Poulet: "Poulet",
+    Bœuf: "Bœuf",
+    Porc: "Porc",
+    Agneau: "Agneau",
+    Poisson: "Poisson",
     "Fruits de mer": "Fruits de mer",
-    "Œufs": "Œufs",
+    Œufs: "Œufs",
     "Tofu / Protéines végétales": "Tofu / Protéines végétales",
-    "Légumineuses": "Légumineuses",
-    "Française": "Française",
-    "Italienne": "Italienne",
-    "Indienne": "Indienne",
+    Légumineuses: "Légumineuses",
+    Française: "Française",
+    Italienne: "Italienne",
+    Indienne: "Indienne",
     "Libanaise / Orientale": "Libanaise / Orientale",
-    "Mexicaine": "Mexicaine",
-    "Asiatique": "Asiatique",
-    "Africaine": "Africaine",
-    "Américaine": "Américaine",
-    "Méditerranéenne": "Méditerranéenne",
-    "Nordique": "Nordique",
-    "Rapide": "Rapide",
+    Mexicaine: "Mexicaine",
+    Asiatique: "Asiatique",
+    Africaine: "Africaine",
+    Américaine: "Américaine",
+    Méditerranéenne: "Méditerranéenne",
+    Nordique: "Nordique",
+    Rapide: "Rapide",
     "En batch": "En batch",
     "Repas de fête": "Repas de fête",
     "Pique-nique": "Pique-nique",
-    "Lunchbox": "Lunchbox",
+    Lunchbox: "Lunchbox",
     "Pas cher": "Pas cher",
-    "Facile": "Facile",
+    Facile: "Facile",
     "One-pot": "One-pot",
     "Sans cuisson": "Sans cuisson",
     "Pour les enfants": "Pour les enfants",
     "À congeler": "À congeler",
-  },
-
-  // Carousels
-  carousels: {
-    // Groupe A — algorithmiques
-    recentes: "Récentes",
-    plusVues: "Les plus vues",
-    redecouvrir: "Redécouvrir",
-    // Groupe B — type de plat
-    apero: "Apéro",
-    desserts: "Desserts",
-    petitDejeuner: "Petit-déjeuner",
-    boissons: "Boissons",
-    soupes: "Soupes",
-    salades: "Salades",
-    gouter: "Goûter",
-    // Groupe B — régime
-    vegetarien: "Végétarien",
-    comfortFood: "Comfort food",
-    vegan: "Végan",
-    leger: "Léger",
-    // Groupe B — protéine principale
-    poulet: "Poulet",
-    boeuf: "Bœuf",
-    porc: "Porc",
-    agneau: "Agneau",
-    poisson: "Poisson",
-    fruitsDeMer: "Fruits de mer",
-    oeufs: "Œufs",
-    proteinesVegetales: "Protéines végétales",
-    legumineuses: "Légumineuses",
-    // Groupe B — cuisine
-    cuisineDuMonde: "Cuisine du monde",
-    // Groupe B — occasion
-    rapide: "Rapide",
-    repasDeFete: "Repas de fête",
-    enBatch: "En batch",
-    lunchbox: "Lunchbox",
-    piqueNique: "Pique-nique",
-    // Groupe B — caractéristiques
-    pasCher: "Pas cher",
-    pourLesEnfants: "Pour les enfants",
-    onePot: "One-pot",
-    sansCuisson: "Sans cuisson",
-    aCongeler: "À congeler",
   },
 
   // Filters
@@ -294,6 +251,9 @@ export const t = {
   // Import
   import: {
     title: "Nouvelle recette",
+    // Mode « première recette » (/recipes/new?first=1, bras B du #25).
+    firstTitle: "Ta première recette",
+    firstLead: "Colle un lien, prends une photo ou dicte : Mijote la met au propre.",
     // Spec #24 : la question en titre, verbe en premier sur chaque méthode,
     // promesse en dessous ; `chip` = libellé court de la rangée « Ou plutôt ».
     question: "D'où vient ta recette ?",
@@ -309,8 +269,7 @@ export const t = {
       fromGallery: "Choisir dans la galerie",
       cancel: "Annuler",
       analyze: "Analyser",
-      count: (n: number) =>
-        `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
+      count: (n: number) => `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
     },
     voice: {
       title: "Dicter",
@@ -338,16 +297,12 @@ export const t = {
       chip: "Écrire",
     },
     divider: "ou",
-    error:
-      "Impossible d'extraire la recette. Réessaie ou saisis-la manuellement.",
+    error: "Impossible d'extraire la recette. Réessaie ou saisis-la manuellement.",
     errorSiteBlocked:
       "Ce site bloque l'accès automatique. Essaie avec une capture d'écran ou la saisie manuelle.",
-    errorRateLimit:
-      "Trop de requêtes, réessaie dans quelques instants.",
-    errorImportQuota:
-      "Limite quotidienne d'imports atteinte. Réessaie dans 24h.",
-    errorSiteUnreachable:
-      "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
+    errorRateLimit: "Trop de requêtes, réessaie dans quelques instants.",
+    errorImportQuota: "Limite quotidienne d'imports atteinte. Réessaie dans 24h.",
+    errorSiteUnreachable: "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
   },
 
   // Search
@@ -379,16 +334,20 @@ export const t = {
     tryApp: "Essayer l'app",
     createHousehold: "Créer un carnet",
     joinHousehold: "Ouvrir un carnet",
+    // A/B onboarding (#25), bras B : créer → première recette / rejoindre / démo.
+    start: "Commencer",
+    haveCookbook: "J'ai déjà un carnet",
+    seeExample: "Voir un exemple",
   },
 
   // Join via invite link
   joinLink: {
     hero: (name: string) => `Ouvrir « ${name} » ?`,
-    confirm: 'Ouvrir',
-    notFound: 'Ce lien ne correspond à aucun carnet',
+    confirm: "Ouvrir",
+    notFound: "Ce lien ne correspond à aucun carnet",
     backToLanding: "Retour à l'accueil",
     // Code invité (Lot 3) : la confirmation dit que l'accès est en lecture seule
-    guestNote: 'En lecture seule, en direct',
+    guestNote: "En lecture seule, en direct",
   },
 
   // Join household
@@ -402,7 +361,8 @@ export const t = {
     invalidFormat: "Format invalide — ex : OLIVE-4821",
     searching: "Recherche en cours…",
     enterHeading: ["Entre le code", "de ton carnet"],
-    enterBody: "Demande à un membre du carnet son code d'invitation. Tu accéderas instantanément aux recettes partagées.",
+    enterBody:
+      "Demande à un membre du carnet son code d'invitation. Tu accéderas instantanément aux recettes partagées.",
   },
 
   // Household
@@ -417,7 +377,13 @@ export const t = {
     createError: "Impossible de créer le carnet. Réessaie.",
     createSubmit: "Créer le carnet",
     createHeading: ["Donne un nom", "à ton carnet"],
-    createBody: "Un carnet à partager avec tes proches. Vos recettes s'y retrouvent, réunies au même endroit.",
+    // Spec #23 : création sans nom. `defaultName` = valeur STOCKÉE côté serveur
+    // (pas dérivée à l'affichage) ; `createHeadingQuick` = en-tête du formulaire
+    // en mode sans champ (partage de recette : créer OU rejoindre).
+    defaultName: "Mon carnet",
+    createHeadingQuick: ["Crée ton carnet", "en un geste"],
+    createBody:
+      "Un carnet à partager avec tes proches. Vos recettes s'y retrouvent, réunies au même endroit.",
     nameEmpty: "Le nom ne peut pas être vide",
     menu: "Carnet & profil",
     menuButton: "Carnet & profil",
@@ -551,7 +517,8 @@ export const t = {
     // Déconnexion (même gabarit que « Quitter le foyer »)
     logout: "Se déconnecter",
     logoutConfirmTitle: "Se déconnecter ?",
-    logoutConfirmBody: "Cet appareil sera déconnecté. Tu pourras retrouver tes carnets avec ton email de secours.",
+    logoutConfirmBody:
+      "Cet appareil sera déconnecté. Tu pourras retrouver tes carnets avec ton email de secours.",
     logoutConfirmBodyNoEmail:
       "Cet appareil sera déconnecté. Sans email de secours, tu risques de perdre l'accès à tes carnets — pense à en ajouter un avant.",
     logoutAction: "Se déconnecter",
@@ -682,64 +649,6 @@ export const t = {
     ],
     subline: "On range les ingrédients et les étapes au bon endroit",
     ariaLabel: "Import en cours",
-  },
-
-  // Messages d'erreur des routes API (renvoyés au client tels quels)
-  api: {
-    serverError: "Erreur serveur",
-    invalidData: "Données invalides",
-    codeInvalidFormat: "Format de code invalide",
-    demoNotDeletable: "Le carnet démo ne peut pas être supprimé.",
-    leaveFailed: "Impossible de quitter le carnet",
-    deleteFailed: "Impossible de supprimer le carnet",
-    photoRequired: "Photo requise",
-    photoTooLarge: "Photo trop volumineuse (max 4 Mo)",
-    imageFormatUnsupported: "Format d'image non supporté",
-    audioRequired: "Fichier audio requis",
-    audioTooLarge: "Fichier audio trop volumineux (max 10 Mo)",
-    audioFormatUnsupported: "Format audio non supporté",
-    screenshotExtractFailed: "Impossible d'extraire la recette depuis les images",
-    tokenMissing: "Token manquant",
-    recipeNotFound: "Recette introuvable",
-    targetHouseholdMissing: "Carnet cible manquant",
-    unauthorized: "Non autorisé",
-    forbidden: "Accès refusé",
-    invalidAction: "Action invalide",
-    bodyTooLarge: "Requête trop volumineuse",
-  },
-
-  // Messages de validation zod (schemas/recipe.ts, schemas/import.ts)
-  validation: {
-    titleRequired: "Le titre est requis",
-    titleTooLong: "Le titre est trop long (200 caractères max)",
-    textTooLong: "Texte trop long (10 000 caractères max)",
-    servingsInvalid: "Nombre de personnes invalide",
-    imageTooLarge: "Image trop volumineuse",
-    imageRequired: "Au moins une image est requise",
-    imagesMax: "Maximum 5 images",
-    urlInvalid: "URL invalide",
-    httpsOnly: "Seules les URLs HTTPS sont acceptées",
-  },
-
-  // Emails de récupération (#14) — copy arbitrée (proposition A « Carte Mijote »)
-  email: {
-    recovery: {
-      subject: "Retrouve ton carnet sur Mijote",
-      title: "Retrouve ton carnet",
-      body: "Pour retrouver ton carnet Mijote sur un nouvel appareil, appuie sur le bouton, et c'est tout.",
-      cta: "Ouvrir Mijote",
-    },
-    merge: {
-      subject: "On réunit tes carnets",
-      title: "On réunit tes carnets",
-      body: "Tu as saisi cet email depuis ton profil. Confirme pour réunir tes deux accès en une seule identité.",
-      cta: "Réunir mes carnets",
-    },
-    openLink: "Ouvre ce lien :",
-    otherDevice: "Tu lis ce mail sur un autre appareil ?",
-    useCode: "Saisis plutôt ce code dans Mijote :",
-    expires: "Ce lien et ce code expirent dans 15 minutes.",
-    notYou: "Tu n'as rien demandé ? Ignore ce mail — ton carnet reste bien au chaud.",
   },
 
   // Accessibility

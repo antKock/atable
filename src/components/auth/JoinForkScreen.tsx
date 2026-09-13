@@ -1,19 +1,19 @@
-'use client'
+"use client";
 
-import { KeyRound, Mail } from 'lucide-react'
-import { useT } from '@/lib/i18n/client'
+import { KeyRound, Mail } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
-  onCode: () => void
-  onRecover: () => void
-  onBack: () => void
-}
+  onCode: () => void;
+  onRecover: () => void;
+  onBack: () => void;
+};
 
 // Fork « Rejoindre un foyer » (#14, maquette 1.2) — clé anti-doublon : sur un
 // device neuf, rejoindre un proche OU retrouver son propre foyer passe par
 // ici, au lieu de recréer un owner. Copy volontairement générique.
 export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
-  const t = useT()
+  const t = useT();
   return (
     <div className="bg-sage-radial fixed inset-0 flex flex-col text-background">
       <button
@@ -21,7 +21,7 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
         onClick={onBack}
         aria-label={t.a11y.backButton}
         className="fixed left-2 z-10 flex h-10 w-10 items-center justify-center text-background"
-        style={{ top: 'calc(env(safe-area-inset-top) + 13px)' }}
+        style={{ top: "calc(env(safe-area-inset-top) + 13px)" }}
       >
         <svg
           width="22"
@@ -41,18 +41,16 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
         <div
           className="flex h-[72px] w-[72px] items-center justify-center rounded-full"
-          style={{ boxShadow: 'inset 0 0 0 1.5px rgba(245, 241, 232, 0.5)' }}
+          style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.5)" }}
         >
           <KeyRound size={30} aria-hidden="true" />
         </div>
         <h1
-          className="mt-6"
+          className="display mt-6"
           style={{
-            fontFamily: 'var(--font-fraunces), "Times New Roman", serif',
-            fontVariationSettings: '"opsz" 144',
             fontWeight: 700,
             fontSize: 36,
-            letterSpacing: '-0.02em',
+            letterSpacing: "-0.02em",
             lineHeight: 1.02,
           }}
         >
@@ -65,7 +63,7 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
 
       <div
         className="mx-auto flex w-full max-w-[400px] flex-col gap-2.5 px-6"
-        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)' }}
+        style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)" }}
       >
         <button
           type="button"
@@ -79,12 +77,12 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
           type="button"
           onClick={onRecover}
           className="flex h-[54px] items-center justify-center gap-2 rounded-[27px] bg-transparent text-[16px] font-medium text-background transition-colors hover:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
-          style={{ boxShadow: 'inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)' }}
+          style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)" }}
         >
           <Mail size={18} aria-hidden="true" />
           {t.recovery.forkEmail}
         </button>
       </div>
     </div>
-  )
+  );
 }

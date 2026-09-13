@@ -5,7 +5,7 @@ import { POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getLocale } from "@/lib/i18n/server";
 import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
-import { t as fr } from "@/lib/i18n/fr";
+import { frFull as fr } from "@/lib/i18n/full";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));

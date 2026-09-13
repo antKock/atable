@@ -1,12 +1,8 @@
 import { notFound } from "next/navigation";
-import NewRecipeFlow from "@/components/recipes/NewRecipeFlow";
+import NewRecipeFlow from "@/components/recipes/form/NewRecipeFlow";
 import { createServerClient } from "@/lib/supabase/server";
-import {
-  getOwnerContext,
-  isGuestOwner,
-  memberHouseholdIds,
-} from "@/lib/auth/owner-context";
-import type { MemberFoyer } from "@/components/recipes/RecipeForm";
+import { getOwnerContext, isGuestOwner, memberHouseholdIds } from "@/lib/auth/owner-context";
+import type { MemberFoyer } from "@/components/recipes/form/RecipeForm";
 
 // NewRecipeFlow reads search params (?import=url&url=… from the share sheet)
 // via useSearchParams, which requires the route to render dynamically.
@@ -34,17 +30,14 @@ export default async function NewRecipePage() {
       (data ?? []).map((h) => [
         h.id,
         {
-          name: h.name as string,
+          name: h.name,
           // recipes(count) → [{ count }]
-          recipeCount:
-            (h.recipes as unknown as { count: number }[])?.[0]?.count ?? 0,
+          recipeCount: h.recipes[0]?.count ?? 0,
         },
       ]),
     );
     // Ordre des memberships (owner-context) : le hub fait foi.
-    memberFoyers = memberIds
-      .filter((id) => byId.has(id))
-      .map((id) => ({ id, ...byId.get(id)! }));
+    memberFoyers = memberIds.filter((id) => byId.has(id)).map((id) => ({ id, ...byId.get(id)! }));
   }
 
   return <NewRecipeFlow memberFoyers={memberFoyers} />;

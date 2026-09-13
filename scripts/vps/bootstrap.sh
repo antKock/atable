@@ -33,8 +33,9 @@
 #   6. Docker : rotation des logs (daemon.json), règle DOCKER-USER persistante qui
 #      rejette le port 3000 publié par Docker depuis l'extérieur (Docker contourne ufw),
 #      purge hebdomadaire des images
-#   7. crontabs demo-reset (03:00 UTC), app-store-sync (10:00 UTC) via `date -u`, et
-#      weekly-digest (lundi 07:00 Paris) ; secret dans /etc/mijote/cron.env (root 600)
+#   7. crontabs demo-reset (03:00 UTC), app-store-sync (10:00 UTC) via `date -u`,
+#      weekly-digest (lundi 07:00 Paris) et enrich-stale (toutes les heures) ;
+#      secret dans /etc/mijote/cron.env (root 600)
 #   8. installation de Dokploy (installe Docker + Traefik + sa base + son Redis), installeur
 #      épinglé par sha256
 
@@ -295,6 +296,15 @@ EOF
 EOF
   chmod 644 /etc/cron.d/mijote-weekly-digest
   echo "    installé : https://${APP_HOST}/api/cron/weekly-digest le lundi à 07:00 (Paris)"
+  # Ramassage des enrichissements perdus (recettes `pending` > 1 h, ~20 par
+  # passage) : toutes les heures à la 20e minute (revue 2026-09-12, lot 6).
+  cat > /etc/cron.d/mijote-enrich-stale <<EOF
+# Posé par scripts/vps/bootstrap.sh (repo atable). Relance les enrichissements
+# perdus (recettes pending > 1 h), toutes les heures. Secret : /etc/mijote/cron.env.
+20 * * * * root set -a; . /etc/mijote/cron.env; set +a; curl -fsS -m 300 -H "Authorization: Bearer \$CRON_SECRET" "https://${APP_HOST}/api/cron/enrich-stale" >/dev/null
+EOF
+  chmod 644 /etc/cron.d/mijote-enrich-stale
+  echo "    installé : https://${APP_HOST}/api/cron/enrich-stale toutes les heures (:20)"
 else
   echo "    APP_HOST non fourni : crontab demo-reset non installée (relancer avec APP_HOST=<hôte>)"
 fi

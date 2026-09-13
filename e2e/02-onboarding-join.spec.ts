@@ -20,9 +20,7 @@ test("onboarding rejoindre : le code (saisie tolérante) mène au même foyer", 
   await b.page.getByRole("button", { name: "Ouvrir un carnet" }).click();
   await b.page.getByRole("button", { name: "J'ai un code d'invitation" }).click();
   // « olive 4821 » : minuscules, espace au lieu du tiret — normalisé côté serveur
-  await b.page
-    .getByPlaceholder("OLIVE-4821")
-    .fill(code.toLowerCase().replace("-", " "));
+  await b.page.getByPlaceholder("OLIVE-4821").fill(code.toLowerCase().replace("-", " "));
   await b.page.getByRole("button", { name: "Ouvrir", exact: true }).click();
   await b.page.waitForURL(/\/home/);
 

@@ -18,9 +18,12 @@ export const POST = withOwnerAuth(
     // qu'informatif (et sert à l'attribution démo du rollup 032). On continue
     // de le remplir avec le premier membership, sans que son arbitraire en
     // multi-carnet ne biaise plus aucune métrique.
+    // Owner sans foyer (a quitté son dernier carnet) : rien à enregistrer,
+    // mais surtout PAS un 401 — le client purge le cookie sur 401 et
+    // déconnecterait une session valide.
     const householdId = memberships[0]?.householdId;
     if (!householdId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return new NextResponse(null, { status: 204 });
     }
 
     let platform = "unknown";

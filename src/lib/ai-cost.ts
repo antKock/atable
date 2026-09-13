@@ -12,8 +12,8 @@ import { createServerClient } from "@/lib/supabase/server";
 // drift here (retries, rounding) is caught rather than hidden.
 // ---------------------------------------------------------------------------
 
-// What a call was for. The dashboard groups these into OCR / metadata / image /
-// import for display (see analytics_ai_cost_* RPCs).
+// What a call was for. Le dashboard v3 (src/lib/admin/v3) regroupe ces types en
+// OCR / métadonnées / image / import à l'affichage.
 // Models per role live in ai-models.ts (AI_MODELS.text/vision/transcription/image).
 export type AiCallType =
   | "ocr" // screenshot extraction (vision model)
@@ -39,6 +39,23 @@ const TOKEN_PRICING: Record<string, { input: number; output: number }> = {
   "gpt-5-nano": { input: 0.05, output: 0.4 },
 };
 
+/**
+ * Modèles facturés autrement qu'au token, avec la raison — l'invariant testé
+ * (ai-cost.test.ts) exige que chaque entrée de AI_MODELS soit soit tarifée
+ * dans TOKEN_PRICING, soit listée ici explicitement. Ajouter un modèle sans
+ * prix = spend sous-déclaré en silence dans le dashboard.
+ */
+export const NON_TOKEN_PRICED_MODELS: Record<string, string> = {
+  "gpt-image-1.5": "forfait par image (IMAGE_PRICING, qualité:taille)",
+  "gpt-4o-mini-transcribe":
+    "facturé à la seconde d'audio, durée inconnue côté serveur : ligne à 0 $ (compteur), réconciliée par la Costs API",
+};
+
+/** Un modèle est-il tarifé au token (entrée dans TOKEN_PRICING) ? */
+export function hasTokenPricing(model: string): boolean {
+  return model in TOKEN_PRICING;
+}
+
 // Flat USD per generated image, keyed by `quality:size`. Grounded in observed
 // gpt-image-1.5 billing (~$0.0109 all-in for low/1024² incl. text tokens).
 const IMAGE_PRICING: Record<string, number> = {
@@ -47,15 +64,8 @@ const IMAGE_PRICING: Record<string, number> = {
   "high:1024x1024": 0.167,
 };
 
-// USD per second of audio (whisper-1 is $0.006/min).
-const WHISPER_USD_PER_SECOND = 0.006 / 60;
-
 /** Cost of a token-billed chat/vision call. Unknown models price at 0. */
-export function textCostUsd(
-  model: string,
-  inputTokens = 0,
-  outputTokens = 0,
-): number {
+export function textCostUsd(model: string, inputTokens = 0, outputTokens = 0): number {
   const p = TOKEN_PRICING[model];
   if (!p) return 0;
   return (inputTokens * p.input + outputTokens * p.output) / 1_000_000;
@@ -64,11 +74,6 @@ export function textCostUsd(
 /** Flat cost of one generated image. Unknown quality/size prices at 0. */
 export function imageCostUsd(quality: string, size: string): number {
   return IMAGE_PRICING[`${quality}:${size}`] ?? 0;
-}
-
-/** Cost of a whisper transcription given the audio duration in seconds. */
-export function transcriptionCostUsd(audioSeconds: number): number {
-  return Math.max(0, audioSeconds) * WHISPER_USD_PER_SECOND;
 }
 
 export type AiCostRecord = {

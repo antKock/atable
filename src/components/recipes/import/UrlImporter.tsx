@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Link2, ChevronRight } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
-import ImportCard from "./ImportCard";
+import ImportCard from "@/components/recipes/import/ImportCard";
 
 interface UrlImporterProps {
   expanded: boolean;

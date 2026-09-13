@@ -1,19 +1,39 @@
 import type { Recipe, RecipeListItem, Tag } from "@/types/recipe";
+import type { Tables } from "@/lib/db/types";
 
-// Flatten nested recipe_tags join into tags array
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapTags(row: Record<string, any>): Tag[] {
+// Jointure `recipe_tags(tag_id, tags(id, name, category))` telle que
+// PostgREST la renvoie (tableau, objet `tags` nullable par FK).
+export type TagJoin = {
+  recipe_tags?: ({ tags: Pick<Tables<"tags">, "id" | "name" | "category"> | null } | null)[] | null;
+};
+
+/** Ligne complète (`select("*")`) + jointure tags facultative. */
+export type RecipeRow = Tables<"recipes"> & TagJoin;
+
+/** Projection liste (Home/Bibliothèque/GET /api/recipes) + jointure tags. */
+export type RecipeListRow = Pick<
+  Tables<"recipes">,
+  | "id"
+  | "title"
+  | "ingredients"
+  | "photo_url"
+  | "created_at"
+  | "generated_image_url"
+  | "enrichment_status"
+  | "image_status"
+> &
+  TagJoin;
+
+// Flatten nested recipe_tags join into tags array (partagé avec queries/carousels).
+export function mapTags(row: TagJoin): Tag[] {
   const relationalTags = row.recipe_tags;
   if (!Array.isArray(relationalTags)) return [];
-  return relationalTags
-    .map((rt: { tags: { id: string; name: string; category: string | null } } | null) =>
-      rt?.tags ? { id: rt.tags.id, name: rt.tags.name, category: rt.tags.category } : null,
-    )
-    .filter(Boolean) as Tag[];
+  return relationalTags.flatMap((rt) =>
+    rt?.tags ? [{ id: rt.tags.id, name: rt.tags.name, category: rt.tags.category }] : [],
+  );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapDbRowToRecipe(row: Record<string, any>): Recipe {
+export function mapDbRowToRecipe(row: RecipeRow): Recipe {
   const tags = mapTags(row);
 
   return {
@@ -25,8 +45,10 @@ export function mapDbRowToRecipe(row: Record<string, any>): Recipe {
     notes: row.notes ?? null,
     tags,
     photoUrl: row.photo_url,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    // `created_at` / `updated_at` ont un DEFAULT now() sans NOT NULL : jamais
+    // null en pratique, le repli ne sert qu'au typage.
+    createdAt: row.created_at ?? "",
+    updatedAt: row.updated_at ?? row.created_at ?? "",
     // v3 fields
     prepTime: row.prep_time ?? null,
     cookTime: row.cook_time ?? null,
@@ -43,15 +65,14 @@ export function mapDbRowToRecipe(row: Record<string, any>): Recipe {
   };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function mapDbRowToRecipeListItem(row: Record<string, any>): RecipeListItem {
+export function mapDbRowToRecipeListItem(row: RecipeListRow): RecipeListItem {
   return {
     id: row.id,
     title: row.title,
     ingredients: row.ingredients,
     tags: mapTags(row),
     photoUrl: row.photo_url,
-    createdAt: row.created_at,
+    createdAt: row.created_at ?? "",
     generatedImageUrl: row.generated_image_url ?? null,
     enrichmentStatus: row.enrichment_status ?? "none",
     imageStatus: row.image_status ?? "none",

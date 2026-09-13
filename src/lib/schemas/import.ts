@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { Dictionary } from "@/lib/i18n/types";
-import { t as fr } from "@/lib/i18n/fr";
+import type { FullDictionary } from "@/lib/i18n/types";
+import { frFull as fr } from "@/lib/i18n/full";
 import {
   VALID_SEASONS,
   VALID_PREP_TIMES,
@@ -14,7 +14,7 @@ import {
 const MAX_BASE64_LENGTH = 15_000_000;
 
 // Messages localisés (chantier i18n) : factories + défaut FR.
-export function buildImportScreenshotSchema(t: Dictionary) {
+export function buildImportScreenshotSchema(t: FullDictionary) {
   return z.object({
     images: z
       .array(z.string().min(1).max(MAX_BASE64_LENGTH, t.validation.imageTooLarge))
@@ -23,7 +23,7 @@ export function buildImportScreenshotSchema(t: Dictionary) {
   });
 }
 
-export function buildImportUrlSchema(t: Dictionary) {
+export function buildImportUrlSchema(t: FullDictionary) {
   return z.object({
     url: z
       .string()
@@ -56,5 +56,18 @@ export const VALID_VOICE_MIME_TYPES = [
   "audio/mp4",
   "audio/mpeg",
 ] as const;
+
+/**
+ * Fichier audio de l'import vocal (champ `audio` du multipart) : taille et
+ * type MIME (le paramètre `;codecs=…` est ignoré). Messages localisés.
+ */
+export function buildImportVoiceSchema(t: FullDictionary) {
+  return z
+    .instanceof(File, { message: t.api.audioRequired })
+    .refine((f) => f.size <= MAX_VOICE_FILE_SIZE, { message: t.api.audioTooLarge })
+    .refine((f) => (VALID_VOICE_MIME_TYPES as readonly string[]).includes(f.type.split(";")[0]), {
+      message: t.api.audioFormatUnsupported,
+    });
+}
 
 export type ImportResult = z.infer<typeof ImportResultSchema>;

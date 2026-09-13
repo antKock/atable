@@ -1,65 +1,64 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { Eye } from 'lucide-react'
-import { useT } from '@/lib/i18n/client'
-import { dropSwrCache } from '@/lib/swr'
-import type { MembershipRole } from '@/lib/auth/owner-context'
+import { useState } from "react";
+import Link from "next/link";
+import { Eye } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
+import { dropSwrCache } from "@/lib/swr";
+import type { MembershipRole } from "@/lib/auth/owner-context";
 
 type Props = {
-  householdName: string
-  joinCode: string
+  householdName: string;
+  joinCode: string;
   // Rôle porté par le code (Lot 3) : un code invité affiche la copy lecture seule.
-  role?: MembershipRole
-}
+  role?: MembershipRole;
+};
 
-export default function JoinConfirmation({ householdName, joinCode, role = 'member' }: Props) {
-  const t = useT()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+export default function JoinConfirmation({ householdName, joinCode, role = "member" }: Props) {
+  const t = useT();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleJoin() {
-    setLoading(true)
-    setError(null)
+    setLoading(true);
+    setError(null);
 
     try {
-      const response = await fetch('/api/households/join', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/households/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ code: joinCode }),
-      })
+      });
 
-      const data = await response.json()
-      if (!response.ok) {
-        setError(data.error ?? t.joinLink.notFound)
-        setLoading(false)
-        return
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        redirect?: string;
+      };
+      if (!response.ok || !data.redirect) {
+        setError(data.error ?? t.joinLink.notFound);
+        setLoading(false);
+        return;
       }
-      dropSwrCache() // joined a household: previous session's cache is stale
-      window.location.href = data.redirect
+      dropSwrCache(); // joined a household: previous session's cache is stale
+      window.location.href = data.redirect;
     } catch {
-      setError(t.joinLink.notFound)
-      setLoading(false)
+      setError(t.joinLink.notFound);
+      setLoading(false);
     }
   }
 
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-6 px-6 text-center">
-      <h1 className="text-2xl font-bold text-foreground">
-        {t.joinLink.hero(householdName)}
-      </h1>
+      <h1 className="text-2xl font-bold text-foreground">{t.joinLink.hero(householdName)}</h1>
 
-      {role === 'guest' && (
+      {role === "guest" && (
         <p className="-mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
           <Eye size={15} strokeWidth={2} aria-hidden="true" />
           {t.joinLink.guestNote}
         </p>
       )}
 
-      {error && (
-        <p className="text-sm text-destructive">{error}</p>
-      )}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <button
         type="button"
@@ -67,7 +66,7 @@ export default function JoinConfirmation({ householdName, joinCode, role = 'memb
         disabled={loading}
         className="flex w-full min-h-11 items-center justify-center rounded-xl bg-accent px-6 text-base font-semibold text-accent-foreground transition-opacity hover:opacity-90 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
       >
-        {loading ? '…' : t.joinLink.confirm}
+        {loading ? "…" : t.joinLink.confirm}
       </button>
 
       <Link
@@ -77,5 +76,5 @@ export default function JoinConfirmation({ householdName, joinCode, role = 'memb
         {t.joinLink.backToLanding}
       </Link>
     </div>
-  )
+  );
 }

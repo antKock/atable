@@ -16,7 +16,10 @@ const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="mt-10 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-foreground">
+    <h2
+      id={id}
+      className="mt-10 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-foreground"
+    >
       {children}
     </h2>
   );
@@ -31,7 +34,10 @@ function FAQ({ question, children }: { question: string; children: React.ReactNo
     <details className="group my-2 rounded-xl border border-foreground/10 bg-background/50 p-4 [&_summary::-webkit-details-marker]:hidden">
       <summary className="flex cursor-pointer items-center justify-between gap-2 text-base font-medium text-foreground">
         {question}
-        <span aria-hidden="true" className="text-foreground/40 transition-transform group-open:rotate-45">
+        <span
+          aria-hidden="true"
+          className="text-foreground/40 transition-transform group-open:rotate-45"
+        >
           +
         </span>
       </summary>
@@ -52,8 +58,8 @@ export default function SupportEn() {
       <article>
         <h1 className="text-3xl font-bold tracking-tight text-foreground">Support</h1>
         <p className="mt-2 text-foreground/70">
-          A question, a bug, an idea? The best way to reach us is by email. We usually reply
-          within 2 business days.
+          A question, a bug, an idea? The best way to reach us is by email. We usually reply within
+          2 business days.
         </p>
 
         <H2 id="contact">Write to us</H2>
@@ -89,13 +95,13 @@ export default function SupportEn() {
               <strong>Voice dictation</strong> — you talk, we transcribe and structure it.
             </li>
             <li>
-              <strong>Link</strong> — paste the address of a cooking blog, we fetch it and shape
-              it up.
+              <strong>Link</strong> — paste the address of a cooking blog, we fetch it and shape it
+              up.
             </li>
           </ul>
           <p>
-            The recipe appears right away; enrichment (tags, times, generated image) happens in
-            the background.
+            The recipe appears right away; enrichment (tags, times, generated image) happens in the
+            background.
           </p>
         </FAQ>
 
@@ -104,12 +110,12 @@ export default function SupportEn() {
             Open <strong>Cookbook &amp; profile</strong> from Home, pick the cookbook, then{" "}
             <strong>Invite someone</strong>. Two links to choose from: <strong>member</strong>{" "}
             (views and edits recipes) or <strong>guest</strong> (read-only, live). The{" "}
-            <strong>invite code</strong> (e.g. <code>THYME-0421</code>) works too: the person
-            enters it on the app&apos;s home screen.
+            <strong>invite code</strong> (e.g. <code>THYME-0421</code>) works too: the person enters
+            it on the app&apos;s home screen.
           </p>
           <p>
-            ⚠️ A link or code acts as an access key: only share it with people you trust. Any
-            member can remove someone from the cookbook at any time from the members list.
+            ⚠️ A link or code acts as an access key: only share it with people you trust. Any member
+            can remove someone from the cookbook at any time from the members list.
           </p>
         </FAQ>
 
@@ -121,11 +127,11 @@ export default function SupportEn() {
             account.
           </p>
           <p>
-            Otherwise, ask a member of the cookbook for the <strong>invite code</strong> (visible
-            in <strong>Cookbook &amp; profile</strong>). If you were alone, with no recovery email
-            and no device still connected, the cookbook unfortunately can&apos;t be recovered:
-            that&apos;s the flip side of anonymous sign-in. Consider saving a recovery email — it
-            is used for nothing else.
+            Otherwise, ask a member of the cookbook for the <strong>invite code</strong> (visible in{" "}
+            <strong>Cookbook &amp; profile</strong>). If you were alone, with no recovery email and
+            no device still connected, the cookbook unfortunately can&apos;t be recovered:
+            that&apos;s the flip side of anonymous sign-in. Consider saving a recovery email — it is
+            used for nothing else.
           </p>
         </FAQ>
 
@@ -136,8 +142,8 @@ export default function SupportEn() {
               <strong>Blurry photo or tiny text</strong> — get closer, take several shots.
             </li>
             <li>
-              <strong>Protected web page</strong> (paywall, heavy JavaScript) — copy the recipe
-              text and type it in manually.
+              <strong>Protected web page</strong> (paywall, heavy JavaScript) — copy the recipe text
+              and type it in manually.
             </li>
             <li>
               <strong>Voice dictation in a noisy place</strong> — try again somewhere quiet.
@@ -156,8 +162,8 @@ export default function SupportEn() {
               <strong>Delete a recipe</strong>: from its page, menu&nbsp;…&nbsp;→ Delete.
             </li>
             <li>
-              <strong>Leave the cookbook</strong>: removes your access to that cookbook. The
-              recipes stay for the other members.
+              <strong>Leave the cookbook</strong>: removes your access to that cookbook. The recipes
+              stay for the other members.
             </li>
             <li>
               <strong>Remove your recovery email or your name</strong>: from{" "}
@@ -187,7 +193,8 @@ export default function SupportEn() {
             <a href="https://mijote.anthonykocken.fr" className="underline underline-offset-2">
               mijote.anthonykocken.fr
             </a>
-            . You can use it from any browser and add it to your phone&apos;s home screen (PWA mode).
+            . You can use it from any browser and add it to your phone&apos;s home screen (PWA
+            mode).
           </p>
         </FAQ>
 
@@ -204,7 +211,10 @@ export default function SupportEn() {
         </P>
         <P>
           Publisher: Anthony Kocken, independent developer. Contact:{" "}
-          <a href={`mailto:${contactEmail}`} className="text-foreground underline underline-offset-2 hover:no-underline">
+          <a
+            href={`mailto:${contactEmail}`}
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
             {contactEmail}
           </a>
           .

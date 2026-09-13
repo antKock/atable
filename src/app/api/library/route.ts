@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
+import { mapDbRowToRecipeListItem, type RecipeListRow } from "@/lib/supabase/mappers";
+import type { Tables } from "@/lib/db/types";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { visibleTagsOrClause } from "@/lib/db/tags";
 import { householdIds } from "@/lib/auth/owner-context";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function mapToLibraryItem(row: Record<string, any>): LibraryRecipeItem {
+type LibraryRow = RecipeListRow &
+  Pick<Tables<"recipes">, "prep_time" | "cook_time" | "cost" | "seasons" | "household_id"> & {
+    households: Pick<Tables<"households">, "name"> | null;
+  };
+
+function mapToLibraryItem(row: LibraryRow): LibraryRecipeItem {
   return {
     ...mapDbRowToRecipeListItem(row),
     prepTime: row.prep_time ?? null,
@@ -47,7 +53,7 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
     supabase
       .from("tags")
       .select("id, name, category, household_id")
-      .or(`household_id.is.null,household_id.in.(${ids.join(",")})`)
+      .or(visibleTagsOrClause(ids))
       .order("name"),
     supabase.from("households").select("id, name").in("id", ids),
   ]);
@@ -70,7 +76,7 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const byId = new Map((householdsResult.data ?? []).map((h) => [h.id, h.name]));
   const households = ids
     .filter((id) => byId.has(id))
-    .map((id) => ({ id, name: byId.get(id) as string }));
+    .map((id) => ({ id, name: byId.get(id) ?? "" }));
 
   return NextResponse.json({ recipes, tags, households });
 });

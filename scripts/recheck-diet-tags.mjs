@@ -23,7 +23,9 @@ const SUPABASE_URL = env["NEXT_PUBLIC_SUPABASE_URL"];
 const SERVICE_KEY = env["SUPABASE_SERVICE_ROLE_KEY"];
 const OPENAI_KEY = env["OPENAI_SERVICE_KEY"];
 if (!SUPABASE_URL || !SERVICE_KEY || !OPENAI_KEY) {
-  console.error(`Missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or OPENAI_SERVICE_KEY in ${ENV_FILE}`);
+  console.error(
+    `Missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY or OPENAI_SERVICE_KEY in ${ENV_FILE}`,
+  );
   process.exit(1);
 }
 if (APPLY) await confirmProd("suppression des tags de régime erronés", { envFile: ENV_FILE });
@@ -42,7 +44,8 @@ async function rest(path, init = {}) {
       ...init.headers,
     },
   });
-  if (!res.ok) throw new Error(`${init.method ?? "GET"} ${path} → ${res.status} ${await res.text()}`);
+  if (!res.ok)
+    throw new Error(`${init.method ?? "GET"} ${path} → ${res.status} ${await res.text()}`);
   return res.status === 204 ? null : res.json();
 }
 
@@ -82,7 +85,10 @@ async function classifyDiet(recipe) {
 - evidence : le ou les ingrédients qui justifient tes réponses (chaîne vide si aucun).
 Ignore les suggestions purement optionnelles du type « servir avec ».`,
         },
-        { role: "user", content: `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients ?? ""}` },
+        {
+          role: "user",
+          content: `Titre: ${recipe.title}\nIngrédients:\n${recipe.ingredients ?? ""}`,
+        },
       ],
     }),
   });
@@ -93,7 +99,7 @@ Ignore les suggestions purement optionnelles du type « servir avec ».`,
 
 // 1. All predefined recipe_tags with their recipe content
 const rows = await rest(
-  "recipe_tags?select=recipe_id,tag_id,tags!inner(name,is_predefined),recipes!inner(id,title,ingredients)&tags.is_predefined=eq.true"
+  "recipe_tags?select=recipe_id,tag_id,tags!inner(name,is_predefined),recipes!inner(id,title,ingredients)&tags.is_predefined=eq.true",
 );
 
 const recipes = new Map();
@@ -130,11 +136,16 @@ async function worker() {
     const isVegan = isVegetarian && !verdict.containsOtherAnimalProduct;
     const has = (name) => recipe.tags.find((t) => t.name === name);
 
-    for (const [tagName, ok] of [["Végétarien", isVegetarian], ["Végan", isVegan]]) {
+    for (const [tagName, ok] of [
+      ["Végétarien", isVegetarian],
+      ["Végan", isVegan],
+    ]) {
       const tag = has(tagName);
-      if (tag && !ok) wrongTags.push({ recipe, tagName, tagId: tag.tagId, evidence: verdict.evidence });
+      if (tag && !ok)
+        wrongTags.push({ recipe, tagName, tagId: tag.tagId, evidence: verdict.evidence });
       // Les recettes sans ingrédients ne permettent pas d'affirmer un régime.
-      if (!tag && ok && recipe.ingredients) missing.push({ recipe, tagName, evidence: verdict.evidence });
+      if (!tag && ok && recipe.ingredients)
+        missing.push({ recipe, tagName, evidence: verdict.evidence });
     }
     checked++;
     if (checked % 25 === 0) console.log(`  …${checked}/${recipes.size} vérifiées`);
@@ -145,7 +156,9 @@ await Promise.all(Array.from({ length: 5 }, worker));
 // 3. Report
 console.log(`\n=== Tags de régime POSÉS À TORT (${wrongTags.length}) ===`);
 for (const w of wrongTags) {
-  console.log(`  ✗ ${w.tagName} — « ${w.recipe.title} » (${w.recipe.id})\n      preuve : ${w.evidence}`);
+  console.log(
+    `  ✗ ${w.tagName} — « ${w.recipe.title} » (${w.recipe.id})\n      preuve : ${w.evidence}`,
+  );
 }
 console.log(`\n=== Tags de régime MANQUANTS (${missing.length}) — rapport seulement ===`);
 for (const m of missing) {
@@ -156,7 +169,9 @@ for (const m of missing) {
 if (APPLY && wrongTags.length > 0) {
   console.log(`\nSuppression de ${wrongTags.length} tag(s) erroné(s)…`);
   for (const w of wrongTags) {
-    await rest(`recipe_tags?recipe_id=eq.${w.recipe.id}&tag_id=eq.${w.tagId}`, { method: "DELETE" });
+    await rest(`recipe_tags?recipe_id=eq.${w.recipe.id}&tag_id=eq.${w.tagId}`, {
+      method: "DELETE",
+    });
     console.log(`  supprimé : ${w.tagName} ← « ${w.recipe.title} »`);
   }
 } else if (wrongTags.length > 0) {

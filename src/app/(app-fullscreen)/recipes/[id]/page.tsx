@@ -10,11 +10,12 @@ import {
   roleForHousehold,
   type OwnerContext,
 } from "@/lib/auth/owner-context";
-import WakeLockActivator from "@/components/recipes/WakeLockActivator";
-import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
-import RecipeView from "@/components/recipes/RecipeView";
-import RecipeActionPill from "@/components/recipes/RecipeActionPill";
-import BackCircleButton from "@/components/recipes/BackCircleButton";
+import WakeLockActivator from "@/components/recipes/view/WakeLockActivator";
+import EnrichmentPollingWrapper from "@/components/recipes/view/EnrichmentPollingWrapper";
+import RecipeView from "@/components/recipes/view/RecipeView";
+import { getT } from "@/lib/i18n/server";
+import RecipeActionPill from "@/components/recipes/view/RecipeActionPill";
+import BackButton from "@/components/ui/BackButton";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -33,7 +34,7 @@ async function getRecipe(id: string, owner: OwnerContext | null) {
     .in("household_id", householdIds(owner))
     .single();
   if (!data) return null;
-  return { recipe: mapDbRowToRecipe(data), householdId: data.household_id as string };
+  return { recipe: mapDbRowToRecipe(data), householdId: data.household_id };
 }
 
 function trackView(id: string, currentViewCount: number) {
@@ -74,9 +75,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) return {};
   const { recipe } = result;
 
-  const description = recipe.tags.length > 0
-    ? recipe.tags.map((tag) => tag.name).join(", ")
-    : "Une recette sur Mijote";
+  const description =
+    recipe.tags.length > 0
+      ? recipe.tags.map((tag) => tag.name).join(", ")
+      : "Une recette sur Mijote";
 
   return {
     title: recipe.title,
@@ -98,6 +100,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   if (!result || !owner) notFound();
   const { recipe, householdId } = result;
+  const t = await getT();
 
   trackView(id, recipe.viewCount);
   trackPersonView(owner, householdId);
@@ -116,7 +119,7 @@ export default async function RecipeDetailPage({ params }: Props) {
       .select("name")
       .eq("id", householdId)
       .single();
-    householdName = (data?.name as string | undefined) ?? null;
+    householdName = data?.name ?? null;
   }
 
   // Destinations de « Déplacer » : les foyers où l'owner est membre (noms lus
@@ -132,14 +135,14 @@ export default async function RecipeDetailPage({ params }: Props) {
       const byId = new Map((data ?? []).map((h) => [h.id, h.name]));
       memberFoyers = memberIds
         .filter((mid) => byId.has(mid))
-        .map((mid) => ({ id: mid, name: byId.get(mid) as string }));
+        .map((mid) => ({ id: mid, name: byId.get(mid) ?? "" }));
     }
   }
 
   const heroOverlay = (
     <>
       {/* Back button — clean white circle */}
-      <BackCircleButton href="/home" />
+      <BackButton variant="circle" href="/home" />
 
       {/* Pill d'actions (client). Un INVITÉ n'a que « Partager » (le reste —
           éditer/supprimer/déplacer — reste réservé aux membres via canManage).
@@ -162,7 +165,7 @@ export default async function RecipeDetailPage({ params }: Props) {
         enrichmentStatus={recipe.enrichmentStatus}
         imageStatus={recipe.imageStatus}
       />
-      <RecipeView recipe={recipe} householdName={householdName} heroOverlay={heroOverlay} />
+      <RecipeView recipe={recipe} householdName={householdName} heroOverlay={heroOverlay} t={t} />
     </>
   );
 }

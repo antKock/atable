@@ -1,0 +1,17 @@
+.next*
+node_modules
+out
+build
+coverage
+test-results
+playwright-report
+android
+ios
+public
+docs
+supabase
+*.md
+package-lock.json
+src/lib/db/types.ts
+_bmad
+_bmad-output

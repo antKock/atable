@@ -4,8 +4,8 @@ import { render, screen, cleanup } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { LocaleProvider } from "./client";
 import { en } from "./en";
-import RecipeCard from "@/components/recipes/RecipeCard";
-import MetadataGrid from "@/components/recipes/MetadataGrid";
+import RecipeCard from "@/components/recipes/card/RecipeCard";
+import MetadataGrid from "@/components/recipes/view/MetadataGrid";
 import Navigation from "@/components/layout/Navigation";
 import type { RecipeListItem } from "@/types/recipe";
 
@@ -41,15 +41,32 @@ const recipe: RecipeListItem = {
 
 describe("rendu EN sous LocaleProvider", () => {
   it("RecipeCard : sans accent FR, titre et alt anglais", () => {
-    const { container } = render(<RecipeCard recipe={{ ...recipe, photoUrl: "https://example.supabase.co/storage/v1/object/public/recipe-photos/x.webp" }} />, { wrapper });
+    const { container } = render(
+      <RecipeCard
+        recipe={{
+          ...recipe,
+          photoUrl: "https://example.supabase.co/storage/v1/object/public/recipe-photos/x.webp",
+        }}
+      />,
+      { wrapper },
+    );
     expect(container.textContent).not.toMatch(FRENCH_MARKERS);
     expect(container.textContent).toContain("Roast chicken");
-    expect(container.querySelector("img")?.getAttribute("alt")).toBe(en.a11y.recipePhoto("Roast chicken"));
+    expect(container.querySelector("img")?.getAttribute("alt")).toBe(
+      en.a11y.recipePhoto("Roast chicken"),
+    );
   });
 
   it("MetadataGrid : libellés anglais, valeur stockée « facile » → « Easy »", () => {
     const { container } = render(
-      <MetadataGrid prepTime={null} cookTime="Aucune" cost="€" complexity="facile" isLoading={false} />,
+      <MetadataGrid
+        t={en}
+        prepTime={null}
+        cookTime="Aucune"
+        cost="€"
+        complexity="facile"
+        isLoading={false}
+      />,
       { wrapper },
     );
     expect(container.textContent).not.toMatch(FRENCH_MARKERS);

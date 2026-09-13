@@ -13,7 +13,7 @@
 // tables + styles inline ; le dégradé du bouton retombe sur l'olive plein là
 // où linear-gradient n'est pas supporté (Outlook) ; aucune webfont embarquée.
 
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/locale";
 
@@ -31,7 +31,7 @@ export type RecoveryEmailPayload = {
 // résout la locale, cf. sendRecoveryEmail).
 export function renderRecoveryEmail(
   payload: RecoveryEmailPayload,
-  t: Dictionary,
+  t: FullDictionary,
   lang: Locale,
 ): {
   subject: string;
@@ -134,10 +134,7 @@ function nbsp(str: string): string {
   return str.replace(/ ([?:!;])/g, "&nbsp;$1").replace(/(\d+) (minutes)/, "$1&nbsp;$2");
 }
 
-export async function sendRecoveryEmail(
-  to: string,
-  payload: RecoveryEmailPayload,
-): Promise<void> {
+export async function sendRecoveryEmail(to: string, payload: RecoveryEmailPayload): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.log(

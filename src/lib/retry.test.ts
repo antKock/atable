@@ -16,10 +16,7 @@ describe("withRetry", () => {
 
   it("retries a 500 error then succeeds", async () => {
     vi.useFakeTimers();
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(openAIError(500))
-      .mockResolvedValueOnce("ok");
+    const fn = vi.fn().mockRejectedValueOnce(openAIError(500)).mockResolvedValueOnce("ok");
     const p = withRetry(fn);
     await vi.runAllTimersAsync();
     await expect(p).resolves.toBe("ok");
@@ -99,5 +96,28 @@ describe("withRetry", () => {
     const fn = vi.fn().mockRejectedValue(err);
     await expect(withRetry(fn)).rejects.toThrow("bad request");
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("withDeadline", () => {
+  it("résout avec la valeur quand le travail finit avant l'échéance", async () => {
+    const { withDeadline } = await import("./retry");
+    await expect(withDeadline(Promise.resolve("ok"), 1000, () => new Error("late"))).resolves.toBe(
+      "ok",
+    );
+  });
+
+  it("rejette avec l'erreur fournie une fois l'échéance passée", async () => {
+    vi.useFakeTimers();
+    try {
+      const { withDeadline } = await import("./retry");
+      const never = new Promise<string>(() => {});
+      const p = withDeadline(never, 5_000, () => new Error("late"));
+      const assertion = expect(p).rejects.toThrow("late");
+      await vi.advanceTimersByTimeAsync(5_000);
+      await assertion;
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -3,6 +3,8 @@ import {
   importRateLimit,
   recipeCreateRateLimit,
   householdCreateRateLimit,
+  demoSessionRateLimit,
+  shareRateLimit,
 } from "@/lib/redis";
 import { getT } from "@/lib/i18n/server";
 import type { Ratelimit } from "@upstash/ratelimit";
@@ -32,15 +34,35 @@ async function enforceQuota(
 
 /** Daily AI-import quota (url/screenshot/voice), keyed by household. */
 export function enforceImportQuota(householdId: string): Promise<NextResponse | null> {
-  return enforceQuota(importRateLimit, householdId, (t) => t.import.errorImportQuota, "IMPORT_QUOTA");
+  return enforceQuota(
+    importRateLimit,
+    householdId,
+    (t) => t.import.errorImportQuota,
+    "IMPORT_QUOTA",
+  );
 }
 
 /** Recipe creation quota (each create triggers AI enrichment), keyed by household. */
 export function enforceRecipeCreateQuota(householdId: string): Promise<NextResponse | null> {
-  return enforceQuota(recipeCreateRateLimit, householdId, (t) => t.join.rateLimited, "RECIPE_QUOTA");
+  return enforceQuota(
+    recipeCreateRateLimit,
+    householdId,
+    (t) => t.join.rateLimited,
+    "RECIPE_QUOTA",
+  );
 }
 
 /** Household creation quota, keyed by IP (the route is unauthenticated). */
 export function enforceHouseholdCreateQuota(ip: string): Promise<NextResponse | null> {
   return enforceQuota(householdCreateRateLimit, ip, (t) => t.join.rateLimited, "HOUSEHOLD_QUOTA");
+}
+
+/** Demo session quota, keyed by IP (the route is unauthenticated). */
+export function enforceDemoSessionQuota(ip: string): Promise<NextResponse | null> {
+  return enforceQuota(demoSessionRateLimit, ip, (t) => t.join.rateLimited, "DEMO_QUOTA");
+}
+
+/** Copie d'une recette partagée (résolution de jeton), plafond par owner — même limiteur que /r/[token]. */
+export function enforceShareCopyQuota(ownerId: string): Promise<NextResponse | null> {
+  return enforceQuota(shareRateLimit, ownerId, (t) => t.join.rateLimited, "SHARE_QUOTA");
 }

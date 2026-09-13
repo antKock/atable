@@ -71,9 +71,7 @@ export function buildEnrichmentSchema(
   { enumTags }: EnrichmentSchemaOptions,
 ): ResponseFormatJSONSchema.JSONSchema {
   const tagItem =
-    enumTags && tagNames.length > 0
-      ? { type: "string", enum: [...tagNames] }
-      : { type: "string" };
+    enumTags && tagNames.length > 0 ? { type: "string", enum: [...tagNames] } : { type: "string" };
   return {
     name: "enrichment",
     strict: true,
@@ -92,7 +90,16 @@ export function buildEnrichmentSchema(
         servings: { type: ["integer", "null"] },
         imagePrompt: { type: "string" },
       },
-      required: ["tags", "seasons", "prepTime", "cookTime", "cost", "complexity", "servings", "imagePrompt"],
+      required: [
+        "tags",
+        "seasons",
+        "prepTime",
+        "cookTime",
+        "cost",
+        "complexity",
+        "servings",
+        "imagePrompt",
+      ],
       additionalProperties: false,
     },
   };

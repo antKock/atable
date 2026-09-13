@@ -19,8 +19,14 @@ const UA =
 // NB : les URLs cuisineaz/750g redirigent vers d'autres recettes que leur slug
 // d'origine — les slugs ci-dessous reflètent le contenu réellement servi.
 const PAGES = [
-  { slug: "marmiton-ratatouille", url: "https://www.marmiton.org/recettes/recette_ratatouille_23223.aspx" },
-  { slug: "cuisineaz-sauce-pommes", url: "https://www.cuisineaz.com/recettes/quiche-lorraine-4041.aspx" },
+  {
+    slug: "marmiton-ratatouille",
+    url: "https://www.marmiton.org/recettes/recette_ratatouille_23223.aspx",
+  },
+  {
+    slug: "cuisineaz-sauce-pommes",
+    url: "https://www.cuisineaz.com/recettes/quiche-lorraine-4041.aspx",
+  },
   { slug: "750g-tarte-pommes", url: "https://www.750g.com/quiche-lorraine-r4028.htm" },
 ];
 

@@ -1,19 +1,15 @@
-import { z } from 'zod'
+import { z } from "zod";
 
-export const HouseholdCreateSchema = z.string().min(1).max(50)
+export const HouseholdCreateSchema = z.string().min(1).max(50);
 
 // Nom d'owner (profil) : vide autorisé — il devient NULL en DB et l'affichage
 // retombe sur l'alias auto (src/lib/alias.ts).
-export const OwnerNameSchema = z.string().max(50)
+export const OwnerNameSchema = z.string().max(50);
 
 // Email de secours (#14) : normalisé trim + lowercase AVANT validation — la
 // colonne owners.recovery_email est UNIQUE et la collision (→ fusion) doit se
 // détecter quelle que soit la casse saisie. 254 = limite RFC des adresses.
-export const RecoveryEmailSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .pipe(z.email().max(254))
+export const RecoveryEmailSchema = z.string().trim().toLowerCase().pipe(z.email().max(254));
 
 // Join codes display as WORD-NNNN but are entered forgivingly: any case, with
 // or without the dash, with stray spaces. Normalize to the canonical form
@@ -21,13 +17,10 @@ export const RecoveryEmailSchema = z
 // never has to be typed on a mobile keyboard. Anything that doesn't reduce to
 // WORD + 4 digits stays as-is and fails the regex (still rejected).
 function normalizeJoinCode(raw: unknown): unknown {
-  if (typeof raw !== 'string') return raw
-  const cleaned = raw.toUpperCase().replace(/[^A-Z0-9]/g, '')
-  const match = cleaned.match(/^([A-Z]+)(\d{4})$/)
-  return match ? `${match[1]}-${match[2]}` : cleaned
+  if (typeof raw !== "string") return raw;
+  const cleaned = raw.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const match = cleaned.match(/^([A-Z]+)(\d{4})$/);
+  return match ? `${match[1]}-${match[2]}` : cleaned;
 }
 
-export const JoinCodeSchema = z.preprocess(
-  normalizeJoinCode,
-  z.string().regex(/^[A-Z]+-\d{4}$/),
-)
+export const JoinCodeSchema = z.preprocess(normalizeJoinCode, z.string().regex(/^[A-Z]+-\d{4}$/));

@@ -1,13 +1,9 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { trackStat } from "@/lib/admin/track-stat";
-import {
-  getOwnerContext,
-  memberHouseholdIds,
-  type OwnerContext,
-} from "@/lib/auth/owner-context";
+import { getOwnerContext, memberHouseholdIds, type OwnerContext } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from "@/lib/body-limit";
 
 export type WithOwnerAuthOptions = {
@@ -100,10 +96,7 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
       return await handler(request, context as C, owner);
     } catch (err) {
       Sentry.captureException(err);
-      console.error(
-        `[api] ${request.method} ${new URL(request.url).pathname}:`,
-        err,
-      );
+      console.error(`[api] ${request.method} ${new URL(request.url).pathname}:`, err);
       const t = await getT();
       return NextResponse.json({ error: t.api.serverError }, { status: 500 });
     }
@@ -127,7 +120,7 @@ export async function requireMember(
 }
 
 /** 403 générique localisé. Le client branche sur le statut, pas le texte. */
-export function forbiddenResponse(t: Dictionary): NextResponse {
+export function forbiddenResponse(t: FullDictionary): NextResponse {
   return NextResponse.json({ error: t.api.forbidden }, { status: 403 });
 }
 

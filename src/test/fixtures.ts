@@ -2,12 +2,19 @@
 // Shared test fixtures — sample database rows.
 // ---------------------------------------------------------------------------
 
+import type { RecipeRow } from "@/lib/supabase/mappers";
+
 /** A `recipes` row as returned by `SELECT *` from Supabase. */
-export function recipeDbRow(overrides: Record<string, unknown> = {}) {
+export function recipeDbRow(overrides: Partial<RecipeRow> = {}): RecipeRow {
   return {
     id: "recipe-1",
     user_id: null,
     household_id: "household-1",
+    created_by_device_id: null,
+    source: "manual",
+    share_token: null,
+    share_token_created_at: null,
+    last_moved_at: null,
     title: "Bœuf bourguignon",
     ingredients: "Bœuf\nVin rouge\nCarottes\nOignons",
     steps: "Faire revenir la viande\nAjouter le vin\nMijoter 3h",

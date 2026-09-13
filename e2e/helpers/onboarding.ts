@@ -1,5 +1,5 @@
 import { expect, type Browser, type BrowserContext, type Page } from "@playwright/test";
-import { getHouseholdByName } from "./db";
+import { db, getHouseholdByName } from "./db";
 
 /**
  * Chaque « visiteur » E2E = un contexte navigateur isolé (cookies propres)
@@ -9,13 +9,36 @@ import { getHouseholdByName } from "./db";
  */
 export async function newVisitor(
   browser: Browser,
+  options: { arm?: AbArm } = {},
 ): Promise<{ context: BrowserContext; page: Page }> {
   const ip = `10.${rand(254)}.${rand(254)}.${1 + rand(253)}`;
   const context = await browser.newContext({
     extraHTTPHeaders: { "x-forwarded-for": ip },
   });
+  await pinAbArm(context, options.arm ?? "a");
   const page = await context.newPage();
   return { context, page };
+}
+
+/**
+ * A/B onboarding (#25) : le flag est actif dans le harnais, donc un visiteur
+ * sans cookie tire un bras au hasard. Les specs existantes décrivent la landing
+ * A : on pose le cookie avant la première visite (le proxy le respecte).
+ * `"none"` = laisser le proxy tirer (spec dédiée au split).
+ */
+export type AbArm = "a" | "b" | "none";
+
+export async function pinAbArm(context: BrowserContext, arm: AbArm): Promise<void> {
+  if (arm === "none") return;
+  await context.addCookies([
+    {
+      name: "mijote_ab_onboarding",
+      value: arm,
+      url: process.env.E2E_BASE_URL ?? `http://127.0.0.1:${process.env.E2E_PORT ?? 3100}`,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
 }
 
 function rand(max: number): number {
@@ -28,18 +51,42 @@ export function uniqueName(prefix: string): string {
 }
 
 /**
- * Onboarding « Créer un foyer » via l'UI. Redirige vers /home (sans query) et
- * retourne le join code relu en DB par le nom du foyer.
+ * Onboarding « Créer un foyer » via l'UI. Depuis la spec #23 la landing crée
+ * EN UN TAP (nom par défaut « Mon carnet ») ; pour garder le contrat des specs
+ * (un foyer portant `name`, relu en DB par ce nom), on renomme ensuite via
+ * l'API avec la session du navigateur. Retourne le join code.
  */
 export async function createHouseholdViaUI(page: Page, name: string): Promise<string> {
   await page.goto("/");
   await page.getByRole("button", { name: "Créer un carnet" }).click();
-  await page.getByPlaceholder("Ex : Recettes de famille, Chez nous…").fill(name);
-  await page.getByRole("button", { name: "Créer le carnet" }).click();
   await page.waitForURL(/\/home/);
+  const householdId = await currentHouseholdId(page);
+  const rename = await page.request.put(`/api/households/${householdId}`, { data: { name } });
+  expect(rename.status(), "renommage post-création (helper E2E)").toBe(200);
   const household = await getHouseholdByName(name);
   expect(household?.join_code, "le foyer créé doit avoir un join_code").toMatch(/^[A-Z]+-\d{4}$/);
   return household!.join_code as string;
+}
+
+/**
+ * Foyer de la session courante du navigateur : cookie `atable_session` (JWT
+ * signé, payload `{ sid }`) → device_sessions.household_id en DB locale.
+ */
+export async function currentHouseholdId(page: Page): Promise<string> {
+  const cookie = (await page.context().cookies()).find((c) => c.name === "atable_session");
+  expect(cookie, "cookie de session attendu après la création").toBeTruthy();
+  const payload = JSON.parse(
+    Buffer.from(cookie!.value.split(".")[1], "base64url").toString("utf8"),
+  ) as {
+    sid: string;
+  };
+  const { data, error } = await db()
+    .from("device_sessions")
+    .select("household_id")
+    .eq("id", payload.sid)
+    .single();
+  if (error) throw error;
+  return data.household_id as string;
 }
 
 /**

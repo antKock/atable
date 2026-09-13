@@ -28,8 +28,11 @@ export const AI_MODELS = {
 // ⚠ Gamme instable côté OpenAI : le 2026-09-02, Luna acceptait « minimal » le
 // matin puis a basculé sur la gamme none/low/…/xhigh dans la journée (Sentry
 // 6df59580 en prod). D'où la valeur « none » ET le fallback ci-dessous.
-export const TEXT_MODEL_EXTRA_PARAMS: { reasoning_effort?: "none" } =
-  AI_MODELS.text.startsWith("gpt-5") ? { reasoning_effort: "none" } : {};
+export const TEXT_MODEL_EXTRA_PARAMS: { reasoning_effort?: "none" } = AI_MODELS.text.startsWith(
+  "gpt-5",
+)
+  ? { reasoning_effort: "none" }
+  : {};
 
 function isUnsupportedEffortError(err: unknown): boolean {
   return (

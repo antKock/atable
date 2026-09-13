@@ -36,7 +36,14 @@ function loadEnv(file) {
   return env;
 }
 const env = { ...loadEnv(".env.local"), ...loadEnv(opt("--env", ".env.local")) };
-for (const k of ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "S3_BUCKET", "S3_ENDPOINT", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"]) {
+for (const k of [
+  "NEXT_PUBLIC_SUPABASE_URL",
+  "SUPABASE_SERVICE_ROLE_KEY",
+  "S3_BUCKET",
+  "S3_ENDPOINT",
+  "S3_ACCESS_KEY_ID",
+  "S3_SECRET_ACCESS_KEY",
+]) {
   if (!env[k]) throw new Error(`${k} manquante`);
 }
 
@@ -68,10 +75,17 @@ async function listAll(prefix = "") {
   const out = [];
   let offset = 0;
   for (;;) {
-    const data = await withRetry(`list ${prefix}`, () => supabase.storage.from(BUCKET).list(prefix, { limit: 1000, offset }));
+    const data = await withRetry(`list ${prefix}`, () =>
+      supabase.storage.from(BUCKET).list(prefix, { limit: 1000, offset }),
+    );
     for (const entry of data) {
       const path = prefix ? `${prefix}/${entry.name}` : entry.name;
-      if (entry.id) out.push({ path, size: entry.metadata?.size ?? null, mime: entry.metadata?.mimetype ?? null });
+      if (entry.id)
+        out.push({
+          path,
+          size: entry.metadata?.size ?? null,
+          mime: entry.metadata?.mimetype ?? null,
+        });
       else out.push(...(await listAll(path)));
     }
     if (data.length < 1000) break;
@@ -91,25 +105,46 @@ async function existsWithSize(key, size) {
 
 const objects = await listAll();
 console.log(`${objects.length} objets dans ${BUCKET} (${env.NEXT_PUBLIC_SUPABASE_URL})`);
-let copied = 0, skipped = 0, bytes = 0, failed = 0;
+let copied = 0,
+  skipped = 0,
+  bytes = 0,
+  failed = 0;
 for (const obj of objects) {
-  if (!force && (await existsWithSize(obj.path, obj.size))) { skipped++; continue; }
-  if (dryRun) { console.log(`[dry-run] ${obj.path} (${obj.size ?? "?"} o)`); copied++; continue; }
+  if (!force && (await existsWithSize(obj.path, obj.size))) {
+    skipped++;
+    continue;
+  }
+  if (dryRun) {
+    console.log(`[dry-run] ${obj.path} (${obj.size ?? "?"} o)`);
+    copied++;
+    continue;
+  }
   let data;
   try {
-    data = await withRetry(`download ${obj.path}`, () => supabase.storage.from(BUCKET).download(obj.path));
-  } catch (err) { console.error(`✗ ${err.message}`); failed++; continue; }
+    data = await withRetry(`download ${obj.path}`, () =>
+      supabase.storage.from(BUCKET).download(obj.path),
+    );
+  } catch (err) {
+    console.error(`✗ ${err.message}`);
+    failed++;
+    continue;
+  }
   const body = new Uint8Array(await data.arrayBuffer());
-  await s3.send(new PutObjectCommand({
-    Bucket: env.S3_BUCKET,
-    Key: obj.path,
-    Body: body,
-    ContentType: obj.mime ?? data.type ?? "application/octet-stream",
-    CacheControl: "public, max-age=2592000",
-    ACL: "public-read",
-  }));
-  copied++; bytes += body.byteLength;
+  await s3.send(
+    new PutObjectCommand({
+      Bucket: env.S3_BUCKET,
+      Key: obj.path,
+      Body: body,
+      ContentType: obj.mime ?? data.type ?? "application/octet-stream",
+      CacheControl: "public, max-age=2592000",
+      ACL: "public-read",
+    }),
+  );
+  copied++;
+  bytes += body.byteLength;
   if (copied % 25 === 0) console.log(`… ${copied} copiés`);
 }
-console.log(`copiés: ${copied}, déjà présents: ${skipped}, échecs: ${failed}, ${(bytes / 1e6).toFixed(1)} Mo transférés${dryRun ? " (dry-run)" : ""}`);
+console.log(
+  `copiés: ${copied}, déjà présents: ${skipped}, échecs: ${failed}, ${(bytes / 1e6).toFixed(1)} Mo transférés${dryRun ? " (dry-run)" : ""}`,
+);
 if (failed > 0) process.exit(1);

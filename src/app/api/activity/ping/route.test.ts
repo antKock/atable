@@ -63,7 +63,9 @@ describe("POST /api/activity/ping", () => {
   });
 
   it("records the app version when provided", async () => {
-    await POST(postRequest({ platform: "ios", appVersion: "55adf8d6456da1d13a647e6884e6acfb504e1d3f" }));
+    await POST(
+      postRequest({ platform: "ios", appVersion: "55adf8d6456da1d13a647e6884e6acfb504e1d3f" }),
+    );
     expect(payloadOf("daily_activity", "upsert").app_version).toBe(
       "55adf8d6456da1d13a647e6884e6acfb504e1d3f",
     );
@@ -91,6 +93,20 @@ describe("POST /api/activity/ping", () => {
     mockHeaders.mockResolvedValue(new Headers());
     const res = await POST(postRequest({ platform: "web" }));
     expect(res.status).toBe(401);
+  });
+
+  it("répond 204 (pas 401) pour un owner sans foyer : le client ne doit pas purger le cookie", async () => {
+    vi.mocked(getOwnerContext).mockResolvedValueOnce({
+      ownerId: "owner-alone",
+      ownerName: null,
+      ownerAlias: null,
+      recoveryEmail: null,
+      sessionId: "session-alone",
+      memberships: [],
+    });
+    const res = await POST(postRequest({ platform: "web" }));
+    expect(res.status).toBe(204);
+    expect(supa.calls).toHaveLength(0);
   });
 
   // Opt-out de la garde démo par défaut de withOwnerAuth : le heartbeat d'un

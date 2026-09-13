@@ -58,7 +58,7 @@ describe("mapDbRowToRecipe", () => {
 
   it("returns an empty tags array when the join is absent (legacy TEXT[] dropped in 018)", () => {
     const recipe = mapDbRowToRecipe(
-      recipeDbRow({ recipe_tags: undefined, tags: undefined }),
+      recipeDbRow({ recipe_tags: undefined }),
     );
     expect(recipe.tags).toEqual([]);
   });

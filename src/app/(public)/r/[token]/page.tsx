@@ -7,16 +7,14 @@ import { shareRateLimit } from "@/lib/redis";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import { resolveOwnerContext, householdIds } from "@/lib/auth/owner-context";
-import RecipeView from "@/components/recipes/RecipeView";
-import { getLocale } from "@/lib/i18n/server";
+import RecipeView from "@/components/recipes/view/RecipeView";
+import { getLocale, getT } from "@/lib/i18n/server";
 import { dictionaries, LOCALES } from "@/lib/i18n";
 import { ogLocaleTag } from "@/lib/i18n/locale";
 import { tagLabel } from "@/lib/i18n/labels";
 import { SHARE_LOCALE_PARAM, shareLocaleFromSearchParam } from "@/lib/share-url";
-import InAppBackButton from "@/components/recipes/InAppBackButton";
-import ShareRecipeActions, {
-  type ViewerState,
-} from "@/components/recipes/ShareRecipeActions";
+import InAppBackButton from "@/components/recipes/view/InAppBackButton";
+import ShareRecipeActions, { type ViewerState } from "@/components/recipes/view/ShareRecipeActions";
 
 type Props = {
   params: Promise<{ token: string }>;
@@ -34,7 +32,7 @@ async function getSharedRecipe(token: string) {
   if (!data) return null;
   return {
     recipe: mapDbRowToRecipe(data),
-    householdId: data.household_id as string | null,
+    householdId: data.household_id,
   };
 }
 
@@ -93,6 +91,8 @@ export default async function SharedRecipePage({ params }: Props) {
   if (!result) notFound();
 
   const { recipe, householdId } = result;
+  // Langue du LECTEUR (pas l'indice `?l=` réservé aux métadonnées OG).
+  const t = await getT();
 
   // Viewer context from the session cookie (the route itself is public).
   const cookieStore = await cookies();
@@ -105,7 +105,8 @@ export default async function SharedRecipePage({ params }: Props) {
   let viewerState: ViewerState = "guest";
   if (payload) {
     const owner = await resolveOwnerContext(payload.sid);
-    const belongs = owner !== null && householdId !== null && householdIds(owner).includes(householdId);
+    const belongs =
+      owner !== null && householdId !== null && householdIds(owner).includes(householdId);
     viewerState = belongs ? "owner" : "friend";
   }
 
@@ -116,7 +117,7 @@ export default async function SharedRecipePage({ params }: Props) {
       className="min-h-dvh bg-background pb-40"
       style={{ paddingTop: "env(safe-area-inset-top)" }}
     >
-      <RecipeView recipe={recipe} heroOverlay={<InAppBackButton />} />
+      <RecipeView recipe={recipe} heroOverlay={<InAppBackButton />} t={t} />
       <ShareRecipeActions
         token={token}
         viewerState={viewerState}

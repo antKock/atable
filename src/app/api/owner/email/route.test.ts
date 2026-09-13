@@ -6,7 +6,7 @@ import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { recoveryEmailRateLimit, recoveryIpRateLimit } from "@/lib/redis";
 import { createLoginToken } from "@/lib/queries/recovery";
 import { sendRecoveryEmail } from "@/lib/email/send";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
@@ -32,12 +32,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
-  vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue(
-    { success: true } as Awaited<ReturnType<typeof recoveryEmailRateLimit.limit>>,
-  );
-  vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue(
-    { success: true } as Awaited<ReturnType<typeof recoveryIpRateLimit.limit>>,
-  );
+  vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue({ success: true } as Awaited<
+    ReturnType<typeof recoveryEmailRateLimit.limit>
+  >);
+  vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue({ success: true } as Awaited<
+    ReturnType<typeof recoveryIpRateLimit.limit>
+  >);
 });
 
 function owner(overrides: Partial<OwnerContext> = {}): OwnerContext {
@@ -108,8 +108,7 @@ describe("PUT /api/owner/email", () => {
     expect(
       call?.ops.some(
         (o) =>
-          o.method === "update" &&
-          (o.args[0] as { recovery_email: null }).recovery_email === null,
+          o.method === "update" && (o.args[0] as { recovery_email: null }).recovery_email === null,
       ),
     ).toBe(true);
   });
@@ -141,9 +140,9 @@ describe("PUT /api/owner/email", () => {
 
   it("collision rate-limitée par adresse → 429 sans envoi", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
-    vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue(
-      { success: false } as Awaited<ReturnType<typeof recoveryEmailRateLimit.limit>>,
-    );
+    vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue({ success: false } as Awaited<
+      ReturnType<typeof recoveryEmailRateLimit.limit>
+    >);
     supa.queueResult({ data: { id: "owner-cible" }, error: null });
     const res = await PUT(request({ email: "deja@pris.fr" }));
     expect(res.status).toBe(429);
@@ -152,19 +151,19 @@ describe("PUT /api/owner/email", () => {
 
   it("plafond IP atteint → 429 avant le lookup (anti-énumération de masse)", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
-    vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue(
-      { success: false } as Awaited<ReturnType<typeof recoveryIpRateLimit.limit>>,
-    );
+    vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue({ success: false } as Awaited<
+      ReturnType<typeof recoveryIpRateLimit.limit>
+    >);
     const res = await PUT(request({ email: "cible@ex.fr" }));
     expect(res.status).toBe(429);
     // Rien n'est révélé : pas même un lookup d'existence
     expect(supa.calls).toHaveLength(0);
   });
 
-  it("400 sur un format invalide", async () => {
+  it("422 sur un format invalide", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
     const res = await PUT(request({ email: "pas-un-email" }));
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect((await res.json()).error).toBe(t.profile.emailInvalid);
     expect(supa.calls).toHaveLength(0);
   });

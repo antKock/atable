@@ -28,7 +28,12 @@ describe("makeToken", () => {
     const header = JSON.parse(Buffer.from(h, "base64url").toString());
     const payload = JSON.parse(Buffer.from(p, "base64url").toString());
     expect(header).toEqual({ alg: "ES256", kid: "KEY123", typ: "JWT" });
-    expect(payload).toEqual({ iss: "issuer-uuid", iat: 1_700_000_000, exp: 1_700_000_900, aud: "appstoreconnect-v1" });
+    expect(payload).toEqual({
+      iss: "issuer-uuid",
+      iat: 1_700_000_000,
+      exp: 1_700_000_900,
+      aud: "appstoreconnect-v1",
+    });
     const ok = createVerify("SHA256")
       .update(`${h}.${p}`)
       .verify({ key: publicKey, dsaEncoding: "ieee-p1363" }, Buffer.from(s, "base64url"));
@@ -38,11 +43,17 @@ describe("makeToken", () => {
 
 describe("credentialsFromEnv", () => {
   it("lève si une variable manque", () => {
-    expect(() => credentialsFromEnv({ APPLE_CONNECT_KEY: "x", APPLE_CONNECT_KEY_ID: "y" })).toThrow(/APPLE_CONNECT/);
+    expect(() => credentialsFromEnv({ APPLE_CONNECT_KEY: "x", APPLE_CONNECT_KEY_ID: "y" })).toThrow(
+      /APPLE_CONNECT/,
+    );
   });
   it("lit les trois variables", () => {
     expect(
-      credentialsFromEnv({ APPLE_CONNECT_KEY: "k", APPLE_CONNECT_KEY_ID: "id", APPLE_CONNECT_ISSUER_ID: "iss" }),
+      credentialsFromEnv({
+        APPLE_CONNECT_KEY: "k",
+        APPLE_CONNECT_KEY_ID: "id",
+        APPLE_CONNECT_ISSUER_ID: "iss",
+      }),
     ).toEqual({ key: "k", keyId: "id", issuerId: "iss" });
   });
 });
@@ -65,7 +76,10 @@ describe("createAppleConnectClient.api", () => {
   });
 
   it("lève sur une réponse non-2xx avec le corps", async () => {
-    const client = createAppleConnectClient(CREDS, async () => new Response("nope", { status: 403, statusText: "Forbidden" }));
+    const client = createAppleConnectClient(
+      CREDS,
+      async () => new Response("nope", { status: 403, statusText: "Forbidden" }),
+    );
     await expect(client.api("/v1/apps")).rejects.toThrow(/403 Forbidden — nope/);
   });
 });
@@ -74,10 +88,17 @@ describe("createAppleConnectClient.downloadInstance", () => {
   it("télécharge chaque segment sans jeton et décompresse le TSV", async () => {
     const fetchImpl = vi.fn<FetchLike>(async (url, init) => {
       if (url.includes("/segments")) {
-        return jsonResponse({ data: [{ attributes: { url: "https://s3.example/a.gz" } }, { attributes: { url: "https://s3.example/b.gz" } }] });
+        return jsonResponse({
+          data: [
+            { attributes: { url: "https://s3.example/a.gz" } },
+            { attributes: { url: "https://s3.example/b.gz" } },
+          ],
+        });
       }
       expect(init).toBeUndefined();
-      const body = url.endsWith("a.gz") ? "Date\tCounts\n2026-09-09\t1\n" : "Date\tCounts\n2026-09-09\t2\n";
+      const body = url.endsWith("a.gz")
+        ? "Date\tCounts\n2026-09-09\t1\n"
+        : "Date\tCounts\n2026-09-09\t2\n";
       return new Response(gzipSync(Buffer.from(body)));
     });
     const client = createAppleConnectClient(CREDS, fetchImpl);
@@ -92,14 +113,21 @@ describe("découverte des rapports", () => {
     if (url.includes("/analyticsReportRequests?") || url.endsWith("/analyticsReportRequests")) {
       return jsonResponse({
         data: [
-          { id: "snap", attributes: { accessType: "ONE_TIME_SNAPSHOT", stoppedDueToInactivity: false } },
+          {
+            id: "snap",
+            attributes: { accessType: "ONE_TIME_SNAPSHOT", stoppedDueToInactivity: false },
+          },
           { id: "old", attributes: { accessType: "ONGOING", stoppedDueToInactivity: true } },
           { id: "live", attributes: { accessType: "ONGOING", stoppedDueToInactivity: false } },
         ],
       });
     }
     if (url.includes("/reports")) {
-      return jsonResponse({ data: [{ id: "r3-live", attributes: { name: "App Downloads Standard", category: "COMMERCE" } }] });
+      return jsonResponse({
+        data: [
+          { id: "r3-live", attributes: { name: "App Downloads Standard", category: "COMMERCE" } },
+        ],
+      });
     }
     if (url.includes("/instances")) {
       if (!url.includes("page=2")) {
@@ -108,10 +136,14 @@ describe("découverte des rapports", () => {
             { id: "i2", attributes: { granularity: "DAILY", processingDate: "2026-09-10" } },
             { id: "w1", attributes: { granularity: "WEEKLY", processingDate: "2026-09-08" } },
           ],
-          links: { next: "https://api.appstoreconnect.apple.com/v1/analyticsReports/r3-live/instances?page=2" },
+          links: {
+            next: "https://api.appstoreconnect.apple.com/v1/analyticsReports/r3-live/instances?page=2",
+          },
         });
       }
-      return jsonResponse({ data: [{ id: "i1", attributes: { granularity: "DAILY", processingDate: "2026-09-09" } }] });
+      return jsonResponse({
+        data: [{ id: "i1", attributes: { granularity: "DAILY", processingDate: "2026-09-09" } }],
+      });
     }
     return jsonResponse({}, 404);
   });
@@ -122,7 +154,9 @@ describe("découverte des rapports", () => {
 
   it("retrouve le rapport par son nom exact", async () => {
     await expect(findReportId(client, "live", "App Downloads Standard")).resolves.toBe("r3-live");
-    await expect(findReportId(client, "live", "App Sessions Standard")).rejects.toThrow(/introuvable/);
+    await expect(findReportId(client, "live", "App Sessions Standard")).rejects.toThrow(
+      /introuvable/,
+    );
   });
 
   it("suit la pagination, ne garde que DAILY et trie par date de traitement", async () => {

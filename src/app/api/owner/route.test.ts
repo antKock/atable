@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { PUT } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");
@@ -54,7 +54,11 @@ describe("PUT /api/owner", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ name: "Anthony" });
     const call = findCall(supa, "owners");
-    expect(call?.ops.some((o) => o.method === "update" && (o.args[0] as { name: string }).name === "Anthony")).toBe(true);
+    expect(
+      call?.ops.some(
+        (o) => o.method === "update" && (o.args[0] as { name: string }).name === "Anthony",
+      ),
+    ).toBe(true);
     expect(call?.ops.some((o) => o.method === "eq" && o.args[1] === "owner-1")).toBe(true);
   });
 
@@ -65,7 +69,9 @@ describe("PUT /api/owner", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ name: null });
     const call = findCall(supa, "owners");
-    expect(call?.ops.some((o) => o.method === "update" && (o.args[0] as { name: null }).name === null)).toBe(true);
+    expect(
+      call?.ops.some((o) => o.method === "update" && (o.args[0] as { name: null }).name === null),
+    ).toBe(true);
   });
 
   it("403 gelé pour une session démo (stratégie C), sans écriture DB", async () => {
@@ -77,19 +83,20 @@ describe("PUT /api/owner", () => {
     expect(supa.calls).toHaveLength(0);
   });
 
-  it("400 si le nom dépasse 50 caractères", async () => {
+  it("422 si le nom dépasse 50 caractères", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
     const res = await PUT(request({ name: "x".repeat(51) }));
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
   });
 
-  // Une entrée invalide est un 400, pas un 500 + Sentry : `body.name` sur un
-  // corps `null` ou non-JSON jetterait sans ces gardes.
+  // Une entrée invalide est un 4xx, pas un 500 + Sentry : `body.name` sur un
+  // corps `null` ou non-JSON jetterait sans ces gardes. Contrat parseJsonBody :
+  // 400 corps illisible, 422 corps lisible mais invalide (`null`).
   it.each([
-    ["corps JSON null", "null"],
-    ["corps non-JSON", "{ pas du json"],
-    ["corps vide", ""],
-  ])("400 (pas 500) sur %s", async (_label, body) => {
+    ["corps JSON null", "null", 422],
+    ["corps non-JSON", "{ pas du json", 400],
+    ["corps vide", "", 400],
+  ])("4xx (pas 500) sur %s", async (_label, body, status) => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
     const req = new NextRequest("https://test.local/api/owner", {
       method: "PUT",
@@ -97,7 +104,7 @@ describe("PUT /api/owner", () => {
       body,
     });
     const res = await PUT(req);
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(status);
     expect(supa.calls).toHaveLength(0);
   });
 

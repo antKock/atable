@@ -25,9 +25,7 @@ export function importResult(overrides: Partial<ImportResult> = {}): ImportResul
 }
 
 /** A minimal valid enrichment result (all fields required & valid). */
-export function enrichmentResult(
-  overrides: Partial<EnrichmentResponse> = {},
-): EnrichmentResponse {
+export function enrichmentResult(overrides: Partial<EnrichmentResponse> = {}): EnrichmentResponse {
   return {
     tags: ["Dessert", "Végétarien"],
     seasons: ["automne"],
@@ -41,17 +39,24 @@ export function enrichmentResult(
   };
 }
 
-/** Wrap a value as an OpenAI `chat.completions.create` response. */
-export function chatCompletion(content: unknown) {
+/** Usage par défaut des réponses simulées (prompt / completion tokens). */
+export const MOCK_USAGE = { prompt_tokens: 120, completion_tokens: 40, total_tokens: 160 };
+
+/**
+ * Wrap a value as an OpenAI `chat.completions.create` response. `usage` est
+ * fourni (revue 2026-09-12) pour que les tests puissent vérifier le coût
+ * enregistré par voie (`recordAiCost`).
+ */
+export function chatCompletion(content: unknown, usage: typeof MOCK_USAGE | null = MOCK_USAGE) {
   return {
     choices: [
       {
         message: {
-          content:
-            typeof content === "string" ? content : JSON.stringify(content),
+          content: typeof content === "string" ? content : JSON.stringify(content),
         },
       },
     ],
+    ...(usage ? { usage } : {}),
   };
 }
 

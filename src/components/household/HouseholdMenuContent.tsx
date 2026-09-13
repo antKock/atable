@@ -1,28 +1,28 @@
-import Link from 'next/link'
-import { ChevronRight, Plus, ShieldCheck } from 'lucide-react'
-import { getT } from '@/lib/i18n/server'
-import type { MembershipRole } from '@/lib/auth/owner-context'
-import RolePill from './RolePill'
-import HomeFoyersSetting from './HomeFoyersSetting'
+import Link from "next/link";
+import { ChevronRight, Plus, ShieldCheck } from "lucide-react";
+import { getT } from "@/lib/i18n/server";
+import type { MembershipRole } from "@/lib/auth/owner-context";
+import RolePill from "@/components/household/RolePill";
+import HomeFoyersSetting from "@/components/household/HomeFoyersSetting";
 
 type HubHousehold = {
-  id: string
-  name: string
-  role: MembershipRole
-  isDemo: boolean
-  people: number
-  recipes: number
-}
+  id: string;
+  name: string;
+  role: MembershipRole;
+  isDemo: boolean;
+  people: number;
+  recipes: number;
+};
 
 type Props = {
-  ownerDisplayName: string
-  households: HubHousehold[]
-  isDemo: boolean
+  ownerDisplayName: string;
+  households: HubHousehold[];
+  isDemo: boolean;
   // Sous-titre de la ligne « Toi » (#14) : accès sauvegardé ou à sauvegarder
-  hasRecoveryEmail: boolean
+  hasRecoveryEmail: boolean;
   // Foyers actuellement masqués de l'accueil (cookie) — pour le réglage multi-foyer.
-  hiddenFoyerIds: string[]
-}
+  hiddenFoyerIds: string[];
+};
 
 // Hub « Toi + Tes foyers » (maquette 0.2). Mono-foyer à ce lot, mais l'UI est
 // construite pour N foyers et les rôles. En démo (stratégie C) : vue gelée —
@@ -35,23 +35,12 @@ export default async function HouseholdMenuContent({
   hasRecoveryEmail,
   hiddenFoyerIds,
 }: Props) {
-  const t = await getT()
+  const t = await getT();
   // Réglage « affichés sur l'accueil » : pertinent seulement à partir de 2 foyers.
-  const showHomeFoyersSetting = !isDemo && households.length >= 2
+  const showHomeFoyersSetting = !isDemo && households.length >= 2;
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
-      <h1
-        className="mb-6 text-foreground"
-        style={{
-          fontFamily: 'var(--font-fraunces)',
-          fontVariationSettings: '"opsz" 144',
-          fontSize: 32,
-          fontWeight: 600,
-          letterSpacing: '-0.02em',
-        }}
-      >
-        {t.household.menu}
-      </h1>
+      <h1 className="display-xl mb-6 text-foreground">{t.household.menu}</h1>
 
       {!isDemo && (
         <section className="mb-6">
@@ -72,7 +61,11 @@ export default async function HouseholdMenuContent({
                   {hasRecoveryEmail ? t.household.accessSaved : t.household.accessToSave}
                 </span>
               </span>
-              <ChevronRight size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+              <ChevronRight
+                size={18}
+                className="shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
             </Link>
           </div>
         </section>
@@ -102,10 +95,15 @@ export default async function HouseholdMenuContent({
                 </span>
                 <span className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
                   <RolePill role={household.role} />
-                  {t.household.peopleCount(household.people)} · {t.household.recipeCount(household.recipes)}
+                  {t.household.peopleCount(household.people)} ·{" "}
+                  {t.household.recipeCount(household.recipes)}
                 </span>
               </span>
-              <ChevronRight size={18} className="shrink-0 text-muted-foreground" aria-hidden="true" />
+              <ChevronRight
+                size={18}
+                className="shrink-0 text-muted-foreground"
+                aria-hidden="true"
+              />
             </Link>
           ))}
           {!isDemo && (
@@ -139,5 +137,5 @@ export default async function HouseholdMenuContent({
         </section>
       )}
     </div>
-  )
+  );
 }

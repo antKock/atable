@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import ImportCard from "./ImportCard";
+import ImportCard from "@/components/recipes/import/ImportCard";
 
 interface VoiceImporterProps {
   expanded: boolean;
@@ -94,9 +94,7 @@ export default function VoiceImporter({
         /* Finalizing state: recorder flushing its blob before upload */
         <div className="flex flex-col items-center gap-3 py-4">
           <Loader2 size={28} className="animate-spin text-accent" />
-          <p className="text-xs text-muted-foreground">
-            {t.import.voice.processing}
-          </p>
+          <p className="text-xs text-muted-foreground">{t.import.voice.processing}</p>
         </div>
       ) : (
         /* Idle state */
@@ -114,9 +112,7 @@ export default function VoiceImporter({
           >
             <Mic size={28} />
           </button>
-          <p className="text-xs text-muted-foreground">
-            {t.import.voice.maxDuration}
-          </p>
+          <p className="text-xs text-muted-foreground">{t.import.voice.maxDuration}</p>
         </div>
       )}
 
