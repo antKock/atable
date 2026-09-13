@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 import { getT } from "@/lib/i18n/server";
 
 /**
@@ -27,7 +27,7 @@ import { getT } from "@/lib/i18n/server";
 export async function rejectOversizedBody(
   request: Request,
   maxBytes: number,
-  t?: Dictionary,
+  t?: FullDictionary,
 ): Promise<NextResponse | null> {
   const declared = declaredBodyLength(request);
   if (declared === null || declared <= maxBytes) return null;

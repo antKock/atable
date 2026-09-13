@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { ChevronRight, Plus, ShieldCheck } from 'lucide-react'
 import { getT } from '@/lib/i18n/server'
 import type { MembershipRole } from '@/lib/auth/owner-context'
-import RolePill from './RolePill'
-import HomeFoyersSetting from './HomeFoyersSetting'
+import RolePill from '@/components/household/RolePill'
+import HomeFoyersSetting from '@/components/household/HomeFoyersSetting'
 
 type HubHousehold = {
   id: string

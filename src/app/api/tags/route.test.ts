@@ -5,7 +5,7 @@ import { GET, POST } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createSupabaseMock, calledWith, type SupabaseMock } from "@/test/supabase-mock";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));

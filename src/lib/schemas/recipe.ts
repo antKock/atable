@@ -1,6 +1,6 @@
 import { z } from "zod";
-import type { Dictionary } from "@/lib/i18n/types";
-import { t as fr } from "@/lib/i18n/fr";
+import type { FullDictionary } from "@/lib/i18n/types";
+import { frFull as fr } from "@/lib/i18n/full";
 
 // How a recipe was added — the method that pre-filled the create form.
 export const RECIPE_SOURCES = ["manual", "url", "photo", "voice"] as const;
@@ -14,7 +14,7 @@ export const MAX_TEXT_LENGTH = 10_000;
 // Messages de validation localisés (chantier i18n) : les schémas sont des
 // factories prenant le dictionnaire de la requête ; les constantes FR
 // exportées plus bas restent le défaut (tests, imports historiques).
-function fields(t: Dictionary) {
+function fields(t: FullDictionary) {
   const titleField = z
     .string()
     .min(1, t.validation.titleRequired)
@@ -34,7 +34,7 @@ function fields(t: Dictionary) {
   return { titleField, textField, servingsField };
 }
 
-export function buildRecipeCreateSchema(t: Dictionary) {
+export function buildRecipeCreateSchema(t: FullDictionary) {
   const { titleField, textField, servingsField } = fields(t);
   return z.object({
   title: titleField,
@@ -61,7 +61,7 @@ export function buildRecipeCreateSchema(t: Dictionary) {
   });
 }
 
-export function buildRecipeUpdateSchema(t: Dictionary) {
+export function buildRecipeUpdateSchema(t: FullDictionary) {
   const { titleField, textField, servingsField } = fields(t);
   return z.object({
   title: titleField,

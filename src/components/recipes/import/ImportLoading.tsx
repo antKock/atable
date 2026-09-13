@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { CocotteLoader } from "./CocotteLoader";
+import { CocotteLoader } from "@/components/recipes/import/CocotteLoader";
 import { useT } from "@/lib/i18n/client";
 
 // Full-screen loading state shown while any recipe import is in flight (link,

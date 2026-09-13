@@ -61,7 +61,7 @@ const eslintConfig = defineConfig([
         {
           patterns: [
             {
-              group: ["@/lib/i18n/fr", "**/i18n/fr", "./fr"],
+              group: ["@/lib/i18n/fr", "**/i18n/fr", "./fr", "@/lib/i18n/full", "**/i18n/full", "@/lib/i18n/fr.server", "@/lib/i18n/en.server"],
               message:
                 "importer `t` de fr.ts fige la langue : useT() côté client, getT() côté serveur (règle CLAUDE.md)",
             },

@@ -12,8 +12,8 @@ import { createServerClient } from "@/lib/supabase/server";
 // drift here (retries, rounding) is caught rather than hidden.
 // ---------------------------------------------------------------------------
 
-// What a call was for. The dashboard groups these into OCR / metadata / image /
-// import for display (see analytics_ai_cost_* RPCs).
+// What a call was for. Le dashboard v3 (src/lib/admin/v3) regroupe ces types en
+// OCR / métadonnées / image / import à l'affichage.
 // Models per role live in ai-models.ts (AI_MODELS.text/vision/transcription/image).
 export type AiCallType =
   | "ocr" // screenshot extraction (vision model)
@@ -47,8 +47,6 @@ const IMAGE_PRICING: Record<string, number> = {
   "high:1024x1024": 0.167,
 };
 
-// USD per second of audio (whisper-1 is $0.006/min).
-const WHISPER_USD_PER_SECOND = 0.006 / 60;
 
 /** Cost of a token-billed chat/vision call. Unknown models price at 0. */
 export function textCostUsd(
@@ -64,11 +62,6 @@ export function textCostUsd(
 /** Flat cost of one generated image. Unknown quality/size prices at 0. */
 export function imageCostUsd(quality: string, size: string): number {
   return IMAGE_PRICING[`${quality}:${size}`] ?? 0;
-}
-
-/** Cost of a whisper transcription given the audio duration in seconds. */
-export function transcriptionCostUsd(audioSeconds: number): number {
-  return Math.max(0, audioSeconds) * WHISPER_USD_PER_SECOND;
 }
 
 export type AiCostRecord = {

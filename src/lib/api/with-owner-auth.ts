@@ -7,7 +7,7 @@ import {
   type OwnerContext,
 } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from "@/lib/body-limit";
 
 export type WithOwnerAuthOptions = {
@@ -127,7 +127,7 @@ export async function requireMember(
 }
 
 /** 403 générique localisé. Le client branche sur le statut, pas le texte. */
-export function forbiddenResponse(t: Dictionary): NextResponse {
+export function forbiddenResponse(t: FullDictionary): NextResponse {
   return NextResponse.json({ error: t.api.forbidden }, { status: 403 });
 }
 

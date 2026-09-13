@@ -6,7 +6,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { getOwnerContext, householdIds, roleForHousehold } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
-import RecipeForm from "@/components/recipes/RecipeForm";
+import RecipeForm from "@/components/recipes/form/RecipeForm";
 
 type Props = {
   params: Promise<{ id: string }>;

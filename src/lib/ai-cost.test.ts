@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@/lib/supabase/server";
-import { textCostUsd, imageCostUsd, transcriptionCostUsd, recordAiCost } from "./ai-cost";
+import { textCostUsd, imageCostUsd, recordAiCost } from "./ai-cost";
 
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 vi.mock("@/lib/supabase/server");
@@ -44,17 +44,6 @@ describe("imageCostUsd", () => {
 
   it("prices unknown quality/size at 0", () => {
     expect(imageCostUsd("ultra", "4096x4096")).toBe(0);
-  });
-});
-
-describe("transcriptionCostUsd", () => {
-  it("prices whisper at $0.006/min", () => {
-    expect(transcriptionCostUsd(60)).toBeCloseTo(0.006, 6);
-  });
-
-  it("never goes negative", () => {
-    expect(transcriptionCostUsd(-10)).toBe(0);
-    expect(transcriptionCostUsd(0)).toBe(0);
   });
 });
 

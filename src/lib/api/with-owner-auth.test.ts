@@ -8,7 +8,7 @@ import {
 } from "./with-owner-auth";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { trackStat } from "@/lib/admin/track-stat";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 
 // Seul getOwnerContext est mocké ; les helpers purs (memberHouseholdIds…)
 // restent réels — resolveWriteHousehold en dépend.

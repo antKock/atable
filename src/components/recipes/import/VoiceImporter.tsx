@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { Mic, Square, Loader2 } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
-import ImportCard from "./ImportCard";
+import ImportCard from "@/components/recipes/import/ImportCard";
 
 interface VoiceImporterProps {
   expanded: boolean;

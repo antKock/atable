@@ -1,4 +1,4 @@
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 
 // Les noms de tags doivent matcher EXACTEMENT la table `tags` (migration 004),
 // espaces autour des « / » compris : « Libanaise / Orientale », pas
@@ -34,7 +34,7 @@ function category(key: string, title: string, predicate: CarouselPredicate): Car
 // un grand catalogue est sans risque.
 // Les titres viennent du dictionnaire de la langue courante (chantier i18n) ;
 // les prédicats, eux, référencent les noms canoniques FR de la table `tags`.
-export function buildCarouselCatalog(t: Dictionary): CarouselDef[] {
+export function buildCarouselCatalog(t: FullDictionary): CarouselDef[] {
   return [
   // --- Groupe A — algorithmiques ---
   {
@@ -120,8 +120,3 @@ export function buildCarouselCatalog(t: Dictionary): CarouselDef[] {
   category("aCongeler", t.carousels.aCongeler, { type: "tag", tag: "À congeler" }),
   ];
 }
-
-// Catalogue FR figé — uniquement pour les scripts hors requête
-// (scripts/spec9-compare-carousels.ts). Le serveur passe par buildCarouselCatalog.
-import { t as fr } from "@/lib/i18n/fr";
-export const CAROUSEL_CATALOG: CarouselDef[] = buildCarouselCatalog(fr);

@@ -15,7 +15,7 @@ import {
 import { sendRecoveryEmail } from "@/lib/email/send";
 import { recoveryIpRateLimit, recoveryEmailRateLimit, recoveryVerifyRateLimit } from "@/lib/redis";
 import { resolveSessionOwnerFromCookie } from "@/lib/auth/session-owner";
-import { t as fr } from "@/lib/i18n/fr";
+import { frFull as fr } from "@/lib/i18n/full";
 
 // Tests des trois routes de récupération (#14) — revue 2026-09-12 :
 // contrat parseJsonBody (400 illisible / 422 invalide), anti-énumération,

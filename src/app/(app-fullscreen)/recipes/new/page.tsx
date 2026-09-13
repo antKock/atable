@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import NewRecipeFlow from "@/components/recipes/NewRecipeFlow";
+import NewRecipeFlow from "@/components/recipes/form/NewRecipeFlow";
 import { createServerClient } from "@/lib/supabase/server";
 import {
   getOwnerContext,
   isGuestOwner,
   memberHouseholdIds,
 } from "@/lib/auth/owner-context";
-import type { MemberFoyer } from "@/components/recipes/RecipeForm";
+import type { MemberFoyer } from "@/components/recipes/form/RecipeForm";
 
 // NewRecipeFlow reads search params (?import=url&url=… from the share sheet)
 // via useSearchParams, which requires the route to render dynamically.

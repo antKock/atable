@@ -164,23 +164,25 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
   et `carnet_activity` (sans appelant restant). Appliquée sur staging le 2026-09-13, RPC v3
   vérifiées en 200 via PostgREST. **Prod : `node scripts/vps/migrate.mjs prod` au moment du go**
   (après le déploiement du code, qui ne référence plus la v2 depuis la 043).*
-- [ ] Supprimer les one-off : `scripts/backfill-activity-from-recipe-days.mjs`,
+- [x] Supprimer les one-off : `scripts/backfill-activity-from-recipe-days.mjs`,
   `backfill-owner-alias.mjs`, `verify-owner-backfill.mjs`, `spec9-compare-carousels.ts`,
   et `scripts/bench/results/` (6 700 l. de sorties brutes ; garder `bench/fixtures/`).
   `migrate-photos-to-s3.mjs` reste jusqu'à la suppression des projets Supabase.
-- [ ] Exports morts : `transcriptionCostUsd` (`src/lib/ai-cost.ts:70`), `monthLabel`
+  *`bench/results/` n'était pas suivi par git (local seulement) — rien à retirer du repo.*
+- [x] Exports morts : `transcriptionCostUsd` (`src/lib/ai-cost.ts:70`), `monthLabel`
   (`src/lib/admin/v3/weeks.ts:66`). Commentaire obsolète `ai-cost.ts:16` (RPC v2).
 - [ ] Prettier + passe unique + `--check` en CI (deux styles coexistent : 17 fichiers
-  quotes simples / sans point-virgule contre 18, rien que dans l'API). `NextRequest`
-  partout. Forme d'erreur `{ error, code? }` typée.
-- [ ] `tsconfig.json` : `target: "ES2022"`, purger les `include` `.next-*` accumulés.
-- [ ] Rangement : `DeepLinkHandler.tsx` et `VersionWatcher.tsx` → `components/providers/` ;
+  quotes simples / sans point-virgule contre 18, rien que dans l'API). *`NextRequest`
+  partout et forme d'erreur `{ error, code? }` typée (`ApiErrorBody`, lib/api/body.ts) :
+  faits. Prettier : PR à part (diff massif), voir ci-dessous.*
+- [x] `tsconfig.json` : `target: "ES2022"`, purger les `include` `.next-*` accumulés.
+- [x] Rangement : `DeepLinkHandler.tsx` et `VersionWatcher.tsx` → `components/providers/` ;
   `components/app/` → `components/hints/` ; sous-découper `components/recipes/` (30
   fichiers) en `card/ form/ view/ import/` + `components/illustrations/` ; renommer
   `components/admin/charts-v3.tsx` et `ui.tsx` (PascalCase, sans `v3`), retirer le
   `eslint-disable no-explicit-any` global de `charts-v3.tsx:25` (Recharts 3 est typé) ;
   découper `src/app/admin/stats/page.tsx` (417 l.) en sections.
-- [ ] i18n : sortir les namespaces serveur (`api`, `email`, `validation`, `carousels`,
+- [x] i18n : sortir les namespaces serveur (`api`, `email`, `validation`, `carousels`,
   14 % de `fr.ts`) dans `fr.server.ts` / `en.server.ts` avec le même `Widen<typeof fr>`
   (garde la complétude vérifiée par `tsc`). **Ne pas** découper par domaine, **ne pas**
   chercher à ne livrer qu'une locale (choix documenté dans `docs/specs/i18n/00-socle.md`).

@@ -2,7 +2,7 @@
 
 import { useT } from "@/lib/i18n/client";
 import CenteredState from "@/components/ui/CenteredState";
-import CarnetIllustration from "./CarnetIllustration";
+import CarnetIllustration from "@/components/illustrations/CarnetIllustration";
 
 // Carnet sans recette (Home ET Bibliothèque : même écran). Pas de CTA de
 // création pour un invité (lecture seule, Lot 3).

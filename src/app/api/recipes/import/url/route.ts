@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { buildImportUrlSchema } from "@/lib/schemas/import";
 import { extractRecipeFromUrl, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
@@ -6,7 +6,7 @@ import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { resolveImportHousehold } from "@/lib/api/import-household";
 import { getT } from "@/lib/i18n/server";
 
-export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const t = await getT();
   const target = resolveImportHousehold(owner, t);
   if (target instanceof NextResponse) return target;

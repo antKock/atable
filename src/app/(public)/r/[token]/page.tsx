@@ -7,16 +7,16 @@ import { shareRateLimit } from "@/lib/redis";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { verifySession } from "@/lib/auth/session";
 import { resolveOwnerContext, householdIds } from "@/lib/auth/owner-context";
-import RecipeView from "@/components/recipes/RecipeView";
+import RecipeView from "@/components/recipes/view/RecipeView";
 import { getLocale, getT } from "@/lib/i18n/server";
 import { dictionaries, LOCALES } from "@/lib/i18n";
 import { ogLocaleTag } from "@/lib/i18n/locale";
 import { tagLabel } from "@/lib/i18n/labels";
 import { SHARE_LOCALE_PARAM, shareLocaleFromSearchParam } from "@/lib/share-url";
-import InAppBackButton from "@/components/recipes/InAppBackButton";
+import InAppBackButton from "@/components/recipes/view/InAppBackButton";
 import ShareRecipeActions, {
   type ViewerState,
-} from "@/components/recipes/ShareRecipeActions";
+} from "@/components/recipes/view/ShareRecipeActions";
 
 type Props = {
   params: Promise<{ token: string }>;

@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { MAX_VOICE_FILE_SIZE, buildImportVoiceSchema } from "@/lib/schemas/import";
 import { extractRecipeFromVoice, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
@@ -10,7 +10,7 @@ import { getT } from "@/lib/i18n/server";
 // Corps refusé AVANT lecture (Traefik ne plafonne pas le corps en amont).
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
-export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const t = await getT();
   const target = resolveImportHousehold(owner, t);
   if (target instanceof NextResponse) return target;

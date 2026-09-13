@@ -10,11 +10,11 @@ import {
   roleForHousehold,
   type OwnerContext,
 } from "@/lib/auth/owner-context";
-import WakeLockActivator from "@/components/recipes/WakeLockActivator";
-import EnrichmentPollingWrapper from "@/components/recipes/EnrichmentPollingWrapper";
-import RecipeView from "@/components/recipes/RecipeView";
+import WakeLockActivator from "@/components/recipes/view/WakeLockActivator";
+import EnrichmentPollingWrapper from "@/components/recipes/view/EnrichmentPollingWrapper";
+import RecipeView from "@/components/recipes/view/RecipeView";
 import { getT } from "@/lib/i18n/server";
-import RecipeActionPill from "@/components/recipes/RecipeActionPill";
+import RecipeActionPill from "@/components/recipes/view/RecipeActionPill";
 import BackButton from "@/components/ui/BackButton";
 
 type Props = {

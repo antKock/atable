@@ -4,7 +4,7 @@ import { getOwnerContext } from "@/lib/auth/owner-context";
 import { createServerClient } from "@/lib/supabase/server";
 import { getDashboardV3 } from "@/lib/admin/v3/data";
 import { shortDate } from "@/lib/admin/v3/weeks";
-import { Topbar, SectionHead, Card, BigStats } from "@/components/admin/ui";
+import { Topbar, SectionHead, Card, BigStats } from "@/components/admin/AdminUi";
 import "../stats/dashboard.css";
 
 export const dynamic = "force-dynamic";

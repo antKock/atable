@@ -1,4 +1,5 @@
 import type { t as fr } from "./fr";
+import type { frServer } from "./fr.server";
 
 // `fr.ts` est déclaré `as const` : ses feuilles sont des littéraux
 // (`"Accueil"`). Pour qu'un autre dictionnaire puisse porter d'autres valeurs
@@ -13,4 +14,9 @@ type Widen<T> = T extends string
       ? { [K in keyof T]: Widen<T[K]> }
       : T;
 
+/** Dictionnaire CLIENT (embarqué dans le bundle) : tout ce que l'UI affiche. */
 export type Dictionary = Widen<typeof fr>;
+/** Espaces de noms SERVEUR (api, validation, email, carousels) — fr.server.ts. */
+export type ServerDictionary = Widen<typeof frServer>;
+/** Ce que `getT()` renvoie côté serveur : client + serveur, une seule locale. */
+export type FullDictionary = Dictionary & ServerDictionary;
