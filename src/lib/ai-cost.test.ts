@@ -1,7 +1,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@/lib/supabase/server";
-import { textCostUsd, imageCostUsd, recordAiCost } from "./ai-cost";
+import {
+  textCostUsd,
+  imageCostUsd,
+  recordAiCost,
+  hasTokenPricing,
+  NON_TOKEN_PRICED_MODELS,
+} from "./ai-cost";
+import { AI_MODELS } from "@/lib/ai-models";
 
 vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 vi.mock("@/lib/supabase/server");
@@ -120,5 +127,14 @@ describe("recordAiCost", () => {
 
     expect(insert).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException).toHaveBeenCalledOnce();
+  });
+});
+
+describe("invariant : chaque modèle de AI_MODELS est tarifé ou explicitement exempté", () => {
+  it.each(Object.entries(AI_MODELS))("%s → %s", (_role, model) => {
+    const priced = hasTokenPricing(model);
+    const exempt = model in NON_TOKEN_PRICED_MODELS;
+    expect(priced || exempt, `${model} : ni TOKEN_PRICING ni NON_TOKEN_PRICED_MODELS`).toBe(true);
+    expect(priced && exempt, `${model} : à la fois tarifé et exempté`).toBe(false);
   });
 });

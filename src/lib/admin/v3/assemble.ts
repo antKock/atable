@@ -2,6 +2,14 @@
 // app_store_daily). Aucune I/O : testable, et partagé par la page et le digest
 // hebdo (bloc 1). Les lectures Supabase sont dans data.ts.
 
+import {
+  dayList,
+  hotIndicator,
+  num,
+  pct1,
+  weeklyActiveSeries,
+  weeklyRecipesSeries,
+} from "@/lib/admin/v3/sections";
 import { sourceLabel } from "@/lib/admin/app-store";
 import type { AppStoreDailyRow } from "@/lib/admin/app-store";
 import {
@@ -101,7 +109,6 @@ export type RawV3 = {
 };
 
 const WEEKS = 12;
-const num = (v: unknown) => Number(v) || 0;
 const sum = <T>(rows: T[], f: (r: T) => number) => rows.reduce((s, r) => s + f(r), 0);
 
 export type KpiTile = {
@@ -187,50 +194,15 @@ export function assembleV3(raw: RawV3) {
   const starts12 = weekStarts(endSunday, WEEKS);
   const people = raw.people;
 
-  // ---------------- séries hebdo actifs ----------------
-  const activeByWeek = new Map<string, number>();
-  const engagedByWeek = new Map<string, number>();
-  const cohortMonths = new Set<string>();
-  for (const r of raw.weeklyActive) {
-    activeByWeek.set(r.week_end, (activeByWeek.get(r.week_end) ?? 0) + num(r.active));
-    engagedByWeek.set(r.week_end, (engagedByWeek.get(r.week_end) ?? 0) + num(r.engaged));
-    cohortMonths.add(r.cohort_month.slice(0, 7));
-  }
-  const weekEnds = starts12.map((s) => addDays(s, 6));
-  const activeSeries = weekEnds.map((we) => activeByWeek.get(we) ?? 0);
+  // ---------------- séries hebdo actifs (sections.ts) ----------------
+  const { activeByWeek, engagedByWeek, activeSeries, cake, cakeKeys, olderKey } =
+    weeklyActiveSeries(raw.weeklyActive, starts12);
   const activeNow = activeByWeek.get(endSunday) ?? 0;
   const active4wAgo = activeByWeek.get(addDays(endSunday, -28)) ?? 0;
 
-  // Layer cake : semaine × mois d'arrivée (mois ≤ 4e plus ancien regroupés).
-  const months = [...cohortMonths].sort();
-  const cakeMonths = months.length > 5 ? [...months.slice(-4)] : months;
-  const olderKey = months.length > 5 ? months[months.length - 5] : null;
-  const cakeKeys = olderKey ? [olderKey, ...cakeMonths] : cakeMonths;
-  const cake = weekEnds.map((we, i) => {
-    const row: Record<string, number | string> = {
-      label: starts12[i].slice(8, 10) + "/" + starts12[i].slice(5, 7),
-      weekEnd: we,
-    };
-    for (const k of cakeKeys) row[k] = 0;
-    for (const r of raw.weeklyActive) {
-      if (r.week_end !== we) continue;
-      const m = r.cohort_month.slice(0, 7);
-      const key = olderKey && m <= olderKey ? olderKey : m;
-      row[key] = num(row[key]) + num(r.active);
-    }
-    return row;
-  });
-
-  // ---------------- recettes hebdo ----------------
-  const recipesByWeek = new Map<string, number>();
-  const mixByWeek = new Map<string, Record<string, number>>();
-  for (const r of raw.weeklyRecipes) {
-    const ws = r.week_start.slice(0, 10);
-    recipesByWeek.set(ws, (recipesByWeek.get(ws) ?? 0) + num(r.recipes));
-    const m = mixByWeek.get(ws) ?? {};
-    m[r.source] = (m[r.source] ?? 0) + num(r.recipes);
-    mixByWeek.set(ws, m);
-  }
+  // ---------------- recettes hebdo (sections.ts) ----------------
+  const METHODS = ["url", "photo", "voice", "manual", "shared", "unknown"];
+  const { recipesByWeek, methodMix } = weeklyRecipesSeries(raw.weeklyRecipes, starts12, METHODS);
   const recipesIn = (w: Window) =>
     sum(
       starts12.concat(weekStarts(addDays(endSunday, -28), 4)).filter((s) => inWindow(s, w)),
@@ -240,26 +212,6 @@ export function assembleV3(raw: RawV3) {
   const recipesPrev4 = recipesIn(prev4);
   const perActive = activeNow ? +(recipes4 / activeNow).toFixed(1) : 0;
   const perActivePrev = active4wAgo ? +(recipesPrev4 / active4wAgo).toFixed(1) : 0;
-  const METHODS = ["url", "photo", "voice", "manual", "shared", "unknown"];
-  const methodMix = starts12.map((s) => {
-    const m = mixByWeek.get(s) ?? {};
-    const tot = METHODS.reduce((a, k) => a + (m[k] ?? 0), 0);
-    const row: Record<string, number | string> = {
-      label: s.slice(8, 10) + "/" + s.slice(5, 7),
-      total: tot,
-    };
-    // Parts arrondies qui somment à 100 : la dernière méthode non nulle absorbe l'écart.
-    let acc = 0;
-    let lastKey: string | null = null;
-    for (const k of METHODS) {
-      const v = tot ? Math.round(((m[k] ?? 0) / tot) * 100) : 0;
-      row[k] = v;
-      acc += v;
-      if (v > 0) lastKey = k;
-    }
-    if (lastKey && acc !== 100) row[lastKey] = num(row[lastKey]) + (100 - acc);
-    return row;
-  });
 
   // ---------------- personnes ----------------
   const np = newPeople(people, cur4);
@@ -351,48 +303,12 @@ export function assembleV3(raw: RawV3) {
   const dlByDay = new Map<string, number>();
   for (const r of raw.appStore)
     dlByDay.set(r.day, (dlByDay.get(r.day) ?? 0) + num(r.dl_first_time));
-  const dayList = (n: number, end: string) =>
-    Array.from({ length: n }, (_, i) => addDays(end, -(n - 1 - i)));
-  const median = (xs: number[]) => {
-    const a = [...xs].sort((x, y) => x - y);
-    return a.length
-      ? a.length % 2
-        ? a[(a.length - 1) / 2]
-        : (a[a.length / 2 - 1] + a[a.length / 2]) / 2
-      : 0;
-  };
   const hotOf = (
     id: string,
     label: string,
     get: (day: string) => number,
     opts: { avg?: boolean; unit?: string; hint?: string } = {},
-  ): HotIndicator => {
-    const win = (end: string) => {
-      const vals = dayList(7, end).map(get);
-      const tot = vals.reduce((a, b) => a + b, 0);
-      return opts.avg ? +(tot / 7).toFixed(1) : tot;
-    };
-    const value = win(yesterday);
-    const ref = +median([
-      win(addDays(yesterday, -7)),
-      win(addDays(yesterday, -14)),
-      win(addDays(yesterday, -21)),
-    ]).toFixed(1);
-    const barDays = dayList(14, yesterday);
-    const barRefs = barDays.map((d) => median([7, 14, 21, 28].map((k) => get(addDays(d, -k)))));
-    return {
-      id,
-      label,
-      value,
-      ref,
-      trend: value > ref ? "up" : value < ref ? "down" : "flat",
-      bars: barDays.map(get),
-      barDays,
-      barRefs,
-      unit: opts.unit,
-      hint: opts.hint,
-    };
-  };
+  ): HotIndicator => hotIndicator(id, label, get, yesterday, opts);
   const hot: HotIndicator[] = [
     hotOf("downloads", "Téléchargements App Store", (d) => dlByDay.get(d) ?? 0, {
       hint: appStoreLastDay ? `Apple jusqu'au ${shortDate(appStoreLastDay)}` : undefined,
@@ -414,7 +330,6 @@ export function assembleV3(raw: RawV3) {
     const downloads = sum(rowsW, (r) => num(r.dl_first_time));
     const opens = days.reduce((a, d) => a + num(dailyByDay.get(d)?.trials_ios), 0);
     const carnets = newPeople(people, { from: ws, to: addDays(ws, 6) }).ios;
-    const pct1 = (n: number, d: number) => (d > 0 ? +((n / d) * 100).toFixed(1) : null);
     return {
       weekStart: ws,
       label: ws.slice(8, 10) + "/" + ws.slice(5, 7),
