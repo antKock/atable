@@ -6,7 +6,14 @@ export type HouseholdOrigin = "landing" | "demo_conversion" | "additif";
 /** Crée un foyer avec ses deux codes stables (membre / invité). Renvoie son id. */
 export async function insertHousehold(
   db: DbClient,
-  household: { name: string; joinCode: string; guestJoinCode: string; origin: HouseholdOrigin },
+  household: {
+    name: string;
+    joinCode: string;
+    guestJoinCode: string;
+    origin: HouseholdOrigin;
+    /** Sonde (#26) : foyer créé par un appareil d'Anthony ou un agent, hors stats. */
+    isProbe?: boolean;
+  },
 ): Promise<string> {
   const { data, error } = await db
     .from("households")
@@ -15,6 +22,7 @@ export async function insertHousehold(
       join_code: household.joinCode,
       guest_join_code: household.guestJoinCode,
       origin: household.origin,
+      ...(household.isProbe ? { is_probe: true } : {}),
     })
     .select("id")
     .single();

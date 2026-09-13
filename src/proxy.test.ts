@@ -26,12 +26,27 @@ const PAYLOAD = { hid: "household-1", sid: "session-1", iat: 1_700_000_000 };
 // iat fresh → no renewal
 const FRESH_PAYLOAD = { hid: "household-1", sid: "session-1", iat: nowS() };
 
-function makeRequest(path: string, opts: { cookie?: string; ua?: string } = {}): NextRequest {
-  const headers: Record<string, string> = {};
+function makeRequest(
+  path: string,
+  opts: {
+    cookie?: string;
+    ua?: string;
+    headers?: Record<string, string>;
+    probeCookie?: boolean;
+  } = {},
+): NextRequest {
+  const headers: Record<string, string> = { ...(opts.headers ?? {}) };
   if (opts.ua) headers["user-agent"] = opts.ua;
   const req = new NextRequest(`https://atable.test${path}`, { headers });
   if (opts.cookie) req.cookies.set("atable_session", opts.cookie);
+  if (opts.probeCookie) req.cookies.set("mijote_probe", "1");
   return req;
+}
+
+/** En-tête injecté sur la requête interne (NextResponse.next({ request })). */
+function forwardedHeader(res: { headers: Headers }, name: string): string | null {
+  const names = res.headers.get("x-middleware-request-" + name);
+  return names;
 }
 
 /** True if any response header name starts with `x-dbg`. */
@@ -195,5 +210,45 @@ describe("/api/admin/* — garde par défaut (revue 2026-09-12)", () => {
     vi.stubEnv("ADMIN_API_SECRET", "");
     vi.stubEnv("BATCH_ENRICH_SECRET", "");
     expect((await proxy(withAuth("/api/admin/x", "Bearer undefined"))).status).toBe(401);
+  });
+});
+
+describe("proxy — sondes (#26)", () => {
+  beforeEach(() => vi.mocked(verifySession).mockResolvedValue(null));
+
+  it("?probe=1 sur la landing → cookie mijote_probe (1 an) et x-probe injecté", async () => {
+    const res = await proxy(makeRequest("/?probe=1"));
+    expect(res.status).toBe(200);
+    expect(res.headers.get("set-cookie")).toMatch(/mijote_probe=1;.*Max-Age=31536000.*HttpOnly/);
+    expect(forwardedHeader(res, "x-probe")).toBe("1");
+  });
+
+  it("cookie ou en-tête x-mijote-probe → x-probe injecté, pas de nouveau cookie", async () => {
+    const byCookie = await proxy(makeRequest("/api/version", { probeCookie: true }));
+    expect(forwardedHeader(byCookie, "x-probe")).toBe("1");
+    expect(byCookie.headers.get("set-cookie") ?? "").not.toContain("mijote_probe");
+    const byHeader = await proxy(
+      makeRequest("/api/version", { headers: { "x-mijote-probe": "1" } }),
+    );
+    expect(forwardedHeader(byHeader, "x-probe")).toBe("1");
+  });
+
+  it("un x-probe forgé par le client est retiré ; sans marqueur, rien n'est injecté", async () => {
+    const forged = await proxy(makeRequest("/api/version", { headers: { "x-probe": "1" } }));
+    expect(forwardedHeader(forged, "x-probe")).toBeNull();
+    const plain = await proxy(makeRequest("/api/version"));
+    expect(forwardedHeader(plain, "x-probe")).toBeNull();
+  });
+
+  it("A/B : une sonde reçoit un bras mais n'est pas comptée (pas de x-ab-onboarding-fresh)", async () => {
+    process.env.AB_ONBOARDING_ENABLED = "1";
+    try {
+      const res = await proxy(makeRequest("/", { probeCookie: true }));
+      expect(res.headers.get("set-cookie")).toContain("mijote_ab_onboarding=");
+      expect(forwardedHeader(res, "x-ab-onboarding")).toMatch(/^[ab]$/);
+      expect(forwardedHeader(res, "x-ab-onboarding-fresh")).toBeNull();
+    } finally {
+      delete process.env.AB_ONBOARDING_ENABLED;
+    }
   });
 });

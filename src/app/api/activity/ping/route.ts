@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isProbeHeaders } from "@/lib/probe";
 import { createServerClient } from "@/lib/supabase/server";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 
@@ -23,6 +24,11 @@ export const POST = withOwnerAuth(
     // déconnecterait une session valide.
     const householdId = memberships[0]?.householdId;
     if (!householdId) {
+      return new NextResponse(null, { status: 204 });
+    }
+    // Sonde (#26) : aucune activité enregistrée, et la plateforme de la session
+    // reste `unknown` → exclue des essais démo comme un client non-navigateur (041).
+    if (isProbeHeaders(request.headers)) {
       return new NextResponse(null, { status: 204 });
     }
 
