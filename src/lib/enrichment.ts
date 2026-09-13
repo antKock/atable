@@ -192,7 +192,10 @@ export async function enrichRecipe(
 
     if (fetchError || !recipe) {
       console.error("[enrichment] Recipe not found:", recipeId, fetchError);
-      await supabase.from("recipes").update({ enrichment_status: "failed" }).eq("id", recipeId);
+      await supabase
+        .from("recipes")
+        .update({ enrichment_status: "failed", failure_acknowledged_at: null })
+        .eq("id", recipeId);
       return;
     }
 
@@ -289,7 +292,10 @@ export async function enrichRecipe(
       } catch (error) {
         Sentry.captureException(error);
         console.error("[enrichment] Text model failed after retries:", error);
-        await supabase.from("recipes").update({ enrichment_status: "failed" }).eq("id", recipeId);
+        await supabase
+          .from("recipes")
+          .update({ enrichment_status: "failed", failure_acknowledged_at: null })
+          .eq("id", recipeId);
         return;
       }
 
@@ -355,14 +361,20 @@ export async function enrichRecipe(
       } catch (error) {
         Sentry.captureException(error);
         console.error("[enrichment] Image generation failed:", error);
-        await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
+        await supabase
+          .from("recipes")
+          .update({ image_status: "failed", failure_acknowledged_at: null })
+          .eq("id", recipeId);
         // Image failure does NOT roll back metadata enrichment
       }
     }
   } catch (error) {
     Sentry.captureException(error);
     console.error("[enrichment] Unexpected error:", error);
-    await supabase.from("recipes").update({ enrichment_status: "failed" }).eq("id", recipeId);
+    await supabase
+      .from("recipes")
+      .update({ enrichment_status: "failed", failure_acknowledged_at: null })
+      .eq("id", recipeId);
   }
 }
 
@@ -380,7 +392,10 @@ export async function regenerateImage(recipeId: string): Promise<void> {
 
     if (error || !recipe?.title) {
       console.error("[regenerateImage] Recipe not found:", recipeId);
-      await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
+      await supabase
+        .from("recipes")
+        .update({ image_status: "failed", failure_acknowledged_at: null })
+        .eq("id", recipeId);
       return;
     }
 
@@ -401,7 +416,10 @@ export async function regenerateImage(recipeId: string): Promise<void> {
     }
 
     if (!imagePrompt) {
-      await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
+      await supabase
+        .from("recipes")
+        .update({ image_status: "failed", failure_acknowledged_at: null })
+        .eq("id", recipeId);
       return;
     }
 
@@ -417,6 +435,9 @@ export async function regenerateImage(recipeId: string): Promise<void> {
   } catch (error) {
     Sentry.captureException(error);
     console.error("[regenerateImage] Failed:", error);
-    await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
+    await supabase
+      .from("recipes")
+      .update({ image_status: "failed", failure_acknowledged_at: null })
+      .eq("id", recipeId);
   }
 }
