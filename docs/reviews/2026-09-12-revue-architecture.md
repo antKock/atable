@@ -192,7 +192,7 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
 
 ## Lot 5 — Sagas d'onboarding (à faire en dernier, après une semaine de recul)
 
-- [ ] `src/lib/db/owners.ts` + `sessions.ts` + `households.ts` : une seule fonction
+- [x] `src/lib/db/owners.ts` + `sessions.ts` + `households.ts` : une seule fonction
   `provisionOwnerWithHousehold` / `attachOwnerToHousehold` pour les 3 copies « owner +
   membership + session + cookie » (`households/route.ts:88-163`, `join/route.ts:101-135`,
   `demo/session/route.ts:32-71`). Les rollbacks compensatoires **diffèrent** :
@@ -200,11 +200,19 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
   sur la cascade. **Écrire la sémantique choisie dans le code avant d'unifier.**
   `households/route.ts:144` fait un `recipes.update().is('household_id', null)` non scopé
   déclaré no-op depuis la 027 : à supprimer.
-- [ ] Réécrire les tests des routes concernées sur des mocks de fonctions `db/*` (le mock
+- [x] Réécrire les tests des routes concernées sur des mocks de fonctions `db/*` (le mock
   FIFO `src/test/supabase-mock.ts` ne reste que pour les tests de `src/lib/db/`).
 - [ ] Filet : E2E `01`, `02`, `03`, `08-demo`, `14-lot4-multi-foyer`,
   `15-foyer-post-release-fixes`, et un test d'écriture réelle sur staging (créer, rejoindre,
-  démo) avant le go.
+  démo) avant le go. *E2E 51/51 en local (PR #142). Le test réel sur staging reste à faire
+  APRÈS le merge de la PR — laissée ouverte, non mergée, pour respecter la « semaine de recul » :
+  Anthony décide de l'embarquer ou non.*
+
+*Sémantique des compensations écrite en tête de `src/lib/db/onboarding.ts` : supprimer ce que
+la saga a créé, dans l'ordre inverse — le foyer seulement s'il vient d'être créé (jamais un
+foyer préexistant : rejoindre, démo), puis l'owner (cascade memberships + sessions) ;
+compensations best-effort, erreur d'origine relancée. L'étape « migrer les recettes V1 »
+(no-op depuis la 027) est supprimée.*
 
 Risque moyen : ce sont les trois chemins d'acquisition. Une régression ici est un incident
 de conversion, pas un bug cosmétique.

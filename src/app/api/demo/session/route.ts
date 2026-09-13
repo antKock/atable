@@ -5,6 +5,7 @@ import { signSession, setSessionCookie } from "@/lib/auth/session";
 import { aliasForOwner } from "@/lib/alias";
 import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
+import { provisionOwnerWithHousehold } from "@/lib/db/onboarding";
 import { getClientIp } from "@/lib/request-ip";
 import { enforceDemoSessionQuota } from "@/lib/import-quota";
 
@@ -32,36 +33,14 @@ export const POST = withPublicRoute(async (request: NextRequest) => {
   // normaux — c'est la surface foyer/membership/profil qui est coupée (garde
   // démo par défaut de withOwnerAuth). Purge des owners démo par le cron demo-reset.
   const ownerId = crypto.randomUUID();
-  const { error: ownerError } = await supabase
-    .from("owners")
-    .insert({ id: ownerId, alias: aliasForOwner(ownerId, locale) });
+  const { sessionId } = await provisionOwnerWithHousehold(supabase, {
+    owner: { id: ownerId, alias: aliasForOwner(ownerId, locale) },
+    household: { kind: "existing", householdId: demoHouseholdId },
+    role: "member",
+    deviceName,
+  });
 
-  if (ownerError) {
-    throw new Error(ownerError.message ?? "Failed to create demo owner");
-  }
-
-  const { error: membershipError } = await supabase
-    .from("memberships")
-    .insert({ owner_id: ownerId, household_id: demoHouseholdId, role: "member" });
-
-  if (membershipError) {
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(membershipError.message);
-  }
-
-  const { data: session, error } = await supabase
-    .from("device_sessions")
-    .insert({ household_id: demoHouseholdId, device_name: deviceName, owner_id: ownerId })
-    .select("id")
-    .single();
-
-  if (error || !session) {
-    // Owner delete cascades the membership
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(error?.message ?? "Failed to create demo session");
-  }
-
-  const token = await signSession({ sid: session.id });
+  const token = await signSession({ sid: sessionId });
 
   // Set the session cookie on a 200 JSON response instead of a 303 redirect:
   // cookies attached to redirects are unreliable in WKWebView. The client
