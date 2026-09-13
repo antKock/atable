@@ -154,12 +154,16 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
 
 ## Lot 4 — Ménage (risque nul)
 
-- [ ] Migration `045_drop_analytics_v2.sql` : `DROP FUNCTION IF EXISTS` sur les **30**
+- [x] Migration `045_drop_analytics_v2.sql` : `DROP FUNCTION IF EXISTS` sur les **30**
   fonctions `analytics_*` hors `analytics_v3_*` (liste en annexe B), plus la surcharge
   inutilisée `demo_stats_rollup(uuid, int)` (`038`). Vérifier avant que
   `/admin/stats|explorer|sante` et le digest n'appellent que `analytics_v3_*`,
   `app_store_daily_replace`, `stats_daily_increment`, `demo_stats_rollup(uuid[])`.
   Appliquer avec `scripts/vps/migrate.mjs` (staging, contrôle des 3 pages, puis prod au go).
+  *Fait : 30 fonctions + surcharge `demo_stats_rollup(uuid, int)` + helpers `owner_in_carnets`
+  et `carnet_activity` (sans appelant restant). Appliquée sur staging le 2026-09-13, RPC v3
+  vérifiées en 200 via PostgREST. **Prod : `node scripts/vps/migrate.mjs prod` au moment du go**
+  (après le déploiement du code, qui ne référence plus la v2 depuis la 043).*
 - [ ] Supprimer les one-off : `scripts/backfill-activity-from-recipe-days.mjs`,
   `backfill-owner-alias.mjs`, `verify-owner-backfill.mjs`, `spec9-compare-carousels.ts`,
   et `scripts/bench/results/` (6 700 l. de sorties brutes ; garder `bench/fixtures/`).
