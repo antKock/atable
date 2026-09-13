@@ -39,6 +39,23 @@ const TOKEN_PRICING: Record<string, { input: number; output: number }> = {
   "gpt-5-nano": { input: 0.05, output: 0.4 },
 };
 
+/**
+ * Modèles facturés autrement qu'au token, avec la raison — l'invariant testé
+ * (ai-cost.test.ts) exige que chaque entrée de AI_MODELS soit soit tarifée
+ * dans TOKEN_PRICING, soit listée ici explicitement. Ajouter un modèle sans
+ * prix = spend sous-déclaré en silence dans le dashboard.
+ */
+export const NON_TOKEN_PRICED_MODELS: Record<string, string> = {
+  "gpt-image-1.5": "forfait par image (IMAGE_PRICING, qualité:taille)",
+  "gpt-4o-mini-transcribe":
+    "facturé à la seconde d'audio, durée inconnue côté serveur : ligne à 0 $ (compteur), réconciliée par la Costs API",
+};
+
+/** Un modèle est-il tarifé au token (entrée dans TOKEN_PRICING) ? */
+export function hasTokenPricing(model: string): boolean {
+  return model in TOKEN_PRICING;
+}
+
 // Flat USD per generated image, keyed by `quality:size`. Grounded in observed
 // gpt-image-1.5 billing (~$0.0109 all-in for low/1024² incl. text tokens).
 const IMAGE_PRICING: Record<string, number> = {

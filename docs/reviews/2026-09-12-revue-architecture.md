@@ -211,21 +211,24 @@ de conversion, pas un bug cosmétique.
 
 ## Lot 6 — Tests et robustesse du pipeline IA
 
-- [ ] `src/test/openai-mock.ts:45-56` : ajouter `usage` à `chatCompletion` ; assertions sur
+- [x] `src/test/openai-mock.ts:45-56` : ajouter `usage` à `chatCompletion` ; assertions sur
   `recordAiCost` par voie (`import_url`, `import_url_crawler`, `import_instagram`,
   `transcription`, `ocr`) — aujourd'hui aucun test ne vérifie le coût enregistré.
-- [ ] Tests des voies Instagram et crawler Apify (`src/lib/import.ts:472-531`,
+- [x] Tests des voies Instagram et crawler Apify (`src/lib/import.ts:472-531`,
   `src/lib/apify.ts` : zéro test).
-- [ ] Factoriser le bloc « appel → parse → coût » ×3 (`import.ts:238-251, 311-323, 358-371`)
+- [x] Factoriser le bloc « appel → parse → coût » ×3 (`import.ts:238-251, 311-323, 358-371`)
   en `runExtraction({ model, messages, callType, meta, useEffortFallback })`.
-- [ ] Cron `enrich-stale` : recettes `enrichment_status = 'pending'` depuis > 1 h (perdues
+- [x] Cron `enrich-stale` : recettes `enrichment_status = 'pending'` depuis > 1 h (perdues
   quand le conteneur redémarre pendant `after()`), ~20 par passage, réutilise
   `enrichRecipe`. Crontab VPS (`scripts/vps/bootstrap.sh`, section crons) + `cron-auth`.
-- [ ] Test d'invariant : chaque modèle de `AI_MODELS` a un prix dans `ai-cost.ts` ou une
+  *Route `/api/cron/enrich-stale` + `lib/enrichment/stale.ts`, crontab ajoutée à
+  `bootstrap.sh` (toutes les heures à :20). **Au go** : poser `/etc/cron.d/mijote-enrich-stale`
+  sur le VPS (bloc de bootstrap.sh) — la route n'existe en prod qu'après la promotion.*
+- [x] Test d'invariant : chaque modèle de `AI_MODELS` a un prix dans `ai-cost.ts` ou une
   exemption explicite (`gpt-4o-mini-transcribe` manque déjà).
-- [ ] Extraire 4-5 fonctions pures de `assembleV3` (`src/lib/admin/v3/assemble.ts:162-501`,
+- [x] Extraire 4-5 fonctions pures de `assembleV3` (`src/lib/admin/v3/assemble.ts:162-501`,
   340 l., 9 sections en bannières) pour les tester une à une (médianes, fenêtres glissantes).
-- [ ] Test direct de `src/lib/cron-auth.ts`.
+- [x] Test direct de `src/lib/cron-auth.ts`. *(fait au lot 0)*
 
 ## À ne pas toucher
 
