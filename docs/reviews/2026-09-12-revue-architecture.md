@@ -359,3 +359,49 @@ Scripts vivants : `apple-connect.mjs`, `dokploy.mjs`, `ovh.mjs`, `vps/*`, `e2e-*
 E2E : 17 specs, `workers: 1` justifié, aucune spec sur l'import (coût OpenAI, pas de mock
 serveur dans le harnais) ; specs nommées par lot de livraison (12, 15) plutôt que par
 fonctionnalité.
+
+---
+
+## Journal d'exécution (session autonome du 2026-09-13)
+
+Tout est sur **`staging`** (déployé, vérifié) ; **rien n'est en prod**. Chaque PR a passé le
+protocole : tsc, lint (0 erreur), Prettier, vitest, 51 E2E, puis `/api/version` = SHA,
+contrôles curl (démo, Home, Bibliothèque, foyer, fiche, partage, imports, 4xx), logs du
+conteneur, Sentry.
+
+| PR | Lot | Contenu | Tests |
+|---|---|---|---|
+| #132 | 0 | bugs et risques (purge photos, double facturation, timeouts, gardes publiques, révocation, `.json().catch`, hydratation Android) | 805 |
+| #133 | 1 | `PostgrestClient<Database>`, `npm run db:types`, 14 casts retirés | 805 |
+| #134 | 3 | `useApiMutation` / `apiRequest`, `useRecipeSave` + reducer hors de `RecipeForm` | 825 |
+| #135 | 3 | `CenteredState`, utilitaires `display-*`, `card-surface`, `bg-page-gradient` | 825 |
+| #136 | 3 | `TagInput` SWR + `TagListbox`, `lib/native/camera`, `BackButton`, `RecipeView` serveur | 835 |
+| #137 | 2 | `loadOwnedRecipe`, `parseJsonBody` 400/422, `withPublicRoute`, `revalidateRecipePaths`, garde `/api/admin/*`, `resetDemo` extrait, +50 tests | 885 |
+| #138 | 4 | migration **045** (analytics v2) — appliquée sur staging | 885 |
+| #139 | 4 | one-off, exports morts, rangement `components/`, page stats en sections, i18n serveur, `ES2022` | 884 |
+| #140 | 4 | Prettier (passe unique + `--check` en CI) | 884 |
+| #141 | 6 | `runExtraction`, coûts par voie testés, Instagram / Apify, invariant de tarification, cron `enrich-stale`, `sections.ts` d'`assembleV3` | 920 |
+| #142 | 5 | sagas d'onboarding — **PR ouverte, NON mergée** (semaine de recul) | 924 |
+
+Contrôle d'écriture réel sur staging après le lot 4 : créer un carnet → rejoindre en invité
+→ créer une recette → invité refusé en écriture (403) → supprimer la recette → supprimer le
+carnet, puis nettoyage des owners de test via PostgREST.
+
+### Au moment du go (checklist)
+
+1. Décider du lot 5 (PR #142) : merger sur `staging` puis refaire le contrôle d'écriture
+   réel (créer, rejoindre, démo) avant de promouvoir — ou le laisser pour plus tard.
+2. `gh pr create --base main --head staging` + `gh pr merge --admin` (compte antKock).
+3. **Migration 045 en prod** : `node scripts/vps/migrate.mjs prod --dry-run` puis `prod`
+   (après le déploiement : le code ne référence plus la v2 depuis la 043).
+4. **Crontab `enrich-stale`** sur le VPS : poser `/etc/cron.d/mijote-enrich-stale` (bloc de
+   `scripts/vps/bootstrap.sh`, toutes les heures à :20).
+5. Optionnel : `ADMIN_API_SECRET` dans Dokploy (sinon repli `BATCH_ENRICH_SECRET`, déjà posé).
+6. Vérifier `/api/version` en prod, contrôles curl, Sentry 30 min après.
+
+### Faux positif connu
+
+Sentry « Cron failure: demo-reset » en environnement **staging** (03:30 UTC) : le moniteur
+staging a été créé par le test manuel du cron pendant la migration du 12/09, mais la crontab
+du VPS n'appelle que la prod → check-in manquant chaque nuit. À traiter : poser un cron
+staging, ou supprimer l'environnement staging du moniteur dans Sentry.
