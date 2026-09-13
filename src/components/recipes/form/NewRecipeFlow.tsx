@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BackButton from "@/components/ui/BackButton";
-import { useT } from "@/lib/i18n/client";
+import { useLocale, useT } from "@/lib/i18n/client";
+import { FIRST_RECIPE_SAMPLE_URL } from "@/lib/ab-onboarding";
 import ImportSelector from "@/components/recipes/import/ImportSelector";
 import RecipeForm, { type MemberFoyer } from "@/components/recipes/form/RecipeForm";
 import type { ImportedRecipeData } from "@/lib/import";
@@ -13,6 +14,7 @@ type View = "intent" | "form";
 
 export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: MemberFoyer[] }) {
   const t = useT();
+  const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
   // The form step is a real history entry (?view=form, pushed in openForm) so
@@ -140,6 +142,7 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
           onImportComplete={handleImportComplete}
           onManual={handleManual}
           autoImportUrl={autoImportUrl}
+          sampleUrl={isFirst ? FIRST_RECIPE_SAMPLE_URL[locale] : null}
         />
       ) : (
         <RecipeForm

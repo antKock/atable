@@ -254,6 +254,8 @@ export const t = {
     // Mode « première recette » (/recipes/new?first=1, bras B du #25).
     firstTitle: "Ta première recette",
     firstLead: "Colle un lien, prends une photo ou dicte : Mijote la met au propre.",
+    firstNoRecipe: "Pas de recette sous la main ?",
+    firstTryThis: "Essaie avec celle-ci",
     // Spec #24 : la question en titre, verbe en premier sur chaque méthode,
     // promesse en dessous ; `chip` = libellé court de la rangée « Ou plutôt ».
     question: "D'où vient ta recette ?",

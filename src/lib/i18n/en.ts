@@ -256,6 +256,8 @@ export const en: Dictionary = {
     title: "New recipe",
     firstTitle: "Your first recipe",
     firstLead: "Paste a link, snap a photo or dictate: Mijote tidies it up.",
+    firstNoRecipe: "No recipe at hand?",
+    firstTryThis: "Try this one",
     question: "Where's your recipe from?",
     orRather: "Or rather",
     screenshot: {
