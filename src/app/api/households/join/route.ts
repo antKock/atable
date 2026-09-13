@@ -15,6 +15,7 @@ import { aliasForOwner } from "@/lib/alias";
 import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
 import { provisionOwnerWithHousehold } from "@/lib/db/onboarding";
+import { isProbeHeaders } from "@/lib/probe";
 import { insertMembership, updateMembershipRole } from "@/lib/db/households";
 import { parseJsonBody } from "@/lib/api/body";
 
@@ -98,6 +99,8 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
       id: ownerId,
       alias: aliasForOwner(ownerId, await getLocale()),
       demoTrialStartedAt,
+      // Sonde (#26) : appareil d'Anthony ou agent qui rejoint un carnet, hors stats.
+      isProbe: isProbeHeaders(request.headers),
     },
     household: { kind: "existing", householdId: invite.householdId },
     role: invite.role,

@@ -339,6 +339,7 @@ export const en: Dictionary = {
     start: "Get started",
     haveCookbook: "I already have a cookbook",
     seeExample: "See an example",
+    probeBadge: "Probe · not tracked",
   },
 
   // Join via invite link

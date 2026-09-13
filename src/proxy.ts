@@ -11,6 +11,14 @@ import { redis } from "@/lib/redis";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { isBearerAuthorized } from "@/lib/cron-auth";
 import {
+  PROBE_COOKIE,
+  PROBE_COOKIE_MAX_AGE_S,
+  PROBE_INTERNAL_HEADER,
+  PROBE_QUERY_PARAM,
+  PROBE_REQUEST_HEADER,
+  detectProbe,
+} from "@/lib/probe";
+import {
   AB_ONBOARDING_COOKIE,
   AB_ONBOARDING_COOKIE_MAX_AGE_S,
   AB_ONBOARDING_FRESH_HEADER,
@@ -69,6 +77,33 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Sondes (#26) : cookie `mijote_probe`, en-tête `x-mijote-probe`, ou `?probe=1`
+  // sur la landing (pose le cookie). Traduit en `x-probe: 1` sur la requête
+  // interne — le seul en-tête lu par le code serveur ; un `x-probe` venu du
+  // client est retiré, la décision appartient au proxy.
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete(PROBE_INTERNAL_HEADER);
+  const probe = detectProbe({
+    cookie: request.cookies.get(PROBE_COOKIE)?.value,
+    header: request.headers.get(PROBE_REQUEST_HEADER),
+    queryParam: pathname === "/" ? request.nextUrl.searchParams.get(PROBE_QUERY_PARAM) : null,
+  });
+  if (probe.probe) requestHeaders.set(PROBE_INTERNAL_HEADER, "1");
+  const withProbeCookie = (response: NextResponse) => {
+    if (probe.setCookie) {
+      response.cookies.set({
+        name: PROBE_COOKIE,
+        value: "1",
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: PROBE_COOKIE_MAX_AGE_S,
+        path: "/",
+      });
+    }
+    return response;
+  };
+
   // /api/admin/* : préfixe public (pas de session), mais JAMAIS anonyme —
   // toute route admin naît protégée par le secret d'administration
   // (`ADMIN_API_SECRET`, repli `BATCH_ENRICH_SECRET` déjà posé en prod), en
@@ -97,7 +132,7 @@ export async function proxy(request: NextRequest) {
 
   // Authenticated user visiting landing → redirect to /home
   if (pathname === "/" && payload) {
-    return NextResponse.redirect(new URL("/home", getRequestOrigin(request)));
+    return withProbeCookie(NextResponse.redirect(new URL("/home", getRequestOrigin(request))));
   }
 
   // A/B onboarding (#25) : premier rendu de la landing sans session → bras
@@ -111,10 +146,10 @@ export async function proxy(request: NextRequest) {
       ua: userAgent,
     });
     if (assignment) {
-      const requestHeaders = new Headers(request.headers);
       requestHeaders.set(AB_ONBOARDING_HEADER, assignment.variant);
-      if (assignment.fresh) requestHeaders.set(AB_ONBOARDING_FRESH_HEADER, "1");
-      const response = NextResponse.next({ request: { headers: requestHeaders } });
+      // Une sonde voit son bras (cookie posé) mais n'est jamais comptée.
+      if (assignment.fresh && !probe.probe) requestHeaders.set(AB_ONBOARDING_FRESH_HEADER, "1");
+      const response = withProbeCookie(NextResponse.next({ request: { headers: requestHeaders } }));
       if (assignment.fresh) {
         response.cookies.set({
           name: AB_ONBOARDING_COOKIE,
@@ -132,7 +167,7 @@ export async function proxy(request: NextRequest) {
 
   if (!isPublic) {
     if (!payload) {
-      return NextResponse.redirect(new URL("/", getRequestOrigin(request)));
+      return withProbeCookie(NextResponse.redirect(new URL("/", getRequestOrigin(request))));
     }
 
     try {
@@ -159,7 +194,6 @@ export async function proxy(request: NextRequest) {
       reportRedisFailOpen(err);
     }
 
-    const requestHeaders = new Headers(request.headers);
     // Décommissionnement du chantier foyer (Lot 4) : plus de `x-household-id` —
     // le `sid` est l'unique clé, le foyer se résout en DB (owner-context). Seul
     // `x-session-id` est injecté. (Les hints ne dépendent plus de `x-pathname` :
@@ -180,10 +214,10 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    return response;
+    return withProbeCookie(response);
   }
 
-  return NextResponse.next();
+  return withProbeCookie(NextResponse.next({ request: { headers: requestHeaders } }));
 }
 
 export const config = {

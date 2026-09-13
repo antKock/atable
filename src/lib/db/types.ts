@@ -282,6 +282,7 @@ export type Database = {
           guest_join_code: string
           id: string
           is_demo: boolean
+          is_probe: boolean
           join_code: string
           name: string
           origin: string
@@ -291,6 +292,7 @@ export type Database = {
           guest_join_code: string
           id?: string
           is_demo?: boolean
+          is_probe?: boolean
           join_code: string
           name: string
           origin?: string
@@ -300,6 +302,7 @@ export type Database = {
           guest_join_code?: string
           id?: string
           is_demo?: boolean
+          is_probe?: boolean
           join_code?: string
           name?: string
           origin?: string
@@ -395,6 +398,7 @@ export type Database = {
           created_at: string
           demo_trial_started_at: string | null
           id: string
+          is_probe: boolean
           name: string | null
           onboarding_variant: string | null
           recovery_email: string | null
@@ -404,6 +408,7 @@ export type Database = {
           created_at?: string
           demo_trial_started_at?: string | null
           id?: string
+          is_probe?: boolean
           name?: string | null
           onboarding_variant?: string | null
           recovery_email?: string | null
@@ -413,6 +418,7 @@ export type Database = {
           created_at?: string
           demo_trial_started_at?: string | null
           id?: string
+          is_probe?: boolean
           name?: string | null
           onboarding_variant?: string | null
           recovery_email?: string | null

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { isProbeRequest } from "@/lib/probe.server";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
@@ -55,9 +56,12 @@ function trackView(id: string, currentViewCount: number) {
 function trackPersonView(owner: OwnerContext, householdId: string) {
   if (roleForHousehold(owner, householdId) == null) return;
   if (owner.memberships.some((m) => m.householdId === householdId && m.isDemo)) return;
+  // Sonde (#26) : pas de vue comptée (headers() demandé ici, attendu dans le after()).
+  const probe = isProbeRequest();
   try {
     after(async () => {
       try {
+        if (await probe) return;
         await createServerClient().rpc("track_recipe_view", { p_owner: owner.ownerId });
       } catch {
         // compteur best-effort

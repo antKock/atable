@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { isProbeRequest } from "@/lib/probe.server";
 
 /**
  * Compteurs produit quotidiens (dashboard v2, migration 032) : incrément
@@ -28,8 +29,12 @@ export type StatsDailyField =
 
 export function trackStat(field: StatsDailyField): void {
   try {
+    // Sonde (#26) : jamais comptée. headers() est demandé ICI (contexte requête,
+    // y compris en composant serveur) et attendu dans le after().
+    const probe = isProbeRequest();
     after(async () => {
       try {
+        if (await probe) return;
         await createServerClient().rpc("stats_daily_increment", { p_field: field });
       } catch {
         // Best-effort.

@@ -10,11 +10,14 @@ export async function insertOwner(
     demoTrialStartedAt?: string | null;
     /** A/B onboarding (#25) : bras vu à la landing, null hors test. */
     onboardingVariant?: OnboardingVariant | null;
+    /** Sonde (#26) : appareil d'Anthony ou agent, jamais compté dans les stats. */
+    isProbe?: boolean;
   },
 ): Promise<void> {
   const { error } = await db.from("owners").insert({
     id: owner.id,
     alias: owner.alias,
+    ...(owner.isProbe ? { is_probe: true } : {}),
     ...(owner.demoTrialStartedAt !== undefined
       ? { demo_trial_started_at: owner.demoTrialStartedAt }
       : {}),

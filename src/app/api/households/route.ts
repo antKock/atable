@@ -14,6 +14,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
 import { attachNewHouseholdToOwner, provisionOwnerWithHousehold } from "@/lib/db/onboarding";
 import { AB_ONBOARDING_COOKIE, variantForNewOwner } from "@/lib/ab-onboarding";
+import { isProbeHeaders } from "@/lib/probe";
 
 export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   // Unauthenticated route, and every new household gets a fresh daily
@@ -60,9 +61,13 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   // sur le chemin « owner neuf » ci-dessous (le membership démo est abandonné).
   const existingOwner = await resolveSessionOwnerFromCookie(request);
 
+  // Sonde (#26) : owner et foyer créés par un appareil d'Anthony ou un agent → hors stats.
+  const isProbe = isProbeHeaders(request.headers);
+
   if (existingOwner && !isDemoOwner(existingOwner)) {
     await attachNewHouseholdToOwner(supabase, {
       ownerId: existingOwner.ownerId,
+      isProbe,
       name,
       joinCode,
       guestJoinCode,
@@ -89,9 +94,11 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
       demoTrialStartedAt,
       // A/B onboarding (#25) : bras vu à la landing (cookie), null hors test.
       onboardingVariant: variantForNewOwner(request.cookies.get(AB_ONBOARDING_COOKIE)?.value),
+      isProbe,
     },
     household: {
       kind: "create",
+      isProbe,
       name,
       joinCode,
       guestJoinCode,

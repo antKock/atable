@@ -19,7 +19,13 @@ type View = "menu" | "join" | "joinCode" | "recover";
 // B : « Commencer » (créer, puis droit sur la première recette) en primaire,
 // « J'ai déjà un carnet » (rejoindre) en secondaire, « Voir un exemple » (démo)
 // en lien texte.
-export default function LandingScreen({ variant = "a" }: { variant?: OnboardingVariant }) {
+export default function LandingScreen({
+  variant = "a",
+  probe = false,
+}: {
+  variant?: OnboardingVariant;
+  probe?: boolean;
+}) {
   const t = useT();
   const [view, setView] = useState<View>("menu");
   const [demoLoading, setDemoLoading] = useState(false);
@@ -133,6 +139,11 @@ export default function LandingScreen({ variant = "a" }: { variant?: OnboardingV
           paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
       >
+        {probe && (
+          <p className="text-center text-[12px] font-medium tracking-wide text-background/80 uppercase">
+            {t.landing.probeBadge}
+          </p>
+        )}
         {demoError && (
           <p role="alert" className="text-center text-sm font-medium text-background">
             {demoError}
