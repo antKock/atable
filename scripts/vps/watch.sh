@@ -96,7 +96,7 @@ tick() {
   for c in $(app_containers); do
     local env=staging; [[ $c == mijote-prod-* ]] && env=production
     local app; app=$(docker logs --since "$cursor" --until "$now" "$c" 2>&1 \
-      | grep -aE '\[proxy\] revocation check failed|^ ?⨯ |UnhandledPromiseRejection|ECONNREFUSED|EAI_AGAIN' | head -50)
+      | grep -aE 'revocation check failed|check failed \(Redis down|^ ?⨯ |UnhandledPromiseRejection|ECONNREFUSED|EAI_AGAIN' | head -50)
     [ -z "$app" ] && continue
     local n; n=$(wc -l <<<"$app" | tr -d ' ')
     local key; key=$(head -1 <<<"$app" | sed -E 's/[0-9a-f-]{36}|[0-9]+//g' | md5sum | cut -c1-10)
