@@ -14,6 +14,8 @@ import { resolveDemoTrialStart } from "@/lib/queries/demo-conversion";
 import { aliasForOwner } from "@/lib/alias";
 import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
+import { provisionOwnerWithHousehold } from "@/lib/db/onboarding";
+import { insertMembership, updateMembershipRole } from "@/lib/db/households";
 import { parseJsonBody } from "@/lib/api/body";
 
 export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
@@ -68,21 +70,19 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
       return NextResponse.json({ ok: true, redirect: "/household", alreadyMember: true });
     }
     if (plan.action === "upgrade") {
-      const { error: upErr } = await supabase
-        .from("memberships")
-        .update({ role: plan.role })
-        .eq("owner_id", existingOwner.ownerId)
-        .eq("household_id", invite.householdId);
-      if (upErr) throw new Error(upErr.message);
+      await updateMembershipRole(supabase, {
+        ownerId: existingOwner.ownerId,
+        householdId: invite.householdId,
+        role: plan.role,
+      });
       return NextResponse.json({ ok: true, redirect: "/household", upgraded: true });
     }
     // action === 'add' : nouveau foyer pour cet owner.
-    const { error: addErr } = await supabase.from("memberships").insert({
-      owner_id: existingOwner.ownerId,
-      household_id: invite.householdId,
+    await insertMembership(supabase, {
+      ownerId: existingOwner.ownerId,
+      householdId: invite.householdId,
       role: plan.role,
     });
-    if (addErr) throw new Error(addErr.message);
     return NextResponse.json({ ok: true, redirect: "/household", added: true });
   }
 
@@ -93,38 +93,18 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   const demoTrialStartedAt = await resolveDemoTrialStart(supabase, existingOwner);
 
   const ownerId = crypto.randomUUID();
-  const { error: ownerError } = await supabase.from("owners").insert({
-    id: ownerId,
-    alias: aliasForOwner(ownerId, await getLocale()),
-    demo_trial_started_at: demoTrialStartedAt,
+  const { sessionId } = await provisionOwnerWithHousehold(supabase, {
+    owner: {
+      id: ownerId,
+      alias: aliasForOwner(ownerId, await getLocale()),
+      demoTrialStartedAt,
+    },
+    household: { kind: "existing", householdId: invite.householdId },
+    role: invite.role,
+    deviceName,
   });
 
-  if (ownerError) {
-    throw new Error(ownerError.message ?? "Failed to create owner");
-  }
-
-  const { error: membershipError } = await supabase
-    .from("memberships")
-    .insert({ owner_id: ownerId, household_id: invite.householdId, role: invite.role });
-
-  if (membershipError) {
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(membershipError.message);
-  }
-
-  const { data: session, error: sessionError } = await supabase
-    .from("device_sessions")
-    .insert({ household_id: invite.householdId, device_name: deviceName, owner_id: ownerId })
-    .select("id")
-    .single();
-
-  if (sessionError || !session) {
-    // Owner delete cascades the membership
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(sessionError?.message ?? "Failed to create session");
-  }
-
-  const jwt = await signSession({ sid: session.id });
+  const jwt = await signSession({ sid: sessionId });
 
   // Cookie on a 200 JSON response (not a 303) — reliable in WKWebView.
   const response = NextResponse.json({ ok: true, redirect: "/home" });

@@ -1,52 +1,57 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "./route";
-import { createServerClient } from "@/lib/supabase/server";
-import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { attachNewHouseholdToOwner, provisionOwnerWithHousehold } from "@/lib/db/onboarding";
+import { resolveSessionOwnerFromCookie } from "@/lib/auth/session-owner";
+import { resolveDemoTrialStart } from "@/lib/queries/demo-conversion";
+import { enforceHouseholdCreateQuota } from "@/lib/import-quota";
+import type { OwnerContext } from "@/lib/auth/owner-context";
 
-vi.mock("@/lib/supabase/server");
-vi.mock("@/lib/import-quota", () => ({
-  enforceHouseholdCreateQuota: vi.fn().mockResolvedValue(null),
+// Route « créer un carnet » sur des mocks de FONCTIONS db/* (lot 5) : les
+// sagas elles-mêmes (ordre des écritures, compensations) sont couvertes par
+// src/lib/db/onboarding.test.ts avec le mock FIFO.
+vi.mock("@/lib/supabase/server", () => ({ createServerClient: vi.fn(() => ({})) }));
+vi.mock("@/lib/db/onboarding", () => ({
+  attachNewHouseholdToOwner: vi.fn(),
+  provisionOwnerWithHousehold: vi.fn(),
 }));
-// Révocation Redis (session-owner.ts) : par défaut rien n'est révoqué.
-vi.mock("@/lib/redis", () => ({ redis: { get: vi.fn().mockResolvedValue(null) } }));
-// cookies() : « Créer un foyer » est additif quand une session existe (Lot 4).
-// Par défaut aucun cookie → chemin « owner neuf » (caractérisation historique).
-vi.mock("next/headers", () => ({
-  cookies: vi.fn(async () => ({ get: () => undefined })),
-}));
+vi.mock("@/lib/auth/session-owner", () => ({ resolveSessionOwnerFromCookie: vi.fn() }));
+vi.mock("@/lib/queries/demo-conversion", () => ({ resolveDemoTrialStart: vi.fn() }));
+vi.mock("@/lib/import-quota", () => ({ enforceHouseholdCreateQuota: vi.fn() }));
 
-let supa: SupabaseMock;
-
-beforeEach(() => {
-  supa = createSupabaseMock();
-  vi.mocked(createServerClient).mockReturnValue(supa.client);
+const owner = (overrides: Partial<OwnerContext> = {}): OwnerContext => ({
+  ownerId: "owner-real",
+  ownerName: null,
+  ownerAlias: null,
+  recoveryEmail: null,
+  sessionId: "sid-real",
+  memberships: [{ householdId: "hh-a", role: "member", isDemo: false }],
+  ...overrides,
 });
 
-function request(body: unknown): NextRequest {
+function request(body: unknown, headers: Record<string, string> = {}): NextRequest {
   return new NextRequest("https://test.local/api/households", {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      "user-agent": "Mozilla/5.0",
-    },
+    headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0", ...headers },
     body: JSON.stringify(body),
   });
 }
 
-/** Queue the 5 results a successful create consumes (Lot 0 foyer). */
-function queueSuccess() {
-  supa.queueResults([
-    { data: { id: "owner-1" }, error: null }, // insert owner
-    { data: { id: "household-1" }, error: null }, // insert household
-    { error: null }, // insert membership
-    { data: { id: "session-1" }, error: null }, // insert device_session
-    { error: null }, // migrate legacy recipes
-  ]);
-}
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(enforceHouseholdCreateQuota).mockResolvedValue(null);
+  vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(null);
+  vi.mocked(resolveDemoTrialStart).mockResolvedValue(null);
+  vi.mocked(provisionOwnerWithHousehold).mockResolvedValue({
+    ownerId: "owner-1",
+    householdId: "hh-1",
+    sessionId: "session-1",
+  });
+  vi.mocked(attachNewHouseholdToOwner).mockResolvedValue({ householdId: "hh-2" });
+});
 
-describe("POST /api/households (Fix 1.2)", () => {
-  it("refuse (413) un corps annoncé au-delà du plafond, avant le quota et toute écriture", async () => {
+describe("POST /api/households", () => {
+  it("413 avant le quota et toute écriture", async () => {
     const res = await POST(
       new NextRequest("https://test.local/api/households", {
         method: "POST",
@@ -54,135 +59,83 @@ describe("POST /api/households (Fix 1.2)", () => {
       }),
     );
     expect(res.status).toBe(413);
-    expect(supa.calls).toHaveLength(0);
+    expect(enforceHouseholdCreateQuota).not.toHaveBeenCalled();
   });
 
-  it("returns 429 when the per-IP creation quota is exhausted", async () => {
-    const { enforceHouseholdCreateQuota } = await import("@/lib/import-quota");
+  it("429 quand le quota par IP est épuisé, sans écriture", async () => {
     const { NextResponse } = await import("next/server");
     vi.mocked(enforceHouseholdCreateQuota).mockResolvedValueOnce(
       NextResponse.json({ error: "quota" }, { status: 429 }),
     );
-    const res = await POST(request({ name: "Chez nous" }));
-    expect(res.status).toBe(429);
-    expect(supa.calls).toHaveLength(0);
+    expect((await POST(request({ name: "Chez nous" }))).status).toBe(429);
+    expect(provisionOwnerWithHousehold).not.toHaveBeenCalled();
   });
 
-  it("creates a household and returns 200 JSON with a redirect", async () => {
-    queueSuccess();
+  it("appareil neuf : saga owner neuf + foyer neuf, cookie posé, redirect /home (200, pas 303)", async () => {
     const res = await POST(request({ name: "Chez nous" }));
     expect(res.status).toBe(200);
-    const body = await res.json();
-    expect(body.ok).toBe(true);
-    // Redirection Home simple : le `?code=…` (ancienne bannière post-création) a
-    // été retiré au profit du hint « partage » server-gated de la Home (#9).
-    expect(body.redirect).toBe("/home");
-  });
-
-  it("sets the atable_session cookie", async () => {
-    queueSuccess();
-    const res = await POST(request({ name: "Chez nous" }));
+    expect(await res.json()).toEqual({ ok: true, redirect: "/home" });
+    expect(res.headers.get("location")).toBeNull();
     expect(res.cookies.get("atable_session")?.value).toBeTruthy();
+    const [, input] = vi.mocked(provisionOwnerWithHousehold).mock.calls[0];
+    expect(input.household).toMatchObject({ kind: "create", name: "Chez nous", origin: "landing" });
+    expect(input.role).toBe("member");
+    expect(input.owner.id).toBeTruthy();
+    expect(input.owner.alias).toBeTruthy();
+    expect(input.owner.demoTrialStartedAt).toBeNull();
+    const h = input.household as { joinCode: string; guestJoinCode: string };
+    expect(h.joinCode).toMatch(/^[A-Z]+-\d{4}$/);
+    expect(h.guestJoinCode).not.toBe(h.joinCode);
   });
 
-  it("does NOT issue a 303 redirect (regression guard)", async () => {
-    queueSuccess();
-    const res = await POST(request({ name: "Chez nous" }));
-    expect(res.status).not.toBe(303);
-  });
-
-  // Spec #23 : le nom est optionnel — absent ou vide = nom par défaut (FR ici,
-  // la locale du test étant fr). Un nom trop long reste refusé.
-  it("creates with the default name when the name is omitted or empty", async () => {
-    for (const body of [{}, { name: "" }, { name: "   " }]) {
-      queueSuccess();
-      const res = await POST(request(body));
-      expect(res.status).toBe(200);
-      const householdInsert = supa.calls
-        .filter((c) => c.table === "households")
-        .at(-1)!
-        .ops.find((op) => op.method === "insert");
-      expect((householdInsert!.args[0] as { name: string }).name).toBe("Mon carnet");
+  it("nom omis ou vide → nom par défaut de la locale (spec #23)", async () => {
+    await POST(request({}));
+    await POST(request({ name: "   " }));
+    for (const [, input] of vi.mocked(provisionOwnerWithHousehold).mock.calls) {
+      expect((input.household as { name: string }).name).toBe("Mon carnet");
     }
   });
 
-  it("rejects a name over 50 characters with 422", async () => {
-    const res = await POST(request({ name: "x".repeat(51) }));
-    expect(res.status).toBe(422);
+  it("nom > 50 caractères → 422", async () => {
+    expect((await POST(request({ name: "x".repeat(51) }))).status).toBe(422);
+    expect(provisionOwnerWithHousehold).not.toHaveBeenCalled();
   });
 
-  it("returns 500 when the household insert fails", async () => {
-    supa.queueResults([
-      { data: { id: "owner-1" }, error: null },
-      { data: null, error: { message: "insert failed" } },
-    ]);
-    const res = await POST(request({ name: "Chez nous" }));
-    expect(res.status).toBe(500);
-  });
-
-  it("creates owner + membership, and the session points at the owner (Lot 0)", async () => {
-    queueSuccess();
-    await POST(request({ name: "Chez nous" }));
-
-    // L'id de l'owner est généré côté app (pour figer l'alias) : on le lit du
-    // payload d'insertion plutôt que de le supposer.
-    const ownerInsert = supa.calls
-      .find((c) => c.table === "owners")!
-      .ops.find((op) => op.method === "insert");
-    const owner = ownerInsert!.args[0] as { id: string; alias: string };
-    expect(owner.id).toBeTruthy();
-    expect(owner.alias, "un surnom (alias) est figé dès la création").toBeTruthy();
-
-    const membership = supa.calls.find((c) => c.table === "memberships")!;
-    expect(
-      membership.ops.some(
-        (op) =>
-          op.method === "insert" &&
-          JSON.stringify(op.args[0]) ===
-            JSON.stringify({ owner_id: owner.id, household_id: "household-1", role: "member" }),
-      ),
-    ).toBe(true);
-
-    const session = supa.calls.find((c) => c.table === "device_sessions")!;
-    const insert = session.ops.find((op) => op.method === "insert");
-    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe(owner.id);
-  });
-
-  it("compensates (household + owner deleted) when the session insert fails", async () => {
-    supa.queueResults([
-      { data: { id: "owner-1" }, error: null },
-      { data: { id: "household-1" }, error: null },
-      { error: null }, // membership
-      { data: null, error: { message: "session insert failed" } },
-    ]);
-    const res = await POST(request({ name: "Chez nous" }));
-    expect(res.status).toBe(500);
-    const deleted = (table: string) =>
-      supa.calls.some((c) => c.table === table && c.ops.some((op) => op.method === "delete"));
-    expect(deleted("households")).toBe(true);
-    expect(deleted("owners")).toBe(true);
-  });
-
-  it("une session RÉVOQUÉE ne rend pas la création additive : owner neuf + cookie (revue 2026-09-12)", async () => {
-    const { redis } = await import("@/lib/redis");
-    const { signSession } = await import("@/lib/auth/session");
-    vi.mocked(redis.get).mockResolvedValueOnce("1");
-    const jwt = await signSession({ sid: "revoked-sid" });
-    queueSuccess();
-    const res = await POST(
-      new NextRequest("https://test.local/api/households", {
-        method: "POST",
-        headers: { "content-type": "application/json", cookie: `atable_session=${jwt}` },
-        body: JSON.stringify({ name: "Chez nous" }),
+  it("sortie de démo : origine demo_conversion + marqueur de conversion sur l'owner neuf", async () => {
+    vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(
+      owner({
+        ownerId: "owner-demo",
+        memberships: [{ householdId: "demo", role: "member", isDemo: true }],
       }),
     );
+    vi.mocked(resolveDemoTrialStart).mockResolvedValue("2026-09-01T10:00:00Z");
+    const res = await POST(request({}));
     expect(res.status).toBe(200);
-    // Chemin « owner neuf » : la session révoquée n'a pas été résolue en base
-    // (aucune lecture de device_sessions) et un nouveau cookie est posé.
-    expect(
-      supa.calls.some((c) => c.table === "device_sessions" && c.ops[0].method === "select"),
-    ).toBe(false);
-    expect(supa.calls.some((c) => c.table === "owners" && c.ops[0].method === "insert")).toBe(true);
-    expect(res.cookies.get("atable_session")?.value).toBeTruthy();
+    const [, input] = vi.mocked(provisionOwnerWithHousehold).mock.calls[0];
+    expect(input.owner.demoTrialStartedAt).toBe("2026-09-01T10:00:00Z");
+    expect((input.household as { origin: string }).origin).toBe("demo_conversion");
+    expect(attachNewHouseholdToOwner).not.toHaveBeenCalled();
+  });
+
+  it("session réelle : création ADDITIVE (foyer + membership sur l'owner existant), pas de cookie", async () => {
+    vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(owner());
+    const res = await POST(request({ name: "Second carnet" }));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, redirect: "/home", added: true });
+    expect(res.cookies.get("atable_session")).toBeUndefined();
+    expect(attachNewHouseholdToOwner).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ownerId: "owner-real", name: "Second carnet" }),
+    );
+    expect(provisionOwnerWithHousehold).not.toHaveBeenCalled();
+  });
+
+  it("échec de la saga → 500 générique (message brut jamais exposé)", async () => {
+    vi.mocked(provisionOwnerWithHousehold).mockRejectedValue(
+      new Error('duplicate key value violates unique constraint "households_join_code_key"'),
+    );
+    const res = await POST(request({ name: "Chez nous" }));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Erreur serveur" });
   });
 });
