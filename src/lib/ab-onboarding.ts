@@ -15,6 +15,16 @@ export const AB_ONBOARDING_FRESH_HEADER = "x-ab-onboarding-fresh";
 
 export type OnboardingVariant = "a" | "b";
 
+/**
+ * Écran « Ta première recette » (bras B) : recette d'exemple proposée en pied
+ * (« Pas de recette sous la main ? Essaie avec celle-ci »), importée par le
+ * chemin URL normal. Vérifiées à l'import sur staging le 2026-09-13 (≈ 3-5 s).
+ */
+export const FIRST_RECIPE_SAMPLE_URL: Record<"fr" | "en", string> = {
+  fr: "https://www.marmiton.org/recettes/recette_crepes-faciles_12372.aspx",
+  en: "https://www.bbcgoodfood.com/recipes/easy-pancakes",
+};
+
 export function isOnboardingVariant(value: unknown): value is OnboardingVariant {
   return value === "a" || value === "b";
 }

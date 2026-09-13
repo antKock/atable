@@ -86,6 +86,20 @@ test("A/B bras B : « Commencer » → carnet en un tap → « Ta première rece
   // Le bras est persisté sur l'owner réel
   expect(await currentOwnerVariant(page)).toBe("b");
 
+  // Pied « Pas de recette sous la main ? / Essaie avec celle-ci » : lance
+  // l'import URL de la recette d'exemple FR (le résultat dépend du réseau et
+  // d'OpenAI, hors harnais : on vérifie l'appel, pas l'extraction).
+  await expect(page.getByText("Pas de recette sous la main ?")).toBeVisible();
+  const sampleRequest = page.waitForRequest(
+    (r) => r.url().includes("/api/recipes/import/url") && r.method() === "POST",
+  );
+  await page.getByRole("button", { name: "Essaie avec celle-ci" }).click();
+  expect((await sampleRequest).postDataJSON()).toEqual({
+    url: "https://www.marmiton.org/recettes/recette_crepes-faciles_12372.aspx",
+  });
+  await page.goto("/recipes/new?first=1");
+  await expect(page.getByRole("heading", { name: "Ta première recette" })).toBeVisible();
+
   // Manuel → formulaire (first=1 conservé, view=form ajouté) → retour possible
   await page.getByText("Écrire moi-même").click();
   await page.waitForURL(/\/recipes\/new\?first=1&view=form$/);
