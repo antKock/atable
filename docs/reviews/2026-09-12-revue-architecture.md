@@ -412,3 +412,24 @@ Sentry « Cron failure: demo-reset » en environnement **staging** (03:30 UTC) :
 staging a été créé par le test manuel du cron pendant la migration du 12/09, mais la crontab
 du VPS n'appelle que la prod → check-in manquant chaque nuit. À traiter : poser un cron
 staging, ou supprimer l'environnement staging du moniteur dans Sentry.
+
+### Go prod — fait le 2026-09-13 (08:28 Paris)
+
+PR #144 `staging → main` (`edbfcac`), déploiement vérifié par SHA, contrôles curl (démo, Home,
+Bibliothèque, foyer, fiche, partage, ping, 403 seed, 422/401), RPC v3 en 200 et v2 en 404.
+Migrations **045 + 046** appliquées en prod (`migrate.mjs prod`), crontab
+`/etc/cron.d/mijote-enrich-stale` posée (premier passage : 0 recette bloquée),
+`ADMIN_API_SECRET` posée dans Dokploy prod et staging (effective au prochain déploiement,
+repli `BATCH_ENRICH_SECRET` d'ici là).
+
+**Incident de 3 min** : une session parallèle avait mergé la PR #143 (A/B onboarding #25,
+migration 046) sur `staging` entre ma dernière vérification et la promotion ; 046 était
+appliquée sur staging mais pas en prod → `POST /api/demo/session` (et toute création d'owner)
+en 500 de 06:28 à 06:31 UTC, le temps d'appliquer les migrations et que PostgREST recharge son
+cache. Sentry : 2 événements, tous deux mes propres contrôles. Leçon : **relire
+`migrate.mjs prod --dry-run` juste avant la promotion**, pas seulement à la préparation du go.
+
+Erreur de contrôle corrigée : mon test « PUT sur une seed → 403 » a visé la première recette
+de la liste démo, qui était une recette de visiteur (non seed) et l'a renommée ; titre remis
+d'après son image prompt, purge par le cron cette nuit de toute façon. Le vrai test sur une
+seed (`…0015`, PUT et DELETE → 403) est passé.
