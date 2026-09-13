@@ -62,8 +62,3 @@ export function weekStarts(endSunday: string, n: number): string[] {
 export function shortDate(isoDay: string): string {
   return new Date(isoDay + "T00:00:00Z").toLocaleDateString("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" });
 }
-
-export function monthLabel(isoMonth: string): string {
-  const s = new Date(isoMonth.slice(0, 7) + "-01T00:00:00Z").toLocaleDateString("fr-FR", { month: "long", timeZone: "UTC" });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-}

@@ -1,0 +1,100 @@
+// @vitest-environment happy-dom
+import { describe, it, expect, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
+import RecipeCard from "@/components/recipes/card/RecipeCard";
+import type { RecipeListItem } from "@/types/recipe";
+
+afterEach(() => cleanup());
+
+const baseRecipe: RecipeListItem = {
+  id: "abc-123",
+  title: "Poulet rôti",
+  ingredients: "1 poulet\nThym",
+  tags: [{ id: "t1", name: "viande", category: null }],
+  photoUrl: null,
+  createdAt: "2024-01-01T00:00:00Z",
+  generatedImageUrl: null,
+  enrichmentStatus: "none",
+  imageStatus: "none",
+};
+
+describe("RecipeCard", () => {
+  it("renders a link to the recipe detail page", () => {
+    render(<RecipeCard recipe={baseRecipe} />);
+    const link = screen.getByRole("link");
+    expect(link.getAttribute("href")).toBe("/recipes/abc-123");
+  });
+
+  it("displays the recipe title below the photo", () => {
+    render(<RecipeCard recipe={baseRecipe} />);
+    expect(screen.getByText("Poulet rôti")).not.toBeNull();
+  });
+
+  it("shows a warm placeholder when no photo or generated image is provided", () => {
+    const { container } = render(<RecipeCard recipe={baseRecipe} />);
+    expect(container.querySelector("img")).toBeNull();
+    // Placeholder uses inline style background gradient, not an img element
+    const placeholderDiv = container.querySelector("[style]");
+    expect(placeholderDiv).not.toBeNull();
+  });
+
+  it("shows a skeleton instead of the placeholder while the AI image is generating", () => {
+    const recipe = { ...baseRecipe, imageStatus: "pending" };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).toBeNull();
+    expect(container.querySelector('[data-slot="skeleton"]')).not.toBeNull();
+  });
+
+  it("prefers the actual image over the skeleton even if imageStatus is pending", () => {
+    // A user photo can coexist with a pending AI generation (skipImage flow)
+    const recipe = {
+      ...baseRecipe,
+      imageStatus: "pending",
+      photoUrl:
+        "https://example.supabase.co/storage/v1/object/public/recipe-photos/device/recipe/photo.webp",
+    };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).not.toBeNull();
+    expect(container.querySelector('[data-slot="skeleton"]')).toBeNull();
+  });
+
+  it("renders an img element when photoUrl is provided", () => {
+    const recipe = {
+      ...baseRecipe,
+      photoUrl:
+        "https://example.supabase.co/storage/v1/object/public/recipe-photos/device/recipe/photo.webp",
+    };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).not.toBeNull();
+  });
+
+  it("renders an img element when generatedImageUrl is provided and photoUrl is null", () => {
+    const recipe = {
+      ...baseRecipe,
+      generatedImageUrl:
+        "https://example.supabase.co/storage/v1/object/public/recipe-photos/generated/abc-123/ai-image.webp",
+    };
+    const { container } = render(<RecipeCard recipe={recipe} />);
+    expect(container.querySelector("img")).not.toBeNull();
+  });
+
+  it("uses aria-label on the link for accessibility", () => {
+    render(<RecipeCard recipe={baseRecipe} />);
+    const link = screen.getByRole("link");
+    expect(link.getAttribute("aria-label")).toBe("Poulet rôti");
+  });
+
+  it("applies carousel-specific width class in carousel variant", () => {
+    const { container } = render(
+      <RecipeCard recipe={baseRecipe} variant="carousel" />
+    );
+    expect(container.querySelector("a")?.className).toContain("w-[62vw]");
+  });
+
+  it("applies full-width class in grid variant", () => {
+    const { container } = render(
+      <RecipeCard recipe={baseRecipe} variant="grid" />
+    );
+    expect(container.querySelector("a")?.className).toContain("w-full");
+  });
+});

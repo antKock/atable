@@ -4,7 +4,7 @@ import { POST } from "./route";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { recoveryVerifyRateLimit } from "@/lib/redis";
 import { findOwnerByEmail, verifyLoginCode, executeMergeOwners } from "@/lib/queries/recovery";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 
 // Vérification du code de fusion (#14, décision n°6) — revue 2026-09-12.
 vi.mock("@/lib/auth/owner-context", async (importOriginal) => ({

@@ -5,7 +5,7 @@ import { Mail } from 'lucide-react'
 import { useT } from '@/lib/i18n/client'
 import BackButton from '@/components/ui/BackButton'
 import { dropSwrCache } from '@/lib/swr'
-import RecoveryCodeInput from './RecoveryCodeInput'
+import RecoveryCodeInput from '@/components/auth/RecoveryCodeInput'
 
 type Props = {
   onBack: () => void

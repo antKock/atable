@@ -4,8 +4,8 @@ import { render, screen, cleanup } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { LocaleProvider } from "./client";
 import { en } from "./en";
-import RecipeCard from "@/components/recipes/RecipeCard";
-import MetadataGrid from "@/components/recipes/MetadataGrid";
+import RecipeCard from "@/components/recipes/card/RecipeCard";
+import MetadataGrid from "@/components/recipes/view/MetadataGrid";
 import Navigation from "@/components/layout/Navigation";
 import type { RecipeListItem } from "@/types/recipe";
 

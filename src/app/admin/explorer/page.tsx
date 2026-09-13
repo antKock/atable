@@ -4,7 +4,7 @@ import { getOwnerContext } from "@/lib/auth/owner-context";
 import { getDashboardV3 } from "@/lib/admin/v3/data";
 import { CHANNEL_LABELS, type Person } from "@/lib/admin/v3/people";
 import { shortDate } from "@/lib/admin/v3/weeks";
-import { Topbar, SectionHead, Card } from "@/components/admin/ui";
+import { Topbar, SectionHead, Card } from "@/components/admin/AdminUi";
 import "../stats/dashboard.css";
 
 export const dynamic = "force-dynamic";

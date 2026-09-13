@@ -13,7 +13,7 @@
 // tables + styles inline ; le dégradé du bouton retombe sur l'olive plein là
 // où linear-gradient n'est pas supporté (Outlook) ; aucune webfont embarquée.
 
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 import { getLocale, getT } from "@/lib/i18n/server";
 import type { Locale } from "@/lib/i18n/locale";
 
@@ -31,7 +31,7 @@ export type RecoveryEmailPayload = {
 // résout la locale, cf. sendRecoveryEmail).
 export function renderRecoveryEmail(
   payload: RecoveryEmailPayload,
-  t: Dictionary,
+  t: FullDictionary,
   lang: Locale,
 ): {
   subject: string;

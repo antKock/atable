@@ -5,8 +5,8 @@ import { configuredAppOrigin } from "@/lib/request-origin";
 import { ogLocaleTag, readI18nFlags } from "@/lib/i18n/locale";
 import { LocalePreviewSwitch, LocaleProvider } from "@/lib/i18n/client";
 import SWRProvider from "@/components/providers/SWRProvider";
-import VersionWatcher from "@/components/VersionWatcher";
-import DeepLinkHandler from "@/components/DeepLinkHandler";
+import VersionWatcher from "@/components/providers/VersionWatcher";
+import DeepLinkHandler from "@/components/providers/DeepLinkHandler";
 import "./globals.css";
 
 const inter = Inter({

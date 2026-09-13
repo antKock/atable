@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import * as Sentry from "@sentry/nextjs";
 import { getT } from "@/lib/i18n/server";
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from "@/lib/body-limit";
 
 export type WithPublicRouteOptions = {
@@ -22,7 +22,7 @@ export type WithPublicRouteOptions = {
  * Le rate limiting et la validation restent dans chaque route : ils diffèrent.
  */
 export function withPublicRoute<Req extends Request, C, Res extends Response>(
-  handler: (request: Req, context: C, t: Dictionary) => Promise<Res>,
+  handler: (request: Req, context: C, t: FullDictionary) => Promise<Res>,
   options: WithPublicRouteOptions = {},
 ) {
   const maxBodyBytes = options.maxBodyBytes ?? DEFAULT_MAX_BODY_BYTES;

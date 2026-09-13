@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { buildImportScreenshotSchema } from "@/lib/schemas/import";
 import { extractRecipeFromImages } from "@/lib/import";
 import { getT } from "@/lib/i18n/server";
@@ -13,7 +13,7 @@ import { resolveImportHousehold } from "@/lib/api/import-household";
 // refusé AVANT lecture (Traefik ne plafonne pas le corps en amont).
 const MAX_SCREENSHOT_BODY_BYTES = 15_000_000 + 64 * 1024;
 
-export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
+export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const t = await getT();
   const target = resolveImportHousehold(owner, t);
   if (target instanceof NextResponse) return target;

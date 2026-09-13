@@ -1,8 +1,8 @@
 import { Users, Eye } from 'lucide-react'
 import { getT } from '@/lib/i18n/server'
 import BackButton from '@/components/ui/BackButton'
-import CodeDisplay from './CodeDisplay'
-import InviteLinkDisplay from './InviteLinkDisplay'
+import CodeDisplay from '@/components/household/CodeDisplay'
+import InviteLinkDisplay from '@/components/household/InviteLinkDisplay'
 
 type Props = {
   householdId: string

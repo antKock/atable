@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup } from "@testing-library/react";
-import Navigation from "./Navigation";
+import Navigation from "@/components/layout/Navigation";
 
 afterEach(() => cleanup());
 

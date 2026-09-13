@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import Chip from "./Chip";
+import Chip from "@/components/recipes/Chip";
 
 afterEach(() => cleanup());
 

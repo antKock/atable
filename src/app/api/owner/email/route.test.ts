@@ -6,7 +6,7 @@ import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { recoveryEmailRateLimit, recoveryIpRateLimit } from "@/lib/redis";
 import { createLoginToken } from "@/lib/queries/recovery";
 import { sendRecoveryEmail } from "@/lib/email/send";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");

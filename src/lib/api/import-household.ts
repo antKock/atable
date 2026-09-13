@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { forbiddenResponse } from "@/lib/api/with-owner-auth";
 import { memberHouseholdIds, type OwnerContext } from "@/lib/auth/owner-context";
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 
 /**
  * Foyer auquel rattacher un import IA (url / capture / voix). L'import
@@ -12,7 +12,7 @@ import type { Dictionary } from "@/lib/i18n/types";
  */
 export function resolveImportHousehold(
   owner: OwnerContext,
-  t: Dictionary,
+  t: FullDictionary,
 ): { householdId: string } | NextResponse {
   const memberIds = memberHouseholdIds(owner);
   if (memberIds.length === 0) return forbiddenResponse(t);

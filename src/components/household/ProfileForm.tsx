@@ -8,7 +8,7 @@ import { useT } from '@/lib/i18n/client'
 import BackButton from '@/components/ui/BackButton'
 import { apiRequest } from '@/lib/api-client'
 import { Button } from '@/components/ui/button'
-import MergeVerifyScreen from './MergeVerifyScreen'
+import MergeVerifyScreen from '@/components/household/MergeVerifyScreen'
 
 type Props = {
   initialName: string

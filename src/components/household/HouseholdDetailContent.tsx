@@ -7,10 +7,10 @@ import { useT } from '@/lib/i18n/client'
 import BackButton from '@/components/ui/BackButton'
 import { apiRequest } from '@/lib/api-client'
 import type { MembershipRole } from '@/lib/auth/owner-context'
-import InlineEditableField from './InlineEditableField'
-import LeaveHouseholdDialog from './LeaveHouseholdDialog'
-import RolePill from './RolePill'
-import MemberActionDialog, { type MemberTarget } from './MemberActionDialog'
+import InlineEditableField from '@/components/household/InlineEditableField'
+import LeaveHouseholdDialog from '@/components/household/LeaveHouseholdDialog'
+import RolePill from '@/components/household/RolePill'
+import MemberActionDialog, { type MemberTarget } from '@/components/household/MemberActionDialog'
 
 type Member = {
   ownerId: string

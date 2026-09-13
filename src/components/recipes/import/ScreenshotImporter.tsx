@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useT } from "@/lib/i18n/client";
-import ImportCard from "./ImportCard";
+import ImportCard from "@/components/recipes/import/ImportCard";
 import { isPickerCancellation, pickGalleryImagesAsFiles, takePhotoAsFile } from "@/lib/native/camera";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB

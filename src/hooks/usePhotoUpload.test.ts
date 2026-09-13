@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { uploadPhoto as uploadPhotoPure } from "./usePhotoUpload";
-import { t as fr } from "@/lib/i18n/fr";
+import { frFull as fr } from "@/lib/i18n/full";
 import { resizeImageToBlob } from "@/lib/image-resize";
 
 vi.mock("@/lib/image-resize", () => ({

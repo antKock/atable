@@ -10,7 +10,7 @@ import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 import { visibleTagsOrClause } from "@/lib/db/tags";
 import { parseJsonBody } from "@/lib/api/body";
-import type { Dictionary } from "@/lib/i18n/types";
+import type { FullDictionary } from "@/lib/i18n/types";
 
 export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const supabase = createServerClient();
@@ -30,7 +30,7 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
 
 // Messages localisés (revue 2026-09-12 : les messages zod bruts partaient en
 // anglais dans le toast).
-const buildCreateTagSchema = (t: Dictionary) =>
+const buildCreateTagSchema = (t: FullDictionary) =>
   z.object({
     name: z.string().trim().min(1, t.validation.tagNameRequired).max(50, t.validation.tagNameTooLong),
   });

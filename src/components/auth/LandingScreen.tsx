@@ -4,9 +4,9 @@ import { useState } from 'react'
 import { useT } from '@/lib/i18n/client'
 import { dropSwrCache } from '@/lib/swr'
 import { createHouseholdQuick } from '@/lib/household-create'
-import CodeEntryForm from './CodeEntryForm'
-import JoinForkScreen from './JoinForkScreen'
-import RecoverFlow from './RecoverFlow'
+import CodeEntryForm from '@/components/auth/CodeEntryForm'
+import JoinForkScreen from '@/components/auth/JoinForkScreen'
+import RecoverFlow from '@/components/auth/RecoverFlow'
 
 // « join » = fork « Rejoindre un foyer » (#14, maquette 1.2) : code
 // d'invitation OU récupération par email — la clé anti-doublon d'owner.

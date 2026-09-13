@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { PUT } from "./route";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
-import { t } from "@/lib/i18n/fr";
+import { frFull as t } from "@/lib/i18n/full";
 import { createSupabaseMock, findCall, type SupabaseMock } from "@/test/supabase-mock";
 
 vi.mock("@/lib/supabase/server");

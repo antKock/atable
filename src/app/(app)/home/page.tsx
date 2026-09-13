@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { getT } from "@/lib/i18n/server";
 import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 import HomeContent from "@/components/recipes/HomeContent";
-import HomeHints from "@/components/app/HomeHints";
+import HomeHints from "@/components/hints/HomeHints";
 
 export default async function HomePage() {
   const t = await getT();

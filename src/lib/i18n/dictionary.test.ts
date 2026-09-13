@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { t as fr } from "./fr";
-import { en } from "./en";
+import { t as frClient } from "./fr";
+import { en as enClient } from "./en";
+import { frFull as fr, enFull as en } from "./full";
 
 // Parité structurelle fr/en et « pas de français qui fuit » dans en.ts. Le
 // typage `Dictionary` garantit déjà la forme ; ce test attrape ce que tsc ne
@@ -41,7 +42,15 @@ function evaluated(value: unknown): string[] {
 }
 
 describe("dictionnaires fr / en", () => {
-  it("mêmes feuilles (parité structurelle)", () => {
+  it("le client n'embarque aucun espace de noms serveur (api, validation, email, carousels)", () => {
+    for (const ns of ["api", "validation", "email", "carousels"]) {
+      expect(ns in frClient, ns).toBe(false);
+      expect(ns in enClient, ns).toBe(false);
+    }
+    expect(fr.api.serverError).toBeTruthy();
+  });
+
+  it("mêmes feuilles (parité structurelle, client + serveur)", () => {
     const frPaths = leaves(fr).map((l) => l.path).sort();
     const enPaths = leaves(en).map((l) => l.path).sort();
     expect(enPaths).toEqual(frPaths);
