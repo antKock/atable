@@ -334,7 +334,7 @@ describe("bloc 0 et funnel hebdo", () => {
 });
 
 describe("A/B onboarding (#25)", () => {
-  // Après l'époque du compteur (13/09) : « ouvertures iOS » = compteur du proxy,
+  // Après l'époque du compteur (14/09) : « ouvertures iOS » = compteur du proxy,
   // plus les essais démo. Fenêtre du test = depuis abOnboardingStart.
   const NOW_AB = new Date("2026-09-26T08:00:00Z");
   const people = [
@@ -363,7 +363,7 @@ describe("A/B onboarding (#25)", () => {
   );
 
   it("chaîne par bras : affectations, carnets, n/N à J+7 et M1", () => {
-    expect(dAb.activation.ab.since).toBe("2026-09-13");
+    expect(dAb.activation.ab.since).toBe("2026-09-14");
     expect(dAb.activation.ab.arms).toEqual([
       {
         arm: "a",
