@@ -14,7 +14,7 @@ export function renderDigest(o: Overview, opts: { weekLabel: string; statsUrl: s
   const delta = `${ns.delta >= 0 ? "+" : ""}${ns.delta}`;
   const health = o.health.ok
     ? "Santé : tout est au vert (pipeline IA, crons, démo)."
-    : `Santé : ${[!o.health.pipeline.ok && `pipeline IA — ${o.health.pipeline.detail}`, !o.health.crons.ok && `crons — ${o.health.crons.detail}`, !o.health.demo.ok && `démo — ${o.health.demo.detail}`].filter(Boolean).join(" ; ")}.`;
+    : `Santé : ${[!o.health.pipeline.ok && `pipeline IA — ${o.health.pipeline.detail}`, !o.health.crons.ok && `crons — ${o.health.crons.detail}`, !o.health.demo.ok && `démo — ${o.health.demo.detail}`, !o.health.backup.ok && `sauvegarde — ${o.health.backup.detail}`, !o.health.edge.ok && `bord Traefik — ${o.health.edge.detail}`].filter(Boolean).join(" ; ")}.`;
 
   const lines: string[] = [
     `Mijote — ${opts.weekLabel}`,

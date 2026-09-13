@@ -88,6 +88,8 @@ function raw(over: Partial<RawV3> = {}): RawV3 {
       { platform: "web", trials: 10, conversions: 1 },
     ],
     abOnboarding: [],
+    backupLastAt: "2026-09-12T02:30:03Z",
+    edgeErrors: [],
     health,
     appStore: [
       {
@@ -237,6 +239,30 @@ describe("assembleV3", () => {
     expect(bad.overview.health.ok).toBe(false);
     expect(bad.overview.health.crons.ok).toBe(false);
     expect(bad.overview.health.pipeline.ok).toBe(false);
+  });
+
+  it("santé (#27) : sauvegarde > 26 h ou inconnue, et 5xx Traefik > 2 sur 24 h → rouge", () => {
+    expect(d.overview.health.backup).toMatchObject({ ok: true });
+    expect(d.overview.health.edge).toMatchObject({ ok: true });
+    const stale = assembleV3(raw({ backupLastAt: "2026-09-11T02:30:00Z" }));
+    expect(stale.overview.health.backup.ok).toBe(false);
+    expect(stale.overview.health.ok).toBe(false);
+    const unknown = assembleV3(raw({ backupLastAt: null }));
+    expect(unknown.overview.health.backup.ok).toBe(false);
+    expect(unknown.overview.health.backup.detail).toMatch(/aucune sauvegarde/);
+    const edge = assembleV3(
+      raw({
+        edgeErrors: [
+          { day: "2026-09-10", traefik_5xx: 40 }, // hors fenêtre (hier + aujourd'hui)
+          { day: "2026-09-11", traefik_5xx: 1 },
+          { day: "2026-09-12", traefik_5xx: 2 },
+        ],
+      }),
+    );
+    expect(edge.overview.health.edge.ok).toBe(false);
+    expect(edge.overview.health.edge.detail).toMatch(/^3 réponses 5xx/);
+    const fine = assembleV3(raw({ edgeErrors: [{ day: "2026-09-12", traefik_5xx: 2 }] }));
+    expect(fine.overview.health.edge.ok).toBe(true);
   });
 
   it("acquisition : App Store sur 4 sem., sources nommées, démo par plateforme", () => {

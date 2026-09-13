@@ -50,9 +50,19 @@ async function loadFailures(): Promise<Failure[]> {
   });
 }
 
-function Light({ ok, label, detail }: { ok: boolean; label: string; detail: string }) {
+function Light({
+  ok,
+  label,
+  detail,
+  span = 4,
+}: {
+  ok: boolean;
+  label: string;
+  detail: string;
+  span?: number;
+}) {
   return (
-    <div className="card" style={{ gridColumn: "span 4" }}>
+    <div className="card" style={{ gridColumn: `span ${span}` }}>
       <div className="dot" style={{ fontSize: 15, fontWeight: 600, color: "var(--d-ink)" }}>
         <i className={ok ? "" : "red"} />
         {label}
@@ -89,6 +99,18 @@ export default async function SantePage() {
             />
             <Light ok={o.health.crons.ok} label="Crons" detail={o.health.crons.detail} />
             <Light ok={o.health.demo.ok} label="Démo" detail={o.health.demo.detail} />
+            <Light
+              ok={o.health.backup.ok}
+              label="Sauvegarde"
+              detail={o.health.backup.detail}
+              span={6}
+            />
+            <Light
+              ok={o.health.edge.ok}
+              label="Bord (Traefik)"
+              detail={o.health.edge.detail}
+              span={6}
+            />
           </div>
         </div>
 

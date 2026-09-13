@@ -20,6 +20,7 @@ import {
   type WeeklyRecipesRow,
 } from "@/lib/admin/v3/assemble";
 import { addDays, iso, lastSunday } from "@/lib/admin/v3/weeks";
+import { latestBackupAt } from "@/lib/ops/backups";
 
 const WEEKS = 12;
 
@@ -59,6 +60,8 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     appStore,
     abOnboarding,
     billedUsd,
+    backupLastAt,
+    edgeErrors,
   ] = await Promise.all([
     rpc<Person[]>("analytics_v3_people"),
     rpc<WeeklyActiveRow[]>("analytics_v3_weekly_active", { p_weeks: WEEKS + 4 }),
@@ -84,6 +87,17 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     // même fenêtre que l'App Store (funnel hebdo).
     rpc<AbDailyRow[]>("analytics_v3_ab_onboarding", { p_since: appStoreFrom }),
     getBilledOpenAiSpend(28),
+    // Veilleur ops (#27) : dernière sauvegarde S3 (best-effort) et 5xx Traefik
+    // des 2 derniers jours (écrits par POST /api/admin/watch).
+    latestBackupAt().then((d) => (d ? d.toISOString() : null)),
+    supabase
+      .from("stats_daily")
+      .select("day, traefik_5xx")
+      .gte("day", addDays(iso(now), -1))
+      .then(({ data, error }) => {
+        if (error) throw new Error(`stats_daily: ${error.message}`);
+        return (data ?? []) as { day: string; traefik_5xx: number }[];
+      }),
   ]);
 
   const health = healthRows[0];
@@ -101,6 +115,8 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     daily,
     abOnboarding,
     billedUsd,
+    backupLastAt,
+    edgeErrors,
     demoSeedMin: demoSeedMin(),
     now,
   };
