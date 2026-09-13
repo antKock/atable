@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor, createHouseholdViaUI, uniqueName } from "./helpers/onboarding";
+import { newVisitor, createHouseholdViaUI, pinAbArm, uniqueName } from "./helpers/onboarding";
 import { getHouseholdByJoinCode, insertRecipe } from "./helpers/db";
 
 // Chantier « Version EN » : la locale suit l'appareil. Le serveur E2E tourne
@@ -18,6 +18,7 @@ test("i18n : flag ON, un navigateur anglais sans cookie voit la landing en angla
     locale: "en-US",
     extraHTTPHeaders: { "x-forwarded-for": "10.99.0.1" },
   });
+  await pinAbArm(context, "a");
   const page = await context.newPage();
   await page.goto("/");
   await expect(page.locator("html")).toHaveAttribute("lang", "en");

@@ -38,6 +38,7 @@ function person(over: Partial<Person> & { created_at: string }): Person {
     active_m3: false,
     active_28d: false,
     active_prev28: false,
+    onboarding_variant: null,
     active_days_28d: 0,
     last_active_day: null,
     ...over,

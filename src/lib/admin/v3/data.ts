@@ -9,6 +9,7 @@ import type { AppStoreDailyRow } from "@/lib/admin/app-store";
 import type { Person } from "@/lib/admin/v3/people";
 import {
   assembleV3,
+  type AbDailyRow,
   type CarnetRow,
   type DailyRow,
   type DemoRow,
@@ -56,6 +57,7 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     carnets,
     daily,
     appStore,
+    abOnboarding,
     billedUsd,
   ] = await Promise.all([
     rpc<Person[]>("analytics_v3_people"),
@@ -78,6 +80,9 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
         if (error) throw new Error(`app_store_daily: ${error.message}`);
         return (data ?? []) as AppStoreDailyRow[];
       }),
+    // A/B onboarding (046) : affectations par bras + premières ouvertures iOS,
+    // même fenêtre que l'App Store (funnel hebdo).
+    rpc<AbDailyRow[]>("analytics_v3_ab_onboarding", { p_since: appStoreFrom }),
     getBilledOpenAiSpend(28),
   ]);
 
@@ -94,6 +99,7 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     sharing: sharingRows[0] ?? { links: 0, links_dated_estimate: false, copies: 0 },
     carnets,
     daily,
+    abOnboarding,
     billedUsd,
     demoSeedMin: demoSeedMin(),
     now,

@@ -1,4 +1,5 @@
 import { nLabel, pctLabel } from "@/lib/admin/v3/ratio";
+import { shortDate } from "@/lib/admin/v3/weeks";
 import { PALETTE as P } from "@/lib/admin/palette";
 import { SectionHead, Card, Funnel, BarRow, Legend } from "@/components/admin/AdminUi";
 import { ActivationWeekly } from "@/components/admin/Charts";
@@ -93,6 +94,58 @@ export default function Activate({ act }: { act: DashboardV3["activation"] }) {
             }
           >
             <ActivationWeekly data={act.weekly} />
+          </Card>
+          <Card
+            span={12}
+            title="A/B onboarding · « Commencer » (B) vs démo (A)"
+            sub={`Depuis le ${shortDate(act.ab.since)} · comptes par bras, pas de % tant que N < 50`}
+            def={
+              <>
+                Backlog #25. Affectations = cookies posés au premier rendu de la landing (50/50 par
+                appareil). Carnet = owner réel créé avec ce bras (les arrivées par invitation
+                n&apos;ont pas de bras). Les étapes suivantes ne comptent que les personnes dont la
+                fenêtre est passée (J+7, puis M1 = J+28 → J+55). Critère principal : ≥ 1 recette à
+                J+7. Durée : 8 semaines, revue à 4. On lit des comptes et on tranche en PM — à ≈ 12
+                arrivants par bras et par mois, rien ne sera significatif.
+              </>
+            }
+          >
+            <div style={{ overflowX: "auto" }}>
+              <table className="weeks">
+                <thead>
+                  <tr>
+                    <th>Bras</th>
+                    <th>Affectations</th>
+                    <th>Carnets créés</th>
+                    <th>≥ 1 recette J+7</th>
+                    <th>Activées J+7</th>
+                    <th>Actives M1</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {act.ab.arms.map((arm) => (
+                    <tr key={arm.arm}>
+                      <td>{arm.arm === "b" ? "B · Commencer" : "A · Démo"}</td>
+                      <td>{arm.assigned}</td>
+                      <td>{arm.owners}</td>
+                      <td>
+                        {arm.firstRecipe7d} / {arm.eligible7}
+                      </td>
+                      <td>
+                        {arm.activated7d} / {arm.eligible7}
+                      </td>
+                      <td>
+                        {arm.activeM1} / {arm.eligibleM1}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="note">
+              n / N : N = personnes du bras dont la fenêtre est passée. Test non démarré ou flag
+              éteint = zéros partout.
+            </div>
           </Card>
         </div>
       </div>

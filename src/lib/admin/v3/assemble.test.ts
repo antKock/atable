@@ -29,6 +29,7 @@ function person(over: Partial<Person> & { created_at: string }): Person {
     active_m3: false,
     active_28d: true,
     active_prev28: false,
+    onboarding_variant: null,
     active_days_28d: 2,
     last_active_day: "2026-09-10",
     ...over,
@@ -86,6 +87,7 @@ function raw(over: Partial<RawV3> = {}): RawV3 {
       { platform: "ios", trials: 20, conversions: 8 },
       { platform: "web", trials: 10, conversions: 1 },
     ],
+    abOnboarding: [],
     health,
     appStore: [
       {
@@ -243,7 +245,8 @@ describe("assembleV3", () => {
       pageViews: 13,
       downloads: 9,
       updates: 2,
-      firstOpenIos: 20,
+      // 28 j d'essais démo iOS (avant l'époque du compteur 046) : 7 × 2 + 20 × 1
+      firstOpenIos: 34,
     });
     expect(d.acquisition.appStore.sources).toEqual([
       { label: "Recherche App Store", downloads: 7 },
@@ -327,6 +330,71 @@ describe("bloc 0 et funnel hebdo", () => {
     expect(last.dlToOpen).toBe(100);
     const empty = w[0];
     expect(empty.imprToDl).toBeNull();
+  });
+});
+
+describe("A/B onboarding (#25)", () => {
+  // Après l'époque du compteur (13/09) : « ouvertures iOS » = compteur du proxy,
+  // plus les essais démo. Fenêtre du test = depuis abOnboardingStart.
+  const NOW_AB = new Date("2026-09-26T08:00:00Z");
+  const people = [
+    person({ created_at: "2026-09-14T10:00:00Z", onboarding_variant: "b", recipes_7d: 1 }),
+    person({
+      created_at: "2026-09-15T10:00:00Z",
+      onboarding_variant: "b",
+      first_recipe_at: null,
+      recipes_7d: 0,
+    }),
+    person({ created_at: "2026-09-14T10:00:00Z", onboarding_variant: "a", recipes_7d: 3 }),
+    // Invitation : pas de bras, jamais comptée
+    person({ created_at: "2026-09-14T10:00:00Z", onboarding_variant: null, channel: "invite" }),
+    // Trop récente pour J+7 : comptée en carnet, pas dans N
+    person({ created_at: "2026-09-24T10:00:00Z", onboarding_variant: "b" }),
+  ];
+  const dAb = assembleV3(
+    raw({
+      now: NOW_AB,
+      people,
+      abOnboarding: [
+        { day: "2026-09-14", assigned_a: 3, assigned_b: 4, first_open_ios: 5 },
+        { day: "2026-09-20", assigned_a: 2, assigned_b: 1, first_open_ios: 2 },
+      ],
+    }),
+  );
+
+  it("chaîne par bras : affectations, carnets, n/N à J+7 et M1", () => {
+    expect(dAb.activation.ab.since).toBe("2026-09-13");
+    expect(dAb.activation.ab.arms).toEqual([
+      {
+        arm: "a",
+        assigned: 5,
+        owners: 1,
+        eligible7: 1,
+        firstRecipe7d: 1,
+        activated7d: 1, // 3 recettes + retour (fixture)
+        eligibleM1: 0,
+        activeM1: 0,
+      },
+      {
+        arm: "b",
+        assigned: 5,
+        owners: 3,
+        eligible7: 2,
+        firstRecipe7d: 1,
+        activated7d: 0,
+        eligibleM1: 0,
+        activeM1: 0,
+      },
+    ]);
+  });
+
+  it("1ʳᵉ ouverture iOS : compteur du proxy après l'époque, essais démo avant", () => {
+    // 28 j se terminant le 26/09 : 30/08 → 12/09 en essais démo (fixture : 05→11/09 = 2/j,
+    // 30/08→04/09 = 1/j, 12/09 absent), puis le compteur (5 + 2).
+    expect(dAb.acquisition.appStore.firstOpenIos).toBe(7 * 2 + 6 * 1 + 7);
+    const w = dAb.acquisition.appStore.funnelWeekly;
+    // semaine 14/09 → 20/09 : compteur 5 (14/09) + 2 (20/09)
+    expect(w[w.length - 1]).toMatchObject({ label: "14/09", opens: 7 });
   });
 });
 

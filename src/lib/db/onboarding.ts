@@ -35,7 +35,7 @@ export type ProvisionTarget =
   | { kind: "existing"; householdId: string };
 
 export type ProvisionInput = {
-  owner: { id: string; alias: string; demoTrialStartedAt?: string | null };
+  owner: Parameters<typeof insertOwner>[1];
   household: ProvisionTarget;
   role: MembershipRole;
   deviceName: string;

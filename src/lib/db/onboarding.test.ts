@@ -163,6 +163,23 @@ describe("provisionOwnerWithHousehold — foyer existant (rejoindre, démo)", ()
     });
     // Pas de demo_trial_started_at quand il n'est pas fourni (démo).
     expect("demo_trial_started_at" in (payloadOf("owners", "insert") as object)).toBe(false);
+    // Ni onboarding_variant (rejoindre : pas de bras).
+    expect("onboarding_variant" in (payloadOf("owners", "insert") as object)).toBe(false);
+  });
+
+  it("A/B onboarding (#25) : le bras fourni est écrit sur l'owner (démo comprise)", async () => {
+    supa.queueResults([{ error: null }, { error: null }, { data: { id: "sid-1" } }]);
+    await provisionOwnerWithHousehold(supa.client, {
+      owner: { id: "owner-1", alias: "A", onboardingVariant: "b" },
+      household: EXISTING,
+      role: "member",
+      deviceName: "iPhone",
+    });
+    expect(payloadOf("owners", "insert")).toEqual({
+      id: "owner-1",
+      alias: "A",
+      onboarding_variant: "b",
+    });
   });
 
   it("échec de la session : l'owner est supprimé, le foyer PRÉEXISTANT jamais", async () => {

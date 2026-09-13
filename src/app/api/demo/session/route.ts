@@ -8,6 +8,7 @@ import { withPublicRoute } from "@/lib/api/with-public-route";
 import { provisionOwnerWithHousehold } from "@/lib/db/onboarding";
 import { getClientIp } from "@/lib/request-ip";
 import { enforceDemoSessionQuota } from "@/lib/import-quota";
+import { AB_ONBOARDING_COOKIE, variantForNewOwner } from "@/lib/ab-onboarding";
 
 export const POST = withPublicRoute(async (request: NextRequest) => {
   // Chaque session démo crée un owner : plafond par IP (5/h, comme la
@@ -34,7 +35,12 @@ export const POST = withPublicRoute(async (request: NextRequest) => {
   // démo par défaut de withOwnerAuth). Purge des owners démo par le cron demo-reset.
   const ownerId = crypto.randomUUID();
   const { sessionId } = await provisionOwnerWithHousehold(supabase, {
-    owner: { id: ownerId, alias: aliasForOwner(ownerId, locale) },
+    owner: {
+      id: ownerId,
+      alias: aliasForOwner(ownerId, locale),
+      // A/B onboarding (#25) : bras vu à la landing, pour compter les essais démo par bras.
+      onboardingVariant: variantForNewOwner(request.cookies.get(AB_ONBOARDING_COOKIE)?.value),
+    },
     household: { kind: "existing", householdId: demoHouseholdId },
     role: "member",
     deviceName,

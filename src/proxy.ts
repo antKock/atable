@@ -9,6 +9,14 @@ import {
 import { redis } from "@/lib/redis";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { isBearerAuthorized } from "@/lib/cron-auth";
+import {
+  AB_ONBOARDING_COOKIE,
+  AB_ONBOARDING_COOKIE_MAX_AGE_S,
+  AB_ONBOARDING_FRESH_HEADER,
+  AB_ONBOARDING_HEADER,
+  isAbOnboardingEnabled,
+  resolveAssignment,
+} from "@/lib/ab-onboarding";
 
 const ADMIN_API_PREFIX = "/api/admin/";
 
@@ -76,6 +84,36 @@ export async function proxy(request: NextRequest) {
   // Authenticated user visiting landing → redirect to /home
   if (pathname === "/" && payload) {
     return NextResponse.redirect(new URL("/home", getRequestOrigin(request)));
+  }
+
+  // A/B onboarding (#25) : premier rendu de la landing sans session → bras
+  // tiré ici (le seul endroit qui voit la requête ET peut poser un cookie).
+  // La page landing lit le bras dans les en-têtes injectés (le cookie n'est
+  // pas encore dans la requête) et compte l'affectation si elle est fraîche.
+  if (pathname === "/") {
+    const assignment = resolveAssignment({
+      enabled: isAbOnboardingEnabled(),
+      cookie: request.cookies.get(AB_ONBOARDING_COOKIE)?.value,
+      ua: userAgent,
+    });
+    if (assignment) {
+      const requestHeaders = new Headers(request.headers);
+      requestHeaders.set(AB_ONBOARDING_HEADER, assignment.variant);
+      if (assignment.fresh) requestHeaders.set(AB_ONBOARDING_FRESH_HEADER, "1");
+      const response = NextResponse.next({ request: { headers: requestHeaders } });
+      if (assignment.fresh) {
+        response.cookies.set({
+          name: AB_ONBOARDING_COOKIE,
+          value: assignment.variant,
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "lax",
+          maxAge: AB_ONBOARDING_COOKIE_MAX_AGE_S,
+          path: "/",
+        });
+      }
+      return response;
+    }
   }
 
   if (!isPublic) {

@@ -9,13 +9,36 @@ import { db, getHouseholdByName } from "./db";
  */
 export async function newVisitor(
   browser: Browser,
+  options: { arm?: AbArm } = {},
 ): Promise<{ context: BrowserContext; page: Page }> {
   const ip = `10.${rand(254)}.${rand(254)}.${1 + rand(253)}`;
   const context = await browser.newContext({
     extraHTTPHeaders: { "x-forwarded-for": ip },
   });
+  await pinAbArm(context, options.arm ?? "a");
   const page = await context.newPage();
   return { context, page };
+}
+
+/**
+ * A/B onboarding (#25) : le flag est actif dans le harnais, donc un visiteur
+ * sans cookie tire un bras au hasard. Les specs existantes décrivent la landing
+ * A : on pose le cookie avant la première visite (le proxy le respecte).
+ * `"none"` = laisser le proxy tirer (spec dédiée au split).
+ */
+export type AbArm = "a" | "b" | "none";
+
+export async function pinAbArm(context: BrowserContext, arm: AbArm): Promise<void> {
+  if (arm === "none") return;
+  await context.addCookies([
+    {
+      name: "mijote_ab_onboarding",
+      value: arm,
+      url: process.env.E2E_BASE_URL ?? `http://127.0.0.1:${process.env.E2E_PORT ?? 3100}`,
+      httpOnly: true,
+      sameSite: "Lax",
+    },
+  ]);
 }
 
 function rand(max: number): number {

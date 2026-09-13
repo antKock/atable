@@ -7,13 +7,19 @@ import { createHouseholdQuick } from "@/lib/household-create";
 import CodeEntryForm from "@/components/auth/CodeEntryForm";
 import JoinForkScreen from "@/components/auth/JoinForkScreen";
 import RecoverFlow from "@/components/auth/RecoverFlow";
+import type { OnboardingVariant } from "@/lib/ab-onboarding";
 
 // « join » = fork « Rejoindre un foyer » (#14, maquette 1.2) : code
 // d'invitation OU récupération par email — la clé anti-doublon d'owner.
 // Plus de vue « create » : « Créer un carnet » crée EN UN TAP (spec #23).
 type View = "menu" | "join" | "joinCode" | "recover";
 
-export default function LandingScreen() {
+// A/B onboarding (#25) : même écran, mêmes trois actions, ordre différent.
+// A (contrôle) : démo en primaire, créer en secondaire, rejoindre en tertiaire.
+// B : « Commencer » (créer, puis droit sur la première recette) en primaire,
+// « J'ai déjà un carnet » (rejoindre) en secondaire, « Voir un exemple » (démo)
+// en lien texte.
+export default function LandingScreen({ variant = "a" }: { variant?: OnboardingVariant }) {
   const t = useT();
   const [view, setView] = useState<View>("menu");
   const [demoLoading, setDemoLoading] = useState(false);
@@ -27,7 +33,9 @@ export default function LandingScreen() {
     setDemoError(null);
     try {
       const { redirect } = await createHouseholdQuick(t.household.createError);
-      window.location.href = redirect;
+      // Bras B : le carnet neuf n'a rien à montrer, on atterrit sur l'écran
+      // « ta première recette » (mode first=1 de /recipes/new).
+      window.location.href = variant === "b" ? "/recipes/new?first=1" : redirect;
     } catch (err) {
       setDemoError(err instanceof Error ? err.message : t.household.createError);
       setCreateLoading(false);
@@ -70,6 +78,26 @@ export default function LandingScreen() {
     return <RecoverFlow onBack={() => setView("join")} />;
   }
 
+  const demoAction = {
+    label: variant === "b" ? t.landing.seeExample : t.landing.tryApp,
+    onClick: handleTryApp,
+    loading: demoLoading,
+  };
+  const createAction = {
+    label: variant === "b" ? t.landing.start : t.landing.createHousehold,
+    onClick: handleCreate,
+    loading: createLoading,
+  };
+  const joinAction = {
+    label: variant === "b" ? t.landing.haveCookbook : t.landing.joinHousehold,
+    onClick: () => setView("join"),
+    loading: false,
+  };
+  const [primary, secondary, tertiary] =
+    variant === "b"
+      ? [createAction, joinAction, demoAction]
+      : [demoAction, createAction, joinAction];
+
   // Welcome / first-launch (Mijote onboarding 06-A). Sage hero is full-bleed
   // (extends behind status bar + home indicator), so we render fixed inset-0
   // and ignore the parent (landing)/layout safe-area padding.
@@ -111,34 +139,34 @@ export default function LandingScreen() {
           </p>
         )}
 
-        {/* Primary — cream pill */}
+        {/* Primary — cream pill · Secondary — ghost outlined pill (1.5px cream
+            @55%) · Tertiary — text link. L'ordre dépend du bras. */}
         <button
           type="button"
-          onClick={handleTryApp}
+          onClick={primary.onClick}
           disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
         >
-          {demoLoading ? "…" : t.landing.tryApp}
+          {primary.loading ? "…" : primary.label}
         </button>
 
-        {/* Secondary — ghost outlined pill (1.5px cream @55%) */}
         <button
           type="button"
-          onClick={handleCreate}
+          onClick={secondary.onClick}
           disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-transparent text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
           style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)" }}
         >
-          {createLoading ? "…" : t.landing.createHousehold}
+          {secondary.loading ? "…" : secondary.label}
         </button>
 
-        {/* Tertiary — text link */}
         <button
           type="button"
-          onClick={() => setView("join")}
-          className="flex w-full items-center justify-center bg-transparent py-[14px] text-[16px] font-medium text-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
+          onClick={tertiary.onClick}
+          disabled={busy}
+          className="flex w-full items-center justify-center bg-transparent py-[14px] text-[16px] font-medium text-background transition-opacity hover:opacity-80 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
         >
-          {t.landing.joinHousehold}
+          {tertiary.loading ? "…" : tertiary.label}
         </button>
       </div>
     </div>

@@ -17,6 +17,7 @@ import {
   type Channel,
   CHANNEL_LABELS,
   METHOD_LABELS,
+  abOnboardingFunnel,
   activationByFirstMethod,
   activationFunnel,
   activationWeekly,
@@ -38,7 +39,7 @@ import {
   weekStarts,
   weeksEnding,
 } from "@/lib/admin/v3/weeks";
-import { PRODUCT_EVENTS } from "@/lib/admin/epochs";
+import { METRIC_EPOCHS, PRODUCT_EVENTS } from "@/lib/admin/epochs";
 
 export type WeeklyActiveRow = {
   week_end: string;
@@ -70,6 +71,14 @@ export type HealthRow = {
   tokens_burned: number;
 };
 export type SharingRow = { links: number; links_dated_estimate: boolean; copies: number };
+/** Affectations A/B et premières ouvertures iOS par jour (046). */
+export type AbDailyRow = {
+  day: string;
+  assigned_a: number;
+  assigned_b: number;
+  first_open_ios: number;
+};
+
 export type DailyRow = {
   day: string;
   trials: number;
@@ -103,6 +112,8 @@ export type RawV3 = {
   carnets: CarnetRow[];
   /** Série quotidienne (044), ≥ 91 jours, aujourd'hui inclus (partiel). */
   daily: DailyRow[];
+  /** Affectations A/B + premières ouvertures iOS par jour (046), même fenêtre que appStore. */
+  abOnboarding: AbDailyRow[];
   billedUsd: number | null;
   demoSeedMin: number;
   now: Date;
@@ -300,6 +311,13 @@ export function assembleV3(raw: RawV3) {
   // ---------------- bloc 0 : 7 derniers jours (données chaudes) ----------------
   const yesterday = addDays(today, -1);
   const dailyByDay = new Map(raw.daily.map((r) => [r.day.slice(0, 10), r]));
+  const abByDay = new Map(raw.abOnboarding.map((r) => [r.day.slice(0, 10), r]));
+  // « 1ʳᵉ ouverture iOS » : compteur du proxy (046) à partir de son époque,
+  // essais démo iOS avant (l'approximation historique — fausse dès le bras B).
+  const iosOpens = (d: string) =>
+    d >= METRIC_EPOCHS.landingFirstOpen
+      ? num(abByDay.get(d)?.first_open_ios)
+      : num(dailyByDay.get(d)?.trials_ios);
   const dlByDay = new Map<string, number>();
   for (const r of raw.appStore)
     dlByDay.set(r.day, (dlByDay.get(r.day) ?? 0) + num(r.dl_first_time));
@@ -328,7 +346,7 @@ export function assembleV3(raw: RawV3) {
     const rowsW = raw.appStore.filter((r) => r.day >= ws && r.day <= addDays(ws, 6));
     const impressions = sum(rowsW, (r) => num(r.eng_impressions));
     const downloads = sum(rowsW, (r) => num(r.dl_first_time));
-    const opens = days.reduce((a, d) => a + num(dailyByDay.get(d)?.trials_ios), 0);
+    const opens = days.reduce((a, d) => a + iosOpens(d), 0);
     const carnets = newPeople(people, { from: ws, to: addDays(ws, 6) }).ios;
     return {
       weekStart: ws,
@@ -474,7 +492,7 @@ export function assembleV3(raw: RawV3) {
   const acquisition = {
     appStore: {
       ...appStore,
-      firstOpenIos: num(demoIos.trials),
+      firstOpenIos: dayList(28, today).reduce((a, d) => a + iosOpens(d), 0),
       firstCarnetIos: np28.ios,
       lastDay: appStoreLastDay,
       sources: appStoreSources,
@@ -508,7 +526,25 @@ export function assembleV3(raw: RawV3) {
         : -1,
   };
 
-  const activation = { funnel: actFunnelSinceJune, byMethod, weekly: actWeekly, current: actCur };
+  // A/B onboarding (#25) : chaîne par bras depuis le début du test.
+  const abSince = PRODUCT_EVENTS.abOnboardingStart;
+  const abAssigned = raw.abOnboarding
+    .filter((r) => r.day.slice(0, 10) >= abSince)
+    .reduce((acc, r) => ({ a: acc.a + num(r.assigned_a), b: acc.b + num(r.assigned_b) }), {
+      a: 0,
+      b: 0,
+    });
+  const ab = {
+    since: abSince,
+    arms: abOnboardingFunnel(people, abAssigned, abSince, today),
+  };
+  const activation = {
+    funnel: actFunnelSinceJune,
+    byMethod,
+    weekly: actWeekly,
+    current: actCur,
+    ab,
+  };
 
   const retention = {
     rolling: m1,

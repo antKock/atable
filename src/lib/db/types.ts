@@ -396,6 +396,7 @@ export type Database = {
           demo_trial_started_at: string | null
           id: string
           name: string | null
+          onboarding_variant: string | null
           recovery_email: string | null
         }
         Insert: {
@@ -404,6 +405,7 @@ export type Database = {
           demo_trial_started_at?: string | null
           id?: string
           name?: string | null
+          onboarding_variant?: string | null
           recovery_email?: string | null
         }
         Update: {
@@ -412,6 +414,7 @@ export type Database = {
           demo_trial_started_at?: string | null
           id?: string
           name?: string | null
+          onboarding_variant?: string | null
           recovery_email?: string | null
         }
         Relationships: []
@@ -589,6 +592,8 @@ export type Database = {
       }
       stats_daily: {
         Row: {
+          ab_onboarding_a: number
+          ab_onboarding_b: number
           day: string
           demo_active_devices: number
           demo_ai_calls: number
@@ -598,6 +603,7 @@ export type Database = {
           demo_trials_android: number
           demo_trials_ios: number
           demo_trials_web: number
+          landing_first_open_ios: number
           merge_tokens_sent: number
           merge_tokens_used: number
           recovery_tokens_sent: number
@@ -606,6 +612,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ab_onboarding_a?: number
+          ab_onboarding_b?: number
           day: string
           demo_active_devices?: number
           demo_ai_calls?: number
@@ -615,6 +623,7 @@ export type Database = {
           demo_trials_android?: number
           demo_trials_ios?: number
           demo_trials_web?: number
+          landing_first_open_ios?: number
           merge_tokens_sent?: number
           merge_tokens_used?: number
           recovery_tokens_sent?: number
@@ -623,6 +632,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ab_onboarding_a?: number
+          ab_onboarding_b?: number
           day?: string
           demo_active_devices?: number
           demo_ai_calls?: number
@@ -632,6 +643,7 @@ export type Database = {
           demo_trials_android?: number
           demo_trials_ios?: number
           demo_trials_web?: number
+          landing_first_open_ios?: number
           merge_tokens_sent?: number
           merge_tokens_used?: number
           recovery_tokens_sent?: number
@@ -703,6 +715,15 @@ export type Database = {
       }
     }
     Functions: {
+      analytics_v3_ab_onboarding: {
+        Args: { p_since: string }
+        Returns: {
+          assigned_a: number
+          assigned_b: number
+          day: string
+          first_open_ios: number
+        }[]
+      }
       analytics_v3_carnets: {
         Args: never
         Returns: {
@@ -783,6 +804,7 @@ export type Database = {
           id: string
           last_active_day: string
           named: boolean
+          onboarding_variant: string | null
           recipes_28d: number
           recipes_7d: number
           recipes_total: number
