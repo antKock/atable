@@ -31,8 +31,7 @@ export const METRIC_EPOCHS = {
   appStoreDaily: "2026-08-16",
   /** Migration 046 (A/B onboarding #25) : compteur « première ouverture de la
    *  landing depuis le shell iOS » posé par le proxy. Avant : approximé par les
-   *  essais démo iOS (faux dès que le bras B existe). ⚠ À caler sur la date de
-   *  mise en prod. */
+   *  essais démo iOS (faux dès que le bras B existe). Flag prod allumé le 2026-09-13. */
   landingFirstOpen: "2026-09-13",
 } as const;
 
@@ -40,7 +39,8 @@ export const METRIC_EPOCHS = {
 export const PRODUCT_EVENTS = {
   /** iOS 1.3 en ligne : fiche App Store refondue (titre « Livre de recettes », visuels, EN). */
   appStoreListingV2: "2026-09-06",
-  /** A/B onboarding (#25) : début du split 50/50 « Commencer » vs démo. Fenêtre
-   *  de lecture du test (section Activer). ⚠ À caler sur la date de mise en prod. */
+  /** A/B onboarding (#25) : début du split 50/50 « Commencer » vs démo en prod
+   *  (flag `AB_ONBOARDING_ENABLED` allumé le 2026-09-13). Fenêtre de lecture du
+   *  test (section Activer), 8 semaines, revue à 4. */
   abOnboardingStart: "2026-09-13",
 } as const;
