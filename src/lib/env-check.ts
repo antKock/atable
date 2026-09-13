@@ -120,6 +120,10 @@ const RULES: EnvRule[] = [
   },
   { name: "I18N_PREVIEW_COOKIE", required: false, shape: onOffFlag, expected: "1/true/0/false" },
 
+  // A/B onboarding (#25) : éteint = landing actuelle pour tout le monde, aucun
+  // cookie posé. Allumé = tirage 50/50 par appareil au premier rendu de la landing.
+  { name: "AB_ONBOARDING_ENABLED", required: false, shape: onOffFlag, expected: "1/true/0/false" },
+
   // Auto-hébergement : APP_ORIGIN coupe court aux en-têtes forgeables.
   {
     name: "APP_ORIGIN",

@@ -24,6 +24,10 @@ const PINNED_DEFAULTS: Record<string, string> = {
   // Pinné explicitement pour ne pas dépendre de .env.local ; les specs FR
   // restent FR car le contexte Playwright envoie `locale: "fr-FR"`.
   I18N_EN_ENABLED: "1",
+  // A/B onboarding (#25) : actif en E2E ; les specs qui dépendent du bras posent
+  // le cookie `mijote_ab_onboarding` elles-mêmes (le proxy respecte un cookie
+  // existant), les autres restent en A via `abArm("a")`.
+  AB_ONBOARDING_ENABLED: "1",
   // Migration Supabase → VPS (2026-09-12) : .env.local porte désormais le
   // PostgREST staging (via tunnel SSH) et le S3 OVH. Sans ces pins, le serveur
   // E2E écrirait dans la base STAGING et non dans le Supabase local — vécu le

@@ -12,6 +12,7 @@ import { enforceHouseholdCreateQuota } from "@/lib/import-quota";
 import { aliasForOwner } from "@/lib/alias";
 import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
+import { AB_ONBOARDING_COOKIE, variantForNewOwner } from "@/lib/ab-onboarding";
 
 export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   // Unauthenticated route, and every new household gets a fresh daily
@@ -95,6 +96,8 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
     id: ownerId,
     alias: aliasForOwner(ownerId, await getLocale()),
     demo_trial_started_at: demoTrialStartedAt,
+    // A/B onboarding (#25) : bras vu à la landing (cookie), null hors test.
+    onboarding_variant: variantForNewOwner(request.cookies.get(AB_ONBOARDING_COOKIE)?.value),
   });
 
   if (ownerError) {

@@ -7,6 +7,7 @@ import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
 import { getClientIp } from "@/lib/request-ip";
 import { enforceDemoSessionQuota } from "@/lib/import-quota";
+import { AB_ONBOARDING_COOKIE, variantForNewOwner } from "@/lib/ab-onboarding";
 
 export const POST = withPublicRoute(async (request: NextRequest) => {
   // Chaque session démo crée un owner : plafond par IP (5/h, comme la
@@ -32,9 +33,12 @@ export const POST = withPublicRoute(async (request: NextRequest) => {
   // normaux — c'est la surface foyer/membership/profil qui est coupée (garde
   // démo par défaut de withOwnerAuth). Purge des owners démo par le cron demo-reset.
   const ownerId = crypto.randomUUID();
-  const { error: ownerError } = await supabase
-    .from("owners")
-    .insert({ id: ownerId, alias: aliasForOwner(ownerId, locale) });
+  const { error: ownerError } = await supabase.from("owners").insert({
+    id: ownerId,
+    alias: aliasForOwner(ownerId, locale),
+    // A/B onboarding (#25) : bras vu à la landing, pour compter les essais démo par bras.
+    onboarding_variant: variantForNewOwner(request.cookies.get(AB_ONBOARDING_COOKIE)?.value),
+  });
 
   if (ownerError) {
     throw new Error(ownerError.message ?? "Failed to create demo owner");

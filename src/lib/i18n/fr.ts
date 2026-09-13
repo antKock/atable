@@ -251,6 +251,9 @@ export const t = {
   // Import
   import: {
     title: "Nouvelle recette",
+    // Mode « première recette » (/recipes/new?first=1, bras B du #25).
+    firstTitle: "Ta première recette",
+    firstLead: "Colle un lien, prends une photo ou dicte : Mijote la met au propre.",
     // Spec #24 : la question en titre, verbe en premier sur chaque méthode,
     // promesse en dessous ; `chip` = libellé court de la rangée « Ou plutôt ».
     question: "D'où vient ta recette ?",
@@ -331,6 +334,10 @@ export const t = {
     tryApp: "Essayer l'app",
     createHousehold: "Créer un carnet",
     joinHousehold: "Ouvrir un carnet",
+    // A/B onboarding (#25), bras B : créer → première recette / rejoindre / démo.
+    start: "Commencer",
+    haveCookbook: "J'ai déjà un carnet",
+    seeExample: "Voir un exemple",
   },
 
   // Join via invite link

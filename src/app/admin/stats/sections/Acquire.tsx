@@ -1,3 +1,4 @@
+import { METRIC_EPOCHS } from "@/lib/admin/epochs";
 import { shortDate } from "@/lib/admin/v3/weeks";
 import { PALETTE as P } from "@/lib/admin/palette";
 import {
@@ -37,7 +38,8 @@ export default function Acquire({
               <>
                 Impressions et vues de fiche : rapport Discovery & Engagement (App Store Connect).
                 Téléchargements : premiers téléchargements (hors mises à jour et retéléchargements).
-                1ʳᵉ ouverture iOS = sessions démo créées depuis l&apos;app (28 j). 1er carnet iOS =
+                1ʳᵉ ouverture iOS = premiers rendus de la landing depuis l&apos;app (28 j ; avant le{" "}
+                {shortDate(METRIC_EPOCHS.landingFirstOpen)} : sessions démo iOS). 1er carnet iOS =
                 nouvelles personnes dont la première session est iOS (28 j). Apple seuille les
                 petits volumes.
                 {acq.appStore.lastDay && (

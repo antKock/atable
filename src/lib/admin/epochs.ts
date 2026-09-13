@@ -29,10 +29,18 @@ export const METRIC_EPOCHS = {
    *  Analytics ONGOING créé le 2026-08-16 (instances DAILY à partir du 17/08,
    *  données de J-1). Aucune donnée quotidienne avant. */
   appStoreDaily: "2026-08-16",
+  /** Migration 046 (A/B onboarding #25) : compteur « première ouverture de la
+   *  landing depuis le shell iOS » posé par le proxy. Avant : approximé par les
+   *  essais démo iOS (faux dès que le bras B existe). ⚠ À caler sur la date de
+   *  mise en prod. */
+  landingFirstOpen: "2026-09-13",
 } as const;
 
 /** Événements produit posés en repère sur les graphes (pas des changements de mesure). */
 export const PRODUCT_EVENTS = {
   /** iOS 1.3 en ligne : fiche App Store refondue (titre « Livre de recettes », visuels, EN). */
   appStoreListingV2: "2026-09-06",
+  /** A/B onboarding (#25) : début du split 50/50 « Commencer » vs démo. Fenêtre
+   *  de lecture du test (section Activer). ⚠ À caler sur la date de mise en prod. */
+  abOnboardingStart: "2026-09-13",
 } as const;

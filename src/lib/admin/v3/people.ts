@@ -44,6 +44,8 @@ export type Person = {
   active_prev28: boolean;
   active_days_28d: number;
   last_active_day: string | null;
+  /** A/B onboarding (#25, migration 046) : bras vu à la landing, null hors test. */
+  onboarding_variant: "a" | "b" | null;
 };
 
 export const CHANNEL_LABELS: Record<Channel, string> = {
@@ -162,6 +164,57 @@ export function activationFunnel(people: Person[], w: Window, today: string): Ac
     returned7d: cohort.filter((p) => p.returned_7d).length,
     activated: ratio(activated, cohort.length),
   };
+}
+
+// ---------------------------------------------------------------------------
+// A/B onboarding (#25) — chaîne par bras, en comptes (n/N), fenêtre = depuis le
+// début du test. Dénominateur = affectations (stats_daily) ; les étapes
+// suivantes sont jugées sur les personnes réelles du bras, et seulement sur
+// celles dont la fenêtre est passée (J+7, M1).
+// ---------------------------------------------------------------------------
+
+export type AbArm = "a" | "b";
+
+export type AbArmFunnel = {
+  arm: AbArm;
+  /** Cookies posés (dénominateur). */
+  assigned: number;
+  /** Owners réels créés avec ce bras (hors invitation : ils n'ont pas de bras). */
+  owners: number;
+  /** Dont jugeables à J+7. */
+  eligible7: number;
+  firstRecipe7d: number;
+  activated7d: number;
+  /** Dont fenêtre M1 passée. */
+  eligibleM1: number;
+  activeM1: number;
+};
+
+export function abOnboardingFunnel(
+  people: Person[],
+  assigned: Record<AbArm, number>,
+  since: string,
+  today: string,
+): AbArmFunnel[] {
+  return (["a", "b"] as const).map((arm) => {
+    const cohort = people.filter(
+      (p) => p.onboarding_variant === arm && d0(p) >= since && p.channel !== "invite",
+    );
+    const at7 = cohort.filter((p) => eligibleAt7(p, today));
+    const atM1 = cohort.filter((p) => eligibleM(p, 1, today));
+    return {
+      arm,
+      assigned: assigned[arm],
+      owners: cohort.length,
+      eligible7: at7.length,
+      firstRecipe7d: at7.filter(
+        (p) => p.first_recipe_at != null && daysBetween(d0(p), p.first_recipe_at.slice(0, 10)) <= 7,
+      ).length,
+      activated7d: at7.filter(isActivated).length,
+      eligibleM1: atM1.length,
+      activeM1: atM1.filter((p) => p.active_m1).length,
+    };
+  });
 }
 
 export type MethodActivation = { method: string; label: string; r: Ratio };

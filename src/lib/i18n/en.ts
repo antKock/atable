@@ -254,6 +254,8 @@ export const en: Dictionary = {
   // Import
   import: {
     title: "New recipe",
+    firstTitle: "Your first recipe",
+    firstLead: "Paste a link, snap a photo or dictate: Mijote tidies it up.",
     question: "Where's your recipe from?",
     orRather: "Or rather",
     screenshot: {
@@ -332,6 +334,9 @@ export const en: Dictionary = {
     tryApp: "Try the app",
     createHousehold: "Create a cookbook",
     joinHousehold: "Open a cookbook",
+    start: "Get started",
+    haveCookbook: "I already have a cookbook",
+    seeExample: "See an example",
   },
 
   // Join via invite link
