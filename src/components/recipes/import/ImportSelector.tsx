@@ -27,6 +27,9 @@ interface ImportSelectorProps {
   // When set (e.g. from the iOS share sheet, which loads this flow with
   // ?import=url&url=…), the URL import starts automatically on mount.
   autoImportUrl?: string | null;
+  // Écran « Ta première recette » (bras B du A/B onboarding #25) : recette
+  // d'exemple proposée en pied, importée par le chemin URL normal.
+  sampleUrl?: string | null;
 }
 
 // Orchestrates the three import modes. Shared state (one request at a time,
@@ -36,6 +39,7 @@ export default function ImportSelector({
   onImportComplete,
   onManual,
   autoImportUrl,
+  sampleUrl,
 }: ImportSelectorProps) {
   const t = useT();
   const voiceSupported = useVoiceSupported();
@@ -259,6 +263,22 @@ export default function ImportSelector({
               </p>
             </div>
           </button>
+          {sampleUrl && (
+            <p className="mt-4 text-center text-[14px] leading-relaxed text-muted-foreground">
+              {t.import.firstNoRecipe}
+              <br />
+              <button
+                type="button"
+                onClick={() => {
+                  setExpanded("url");
+                  void submitUrl(sampleUrl);
+                }}
+                className="cursor-pointer border-b-[1.5px] border-accent/35 font-semibold text-accent transition-colors hover:border-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                {t.import.firstTryThis}
+              </button>
+            </p>
+          )}
         </>
       ) : (
         <div className="mt-2">
