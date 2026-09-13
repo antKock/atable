@@ -31,6 +31,7 @@ export function recipeDbRow(overrides: Partial<RecipeRow> = {}): RecipeRow {
     image_prompt: "A beef bourguignon in a cast-iron pot",
     generated_image_url: null,
     enrichment_status: "enriched",
+    failure_acknowledged_at: null,
     image_status: "none",
     last_activity_at: "2026-01-01T10:00:00.000Z",
     view_count: 0,

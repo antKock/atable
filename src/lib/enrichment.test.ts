@@ -215,7 +215,10 @@ describe("enrichRecipe — full enrichment", () => {
 
     await enrichRecipe("recipe-1");
 
-    expect(updatePayloads("recipes")).toContainEqual({ enrichment_status: "failed" });
+    expect(updatePayloads("recipes")).toContainEqual({
+      enrichment_status: "failed",
+      failure_acknowledged_at: null,
+    });
     expect(mockImages).not.toHaveBeenCalled();
   });
 
@@ -225,7 +228,10 @@ describe("enrichRecipe — full enrichment", () => {
       { error: null }, // failed-status update
     ]);
     await enrichRecipe("missing-recipe");
-    expect(updatePayloads("recipes")).toContainEqual({ enrichment_status: "failed" });
+    expect(updatePayloads("recipes")).toContainEqual({
+      enrichment_status: "failed",
+      failure_acknowledged_at: null,
+    });
     expect(mockChat).not.toHaveBeenCalled();
   });
 });
@@ -392,6 +398,9 @@ describe("regenerateImage", () => {
     ]);
     await regenerateImage("recipe-1");
     expect(mockImages).not.toHaveBeenCalled();
-    expect(updatePayloads("recipes")).toContainEqual({ image_status: "failed" });
+    expect(updatePayloads("recipes")).toContainEqual({
+      image_status: "failed",
+      failure_acknowledged_at: null,
+    });
   });
 });
