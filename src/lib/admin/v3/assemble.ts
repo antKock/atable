@@ -117,6 +117,9 @@ export type RawV3 = {
   billedUsd: number | null;
   demoSeedMin: number;
   now: Date;
+  /** Veilleur ops (#27) : dernière sauvegarde S3 de l'env (null = inconnue), 5xx Traefik par jour. */
+  backupLastAt: string | null;
+  edgeErrors: { day: string; traefik_5xx: number }[];
 };
 
 const WEEKS = 12;
@@ -172,12 +175,21 @@ export type StoreWeek = {
   fragile: boolean;
 };
 
+export type HealthLight = { ok: boolean; detail: string };
 export type Health = {
   ok: boolean;
-  pipeline: { ok: boolean; detail: string };
-  crons: { ok: boolean; detail: string };
-  demo: { ok: boolean; detail: string };
+  pipeline: HealthLight;
+  crons: HealthLight;
+  demo: HealthLight;
+  /** Sauvegarde Postgres nocturne (S3) : rouge au-delà de 26 h ou inconnue. */
+  backup: HealthLight;
+  /** Bord (Traefik) : réponses 5xx vues par le reverse proxy, hier + aujourd'hui. */
+  edge: HealthLight;
 };
+
+/** Seuils du veilleur (#27), partagés avec /api/admin/health. */
+export const BACKUP_MAX_AGE_H = 26;
+export const EDGE_5XX_MAX_24H = 2;
 
 function hoursSince(isoTs: string | null, now: Date): number | null {
   if (!isoTs) return null;
@@ -291,8 +303,18 @@ export function assembleV3(raw: RawV3) {
   const syncH = hoursSince(h.last_app_store_sync, raw.now);
   const cronsOk = rollupH != null && rollupH < 36 && syncH != null && syncH < 36;
   const demoOk = num(h.demo_seed_fr) >= raw.demoSeedMin && num(h.demo_seed_en) >= raw.demoSeedMin;
+  // Veilleur ops (#27) : sauvegarde nocturne et 5xx au bord. Le veilleur VPS
+  // ne remonte rien par lui-même pour les absences : c'est ici que le seuil vit,
+  // /api/admin/health l'expose et le veilleur alerte Sentry si `ok` est faux.
+  const backupH = hoursSince(raw.backupLastAt, raw.now);
+  const backupOk = backupH != null && backupH < BACKUP_MAX_AGE_H;
+  const edge24 = sum(
+    raw.edgeErrors.filter((r) => r.day.slice(0, 10) >= addDays(today, -1)),
+    (r) => num(r.traefik_5xx),
+  );
+  const edgeOk = edge24 <= EDGE_5XX_MAX_24H;
   const health: Health = {
-    ok: pipelineOk && cronsOk && demoOk,
+    ok: pipelineOk && cronsOk && demoOk && backupOk && edgeOk,
     pipeline: {
       ok: pipelineOk,
       detail: `${Math.round(enrichedRate * 100)} % enrichies sur 4 sem. · ${num(h.recipes_failed)} en échec · ${num(h.recipes_pending_stale)} bloquée${num(h.recipes_pending_stale) > 1 ? "s" : ""}`,
@@ -304,6 +326,17 @@ export function assembleV3(raw: RawV3) {
     demo: {
       ok: demoOk,
       detail: `${num(h.demo_seed_fr)} recettes seed FR · ${num(h.demo_seed_en)} EN (min ${raw.demoSeedMin})`,
+    },
+    backup: {
+      ok: backupOk,
+      detail:
+        backupH == null
+          ? "aucune sauvegarde trouvée sur S3 (ou stockage non configuré)"
+          : `dernière ${fmtTs(raw.backupLastAt)} (il y a ${Math.round(backupH)} h, max ${BACKUP_MAX_AGE_H})`,
+    },
+    edge: {
+      ok: edgeOk,
+      detail: `${edge24} réponse${edge24 > 1 ? "s" : ""} 5xx vue${edge24 > 1 ? "s" : ""} par Traefik sur hier + aujourd'hui (max ${EDGE_5XX_MAX_24H})`,
     },
   };
   const costPerActive = activeNow ? num(h.ai_cost_usd) / activeNow : 0;

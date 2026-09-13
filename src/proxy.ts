@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import {
   verifySession,
   signSession,
@@ -45,6 +46,19 @@ const PUBLIC_PREFIXES = [
 // Bot user-agents used by social platforms to generate link previews
 const BOT_UA_PATTERN =
   /facebookexternalhit|facebookcatalog|Facebot|WhatsApp|Twitterbot|LinkedInBot|Slackbot|TelegramBot|Discordbot/i;
+
+let lastRedisReportAt = 0;
+function reportRedisFailOpen(err: unknown): void {
+  const now = Date.now();
+  if (now - lastRedisReportAt < 60_000) return;
+  lastRedisReportAt = now;
+  Sentry.captureException(err, {
+    level: "warning",
+    fingerprint: ["proxy-redis-fail-open"],
+    tags: { feature: "proxy", check: "redis-revocation" },
+    extra: { effect: "révocation de session ignorée (fail open)" },
+  });
+}
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -137,8 +151,12 @@ export async function proxy(request: NextRequest) {
         return res;
       }
     } catch (err) {
-      // Redis unavailable → fail open, let the request through
+      // Redis unavailable → fail open, let the request through. Ce cas ÉTEINT
+      // la révocation de session et, ailleurs, le rate limit : il doit être vu
+      // (#27). Remonté à Sentry au plus une fois par minute par instance (un
+      // Redis en panne = une requête sur chaque page, Sentry n'a pas à tout voir).
       console.error("[proxy] revocation check failed (Redis down?), failing open:", err);
+      reportRedisFailOpen(err);
     }
 
     const requestHeaders = new Headers(request.headers);

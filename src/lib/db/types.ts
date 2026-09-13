@@ -609,6 +609,7 @@ export type Database = {
           recovery_tokens_sent: number
           recovery_tokens_used: number
           tokens_burned: number
+          traefik_5xx: number
           updated_at: string
         }
         Insert: {
@@ -629,6 +630,7 @@ export type Database = {
           recovery_tokens_sent?: number
           recovery_tokens_used?: number
           tokens_burned?: number
+          traefik_5xx?: number
           updated_at?: string
         }
         Update: {
@@ -649,6 +651,7 @@ export type Database = {
           recovery_tokens_sent?: number
           recovery_tokens_used?: number
           tokens_burned?: number
+          traefik_5xx?: number
           updated_at?: string
         }
         Relationships: []
