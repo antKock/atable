@@ -25,9 +25,7 @@ export function importResult(overrides: Partial<ImportResult> = {}): ImportResul
 }
 
 /** A minimal valid enrichment result (all fields required & valid). */
-export function enrichmentResult(
-  overrides: Partial<EnrichmentResponse> = {},
-): EnrichmentResponse {
+export function enrichmentResult(overrides: Partial<EnrichmentResponse> = {}): EnrichmentResponse {
   return {
     tags: ["Dessert", "Végétarien"],
     seasons: ["automne"],
@@ -47,8 +45,7 @@ export function chatCompletion(content: unknown) {
     choices: [
       {
         message: {
-          content:
-            typeof content === "string" ? content : JSON.stringify(content),
+          content: typeof content === "string" ? content : JSON.stringify(content),
         },
       },
     ],

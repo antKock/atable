@@ -3,10 +3,7 @@ import { loadTestEnv } from "./helpers/env";
 const SETUP_HINT = "Lance d'abord : npm run test:e2e:setup";
 
 // Commande Redis au format @upstash/redis (POST JSON sur la racine du proxy)
-async function redisCommand(
-  env: Record<string, string>,
-  command: string[],
-): Promise<Response> {
+async function redisCommand(env: Record<string, string>, command: string[]): Promise<Response> {
   return fetch(env.UPSTASH_REDIS_REST_URL, {
     method: "POST",
     headers: {
@@ -29,7 +26,9 @@ export default async function globalSetup() {
     });
     if (res.status >= 500) throw new Error(`HTTP ${res.status}`);
   } catch (err) {
-    throw new Error(`Supabase local injoignable (${env.NEXT_PUBLIC_SUPABASE_URL}). ${SETUP_HINT}\n${err}`);
+    throw new Error(
+      `Supabase local injoignable (${env.NEXT_PUBLIC_SUPABASE_URL}). ${SETUP_HINT}\n${err}`,
+    );
   }
 
   // 2. Proxy Redis joignable + flush : les rate-limits par IP (join 5/h,
@@ -40,7 +39,9 @@ export default async function globalSetup() {
     if (!ping.ok) throw new Error(`HTTP ${ping.status}`);
     await redisCommand(env, ["FLUSHALL"]);
   } catch (err) {
-    throw new Error(`Proxy Redis injoignable (${env.UPSTASH_REDIS_REST_URL}). ${SETUP_HINT}\n${err}`);
+    throw new Error(
+      `Proxy Redis injoignable (${env.UPSTASH_REDIS_REST_URL}). ${SETUP_HINT}\n${err}`,
+    );
   }
 
   // 3. Seed appliqué (foyer démo présent)

@@ -45,8 +45,15 @@ export async function dokploy(method, procedure, input) {
   const res = await fetch(url, init);
   const text = await res.text();
   let data;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-  if (!res.ok) throw new Error(`${method} ${procedure} → ${res.status} ${typeof data === "string" ? data : JSON.stringify(data)}`);
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+  if (!res.ok)
+    throw new Error(
+      `${method} ${procedure} → ${res.status} ${typeof data === "string" ? data : JSON.stringify(data)}`,
+    );
   return data;
 }
 
@@ -65,7 +72,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const verb = method.toUpperCase();
   if (isDestructive(procedure) && !yes) {
-    console.error(`Opération destructive refusée sans --yes : ${verb} ${procedure}${json ? " " + json : ""}`);
+    console.error(
+      `Opération destructive refusée sans --yes : ${verb} ${procedure}${json ? " " + json : ""}`,
+    );
     console.error("Relancer avec --yes pour confirmer.");
     process.exit(2);
   }

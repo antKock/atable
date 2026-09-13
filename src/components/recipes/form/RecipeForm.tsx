@@ -37,7 +37,21 @@ const SERVINGS_FIRST_CLICK = 2;
 
 interface CreateProps {
   mode: "create";
-  initialData?: Partial<Pick<Recipe, "title" | "ingredients" | "steps" | "notes" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings">> | null;
+  initialData?: Partial<
+    Pick<
+      Recipe,
+      | "title"
+      | "ingredients"
+      | "steps"
+      | "notes"
+      | "prepTime"
+      | "cookTime"
+      | "cost"
+      | "complexity"
+      | "seasons"
+      | "servings"
+    >
+  > | null;
   recipeId?: never;
   /** How the form was reached — recorded for the add-method analytics. */
   source?: RecipeSource;
@@ -52,7 +66,22 @@ interface CreateProps {
 
 interface EditProps {
   mode: "edit";
-  initialData: Pick<Recipe, "title" | "ingredients" | "steps" | "notes" | "tags" | "photoUrl" | "prepTime" | "cookTime" | "cost" | "complexity" | "seasons" | "servings" | "generatedImageUrl">;
+  initialData: Pick<
+    Recipe,
+    | "title"
+    | "ingredients"
+    | "steps"
+    | "notes"
+    | "tags"
+    | "photoUrl"
+    | "prepTime"
+    | "cookTime"
+    | "cost"
+    | "complexity"
+    | "seasons"
+    | "servings"
+    | "generatedImageUrl"
+  >;
   recipeId: string;
   source?: never;
   stickySubmit?: boolean;
@@ -62,16 +91,11 @@ interface EditProps {
 
 type RecipeFormProps = CreateProps | EditProps;
 
-function ActLabel({
-  children,
-  hint,
-}: {
-  children: React.ReactNode;
-  hint?: string;
-}) {
+function ActLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
   return (
     <div className="mb-4 mt-2">
-      <div className="display"
+      <div
+        className="display"
         style={{
           fontStyle: "italic",
           fontWeight: 500,
@@ -82,9 +106,7 @@ function ActLabel({
       >
         {children}
       </div>
-      {hint && (
-        <p className="mt-0.5 text-xs italic text-muted-foreground">{hint}</p>
-      )}
+      {hint && <p className="mt-0.5 text-xs italic text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -107,14 +129,10 @@ function FieldLabel({
     <>
       {children}
       {required && (
-        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-          {t.form.required}
-        </span>
+        <span className="ml-1.5 text-xs font-normal text-muted-foreground">{t.form.required}</span>
       )}
       {optional && (
-        <span className="ml-1.5 text-xs font-normal text-muted-foreground">
-          {t.form.optional}
-        </span>
+        <span className="ml-1.5 text-xs font-normal text-muted-foreground">{t.form.optional}</span>
       )}
     </>
   );
@@ -125,13 +143,13 @@ function FieldLabel({
   return (
     <>
       {htmlFor ? (
-        <label htmlFor={htmlFor} className={className}>{inner}</label>
+        <label htmlFor={htmlFor} className={className}>
+          {inner}
+        </label>
       ) : (
         <div className={className}>{inner}</div>
       )}
-      {hint && (
-        <p className="mb-2 text-xs italic text-muted-foreground">{hint}</p>
-      )}
+      {hint && <p className="mb-2 text-xs italic text-muted-foreground">{hint}</p>}
     </>
   );
 }
@@ -152,9 +170,7 @@ function ServingsStepper({
 
   return (
     <div className="mb-2 flex items-center justify-between gap-3">
-      <span className="text-[13px] text-muted-foreground">
-        {t.form.servingsQuestion}
-      </span>
+      <span className="text-[13px] text-muted-foreground">{t.form.servingsQuestion}</span>
       <div className="flex items-center overflow-hidden rounded-[10px] border border-input bg-surface">
         <button
           type="button"
@@ -192,7 +208,15 @@ function ServingsStepper({
   );
 }
 
-export default function RecipeForm({ mode, initialData, recipeId, source, stickySubmit, shareExtension, memberFoyers = [] }: RecipeFormProps) {
+export default function RecipeForm({
+  mode,
+  initialData,
+  recipeId,
+  source,
+  stickySubmit,
+  shareExtension,
+  memberFoyers = [],
+}: RecipeFormProps) {
   const t = useT();
   const isEdit = mode === "edit";
 
@@ -257,7 +281,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <Textarea
           id="ingredients"
           value={form.ingredients}
-          onChange={(e) => dispatch({ type: "setText", field: "ingredients", value: e.target.value })}
+          onChange={(e) =>
+            dispatch({ type: "setText", field: "ingredients", value: e.target.value })
+          }
           placeholder={t.form.ingredientsPlaceholder}
           rows={4}
           className="resize-none text-base"
@@ -304,7 +330,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <div className="mb-6">
           <PhotoManager
             currentPhotoUrl={isEdit && !form.photoRemoved ? initialData.photoUrl : null}
-            currentGeneratedUrl={isEdit && !form.photoRemoved ? initialData.generatedImageUrl : null}
+            currentGeneratedUrl={
+              isEdit && !form.photoRemoved ? initialData.generatedImageUrl : null
+            }
             previewFile={form.photoFile}
             regenerateRequested={form.regenerateRequested}
             onRegenerate={() => dispatch({ type: "requestRegenerate" })}
@@ -320,7 +348,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <ChipSelector
           options={PREP_TIME_OPTIONS.map((opt) => ({ value: opt, label: opt }))}
           selected={form.prepTime ?? ""}
-          onChange={(v) => dispatch({ type: "setMetadata", field: "prepTime", value: (v as string) || null })}
+          onChange={(v) =>
+            dispatch({ type: "setMetadata", field: "prepTime", value: (v as string) || null })
+          }
           mode="single"
           label={t.metadata.prepTime}
         />
@@ -335,7 +365,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
             label: opt === "Aucune" ? t.form.cookTimeNone : opt,
           }))}
           selected={form.cookTime ?? ""}
-          onChange={(v) => dispatch({ type: "setMetadata", field: "cookTime", value: (v as string) || null })}
+          onChange={(v) =>
+            dispatch({ type: "setMetadata", field: "cookTime", value: (v as string) || null })
+          }
           mode="single"
           label={t.metadata.cookTime}
         />
@@ -347,7 +379,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
         <ChipSelector
           options={COST_VALUES.map((opt) => ({ value: opt.value, label: t.cost[opt.key] }))}
           selected={form.cost ?? ""}
-          onChange={(v) => dispatch({ type: "setMetadata", field: "cost", value: (v as string) || null })}
+          onChange={(v) =>
+            dispatch({ type: "setMetadata", field: "cost", value: (v as string) || null })
+          }
           mode="single"
           label={t.metadata.cost}
         />
@@ -362,7 +396,9 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
             label: t.complexity[opt as keyof typeof t.complexity],
           }))}
           selected={form.complexity ?? ""}
-          onChange={(v) => dispatch({ type: "setMetadata", field: "complexity", value: (v as string) || null })}
+          onChange={(v) =>
+            dispatch({ type: "setMetadata", field: "complexity", value: (v as string) || null })
+          }
           mode="single"
           label={t.metadata.complexity}
         />
@@ -419,10 +455,7 @@ export default function RecipeForm({ mode, initialData, recipeId, source, sticky
           className="mt-6 text-center"
           style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
         >
-          <ConfirmDeleteDialog
-            recipeId={recipeId}
-            triggerLabel={t.deleteDialog.trigger}
-          />
+          <ConfirmDeleteDialog recipeId={recipeId} triggerLabel={t.deleteDialog.trigger} />
         </div>
       )}
 

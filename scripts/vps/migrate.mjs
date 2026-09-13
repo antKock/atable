@@ -51,12 +51,19 @@ function psql(env, sql, { quiet = true } = {}) {
 let failed = false;
 for (const env of envs) {
   const applied = new Set(
-    psql(env, "select version from supabase_migrations.schema_migrations;").split("\n").filter(Boolean),
+    psql(env, "select version from supabase_migrations.schema_migrations;")
+      .split("\n")
+      .filter(Boolean),
   );
   const pending = files.filter((m) => !applied.has(m.version) && (!only || m.version === only));
-  console.log(`== ${env} (${DATABASES[env]}) : ${applied.size} appliquées, ${pending.length} en attente${pending.length ? " : " + pending.map((m) => m.file).join(", ") : ""}`);
+  console.log(
+    `== ${env} (${DATABASES[env]}) : ${applied.size} appliquées, ${pending.length} en attente${pending.length ? " : " + pending.map((m) => m.file).join(", ") : ""}`,
+  );
   for (const m of pending) {
-    if (dryRun) { console.log(`   [dry-run] ${m.file}`); continue; }
+    if (dryRun) {
+      console.log(`   [dry-run] ${m.file}`);
+      continue;
+    }
     const body = readFileSync(join(dir, m.file), "utf8");
     const sql = `BEGIN;\n${body}\nINSERT INTO supabase_migrations.schema_migrations (version, name) VALUES ('${m.version}', '${m.name.replace(/'/g, "''")}');\nCOMMIT;\nNOTIFY pgrst, 'reload schema';\n`;
     try {

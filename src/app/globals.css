@@ -55,60 +55,56 @@
   --radius: 0.875rem; /* 14px — warm, not sharp */
 
   /* Mijote palette — Warm Cream & Olive (DS_UPDATE 2026-05-23, see globals.css.bak / git history to rollback) */
-  --background: #F5F1E8; /* DS_UPDATE: was #F8FAF7 (cool warm-white) → cream warm, brand-aligned with cocotte */
-  --foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — Δ~4 on green channel, imperceptible */
-  --surface: #FFFFFF;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
-  --primary: #6E7A38;
-  --primary-foreground: #FFFFFF;
-  --secondary: #EEF2E4;
-  --secondary-foreground: #1A1A18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
-  --muted: #EEF2E4;
-  --muted-foreground: #6B6E68;
-  --accent: #6E7A38;
-  --accent-foreground: #FFFFFF;
+  --background: #f5f1e8; /* DS_UPDATE: was #F8FAF7 (cool warm-white) → cream warm, brand-aligned with cocotte */
+  --foreground: #1a1a18; /* DS_UPDATE: was #1A1F1A — Δ~4 on green channel, imperceptible */
+  --surface: #ffffff;
+  --card: #ffffff;
+  --card-foreground: #1a1a18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
+  --popover: #ffffff;
+  --popover-foreground: #1a1a18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
+  --primary: #6e7a38;
+  --primary-foreground: #ffffff;
+  --secondary: #eef2e4;
+  --secondary-foreground: #1a1a18; /* DS_UPDATE: was #1A1F1A — mirrors --foreground */
+  --muted: #eef2e4;
+  --muted-foreground: #6b6e68;
+  --accent: #6e7a38;
+  --accent-foreground: #ffffff;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: #E5DED6;
-  --input: #E5DED6;
-  --ring: #6E7A38;
+  --border: #e5ded6;
+  --input: #e5ded6;
+  --ring: #6e7a38;
 
   /* Mijote brand — sage hero family (DS_UPDATE 2026-05-23, new tokens, no rollback needed) */
-  --sage-100: #B6C4A8; /* gradient top (lightest) */
-  --sage-500: #9AAD8C; /* gradient body */
-  --sage-800: #6B7F5C; /* gradient outer (darkest) */
+  --sage-100: #b6c4a8; /* gradient top (lightest) */
+  --sage-500: #9aad8c; /* gradient body */
+  --sage-800: #6b7f5c; /* gradient outer (darkest) */
 
   /* v3 — Shimmer (DS_UPDATE 2026-05-24: olive-tinted, aligned with --chip-bg-selected) */
-  --shimmer-base: rgba(110, 122, 56, 0.10);
+  --shimmer-base: rgba(110, 122, 56, 0.1);
   --shimmer-highlight: rgba(110, 122, 56, 0.04);
   --reveal-duration: 300ms;
 
   /* v5 — Chip tokens (Lot 00 foundations) */
-  --chip-bg: rgba(26, 26, 24, 0.05);          /* neutre ultra-discret pour tags affichés */
+  --chip-bg: rgba(26, 26, 24, 0.05); /* neutre ultra-discret pour tags affichés */
   --chip-text: var(--muted-foreground);
-  --chip-bg-selected: rgba(110, 122, 56, 0.10); /* olive 10% pour chips form sélectionnés */
+  --chip-bg-selected: rgba(110, 122, 56, 0.1); /* olive 10% pour chips form sélectionnés */
   --chip-text-selected: var(--accent);
 
   /* v4 — Depth & volume */
-  --card-gradient: linear-gradient(168deg, #FFFFFF, #F5F7F0);
+  --card-gradient: linear-gradient(168deg, #ffffff, #f5f7f0);
   --card-border-accent: rgba(110, 122, 56, 0.22);
   --card-shadow:
-    0 1px 3px rgba(110, 122, 56, 0.06),
-    0 6px 16px rgba(110, 122, 56, 0.08),
+    0 1px 3px rgba(110, 122, 56, 0.06), 0 6px 16px rgba(110, 122, 56, 0.08),
     0 14px 36px rgba(0, 0, 0, 0.04);
   --card-shadow-sm:
-    0 1px 2px rgba(110, 122, 56, 0.05),
-    0 2px 4px rgba(110, 122, 56, 0.06),
+    0 1px 2px rgba(110, 122, 56, 0.05), 0 2px 4px rgba(110, 122, 56, 0.06),
     0 3px 8px rgba(0, 0, 0, 0.04);
   --btn-gradient: linear-gradient(155deg, #7d8c40, #5d6a2e);
-  --btn-shadow:
-    0 2px 6px rgba(93, 106, 46, 0.22),
-    0 8px 18px rgba(93, 106, 46, 0.12);
-  --nav-inactive: #B5B3AD;
+  --btn-shadow: 0 2px 6px rgba(93, 106, 46, 0.22), 0 8px 18px rgba(93, 106, 46, 0.12);
+  --nav-inactive: #b5b3ad;
   /* Fond des écrans d'onboarding / récupération (crème → sable). */
-  --page-gradient: linear-gradient(to bottom, var(--background), #EDE8E0);
+  --page-gradient: linear-gradient(to bottom, var(--background), #ede8e0);
   --divider: linear-gradient(90deg, transparent, var(--border), transparent);
 }
 
@@ -193,7 +189,7 @@
 html {
   background-color: var(--background);
   background-image:
-    radial-gradient(ellipse at 20% 0%, rgba(168, 180, 144, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse at 20% 0%, rgba(168, 180, 144, 0.1) 0%, transparent 60%),
     radial-gradient(ellipse at 80% 100%, rgba(229, 222, 214, 0.18) 0%, transparent 50%);
   min-height: 100%;
 }
@@ -237,8 +233,12 @@ body {
 }
 
 @keyframes shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .shimmer {
@@ -325,12 +325,22 @@ body {
 }
 
 @keyframes phraseIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 @keyframes simmerSlide {
-  0% { transform: translateX(-118%); }
-  100% { transform: translateX(338%); }
+  0% {
+    transform: translateX(-118%);
+  }
+  100% {
+    transform: translateX(338%);
+  }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -356,31 +366,64 @@ body {
   }
 
   @keyframes potBreathe {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.022); }
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.022);
+    }
   }
   @keyframes lidJiggle {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    22% { transform: translateY(-1.6px) rotate(-1.4deg); }
-    48% { transform: translateY(-0.5px) rotate(1deg); }
-    72% { transform: translateY(-1.1px) rotate(-0.5deg); }
+    0%,
+    100% {
+      transform: translateY(0) rotate(0deg);
+    }
+    22% {
+      transform: translateY(-1.6px) rotate(-1.4deg);
+    }
+    48% {
+      transform: translateY(-0.5px) rotate(1deg);
+    }
+    72% {
+      transform: translateY(-1.1px) rotate(-0.5deg);
+    }
   }
   @keyframes shadowBreathe {
-    0%, 100% { transform: scaleX(1); opacity: 0.10; }
-    50% { transform: scaleX(1.07); opacity: 0.16; }
+    0%,
+    100% {
+      transform: scaleX(1);
+      opacity: 0.1;
+    }
+    50% {
+      transform: scaleX(1.07);
+      opacity: 0.16;
+    }
   }
   @keyframes steamRise {
-    0% { opacity: 0; transform: translateY(7px) scaleY(0.7); }
-    22% { opacity: 0.55; }
-    70% { opacity: 0.32; }
-    100% { opacity: 0; transform: translateY(-13px) scaleY(1.18); }
+    0% {
+      opacity: 0;
+      transform: translateY(7px) scaleY(0.7);
+    }
+    22% {
+      opacity: 0.55;
+    }
+    70% {
+      opacity: 0.32;
+    }
+    100% {
+      opacity: 0;
+      transform: translateY(-13px) scaleY(1.18);
+    }
   }
 }
 
 /* Mijote brand — sage hero gradient (use on onboarding / brand-hero surfaces) */
 .bg-sage-radial {
-  background: radial-gradient(80% 80% at 50% 38%,
+  background: radial-gradient(
+    80% 80% at 50% 38%,
     var(--sage-100) 0%,
     var(--sage-500) 55%,
-    var(--sage-800) 100%);
+    var(--sage-800) 100%
+  );
 }

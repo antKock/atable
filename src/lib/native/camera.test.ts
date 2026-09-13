@@ -23,7 +23,10 @@ describe("mediaResultToFile", () => {
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",
-      vi.fn(async () => new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/png" } })),
+      vi.fn(
+        async () =>
+          new Response(new Uint8Array([1, 2, 3]), { headers: { "content-type": "image/png" } }),
+      ),
     );
   });
 

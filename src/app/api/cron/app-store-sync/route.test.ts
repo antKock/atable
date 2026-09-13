@@ -23,7 +23,13 @@ vi.mock("@sentry/nextjs", () => ({
   },
 }));
 
-const ENV_KEYS = ["CRON_SECRET", "APPLE_CONNECT_KEY", "APPLE_CONNECT_KEY_ID", "APPLE_CONNECT_ISSUER_ID", "APPLE_CONNECT_APP_ID"] as const;
+const ENV_KEYS = [
+  "CRON_SECRET",
+  "APPLE_CONNECT_KEY",
+  "APPLE_CONNECT_KEY_ID",
+  "APPLE_CONNECT_ISSUER_ID",
+  "APPLE_CONNECT_APP_ID",
+] as const;
 const savedEnv: Partial<Record<(typeof ENV_KEYS)[number], string | undefined>> = {};
 
 beforeEach(() => {

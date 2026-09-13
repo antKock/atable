@@ -29,7 +29,9 @@ function fakeApple(opts: {
   for (const i of [...opts.downloads, ...opts.engagement]) bodies.set(i.id, i.tsv);
   const fetchImpl = vi.fn<FetchLike>(async (url) => {
     if (url.endsWith("/analyticsReportRequests")) {
-      return json({ data: [{ id: "req", attributes: { accessType: "ONGOING", stoppedDueToInactivity: false } }] });
+      return json({
+        data: [{ id: "req", attributes: { accessType: "ONGOING", stoppedDueToInactivity: false } }],
+      });
     }
     if (url.includes("/reports?filter[name]=")) {
       const name = decodeURIComponent(url.split("filter[name]=")[1]);
@@ -37,10 +39,20 @@ function fakeApple(opts: {
       return json({ data: [{ id, attributes: { name, category: "x" } }] });
     }
     if (url.includes("/analyticsReports/r3/instances")) {
-      return json({ data: opts.downloads.map((i) => ({ id: i.id, attributes: { granularity: "DAILY", processingDate: i.processingDate } })) });
+      return json({
+        data: opts.downloads.map((i) => ({
+          id: i.id,
+          attributes: { granularity: "DAILY", processingDate: i.processingDate },
+        })),
+      });
     }
     if (url.includes("/analyticsReports/r15/instances")) {
-      return json({ data: opts.engagement.map((i) => ({ id: i.id, attributes: { granularity: "DAILY", processingDate: i.processingDate } })) });
+      return json({
+        data: opts.engagement.map((i) => ({
+          id: i.id,
+          attributes: { granularity: "DAILY", processingDate: i.processingDate },
+        })),
+      });
     }
     const seg = url.match(/analyticsReportInstances\/([^/]+)\/segments/);
     if (seg) return json({ data: [{ attributes: { url: `https://s3.example/${seg[1]}.gz` } }] });
@@ -56,10 +68,13 @@ beforeEach(() => {
   supa = createSupabaseMock();
 });
 
-const rpcCalls = () => supa.calls.filter((c) => c.table === "rpc:app_store_daily_replace").map((c) => c.ops[0].args[0]);
+const rpcCalls = () =>
+  supa.calls.filter((c) => c.table === "rpc:app_store_daily_replace").map((c) => c.ops[0].args[0]);
 const marks = () =>
   supa.calls
-    .filter((c) => c.table === "app_store_sync_instances" && c.ops.some((o) => o.method === "insert"))
+    .filter(
+      (c) => c.table === "app_store_sync_instances" && c.ops.some((o) => o.method === "insert"),
+    )
     .map((c) => c.ops.find((o) => o.method === "insert")!.args[0]);
 
 describe("syncAppStore", () => {
@@ -81,7 +96,13 @@ describe("syncAppStore", () => {
       ],
     });
     // 1) select des instances vues (aucune) ; puis par instance : rpc + insert.
-    supa.queueResults([{ data: [] }, { error: null }, { error: null }, { error: null }, { error: null }]);
+    supa.queueResults([
+      { data: [] },
+      { error: null },
+      { error: null },
+      { error: null },
+      { error: null },
+    ]);
 
     const summary = await syncAppStore({
       client: createAppleConnectClient(CREDS, fetchImpl),
@@ -90,14 +111,34 @@ describe("syncAppStore", () => {
     });
 
     expect(summary.requestId).toBe("req");
-    expect(summary.reports.downloads).toMatchObject({ reportId: "r3", instances: 1, processed: 1, skipped: 0, days: ["2026-09-09"] });
-    expect(summary.reports.engagement).toMatchObject({ reportId: "r15", instances: 1, processed: 1, skipped: 0, days: ["2026-09-09"] });
+    expect(summary.reports.downloads).toMatchObject({
+      reportId: "r3",
+      instances: 1,
+      processed: 1,
+      skipped: 0,
+      days: ["2026-09-09"],
+    });
+    expect(summary.reports.engagement).toMatchObject({
+      reportId: "r15",
+      instances: 1,
+      processed: 1,
+      skipped: 0,
+      days: ["2026-09-09"],
+    });
 
     expect(rpcCalls()).toEqual([
       {
         p_day: "2026-09-09",
         p_report: "downloads",
-        p_rows: [{ source_type: "App Store search", source_info: "", dl_first_time: 14, dl_redownload: 0, dl_update: 0 }],
+        p_rows: [
+          {
+            source_type: "App Store search",
+            source_info: "",
+            dl_first_time: 14,
+            dl_redownload: 0,
+            dl_update: 0,
+          },
+        ],
       },
       {
         p_day: "2026-09-09",
@@ -116,8 +157,20 @@ describe("syncAppStore", () => {
       },
     ]);
     expect(marks()).toEqual([
-      { instance_id: "d1", report: "downloads", processing_date: "2026-09-10", data_days: ["2026-09-09"], row_count: 1 },
-      { instance_id: "e1", report: "engagement", processing_date: "2026-09-10", data_days: ["2026-09-09"], row_count: 1 },
+      {
+        instance_id: "d1",
+        report: "downloads",
+        processing_date: "2026-09-10",
+        data_days: ["2026-09-09"],
+        row_count: 1,
+      },
+      {
+        instance_id: "e1",
+        report: "engagement",
+        processing_date: "2026-09-10",
+        data_days: ["2026-09-09"],
+        row_count: 1,
+      },
     ]);
   });
 
@@ -128,7 +181,11 @@ describe("syncAppStore", () => {
     });
     supa.queueResults([{ data: [{ instance_id: "d1" }, { instance_id: "e1" }] }]);
 
-    const summary = await syncAppStore({ client: createAppleConnectClient(CREDS, fetchImpl), supabase: supa.client, appId: "123" });
+    const summary = await syncAppStore({
+      client: createAppleConnectClient(CREDS, fetchImpl),
+      supabase: supa.client,
+      appId: "123",
+    });
 
     expect(summary.reports.downloads).toMatchObject({ processed: 0, skipped: 1 });
     expect(summary.reports.engagement).toMatchObject({ processed: 0, skipped: 1 });
@@ -143,10 +200,18 @@ describe("syncAppStore", () => {
     });
     supa.queueResults([{ data: [] }, { error: null }, { error: null }]);
 
-    const summary = await syncAppStore({ client: createAppleConnectClient(CREDS, fetchImpl), supabase: supa.client, appId: "123" });
+    const summary = await syncAppStore({
+      client: createAppleConnectClient(CREDS, fetchImpl),
+      supabase: supa.client,
+      appId: "123",
+    });
 
     expect(rpcCalls()).toEqual([{ p_day: "2026-09-05", p_report: "downloads", p_rows: [] }]);
-    expect(marks()[0]).toMatchObject({ instance_id: "d-empty", data_days: ["2026-09-05"], row_count: 0 });
+    expect(marks()[0]).toMatchObject({
+      instance_id: "d-empty",
+      data_days: ["2026-09-05"],
+      row_count: 0,
+    });
     expect(summary.reports.downloads.days).toEqual(["2026-09-05"]);
   });
 
@@ -158,7 +223,11 @@ describe("syncAppStore", () => {
     supa.queueResults([{ data: [] }, { error: { message: "boom" } }]);
 
     await expect(
-      syncAppStore({ client: createAppleConnectClient(CREDS, fetchImpl), supabase: supa.client, appId: "123" }),
+      syncAppStore({
+        client: createAppleConnectClient(CREDS, fetchImpl),
+        supabase: supa.client,
+        appId: "123",
+      }),
     ).rejects.toThrow(/app_store_daily_replace\(2026-09-09, downloads\): boom/);
     expect(marks()).toEqual([]);
   });
@@ -172,7 +241,13 @@ describe("syncAppStore", () => {
       ],
       engagement: [],
     });
-    supa.queueResults([{ data: [] }, { error: null }, { error: null }, { error: null }, { error: null }]);
+    supa.queueResults([
+      { data: [] },
+      { error: null },
+      { error: null },
+      { error: null },
+      { error: null },
+    ]);
 
     const summary = await syncAppStore({
       client: createAppleConnectClient(CREDS, fetchImpl),

@@ -112,7 +112,10 @@ test("choix de foyer à l'enregistrement : dialog en multi-foyer, jamais en mono
   await v.page.getByRole("button", { name: "Enregistrer" }).click();
   await expect(v.page.getByText("Dans quel carnet ?")).toBeVisible();
   // Tap sur B = confirme ET enregistre (pas de bouton).
-  await v.page.getByRole("dialog").getByRole("button", { name: new RegExp(nameB) }).click();
+  await v.page
+    .getByRole("dialog")
+    .getByRole("button", { name: new RegExp(nameB) })
+    .click();
   await v.page.waitForURL(/\/recipes\/[0-9a-f-]+$/);
 
   expect(await getRecipeByTitle(hb.id, title)).not.toBeNull();

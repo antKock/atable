@@ -1,73 +1,73 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useT } from '@/lib/i18n/client'
-import { dropSwrCache } from '@/lib/swr'
-import { createHouseholdQuick } from '@/lib/household-create'
-import CodeEntryForm from '@/components/auth/CodeEntryForm'
-import JoinForkScreen from '@/components/auth/JoinForkScreen'
-import RecoverFlow from '@/components/auth/RecoverFlow'
+import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
+import { dropSwrCache } from "@/lib/swr";
+import { createHouseholdQuick } from "@/lib/household-create";
+import CodeEntryForm from "@/components/auth/CodeEntryForm";
+import JoinForkScreen from "@/components/auth/JoinForkScreen";
+import RecoverFlow from "@/components/auth/RecoverFlow";
 
 // « join » = fork « Rejoindre un foyer » (#14, maquette 1.2) : code
 // d'invitation OU récupération par email — la clé anti-doublon d'owner.
 // Plus de vue « create » : « Créer un carnet » crée EN UN TAP (spec #23).
-type View = 'menu' | 'join' | 'joinCode' | 'recover'
+type View = "menu" | "join" | "joinCode" | "recover";
 
 export default function LandingScreen() {
-  const t = useT()
-  const [view, setView] = useState<View>('menu')
-  const [demoLoading, setDemoLoading] = useState(false)
-  const [createLoading, setCreateLoading] = useState(false)
-  const [demoError, setDemoError] = useState<string | null>(null)
-  const busy = demoLoading || createLoading
+  const t = useT();
+  const [view, setView] = useState<View>("menu");
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [demoError, setDemoError] = useState<string | null>(null);
+  const busy = demoLoading || createLoading;
 
   async function handleCreate() {
-    if (busy) return
-    setCreateLoading(true)
-    setDemoError(null)
+    if (busy) return;
+    setCreateLoading(true);
+    setDemoError(null);
     try {
-      const { redirect } = await createHouseholdQuick(t.household.createError)
-      window.location.href = redirect
+      const { redirect } = await createHouseholdQuick(t.household.createError);
+      window.location.href = redirect;
     } catch (err) {
-      setDemoError(err instanceof Error ? err.message : t.household.createError)
-      setCreateLoading(false)
+      setDemoError(err instanceof Error ? err.message : t.household.createError);
+      setCreateLoading(false);
     }
   }
 
   async function handleTryApp() {
-    if (busy) return
-    setDemoLoading(true)
-    setDemoError(null)
+    if (busy) return;
+    setDemoLoading(true);
+    setDemoError(null);
     try {
-      const response = await fetch('/api/demo/session', { method: 'POST' })
-      const data = await response.json().catch(() => ({}))
+      const response = await fetch("/api/demo/session", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error((data as { error?: string }).error ?? t.household.leaveError)
+        throw new Error((data as { error?: string }).error ?? t.household.leaveError);
       }
-      dropSwrCache() // entering the demo: previous session's cache is stale
-      window.location.href = (data as { redirect?: string }).redirect ?? '/home'
+      dropSwrCache(); // entering the demo: previous session's cache is stale
+      window.location.href = (data as { redirect?: string }).redirect ?? "/home";
     } catch (err) {
-      setDemoError(err instanceof Error ? err.message : t.household.leaveError)
-      setDemoLoading(false)
+      setDemoError(err instanceof Error ? err.message : t.household.leaveError);
+      setDemoLoading(false);
     }
   }
 
-  if (view === 'join') {
+  if (view === "join") {
     return (
       <JoinForkScreen
-        onCode={() => setView('joinCode')}
-        onRecover={() => setView('recover')}
-        onBack={() => setView('menu')}
+        onCode={() => setView("joinCode")}
+        onRecover={() => setView("recover")}
+        onBack={() => setView("menu")}
       />
-    )
+    );
   }
 
-  if (view === 'joinCode') {
-    return <CodeEntryForm onCancel={() => setView('join')} />
+  if (view === "joinCode") {
+    return <CodeEntryForm onCancel={() => setView("join")} />;
   }
 
-  if (view === 'recover') {
-    return <RecoverFlow onBack={() => setView('join')} />
+  if (view === "recover") {
+    return <RecoverFlow onBack={() => setView("join")} />;
   }
 
   // Welcome / first-launch (Mijote onboarding 06-A). Sage hero is full-bleed
@@ -90,9 +90,9 @@ export default function LandingScreen() {
           className="display landing-title mt-7 text-center"
           style={{
             fontWeight: 700,
-            fontSize: 'clamp(72px, 23vw, 92px)',
+            fontSize: "clamp(72px, 23vw, 92px)",
             lineHeight: 0.95,
-            letterSpacing: '-0.025em',
+            letterSpacing: "-0.025em",
           }}
         >
           {t.landing.title}
@@ -102,14 +102,11 @@ export default function LandingScreen() {
       <div
         className="mx-auto flex w-full max-w-[400px] flex-col gap-2.5 px-6"
         style={{
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 40px)',
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 40px)",
         }}
       >
         {demoError && (
-          <p
-            role="alert"
-            className="text-center text-sm font-medium text-background"
-          >
+          <p role="alert" className="text-center text-sm font-medium text-background">
             {demoError}
           </p>
         )}
@@ -121,7 +118,7 @@ export default function LandingScreen() {
           disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
         >
-          {demoLoading ? '…' : t.landing.tryApp}
+          {demoLoading ? "…" : t.landing.tryApp}
         </button>
 
         {/* Secondary — ghost outlined pill (1.5px cream @55%) */}
@@ -130,20 +127,20 @@ export default function LandingScreen() {
           onClick={handleCreate}
           disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-transparent text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
-          style={{ boxShadow: 'inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)' }}
+          style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)" }}
         >
-          {createLoading ? '…' : t.landing.createHousehold}
+          {createLoading ? "…" : t.landing.createHousehold}
         </button>
 
         {/* Tertiary — text link */}
         <button
           type="button"
-          onClick={() => setView('join')}
+          onClick={() => setView("join")}
           className="flex w-full items-center justify-center bg-transparent py-[14px] text-[16px] font-medium text-background transition-opacity hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
         >
           {t.landing.joinHousehold}
         </button>
       </div>
     </div>
-  )
+  );
 }

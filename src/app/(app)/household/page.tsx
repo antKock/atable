@@ -1,55 +1,60 @@
-import { cookies } from 'next/headers'
-import { redirect } from 'next/navigation'
-import { createServerClient } from '@/lib/supabase/server'
-import { getOwnerContext, type MembershipRole } from '@/lib/auth/owner-context'
-import { isDemoOwner } from '@/lib/api/with-owner-auth'
-import { aliasForOwner } from '@/lib/alias'
-import { getLocale } from '@/lib/i18n/server'
-import { HOME_HIDDEN_FOYERS_COOKIE, parseHiddenFoyers } from '@/lib/home-foyers'
-import HouseholdMenuContent from '@/components/household/HouseholdMenuContent'
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createServerClient } from "@/lib/supabase/server";
+import { getOwnerContext, type MembershipRole } from "@/lib/auth/owner-context";
+import { isDemoOwner } from "@/lib/api/with-owner-auth";
+import { aliasForOwner } from "@/lib/alias";
+import { getLocale } from "@/lib/i18n/server";
+import { HOME_HIDDEN_FOYERS_COOKIE, parseHiddenFoyers } from "@/lib/home-foyers";
+import HouseholdMenuContent from "@/components/household/HouseholdMenuContent";
 
 // Requête households + compteurs embarqués (une seule requête groupée pour N
 // foyers — pas de N+1) ; la forme des lignes est inférée du schéma généré.
 export default async function HouseholdPage() {
-  const owner = await getOwnerContext()
-  const locale = await getLocale()
-  if (!owner || owner.memberships.length === 0) redirect('/')
+  const owner = await getOwnerContext();
+  const locale = await getLocale();
+  if (!owner || owner.memberships.length === 0) redirect("/");
 
-  const supabase = createServerClient()
+  const supabase = createServerClient();
   const { data, error } = await supabase
-    .from('households')
-    .select('id, name, memberships(count), recipes(count)')
-    .in('id', owner.memberships.map((m) => m.householdId))
+    .from("households")
+    .select("id, name, memberships(count), recipes(count)")
+    .in(
+      "id",
+      owner.memberships.map((m) => m.householdId),
+    );
 
   // Une panne DB transitoire ne doit JAMAIS se lire « tu n'as aucun foyer » :
   // le hub proposerait « Créer ou rejoindre », qui change le foyer de
   // l'appareil. On propage vers l'error boundary (doctrine du Lot 0).
   if (error) {
-    throw new Error(`household hub: chargement des foyers impossible (${error.message})`)
+    throw new Error(`household hub: chargement des foyers impossible (${error.message})`);
   }
 
-  const rows = data ?? []
-  const byId = new Map(rows.map((row) => [row.id, row]))
+  const rows = data ?? [];
+  const byId = new Map(rows.map((row) => [row.id, row]));
 
   // L'ordre des memberships (contexte owner) fait foi, pas celui de la requête.
   const households = owner.memberships.flatMap((membership) => {
-    const row = byId.get(membership.householdId)
-    if (!row) return []
-    return [{
-      id: row.id,
-      name: row.name,
-      role: membership.role as MembershipRole,
-      isDemo: membership.isDemo,
-      // Le foyer démo accumule un owner par visiteur (purge cron à 30 j) :
-      // afficher ce compte fuiterait les autres visiteurs et n'a aucun sens.
-      // Monde gelé = vue solo (cf. la liste des membres du détail).
-      people: membership.isDemo ? 1 : (row.memberships[0]?.count ?? 0),
-      recipes: row.recipes[0]?.count ?? 0,
-    }]
-  })
+    const row = byId.get(membership.householdId);
+    if (!row) return [];
+    return [
+      {
+        id: row.id,
+        name: row.name,
+        role: membership.role as MembershipRole,
+        isDemo: membership.isDemo,
+        // Le foyer démo accumule un owner par visiteur (purge cron à 30 j) :
+        // afficher ce compte fuiterait les autres visiteurs et n'a aucun sens.
+        // Monde gelé = vue solo (cf. la liste des membres du détail).
+        people: membership.isDemo ? 1 : (row.memberships[0]?.count ?? 0),
+        recipes: row.recipes[0]?.count ?? 0,
+      },
+    ];
+  });
 
-  const cookieStore = await cookies()
-  const hiddenFoyerIds = parseHiddenFoyers(cookieStore.get(HOME_HIDDEN_FOYERS_COOKIE)?.value)
+  const cookieStore = await cookies();
+  const hiddenFoyerIds = parseHiddenFoyers(cookieStore.get(HOME_HIDDEN_FOYERS_COOKIE)?.value);
 
   return (
     <HouseholdMenuContent
@@ -59,5 +64,5 @@ export default async function HouseholdPage() {
       hasRecoveryEmail={owner.recoveryEmail !== null}
       hiddenFoyerIds={hiddenFoyerIds}
     />
-  )
+  );
 }

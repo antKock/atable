@@ -38,18 +38,12 @@ export const POST = withOwnerAuth(
       return NextResponse.json({ error: t.api.photoRequired }, { status: 400 });
     }
     if (photo.size > MAX_PHOTO_BYTES) {
-      return NextResponse.json(
-        { error: t.api.photoTooLarge },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: t.api.photoTooLarge }, { status: 400 });
     }
     const mime = photo.type.split(";")[0];
     const ext = EXT_BY_MIME[mime];
     if (!ext) {
-      return NextResponse.json(
-        { error: t.api.imageFormatUnsupported },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: t.api.imageFormatUnsupported }, { status: 400 });
     }
 
     const supabase = createServerClient();

@@ -113,7 +113,10 @@ async function judge(caseLabel, sourceDescription, source, candidates, rubric) {
 ${rubric}
 Termine par un classement du meilleur au moins bon (les ex æquo sont autorisés dans les scores mais tranche dans le ranking). Sois précis et cite les différences concrètes dans les commentaires.`,
         },
-        { role: "user", content: `${sourceDescription}\n\nSOURCE :\n${source}\n\nCANDIDATS :\n\n${blocks}` },
+        {
+          role: "user",
+          content: `${sourceDescription}\n\nSOURCE :\n${source}\n\nCANDIDATS :\n\n${blocks}`,
+        },
       ],
     }),
     signal: AbortSignal.timeout(300000),
@@ -126,7 +129,11 @@ Termine par un classement du meilleur au moins bon (les ex æquo sont autorisés
 
 /** Le juge renvoie tantôt « D », tantôt « Candidat D » — on ne garde que la lettre. */
 function letterOf(raw) {
-  return String(raw ?? "").trim().match(/([A-H])\s*$/)?.[1] ?? null;
+  return (
+    String(raw ?? "")
+      .trim()
+      .match(/([A-H])\s*$/)?.[1] ?? null
+  );
 }
 
 function collect(task, label) {
@@ -136,7 +143,14 @@ function collect(task, label) {
 const judgements = { text: [], ocr: [], enrich: [] };
 
 // Structuration texte : source = le texte fourni au modèle.
-for (const label of ["marmiton-ratatouille", "cuisineaz-sauce-pommes", "750g-tarte-pommes", "insta-caption", "voice-fr-hesitations", "voice-pt-caldo"]) {
+for (const label of [
+  "marmiton-ratatouille",
+  "cuisineaz-sauce-pommes",
+  "750g-tarte-pommes",
+  "insta-caption",
+  "voice-fr-hesitations",
+  "voice-pt-caldo",
+]) {
   const file = label === "insta-caption" ? "insta-caption" : label;
   const source = await readFile(path.join(FIX, "text", `${file}.txt`), "utf8");
   const j = await judge(
@@ -192,7 +206,10 @@ for (const label of Object.keys(ENRICH_SOURCES)) {
   console.log(`juge enrich/${label} — ${j.error ?? j.ranking?.join(" > ")}`);
 }
 
-await writeFile(path.join(OUT, "judgements.json"), JSON.stringify({ werRows, judgements }, null, 2));
+await writeFile(
+  path.join(OUT, "judgements.json"),
+  JSON.stringify({ werRows, judgements }, null, 2),
+);
 
 // Agrégat : score moyen par modèle et par tâche.
 console.log("\n=== Scores moyens du juge (complétude+fidélité+format, /30)");
@@ -206,10 +223,11 @@ for (const [task, list] of Object.entries(judgements)) {
       byModel[model] ??= { total: 0, n: 0, wins: 0 };
       byModel[model].total += s.completeness + s.fidelity + s.format;
       byModel[model].n++;
-      if (j.mapping[letterOf(j.ranking[0])] === model) byModel[model].wins += 1 / j.scores.length * j.scores.length;
+      if (j.mapping[letterOf(j.ranking[0])] === model)
+        byModel[model].wins += (1 / j.scores.length) * j.scores.length;
     }
     const winner = j.mapping[letterOf(j.ranking[0])];
-    if (winner && byModel[winner]) byModel[winner].wins = (byModel[winner].wins ?? 0);
+    if (winner && byModel[winner]) byModel[winner].wins = byModel[winner].wins ?? 0;
   }
   // wins recompté proprement :
   for (const m of Object.keys(byModel)) byModel[m].wins = 0;
@@ -220,7 +238,9 @@ for (const [task, list] of Object.entries(judgements)) {
   }
   console.log(`  ${task}:`);
   for (const [m, s] of Object.entries(byModel)) {
-    console.log(`    ${m} — ${(s.total / s.n).toFixed(1)}/30 en moyenne, ${s.wins} victoire(s) sur ${list.filter((j) => !j.error).length}`);
+    console.log(
+      `    ${m} — ${(s.total / s.n).toFixed(1)}/30 en moyenne, ${s.wins} victoire(s) sur ${list.filter((j) => !j.error).length}`,
+    );
   }
 }
 console.log(`\nDétail : ${path.join(OUT, "judgements.json")}`);

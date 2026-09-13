@@ -24,9 +24,7 @@ const recipe: CarouselRecipeItem = {
 
 describe("RecipeCarousel", () => {
   it("returns null when recipes array is empty (FR9)", () => {
-    const { container } = render(
-      <RecipeCarousel title="Desserts" recipes={[]} />
-    );
+    const { container } = render(<RecipeCarousel title="Desserts" recipes={[]} />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -40,17 +38,13 @@ describe("RecipeCarousel", () => {
       recipe,
       { ...recipe, id: "2", title: "Mousse au chocolat" },
     ];
-    const { container } = render(
-      <RecipeCarousel title="Desserts" recipes={recipes} />
-    );
+    const { container } = render(<RecipeCarousel title="Desserts" recipes={recipes} />);
     const links = container.querySelectorAll("a");
     expect(links.length).toBe(2);
   });
 
   it("renders a section with role=region and aria-label for accessibility", () => {
-    const { container } = render(
-      <RecipeCarousel title="rapide" recipes={[recipe]} />
-    );
+    const { container } = render(<RecipeCarousel title="rapide" recipes={[recipe]} />);
     const section = container.querySelector("section");
     expect(section?.getAttribute("role")).toBe("region");
     expect(section?.getAttribute("aria-label")).toContain("rapide");

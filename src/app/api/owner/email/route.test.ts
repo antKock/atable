@@ -32,12 +32,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
-  vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue(
-    { success: true } as Awaited<ReturnType<typeof recoveryEmailRateLimit.limit>>,
-  );
-  vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue(
-    { success: true } as Awaited<ReturnType<typeof recoveryIpRateLimit.limit>>,
-  );
+  vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue({ success: true } as Awaited<
+    ReturnType<typeof recoveryEmailRateLimit.limit>
+  >);
+  vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue({ success: true } as Awaited<
+    ReturnType<typeof recoveryIpRateLimit.limit>
+  >);
 });
 
 function owner(overrides: Partial<OwnerContext> = {}): OwnerContext {
@@ -108,8 +108,7 @@ describe("PUT /api/owner/email", () => {
     expect(
       call?.ops.some(
         (o) =>
-          o.method === "update" &&
-          (o.args[0] as { recovery_email: null }).recovery_email === null,
+          o.method === "update" && (o.args[0] as { recovery_email: null }).recovery_email === null,
       ),
     ).toBe(true);
   });
@@ -141,9 +140,9 @@ describe("PUT /api/owner/email", () => {
 
   it("collision rate-limitée par adresse → 429 sans envoi", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
-    vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue(
-      { success: false } as Awaited<ReturnType<typeof recoveryEmailRateLimit.limit>>,
-    );
+    vi.mocked(recoveryEmailRateLimit.limit).mockResolvedValue({ success: false } as Awaited<
+      ReturnType<typeof recoveryEmailRateLimit.limit>
+    >);
     supa.queueResult({ data: { id: "owner-cible" }, error: null });
     const res = await PUT(request({ email: "deja@pris.fr" }));
     expect(res.status).toBe(429);
@@ -152,9 +151,9 @@ describe("PUT /api/owner/email", () => {
 
   it("plafond IP atteint → 429 avant le lookup (anti-énumération de masse)", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
-    vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue(
-      { success: false } as Awaited<ReturnType<typeof recoveryIpRateLimit.limit>>,
-    );
+    vi.mocked(recoveryIpRateLimit.limit).mockResolvedValue({ success: false } as Awaited<
+      ReturnType<typeof recoveryIpRateLimit.limit>
+    >);
     const res = await PUT(request({ email: "cible@ex.fr" }));
     expect(res.status).toBe(429);
     // Rien n'est révélé : pas même un lookup d'existence

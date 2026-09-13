@@ -30,10 +30,7 @@ function sortValue(recipe: CarouselRecipeItem, by: "lastActivityAt" | "viewCount
  * (Groupe B) filtrent en conservant l'ordre d'entrée (created_at desc côté
  * requête). Aucun cap ici — c'est la sélection qui tronque à 10.
  */
-export function bucket(
-  recipes: CarouselRecipeItem[],
-  catalog: CarouselDef[],
-): CarouselBucket[] {
+export function bucket(recipes: CarouselRecipeItem[], catalog: CarouselDef[]): CarouselBucket[] {
   return catalog.map((def) => {
     const predicate = def.predicate;
     if (predicate.type === "sort") {

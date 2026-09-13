@@ -3,7 +3,13 @@ import { cookies, headers } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 import type { FullDictionary } from "./index";
 import { fullDictionaries } from "./full";
-import { DEFAULT_LOCALE, LOCALE_PREVIEW_COOKIE, readI18nFlags, resolveLocale, type Locale } from "./locale";
+import {
+  DEFAULT_LOCALE,
+  LOCALE_PREVIEW_COOKIE,
+  readI18nFlags,
+  resolveLocale,
+  type Locale,
+} from "./locale";
 
 /**
  * Locale de la requête courante (Server Components, layouts, route handlers).

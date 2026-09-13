@@ -1,11 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createServerClient } from "@/lib/supabase/server";
-import {
-  withOwnerAuth,
-  resolveWriteHousehold,
-  forbiddenResponse,
-} from "@/lib/api/with-owner-auth";
+import { withOwnerAuth, resolveWriteHousehold, forbiddenResponse } from "@/lib/api/with-owner-auth";
 import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
 import { visibleTagsOrClause } from "@/lib/db/tags";
@@ -32,7 +28,11 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
 // anglais dans le toast).
 const buildCreateTagSchema = (t: FullDictionary) =>
   z.object({
-    name: z.string().trim().min(1, t.validation.tagNameRequired).max(50, t.validation.tagNameTooLong),
+    name: z
+      .string()
+      .trim()
+      .min(1, t.validation.tagNameRequired)
+      .max(50, t.validation.tagNameTooLong),
   });
 
 export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {

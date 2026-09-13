@@ -50,7 +50,15 @@ function optionClass(active: boolean, extra = ""): string {
  * l'option « créer » vient en dernier — même numérotation que la navigation
  * clavier de TagInput (`flatItems`).
  */
-export default function TagListbox({ ref, groups, activeIndex, createLabel, onSelect, onCreate, onHover }: Props) {
+export default function TagListbox({
+  ref,
+  groups,
+  activeIndex,
+  createLabel,
+  onSelect,
+  onCreate,
+  onHover,
+}: Props) {
   const t = useT();
   const offsets: number[] = [];
   let total = 0;
@@ -69,7 +77,10 @@ export default function TagListbox({ ref, groups, activeIndex, createLabel, onSe
     >
       {groups.map(([category, tags], g) => (
         <li key={category} role="group" aria-label={tagCategoryLabel(t, category)}>
-          <div className="display-italic px-3 pt-2 pb-1" style={{ fontSize: 12, color: "var(--accent)" }}>
+          <div
+            className="display-italic px-3 pt-2 pb-1"
+            style={{ fontSize: 12, color: "var(--accent)" }}
+          >
             {tagCategoryLabel(t, category)}
           </div>
           <ul role="group">
@@ -106,7 +117,9 @@ export default function TagListbox({ ref, groups, activeIndex, createLabel, onSe
           role="option"
           aria-selected={false}
           className={optionClass(createIndex === activeIndex, "border-t border-border")}
-          style={{ background: createIndex === activeIndex ? "var(--chip-bg-selected)" : undefined }}
+          style={{
+            background: createIndex === activeIndex ? "var(--chip-bg-selected)" : undefined,
+          }}
           onMouseDown={(e) => {
             e.preventDefault();
             onCreate();

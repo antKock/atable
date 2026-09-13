@@ -15,17 +15,11 @@ export function isNativeApp(): boolean {
     // Capacitor bridge not loaded yet — fall through to the heuristics.
   }
 
-  if (
-    typeof navigator !== "undefined" &&
-    navigator.userAgent.includes("MijoteNative")
-  ) {
+  if (typeof navigator !== "undefined" && navigator.userAgent.includes("MijoteNative")) {
     return true;
   }
 
-  if (
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("native")
-  ) {
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("native")) {
     return true;
   }
 

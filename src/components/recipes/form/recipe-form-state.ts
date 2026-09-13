@@ -67,7 +67,11 @@ export type FormState = {
 
 export type FormAction =
   | { type: "setText"; field: "title" | "ingredients" | "steps" | "notes"; value: string }
-  | { type: "setMetadata"; field: "prepTime" | "cookTime" | "cost" | "complexity"; value: string | null }
+  | {
+      type: "setMetadata";
+      field: "prepTime" | "cookTime" | "cost" | "complexity";
+      value: string | null;
+    }
   | { type: "setSeasons"; seasons: string[] }
   | { type: "setServings"; value: number | null }
   | { type: "addTag"; tag: Tag }
@@ -119,7 +123,10 @@ export function formReducer(state: FormState, action: FormAction): FormState {
   }
 }
 
-export function initFormState({ initialData, isEdit }: {
+export function initFormState({
+  initialData,
+  isEdit,
+}: {
   initialData: RecipeFormInitialData;
   isEdit: boolean;
 }): FormState {
@@ -141,7 +148,6 @@ export function initFormState({ initialData, isEdit }: {
     servings: initialData?.servings ?? null,
   };
 }
-
 
 /** Corps envoyé à POST /api/recipes ou PUT /api/recipes/[id]. */
 export type RecipePayload = {

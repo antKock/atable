@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { clearSessionCookie } from '@/lib/auth/session'
-import { getRequestOrigin } from '@/lib/request-origin'
+import { NextRequest, NextResponse } from "next/server";
+import { clearSessionCookie } from "@/lib/auth/session";
+import { getRequestOrigin } from "@/lib/request-origin";
 
 /**
  * Purge le cookie de session puis renvoie à la landing. Cible du redirect des
@@ -12,9 +12,9 @@ import { getRequestOrigin } from '@/lib/request-origin'
  * pour un visiteur sans cookie.
  */
 export async function GET(request: NextRequest) {
-  const response = NextResponse.redirect(new URL('/', getRequestOrigin(request)), {
+  const response = NextResponse.redirect(new URL("/", getRequestOrigin(request)), {
     status: 303,
-  })
-  clearSessionCookie(response)
-  return response
+  });
+  clearSessionCookie(response);
+  return response;
 }

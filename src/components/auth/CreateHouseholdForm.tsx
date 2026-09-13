@@ -1,27 +1,27 @@
-'use client'
+"use client";
 
-import { useState, type FormEvent, type ReactNode } from 'react'
-import { useT } from '@/lib/i18n/client'
-import { dropSwrCache } from '@/lib/swr'
+import { useState, type FormEvent, type ReactNode } from "react";
+import { useT } from "@/lib/i18n/client";
+import { dropSwrCache } from "@/lib/swr";
 
 type Props = {
-  onCancel: () => void
+  onCancel: () => void;
   // When provided, called on successful creation instead of the default
   // navigation — lets a caller run follow-up work (e.g. saving a shared recipe
   // into the just-created household) before redirecting.
-  onSuccess?: (data: { redirect?: string }) => void | Promise<void>
+  onSuccess?: (data: { redirect?: string }) => void | Promise<void>;
   // Optional content rendered above the title (e.g. the share "recipe to save"
   // card). Default cold-onboarding usage leaves this empty.
-  headerSlot?: ReactNode
+  headerSlot?: ReactNode;
   // Optional override of the bottom secondary link. Defaults to a Cancel button
   // wired to onCancel; the share flow swaps it for "join an existing foyer".
-  secondary?: { label: ReactNode; onClick: () => void }
+  secondary?: { label: ReactNode; onClick: () => void };
   // Spec #23 : `false` = pas de champ de nom (le serveur pose le nom par
   // défaut). Le formulaire garde son rôle d'écran intermédiaire là où il faut
   // encore choisir (partage : créer OU rejoindre). Le carnet additif depuis le
   // hub garde le champ : avec plusieurs carnets, un nom sert à les distinguer.
-  askName?: boolean
-}
+  askName?: boolean;
+};
 
 export default function CreateHouseholdForm({
   onCancel,
@@ -30,52 +30,50 @@ export default function CreateHouseholdForm({
   secondary,
   askName = true,
 }: Props) {
-  const t = useT()
-  const [name, setName] = useState('')
-  const [error, setError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
+  const t = useT();
+  const [name, setName] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    const trimmed = name.trim()
-    if ((askName && !trimmed) || submitting) return
-    setSubmitting(true)
-    setError(null)
+    e.preventDefault();
+    const trimmed = name.trim();
+    if ((askName && !trimmed) || submitting) return;
+    setSubmitting(true);
+    setError(null);
     try {
-      const response = await fetch('/api/households', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/households", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(askName ? { name: trimmed } : {}),
-      })
-      const data = await response.json().catch(() => ({}))
+      });
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        setError((data as { error?: string }).error ?? t.household.createError)
-        setSubmitting(false)
-        return
+        setError((data as { error?: string }).error ?? t.household.createError);
+        setSubmitting(false);
+        return;
       }
       // New household: whatever the SWR cache holds belongs to a previous session
-      dropSwrCache()
+      dropSwrCache();
       if (onSuccess) {
-        await onSuccess(data as { redirect?: string })
-        return
+        await onSuccess(data as { redirect?: string });
+        return;
       }
-      window.location.href = (data as { redirect?: string }).redirect ?? '/home'
+      window.location.href = (data as { redirect?: string }).redirect ?? "/home";
     } catch {
-      setError(t.household.createError)
-      setSubmitting(false)
+      setError(t.household.createError);
+      setSubmitting(false);
     }
   }
 
   return (
-    <div
-      className="fixed inset-0 flex flex-col overflow-hidden bg-page-gradient"
-    >
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-page-gradient">
       <button
         type="button"
         onClick={onCancel}
         aria-label={t.a11y.backButton}
         className="fixed left-2 z-10 flex h-10 w-10 items-center justify-center text-foreground"
-        style={{ top: 'calc(env(safe-area-inset-top) + 13px)' }}
+        style={{ top: "calc(env(safe-area-inset-top) + 13px)" }}
       >
         <svg
           width="22"
@@ -96,15 +94,13 @@ export default function CreateHouseholdForm({
         onSubmit={handleSubmit}
         className="flex w-full flex-col px-6"
         style={{
-          paddingTop: 'calc(env(safe-area-inset-top) + 93px)',
-          paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)',
+          paddingTop: "calc(env(safe-area-inset-top) + 93px)",
+          paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)",
         }}
       >
         {headerSlot && <div style={{ marginBottom: 22 }}>{headerSlot}</div>}
 
-        <h1
-          className="display-hero text-foreground"
-        >
+        <h1 className="display-hero text-foreground">
           {(askName ? t.household.createHeading : t.household.createHeadingQuick)[0]}
           <br />
           {(askName ? t.household.createHeading : t.household.createHeadingQuick)[1]}
@@ -112,76 +108,76 @@ export default function CreateHouseholdForm({
 
         <p
           style={{
-            marginTop: '14px',
-            color: 'rgba(26, 26, 24, 0.55)',
+            marginTop: "14px",
+            color: "rgba(26, 26, 24, 0.55)",
             fontWeight: 400,
-            fontSize: '15.5px',
+            fontSize: "15.5px",
             lineHeight: 1.5,
-            maxWidth: '320px',
+            maxWidth: "320px",
           }}
         >
           {t.household.createBody}
         </p>
 
         {askName && (
-        <div className="relative" style={{ marginTop: '28px' }}>
-          <span
-            className="pointer-events-none absolute top-1/2 -translate-y-1/2"
-            style={{ left: '14px', color: 'rgba(26, 26, 24, 0.55)' }}
-            aria-hidden="true"
-          >
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="relative" style={{ marginTop: "28px" }}>
+            <span
+              className="pointer-events-none absolute top-1/2 -translate-y-1/2"
+              style={{ left: "14px", color: "rgba(26, 26, 24, 0.55)" }}
+              aria-hidden="true"
             >
-              <path d="M2 6h4" />
-              <path d="M2 10h4" />
-              <path d="M2 14h4" />
-              <path d="M2 18h4" />
-              <rect x="4" y="2" width="16" height="20" rx="2" />
-              <path d="M16 2v20" />
-            </svg>
-          </span>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value)
-              if (error) setError(null)
-            }}
-            placeholder={t.household.namePlaceholder}
-            maxLength={50}
-            autoFocus
-            autoCorrect="off"
-            spellCheck={false}
-            disabled={submitting}
-            enterKeyHint="go"
-            className="w-full bg-surface text-foreground placeholder:text-[rgba(26,26,24,0.32)] focus:outline-none disabled:opacity-50"
-            style={{
-              height: '60px',
-              borderRadius: '14px',
-              paddingLeft: '50px',
-              paddingRight: '18px',
-              fontWeight: 500,
-              fontSize: '17px',
-              letterSpacing: '-0.01em',
-              boxShadow: 'inset 0 0 0 1.5px rgba(26, 26, 24, 0.12)',
-            }}
-          />
-        </div>
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M2 6h4" />
+                <path d="M2 10h4" />
+                <path d="M2 14h4" />
+                <path d="M2 18h4" />
+                <rect x="4" y="2" width="16" height="20" rx="2" />
+                <path d="M16 2v20" />
+              </svg>
+            </span>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError(null);
+              }}
+              placeholder={t.household.namePlaceholder}
+              maxLength={50}
+              autoFocus
+              autoCorrect="off"
+              spellCheck={false}
+              disabled={submitting}
+              enterKeyHint="go"
+              className="w-full bg-surface text-foreground placeholder:text-[rgba(26,26,24,0.32)] focus:outline-none disabled:opacity-50"
+              style={{
+                height: "60px",
+                borderRadius: "14px",
+                paddingLeft: "50px",
+                paddingRight: "18px",
+                fontWeight: 500,
+                fontSize: "17px",
+                letterSpacing: "-0.01em",
+                boxShadow: "inset 0 0 0 1.5px rgba(26, 26, 24, 0.12)",
+              }}
+            />
+          </div>
         )}
 
         {error && (
           <p
             role="alert"
             className="text-destructive"
-            style={{ marginTop: '10px', fontSize: '13.5px', lineHeight: 1.4 }}
+            style={{ marginTop: "10px", fontSize: "13.5px", lineHeight: 1.4 }}
           >
             {error}
           </p>
@@ -192,15 +188,15 @@ export default function CreateHouseholdForm({
           disabled={(askName && !name.trim()) || submitting}
           className="w-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
           style={{
-            marginTop: askName ? '18px' : '28px',
-            height: '54px',
-            borderRadius: '27px',
+            marginTop: askName ? "18px" : "28px",
+            height: "54px",
+            borderRadius: "27px",
             fontWeight: 600,
-            fontSize: '17px',
-            letterSpacing: '-0.005em',
+            fontSize: "17px",
+            letterSpacing: "-0.005em",
           }}
         >
-          {submitting ? '…' : t.household.createSubmit}
+          {submitting ? "…" : t.household.createSubmit}
         </button>
 
         <button
@@ -209,16 +205,16 @@ export default function CreateHouseholdForm({
           disabled={submitting}
           className="w-full bg-transparent text-foreground disabled:opacity-50"
           style={{
-            marginTop: '8px',
-            paddingTop: '14px',
-            paddingBottom: '14px',
+            marginTop: "8px",
+            paddingTop: "14px",
+            paddingBottom: "14px",
             fontWeight: 500,
-            fontSize: '16px',
+            fontSize: "16px",
           }}
         >
           {secondary ? secondary.label : t.actions.cancel}
         </button>
       </form>
     </div>
-  )
+  );
 }

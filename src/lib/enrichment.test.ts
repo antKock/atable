@@ -95,7 +95,12 @@ describe("enrichRecipe — full enrichment", () => {
       { count: 0 }, // 2. recipe_tags count
       { data: [{ name: "Dessert" }, { name: "Végétarien" }] }, // 3. predefined tags
       { error: null }, // 4. recipes metadata update
-      { data: [{ id: "t1", name: "Dessert" }, { id: "t2", name: "Végétarien" }] }, // 5. matching tags
+      {
+        data: [
+          { id: "t1", name: "Dessert" },
+          { id: "t2", name: "Végétarien" },
+        ],
+      }, // 5. matching tags
       { error: null }, // 6. recipe_tags insert
       { data: { id: "recipe-1" } }, // 7. la recette existe encore (garde avant dépense image)
       { error: null }, // 8. recipes image update
@@ -116,8 +121,11 @@ describe("enrichRecipe — full enrichment", () => {
     expect(photos.upload).toHaveBeenCalledTimes(1);
     const imageUpdate = updates.find((u) => u.image_status === "generated")!;
     expect(imageUpdate).toBeDefined();
-    expect(supa.calls.some((c) => c.table === "recipe_tags" &&
-      c.ops.some((op) => op.method === "insert"))).toBe(true);
+    expect(
+      supa.calls.some(
+        (c) => c.table === "recipe_tags" && c.ops.some((op) => op.method === "insert"),
+      ),
+    ).toBe(true);
   });
 
   it("marks the recipe enriched on the image-only path (metadata complete, no image)", async () => {
@@ -300,9 +308,7 @@ describe("regenerateImage", () => {
       { error: null }, // image_prompt refresh
       { error: null }, // final update
     ]);
-    mockChat.mockResolvedValue(
-      chatCompletion({ imagePrompt: "A fresh apple pie, overhead" }),
-    );
+    mockChat.mockResolvedValue(chatCompletion({ imagePrompt: "A fresh apple pie, overhead" }));
     mockImages.mockResolvedValue(imageResponse());
 
     await regenerateImage("recipe-1");

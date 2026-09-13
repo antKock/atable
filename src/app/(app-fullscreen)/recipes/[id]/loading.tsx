@@ -11,8 +11,7 @@ export default function RecipeDetailLoading() {
           className="absolute left-3 top-3 h-9 w-9 rounded-full"
           style={{
             background: "#fff",
-            boxShadow:
-              "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
           }}
         />
         {/* Edit + Delete pill */}
@@ -20,8 +19,7 @@ export default function RecipeDetailLoading() {
           className="absolute right-3 top-3 h-9 w-[68px] rounded-full"
           style={{
             background: "#fff",
-            boxShadow:
-              "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
           }}
         />
       </div>
@@ -35,8 +33,7 @@ export default function RecipeDetailLoading() {
           className="mt-4 grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-4 gap-y-3 rounded-lg px-4 py-3"
           style={{
             background: "linear-gradient(168deg, #FFFFFF, #F7F5EE)",
-            boxShadow:
-              "0 1px 3px rgba(110, 122, 56, 0.05), 0 2px 8px rgba(110, 122, 56, 0.04)",
+            boxShadow: "0 1px 3px rgba(110, 122, 56, 0.05), 0 2px 8px rgba(110, 122, 56, 0.04)",
             border: "1px solid rgba(110, 122, 56, 0.08)",
           }}
         >

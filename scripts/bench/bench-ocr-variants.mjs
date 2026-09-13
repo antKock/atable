@@ -29,11 +29,11 @@ const VALID_COMPLEXITY_LEVELS = ["facile", "moyen", "difficile"];
 // Même prompt/schema que bench-models.mjs (copie de src/lib/import.ts).
 const EXTRACTION_SYSTEM_PROMPT = (await readFile(path.join(ROOT, "bench-models.mjs"), "utf8"))
   .match(/const EXTRACTION_SYSTEM_PROMPT = `([\s\S]*?)`;/)[1]
-  .replaceAll("${VALID_PREP_TIMES.join(\", \")}", VALID_PREP_TIMES.join(", "))
-  .replaceAll("${VALID_COOK_TIMES.join(\", \")}", VALID_COOK_TIMES.join(", "))
-  .replaceAll("${VALID_COST_LEVELS.join(\", \")}", VALID_COST_LEVELS.join(", "))
-  .replaceAll("${VALID_COMPLEXITY_LEVELS.join(\", \")}", VALID_COMPLEXITY_LEVELS.join(", "))
-  .replaceAll("${VALID_SEASONS.join(\", \")}", VALID_SEASONS.join(", "))
+  .replaceAll('${VALID_PREP_TIMES.join(", ")}', VALID_PREP_TIMES.join(", "))
+  .replaceAll('${VALID_COOK_TIMES.join(", ")}', VALID_COOK_TIMES.join(", "))
+  .replaceAll('${VALID_COST_LEVELS.join(", ")}', VALID_COST_LEVELS.join(", "))
+  .replaceAll('${VALID_COMPLEXITY_LEVELS.join(", ")}', VALID_COMPLEXITY_LEVELS.join(", "))
+  .replaceAll('${VALID_SEASONS.join(", ")}', VALID_SEASONS.join(", "))
   .replaceAll("\\n", "\n");
 
 const IMPORT_JSON_SCHEMA = {
@@ -53,7 +53,18 @@ const IMPORT_JSON_SCHEMA = {
       seasons: { type: "array", items: { type: "string", enum: [...VALID_SEASONS] } },
       servings: { type: ["integer", "null"] },
     },
-    required: ["title", "ingredients", "steps", "notes", "prepTime", "cookTime", "cost", "complexity", "seasons", "servings"],
+    required: [
+      "title",
+      "ingredients",
+      "steps",
+      "notes",
+      "prepTime",
+      "cookTime",
+      "cost",
+      "complexity",
+      "seasons",
+      "servings",
+    ],
     additionalProperties: false,
   },
 };
@@ -88,18 +99,28 @@ async function runOcr(variant, slug) {
       response_format: { type: "json_schema", json_schema: IMPORT_JSON_SCHEMA },
       messages: [
         { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
-        { role: "user", content: [{ type: "text", text: "Extrais la recette de cette/ces image(s) :" }, ...images] },
+        {
+          role: "user",
+          content: [
+            { type: "text", text: "Extrais la recette de cette/ces image(s) :" },
+            ...images,
+          ],
+        },
       ],
     }),
     signal: AbortSignal.timeout(180000),
   });
   const json = await res.json();
-  if (!res.ok) return { label: slug, model: variant.key, error: json?.error?.message ?? res.status };
+  if (!res.ok)
+    return { label: slug, model: variant.key, error: json?.error?.message ?? res.status };
   const u = json.usage ?? {};
   const p = TOKEN_PRICING[variant.model];
   return {
-    label: slug, model: variant.key, ms: Date.now() - started,
-    inputTokens: u.prompt_tokens ?? 0, outputTokens: u.completion_tokens ?? 0,
+    label: slug,
+    model: variant.key,
+    ms: Date.now() - started,
+    inputTokens: u.prompt_tokens ?? 0,
+    outputTokens: u.completion_tokens ?? 0,
     reasoningTokens: u.completion_tokens_details?.reasoning_tokens ?? 0,
     costUsd: ((u.prompt_tokens ?? 0) * p.input + (u.completion_tokens ?? 0) * p.output) / 1e6,
     output: JSON.parse(json.choices[0].message.content),
@@ -113,9 +134,12 @@ async function judge(caseLabel, source, candidates) {
     return h(a.model) - h(b.model);
   });
   const mapping = Object.fromEntries(shuffled.map((c, i) => [letters[i], c.model]));
-  const blocks = shuffled.map((c, i) => `--- Candidat ${letters[i]} ---\n${JSON.stringify(c.output, null, 1)}`).join("\n\n");
+  const blocks = shuffled
+    .map((c, i) => `--- Candidat ${letters[i]} ---\n${JSON.stringify(c.output, null, 1)}`)
+    .join("\n\n");
   const schema = {
-    name: "judgement", strict: true,
+    name: "judgement",
+    strict: true,
     schema: {
       type: "object",
       properties: {
@@ -124,8 +148,11 @@ async function judge(caseLabel, source, candidates) {
           items: {
             type: "object",
             properties: {
-              candidate: { type: "string" }, completeness: { type: "integer" },
-              fidelity: { type: "integer" }, format: { type: "integer" }, comment: { type: "string" },
+              candidate: { type: "string" },
+              completeness: { type: "integer" },
+              fidelity: { type: "integer" },
+              format: { type: "integer" },
+              comment: { type: "string" },
             },
             required: ["candidate", "completeness", "fidelity", "format", "comment"],
             additionalProperties: false,
@@ -133,14 +160,16 @@ async function judge(caseLabel, source, candidates) {
         },
         ranking: { type: "array", items: { type: "string" } },
       },
-      required: ["scores", "ranking"], additionalProperties: false,
+      required: ["scores", "ranking"],
+      additionalProperties: false,
     },
   };
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: { Authorization: `Bearer ${OPENAI_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: "gpt-5.6-sol", reasoning_effort: "medium",
+      model: "gpt-5.6-sol",
+      reasoning_effort: "medium",
       response_format: { type: "json_schema", json_schema: schema },
       messages: [
         {
@@ -163,8 +192,9 @@ const prior = JSON.parse(await readFile(path.join(OUT, "results.json"), "utf8"))
 // Luna@low) sort du panel pour rester ≤ 4.
 let lunaLow = [];
 try {
-  lunaLow = JSON.parse(await readFile(path.join(OUT, "ocr-variants.json"), "utf8"))
-    .newRuns.filter((r) => r.model === "gpt-5.6-luna@low" && !r.error);
+  lunaLow = JSON.parse(await readFile(path.join(OUT, "ocr-variants.json"), "utf8")).newRuns.filter(
+    (r) => r.model === "gpt-5.6-luna@low" && !r.error,
+  );
 } catch {
   /* premier run */
 }
@@ -173,7 +203,9 @@ const newRuns = [];
 for (const variant of VARIANTS) {
   for (const slug of CASES) {
     const r = await runOcr(variant, slug);
-    console.log(`ocr ${slug} × ${variant.key} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd.toFixed(5)}`}`);
+    console.log(
+      `ocr ${slug} × ${variant.key} — ${r.error ? "ERREUR " + r.error : `${r.ms}ms, ${r.inputTokens}in/${r.outputTokens}out (${r.reasoningTokens} raisonnement), $${r.costUsd.toFixed(5)}`}`,
+    );
     newRuns.push(r);
   }
 }
@@ -182,16 +214,23 @@ const judgements = [];
 for (const slug of CASES) {
   const source = await readFile(path.join(FIX, "text", `${slug}.txt`), "utf8");
   const candidates = [
-    ...prior.ocr.filter((r) => r.label === slug && !r.error && r.model === "gpt-4o").map((r) => ({ model: r.model, output: r.output })),
+    ...prior.ocr
+      .filter((r) => r.label === slug && !r.error && r.model === "gpt-4o")
+      .map((r) => ({ model: r.model, output: r.output })),
     ...lunaLow.filter((r) => r.label === slug).map((r) => ({ model: r.model, output: r.output })),
-    ...newRuns.filter((r) => r.label === slug && !r.error).map((r) => ({ model: r.model, output: r.output })),
+    ...newRuns
+      .filter((r) => r.label === slug && !r.error)
+      .map((r) => ({ model: r.model, output: r.output })),
   ];
   const j = await judge(`ocr4/${slug}`, source, candidates);
   judgements.push(j);
   console.log(`juge ${slug} — ${j.error ?? j.ranking?.join(" > ")}`);
 }
 
-await writeFile(path.join(OUT, "ocr-variants4.json"), JSON.stringify({ newRuns, judgements }, null, 2));
+await writeFile(
+  path.join(OUT, "ocr-variants4.json"),
+  JSON.stringify({ newRuns, judgements }, null, 2),
+);
 
 const norm = (s) => (s.match(/[A-D]$/) || [s])[0];
 const byModel = {};
@@ -205,7 +244,10 @@ for (const j of judgements) {
     byModel[model].n++;
   }
   const w = j.mapping[norm(j.ranking[0])];
-  if (w) { byModel[w] ??= { total: 0, n: 0, wins: 0 }; byModel[w].wins++; }
+  if (w) {
+    byModel[w] ??= { total: 0, n: 0, wins: 0 };
+    byModel[w].wins++;
+  }
 }
 console.log("\n=== OCR 4 candidats — score moyen /30 et victoires/3");
 for (const [m, s] of Object.entries(byModel)) {

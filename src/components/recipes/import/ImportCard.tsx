@@ -30,9 +30,7 @@ export default function ImportCard({
       </div>
       <div className="min-w-0 flex-1">
         <h3 className="text-[17px] font-semibold tracking-[-0.01em]">{title}</h3>
-        <p className="mt-0.5 text-[13.5px] leading-snug text-muted-foreground">
-          {description}
-        </p>
+        <p className="mt-0.5 text-[13.5px] leading-snug text-muted-foreground">{description}</p>
       </div>
     </>
   );

@@ -7,8 +7,7 @@
 
 // Shared with the recovery magic-link tokens (login-token.ts), which need the
 // same read-aloud-safe property.
-export const UNAMBIGUOUS_ALPHABET =
-  "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
+export const UNAMBIGUOUS_ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz";
 const TOKEN_LENGTH = 8;
 
 export function generateShareToken(): string {

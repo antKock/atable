@@ -7,10 +7,7 @@ import { redis } from "@/lib/redis";
 vi.mock("@/lib/auth/session", () => ({
   verifySession: vi.fn(),
   signSession: vi.fn(),
-  setSessionCookie: (
-    response: { cookies: { set: (opts: object) => void } },
-    token: string,
-  ) => {
+  setSessionCookie: (response: { cookies: { set: (opts: object) => void } }, token: string) => {
     response.cookies.set({ name: "atable_session", value: token });
   },
   SESSION_RENEW_AFTER_S: 60 * 60 * 24 * 30,
@@ -29,10 +26,7 @@ const PAYLOAD = { hid: "household-1", sid: "session-1", iat: 1_700_000_000 };
 // iat fresh → no renewal
 const FRESH_PAYLOAD = { hid: "household-1", sid: "session-1", iat: nowS() };
 
-function makeRequest(
-  path: string,
-  opts: { cookie?: string; ua?: string } = {},
-): NextRequest {
+function makeRequest(path: string, opts: { cookie?: string; ua?: string } = {}): NextRequest {
   const headers: Record<string, string> = {};
   if (opts.ua) headers["user-agent"] = opts.ua;
   const req = new NextRequest(`https://atable.test${path}`, { headers });
@@ -160,9 +154,7 @@ describe("proxy — regression guards", () => {
     vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
     vi.mocked(redis.get).mockResolvedValue(null);
 
-    const authed = await proxy(
-      makeRequest("/home", { cookie: "valid-token" }),
-    );
+    const authed = await proxy(makeRequest("/home", { cookie: "valid-token" }));
     expect(hasDebugHeaders(authed)).toBe(false);
 
     vi.mocked(verifySession).mockResolvedValue(null);
@@ -193,7 +185,9 @@ describe("/api/admin/* — garde par défaut (revue 2026-09-12)", () => {
   it("repli sur BATCH_ENRICH_SECRET quand ADMIN_API_SECRET est absent", async () => {
     vi.stubEnv("ADMIN_API_SECRET", "");
     vi.stubEnv("BATCH_ENRICH_SECRET", "batch-secret");
-    expect((await proxy(withAuth("/api/admin/batch-enrich", "Bearer batch-secret"))).status).toBe(200);
+    expect((await proxy(withAuth("/api/admin/batch-enrich", "Bearer batch-secret"))).status).toBe(
+      200,
+    );
     expect((await proxy(withAuth("/api/admin/batch-enrich", "Bearer nope"))).status).toBe(401);
   });
 

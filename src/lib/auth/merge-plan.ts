@@ -26,9 +26,7 @@ export type MergePlan = {
 };
 
 export function mergePlan(source: MergeOwner, target: MergeOwner): MergePlan {
-  const targetRoles = new Map(
-    target.memberships.map((m) => [m.householdId, m.role]),
-  );
+  const targetRoles = new Map(target.memberships.map((m) => [m.householdId, m.role]));
 
   const adoptHouseholdIds: string[] = [];
   const upgradeHouseholdIds: string[] = [];

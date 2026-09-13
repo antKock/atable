@@ -158,9 +158,7 @@ describe("POST /api/households (Fix 1.2)", () => {
     const res = await POST(request({ name: "Chez nous" }));
     expect(res.status).toBe(500);
     const deleted = (table: string) =>
-      supa.calls.some(
-        (c) => c.table === table && c.ops.some((op) => op.method === "delete"),
-      );
+      supa.calls.some((c) => c.table === table && c.ops.some((op) => op.method === "delete"));
     expect(deleted("households")).toBe(true);
     expect(deleted("owners")).toBe(true);
   });
@@ -181,7 +179,9 @@ describe("POST /api/households (Fix 1.2)", () => {
     expect(res.status).toBe(200);
     // Chemin « owner neuf » : la session révoquée n'a pas été résolue en base
     // (aucune lecture de device_sessions) et un nouveau cookie est posé.
-    expect(supa.calls.some((c) => c.table === "device_sessions" && c.ops[0].method === "select")).toBe(false);
+    expect(
+      supa.calls.some((c) => c.table === "device_sessions" && c.ops[0].method === "select"),
+    ).toBe(false);
     expect(supa.calls.some((c) => c.table === "owners" && c.ops[0].method === "insert")).toBe(true);
     expect(res.cookies.get("atable_session")?.value).toBeTruthy();
   });

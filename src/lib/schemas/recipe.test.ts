@@ -22,15 +22,11 @@ describe("RecipeCreateSchema", () => {
   });
 
   it("accepts a null photoUrl", () => {
-    expect(
-      RecipeCreateSchema.safeParse({ title: "X", photoUrl: null }).success,
-    ).toBe(true);
+    expect(RecipeCreateSchema.safeParse({ title: "X", photoUrl: null }).success).toBe(true);
   });
 
   it("rejects a non-URL photoUrl", () => {
-    expect(
-      RecipeCreateSchema.safeParse({ title: "X", photoUrl: "not-a-url" }).success,
-    ).toBe(false);
+    expect(RecipeCreateSchema.safeParse({ title: "X", photoUrl: "not-a-url" }).success).toBe(false);
   });
 
   it("accepts a valid photoUrl", () => {
@@ -53,15 +49,13 @@ describe("RecipeUpdateSchema", () => {
   });
 
   it("accepts a boolean regenerateImage flag", () => {
-    expect(
-      RecipeUpdateSchema.safeParse({ title: "X", regenerateImage: true }).success,
-    ).toBe(true);
+    expect(RecipeUpdateSchema.safeParse({ title: "X", regenerateImage: true }).success).toBe(true);
   });
 
   it("rejects a non-boolean regenerateImage flag", () => {
-    expect(
-      RecipeUpdateSchema.safeParse({ title: "X", regenerateImage: "yes" }).success,
-    ).toBe(false);
+    expect(RecipeUpdateSchema.safeParse({ title: "X", regenerateImage: "yes" }).success).toBe(
+      false,
+    );
   });
 
   it("does not force seasons to a default (unlike create)", () => {
@@ -72,29 +66,24 @@ describe("RecipeUpdateSchema", () => {
 
 describe("size limits (anti prompt-flooding)", () => {
   it("rejects a title over 200 characters", () => {
-    expect(
-      RecipeCreateSchema.safeParse({ title: "x".repeat(201) }).success,
-    ).toBe(false);
+    expect(RecipeCreateSchema.safeParse({ title: "x".repeat(201) }).success).toBe(false);
   });
 
   it("rejects ingredients over 10 000 characters", () => {
     expect(
-      RecipeCreateSchema.safeParse({ title: "Ok", ingredients: "x".repeat(10_001) })
-        .success,
+      RecipeCreateSchema.safeParse({ title: "Ok", ingredients: "x".repeat(10_001) }).success,
     ).toBe(false);
   });
 
   it("rejects steps over 10 000 characters on update", () => {
-    expect(
-      RecipeUpdateSchema.safeParse({ title: "Ok", steps: "x".repeat(10_001) })
-        .success,
-    ).toBe(false);
+    expect(RecipeUpdateSchema.safeParse({ title: "Ok", steps: "x".repeat(10_001) }).success).toBe(
+      false,
+    );
   });
 
   it("accepts text at exactly the limit", () => {
-    expect(
-      RecipeCreateSchema.safeParse({ title: "Ok", steps: "x".repeat(10_000) })
-        .success,
-    ).toBe(true);
+    expect(RecipeCreateSchema.safeParse({ title: "Ok", steps: "x".repeat(10_000) }).success).toBe(
+      true,
+    );
   });
 });

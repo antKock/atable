@@ -107,9 +107,7 @@ describe("POST /api/demo/session (Fix 1.2)", () => {
     const res = await POST(request());
     expect(res.status).toBe(500);
     expect(
-      supa.calls.some(
-        (c) => c.table === "owners" && c.ops.some((op) => op.method === "delete"),
-      ),
+      supa.calls.some((c) => c.table === "owners" && c.ops.some((op) => op.method === "delete")),
     ).toBe(true);
   });
 

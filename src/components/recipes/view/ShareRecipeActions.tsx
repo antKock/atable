@@ -92,11 +92,7 @@ export default function ShareRecipeActions({
   }
 
   const reminderCard = (
-    <RecipeReminderCard
-      recipeId={recipeId}
-      title={recipeTitle}
-      photoUrl={recipePhotoUrl}
-    />
+    <RecipeReminderCard recipeId={recipeId} title={recipeTitle} photoUrl={recipePhotoUrl} />
   );
 
   if (flow === "create") {
@@ -172,11 +168,7 @@ export default function ShareRecipeActions({
         onClick={isFriend ? handleAddToHousehold : () => setFlow("create")}
         className="h-[50px] w-full min-h-11 rounded-xl"
       >
-        {isFriend
-          ? status === "adding"
-            ? t.share.adding
-            : t.share.addToHousehold
-          : t.share.save}
+        {isFriend ? (status === "adding" ? t.share.adding : t.share.addToHousehold) : t.share.save}
       </Button>
       {isFriend && status === "error" && (
         <p role="alert" className="mt-2 text-center text-[13.5px] text-destructive">

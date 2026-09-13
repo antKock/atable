@@ -1,5 +1,14 @@
 import { describe, it, expect } from "vitest";
-import { lastSunday, weeksEnding, isoWeekLabel, weekStart, weekStarts, addDays, daysBetween, inWindow } from "./weeks";
+import {
+  lastSunday,
+  weeksEnding,
+  isoWeekLabel,
+  weekStart,
+  weekStarts,
+  addDays,
+  daysBetween,
+  inWindow,
+} from "./weeks";
 
 describe("weeks", () => {
   it("lastSunday : dimanche strictement avant aujourd'hui", () => {

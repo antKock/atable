@@ -61,9 +61,7 @@ describe("RecipeView — flat lists (no sections)", () => {
 
   it("numbers steps from 1 without any section heading", () => {
     const { container } = render(<RecipeView t={t} recipe={baseRecipe} />);
-    const numbers = [...container.querySelectorAll("ol li span")].map(
-      (el) => el.textContent,
-    );
+    const numbers = [...container.querySelectorAll("ol li span")].map((el) => el.textContent);
     expect(numbers).toEqual(["1", "2"]);
     expect(container.querySelector("h3")).toBeNull();
   });
@@ -89,9 +87,7 @@ describe("RecipeView — '//' sections", () => {
 
   it("restarts step numbering at 1 in each section", () => {
     const { container } = render(<RecipeView t={t} recipe={sectioned} />);
-    const numbers = [...container.querySelectorAll("ol li span")].map(
-      (el) => el.textContent,
-    );
+    const numbers = [...container.querySelectorAll("ol li span")].map((el) => el.textContent);
     expect(numbers).toEqual(["1", "2", "1"]);
   });
 
@@ -109,13 +105,9 @@ describe("RecipeView — '//' sections", () => {
       steps: "Préchauffer le four\n// Pour la sauce\nRéduire la crème",
     };
     const { container } = render(<RecipeView t={t} recipe={recipe} />);
-    const headings = [...container.querySelectorAll("h3")].map(
-      (h) => h.textContent,
-    );
+    const headings = [...container.querySelectorAll("h3")].map((h) => h.textContent);
     expect(headings).toEqual(["Pour la sauce"]);
-    const numbers = [...container.querySelectorAll("ol li span")].map(
-      (el) => el.textContent,
-    );
+    const numbers = [...container.querySelectorAll("ol li span")].map((el) => el.textContent);
     expect(numbers).toEqual(["1", "1"]);
   });
 });
@@ -123,19 +115,16 @@ describe("RecipeView — '//' sections", () => {
 describe("RecipeView — notes (spec #13)", () => {
   it("renders the notes text as recorded, not as a list", () => {
     const { container } = render(
-      <RecipeView t={t}
+      <RecipeView
+        t={t}
         recipe={{ ...baseRecipe, notes: "Se congèle très bien.\nEncore meilleur le lendemain." }}
-      />
+      />,
     );
-    expect(
-      screen.getByRole("heading", { name: "Notes" })
-    ).not.toBeNull();
-    const notesSection = container.querySelector(
-      'section[aria-labelledby="notes-heading"]'
-    );
+    expect(screen.getByRole("heading", { name: "Notes" })).not.toBeNull();
+    const notesSection = container.querySelector('section[aria-labelledby="notes-heading"]');
     expect(notesSection?.querySelector("ul, ol")).toBeNull();
     expect(notesSection?.textContent).toContain(
-      "Se congèle très bien.\nEncore meilleur le lendemain."
+      "Se congèle très bien.\nEncore meilleur le lendemain.",
     );
   });
 

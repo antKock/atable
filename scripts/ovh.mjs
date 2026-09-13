@@ -44,13 +44,15 @@ export async function ovh(method, path, body) {
   const env = loadEnv();
   const base = ENDPOINTS[env.OVH_ENDPOINT ?? "ovh-eu"];
   const { OVH_APP_KEY: ak, OVH_APP_SECRET: as, OVH_CONSUMER_KEY: ck } = env;
-  if (!ak || !as || !ck) throw new Error("OVH_APP_KEY / OVH_APP_SECRET / OVH_CONSUMER_KEY manquants dans .env.local");
+  if (!ak || !as || !ck)
+    throw new Error("OVH_APP_KEY / OVH_APP_SECRET / OVH_CONSUMER_KEY manquants dans .env.local");
 
   const url = base + path;
   const payload = body === undefined ? "" : JSON.stringify(body);
   // Horloge du serveur OVH (la signature tolère peu de dérive).
   const now = Number(await (await fetch(`${base}/auth/time`)).text());
-  const sig = "$1$" + createHash("sha1").update([as, ck, method, url, payload, now].join("+")).digest("hex");
+  const sig =
+    "$1$" + createHash("sha1").update([as, ck, method, url, payload, now].join("+")).digest("hex");
 
   const res = await fetch(url, {
     method,
@@ -65,8 +67,15 @@ export async function ovh(method, path, body) {
   });
   const text = await res.text();
   let data;
-  try { data = text ? JSON.parse(text) : null; } catch { data = text; }
-  if (!res.ok) throw new Error(`${method} ${path} → ${res.status} ${typeof data === "string" ? data : JSON.stringify(data)}`);
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+  if (!res.ok)
+    throw new Error(
+      `${method} ${path} → ${res.status} ${typeof data === "string" ? data : JSON.stringify(data)}`,
+    );
   return data;
 }
 
@@ -86,7 +95,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const verb = method.toUpperCase();
   if (isDestructive(verb, path) && !yes) {
-    console.error(`Opération destructive refusée sans --yes : ${verb} ${path}${json ? " " + json : ""}`);
+    console.error(
+      `Opération destructive refusée sans --yes : ${verb} ${path}${json ? " " + json : ""}`,
+    );
     console.error("Relancer avec --yes pour confirmer.");
     process.exit(2);
   }

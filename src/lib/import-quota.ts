@@ -34,12 +34,22 @@ async function enforceQuota(
 
 /** Daily AI-import quota (url/screenshot/voice), keyed by household. */
 export function enforceImportQuota(householdId: string): Promise<NextResponse | null> {
-  return enforceQuota(importRateLimit, householdId, (t) => t.import.errorImportQuota, "IMPORT_QUOTA");
+  return enforceQuota(
+    importRateLimit,
+    householdId,
+    (t) => t.import.errorImportQuota,
+    "IMPORT_QUOTA",
+  );
 }
 
 /** Recipe creation quota (each create triggers AI enrichment), keyed by household. */
 export function enforceRecipeCreateQuota(householdId: string): Promise<NextResponse | null> {
-  return enforceQuota(recipeCreateRateLimit, householdId, (t) => t.join.rateLimited, "RECIPE_QUOTA");
+  return enforceQuota(
+    recipeCreateRateLimit,
+    householdId,
+    (t) => t.join.rateLimited,
+    "RECIPE_QUOTA",
+  );
 }
 
 /** Household creation quota, keyed by IP (the route is unauthenticated). */

@@ -31,13 +31,20 @@ describe("loadOwnedRecipe", () => {
     const r = await loadOwnedRecipe(supa.client, "r", owner, { columns: ["title"] });
     expect(r).not.toBeInstanceOf(NextResponse);
     const ops = supa.calls[0].ops;
-    expect(ops.find((o) => o.method === "select")!.args[0]).toBe("id, household_id, is_seed, title");
-    expect(ops.find((o) => o.method === "in")!.args).toEqual(["household_id", ["hh-member", "hh-guest", "hh-demo"]]);
+    expect(ops.find((o) => o.method === "select")!.args[0]).toBe(
+      "id, household_id, is_seed, title",
+    );
+    expect(ops.find((o) => o.method === "in")!.args).toEqual([
+      "household_id",
+      ["hh-member", "hh-guest", "hh-demo"],
+    ]);
     expect((r as { recipe: { title: string } }).recipe.title).toBe("T");
   });
 
   it("`all` + `withTags` → `*` et la jointure tags", async () => {
-    supa.queueResult({ data: { id: "r", household_id: "hh-member", is_seed: false, recipe_tags: [] } });
+    supa.queueResult({
+      data: { id: "r", household_id: "hh-member", is_seed: false, recipe_tags: [] },
+    });
     await loadOwnedRecipe(supa.client, "r", owner, { all: true, withTags: true });
     expect(supa.calls[0].ops.find((o) => o.method === "select")!.args[0]).toBe(
       "*, recipe_tags(tag_id, tags(id, name, category))",
@@ -55,13 +62,19 @@ describe("loadOwnedRecipe", () => {
     supa.queueResult({ data: { id: "r", household_id: "hh-guest", is_seed: false } });
     expect(await loadOwnedRecipe(supa.client, "r", owner)).not.toBeInstanceOf(NextResponse);
     supa.queueResult({ data: { id: "r", household_id: "hh-guest", is_seed: false } });
-    expect(((await loadOwnedRecipe(supa.client, "r", owner, { write: true })) as NextResponse).status).toBe(403);
+    expect(
+      ((await loadOwnedRecipe(supa.client, "r", owner, { write: true })) as NextResponse).status,
+    ).toBe(403);
   });
 
   it("écriture : recette SEED du foyer démo refusée (monde gelé), non-seed libre", async () => {
     supa.queueResult({ data: { id: "r", household_id: "hh-demo", is_seed: true } });
-    expect(((await loadOwnedRecipe(supa.client, "r", owner, { write: true })) as NextResponse).status).toBe(403);
+    expect(
+      ((await loadOwnedRecipe(supa.client, "r", owner, { write: true })) as NextResponse).status,
+    ).toBe(403);
     supa.queueResult({ data: { id: "r", household_id: "hh-demo", is_seed: false } });
-    expect(await loadOwnedRecipe(supa.client, "r", owner, { write: true })).not.toBeInstanceOf(NextResponse);
+    expect(await loadOwnedRecipe(supa.client, "r", owner, { write: true })).not.toBeInstanceOf(
+      NextResponse,
+    );
   });
 });

@@ -52,7 +52,9 @@ export async function createHouseholdViaUI(page: Page, name: string): Promise<st
 export async function currentHouseholdId(page: Page): Promise<string> {
   const cookie = (await page.context().cookies()).find((c) => c.name === "atable_session");
   expect(cookie, "cookie de session attendu après la création").toBeTruthy();
-  const payload = JSON.parse(Buffer.from(cookie!.value.split(".")[1], "base64url").toString("utf8")) as {
+  const payload = JSON.parse(
+    Buffer.from(cookie!.value.split(".")[1], "base64url").toString("utf8"),
+  ) as {
     sid: string;
   };
   const { data, error } = await db()

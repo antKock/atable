@@ -23,7 +23,14 @@ export const PALETTE = {
 // lightness monotone, la plus ancienne génération la plus foncée. Module
 // partagé (sans "use client") : utilisée par le chart ET la légende serveur.
 export const COHORT_RAMP = [
-  "#39431A", "#4E5A24", "#64712F", "#7C8A47", "#93A163", "#A8B490", "#C2CBA4", "#DCE1C8",
+  "#39431A",
+  "#4E5A24",
+  "#64712F",
+  "#7C8A47",
+  "#93A163",
+  "#A8B490",
+  "#C2CBA4",
+  "#DCE1C8",
 ] as const;
 
 /** Mois d'ancrage des générations : premier mois du parc mesuré sous le modèle

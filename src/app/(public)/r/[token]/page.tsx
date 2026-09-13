@@ -14,9 +14,7 @@ import { ogLocaleTag } from "@/lib/i18n/locale";
 import { tagLabel } from "@/lib/i18n/labels";
 import { SHARE_LOCALE_PARAM, shareLocaleFromSearchParam } from "@/lib/share-url";
 import InAppBackButton from "@/components/recipes/view/InAppBackButton";
-import ShareRecipeActions, {
-  type ViewerState,
-} from "@/components/recipes/view/ShareRecipeActions";
+import ShareRecipeActions, { type ViewerState } from "@/components/recipes/view/ShareRecipeActions";
 
 type Props = {
   params: Promise<{ token: string }>;
@@ -107,7 +105,8 @@ export default async function SharedRecipePage({ params }: Props) {
   let viewerState: ViewerState = "guest";
   if (payload) {
     const owner = await resolveOwnerContext(payload.sid);
-    const belongs = owner !== null && householdId !== null && householdIds(owner).includes(householdId);
+    const belongs =
+      owner !== null && householdId !== null && householdIds(owner).includes(householdId);
     viewerState = belongs ? "owner" : "friend";
   }
 

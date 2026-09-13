@@ -134,10 +134,7 @@ function nbsp(str: string): string {
   return str.replace(/ ([?:!;])/g, "&nbsp;$1").replace(/(\d+) (minutes)/, "$1&nbsp;$2");
 }
 
-export async function sendRecoveryEmail(
-  to: string,
-  payload: RecoveryEmailPayload,
-): Promise<void> {
+export async function sendRecoveryEmail(to: string, payload: RecoveryEmailPayload): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.log(

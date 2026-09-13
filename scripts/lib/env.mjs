@@ -102,7 +102,9 @@ export function restConfig(env) {
   if (env.NEXT_PUBLIC_SUPABASE_URL && env.SUPABASE_SERVICE_ROLE_KEY) {
     return { url: `${env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1`, key: env.SUPABASE_SERVICE_ROLE_KEY };
   }
-  throw new Error("aucune cible base : DATABASE_REST_URL + DATABASE_REST_KEY (VPS, via scripts/vps/tunnel.sh) ou NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY");
+  throw new Error(
+    "aucune cible base : DATABASE_REST_URL + DATABASE_REST_KEY (VPS, via scripts/vps/tunnel.sh) ou NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY",
+  );
 }
 
 /** Client PostgREST (from / rpc, même API que l'app) pour un env chargé. */
@@ -115,7 +117,8 @@ export async function dbClient(env) {
 /** Origine publique des photos d'un env (S3 si posé, sinon Storage Supabase). */
 export function photoBase(env) {
   if (env.S3_PUBLIC_URL) return env.S3_PUBLIC_URL.replace(/\/$/, "");
-  if (env.NEXT_PUBLIC_SUPABASE_URL) return `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipe-photos`;
+  if (env.NEXT_PUBLIC_SUPABASE_URL)
+    return `${env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipe-photos`;
   throw new Error("aucune origine photos : S3_PUBLIC_URL ou NEXT_PUBLIC_SUPABASE_URL");
 }
 
@@ -127,7 +130,8 @@ export function photoBase(env) {
 export function rehostPhoto(url, fromEnv, toEnv) {
   if (!url) return null;
   const candidates = [photoBase(fromEnv)];
-  if (fromEnv.NEXT_PUBLIC_SUPABASE_URL) candidates.push(`${fromEnv.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipe-photos`);
+  if (fromEnv.NEXT_PUBLIC_SUPABASE_URL)
+    candidates.push(`${fromEnv.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/recipe-photos`);
   for (const base of candidates) {
     if (url.startsWith(`${base}/`)) return `${photoBase(toEnv)}/${url.slice(base.length + 1)}`;
   }

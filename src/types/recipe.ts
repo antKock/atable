@@ -33,7 +33,15 @@ export type Recipe = {
 
 export type RecipeListItem = Pick<
   Recipe,
-  "id" | "title" | "ingredients" | "tags" | "photoUrl" | "createdAt" | "generatedImageUrl" | "enrichmentStatus" | "imageStatus"
+  | "id"
+  | "title"
+  | "ingredients"
+  | "tags"
+  | "photoUrl"
+  | "createdAt"
+  | "generatedImageUrl"
+  | "enrichmentStatus"
+  | "imageStatus"
 >;
 
 export type LibraryRecipeItem = RecipeListItem & {

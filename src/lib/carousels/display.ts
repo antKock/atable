@@ -14,10 +14,7 @@ function rank(seed: number, key: string): number {
 }
 
 /** Récentes (pinned) en tête ; tout le reste shufflé, stable pour un seed donné. */
-export function orderSections(
-  sections: CarouselSection[],
-  seed: number,
-): CarouselSection[] {
+export function orderSections(sections: CarouselSection[], seed: number): CarouselSection[] {
   return [...sections].sort((a, b) => {
     if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
     return rank(seed, a.key) - rank(seed, b.key);
@@ -42,9 +39,7 @@ export function cascadeDedup(sections: CarouselSection[]): CarouselSection[] {
     if (section.recipes.length === 0) continue;
 
     if (!section.reorderable) {
-      const headIsStale = section.recipes
-        .slice(0, 2)
-        .every((recipe) => seen.has(recipe.id));
+      const headIsStale = section.recipes.slice(0, 2).every((recipe) => seen.has(recipe.id));
       if (headIsStale && !section.pinned) continue;
       result.push(section);
     } else {
@@ -63,9 +58,6 @@ export function cascadeDedup(sections: CarouselSection[]): CarouselSection[] {
  * Unique porte d'entrée côté client : ordre (shuffle seedé, Récentes épinglé)
  * puis dédup visuelle en cascade. Pur — le composant reste bête.
  */
-export function prepareForDisplay(
-  sections: CarouselSection[],
-  seed: number,
-): CarouselSection[] {
+export function prepareForDisplay(sections: CarouselSection[], seed: number): CarouselSection[] {
   return cascadeDedup(orderSections(sections, seed));
 }

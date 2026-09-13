@@ -63,12 +63,14 @@ describe("assertPublicUrl", () => {
     );
   });
 
-  it.each(["https://localhost/x", "https://foo.localhost/x", "https://db.internal/x", "https://printer.local/x"])(
-    "rejects reserved hostname %s",
-    async (url) => {
-      await expect(assertPublicUrl(new URL(url))).rejects.toBeInstanceOf(BlockedUrlError);
-    },
-  );
+  it.each([
+    "https://localhost/x",
+    "https://foo.localhost/x",
+    "https://db.internal/x",
+    "https://printer.local/x",
+  ])("rejects reserved hostname %s", async (url) => {
+    await expect(assertPublicUrl(new URL(url))).rejects.toBeInstanceOf(BlockedUrlError);
+  });
 
   it("rejects private IP literals without a DNS lookup", async () => {
     await expect(assertPublicUrl(new URL("https://169.254.169.254/meta"))).rejects.toBeInstanceOf(

@@ -95,7 +95,9 @@ export async function POST(request: NextRequest) {
     .select("*", { count: "exact", head: true })
     .eq("enrichment_status", "none");
 
-  console.log(`[batch-enrich] Enriching ${recipes.length} of ${totalRemaining} remaining recipes...`);
+  console.log(
+    `[batch-enrich] Enriching ${recipes.length} of ${totalRemaining} remaining recipes...`,
+  );
 
   const results: { id: string; title: string; status: string }[] = [];
 

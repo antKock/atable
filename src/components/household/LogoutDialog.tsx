@@ -1,10 +1,10 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useT } from '@/lib/i18n/client'
-import { haptics } from '@/lib/haptics'
-import { dropSwrCache } from '@/lib/swr'
-import { Button } from '@/components/ui/button'
+import { useState } from "react";
+import { useT } from "@/lib/i18n/client";
+import { haptics } from "@/lib/haptics";
+import { dropSwrCache } from "@/lib/swr";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,28 +12,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
+} from "@/components/ui/dialog";
 
 type Props = {
   // Adapte l'avertissement : sans email de secours, se déconnecter peut faire
   // perdre l'accès aux foyers (aucun moyen de revenir sans le code d'invitation).
-  hasRecoveryEmail: boolean
-}
+  hasRecoveryEmail: boolean;
+};
 
 // Bouton « Se déconnecter » du profil — même gabarit que les CTA « Quitter le
 // foyer » (ghost destructif + confirmation, ui/dialog). La déconnexion passe par
 // GET /api/auth/session/clear (purge du cookie + retour à la landing).
 export default function LogoutDialog({ hasRecoveryEmail }: Props) {
-  const t = useT()
-  const [open, setOpen] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const t = useT();
+  const [open, setOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   function logout() {
-    setSubmitting(true)
-    void haptics.heavy()
+    setSubmitting(true);
+    void haptics.heavy();
     // Le cache SWR appartient à la session courante : ne pas le laisser fuiter.
-    dropSwrCache()
-    window.location.href = '/api/auth/session/clear'
+    dropSwrCache();
+    window.location.href = "/api/auth/session/clear";
   }
 
   return (
@@ -54,9 +54,7 @@ export default function LogoutDialog({ hasRecoveryEmail }: Props) {
           <DialogHeader>
             <DialogTitle>{t.profile.logoutConfirmTitle}</DialogTitle>
             <DialogDescription>
-              {hasRecoveryEmail
-                ? t.profile.logoutConfirmBody
-                : t.profile.logoutConfirmBodyNoEmail}
+              {hasRecoveryEmail ? t.profile.logoutConfirmBody : t.profile.logoutConfirmBodyNoEmail}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -80,5 +78,5 @@ export default function LogoutDialog({ hasRecoveryEmail }: Props) {
         </DialogContent>
       </Dialog>
     </div>
-  )
+  );
 }

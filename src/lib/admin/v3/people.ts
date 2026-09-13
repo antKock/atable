@@ -6,7 +6,15 @@
 // actif après J+1, dans les 7 jours (décision Anthony, spec §4.7).
 
 import { type Ratio, ratio } from "@/lib/admin/v3/ratio";
-import { type Window, addDays, daysBetween, inWindow, weekStart, weekStarts, weeksEnding } from "@/lib/admin/v3/weeks";
+import {
+  type Window,
+  addDays,
+  daysBetween,
+  inWindow,
+  weekStart,
+  weekStarts,
+  weeksEnding,
+} from "@/lib/admin/v3/weeks";
 
 export type Channel = "ios" | "android" | "web" | "invite";
 
@@ -89,12 +97,35 @@ export function newPeople(people: Person[], w: Window): ChannelCounts {
   return out;
 }
 
-export type WeeklyChannels = { weekStart: string; label: string; ios: number; android: number; web: number; invite: number; total: number };
+export type WeeklyChannels = {
+  weekStart: string;
+  label: string;
+  ios: number;
+  android: number;
+  web: number;
+  invite: number;
+  total: number;
+};
 
-export function newPeopleWeekly(people: Person[], endSunday: string, weeks: number): WeeklyChannels[] {
+export function newPeopleWeekly(
+  people: Person[],
+  endSunday: string,
+  weeks: number,
+): WeeklyChannels[] {
   const starts = weekStarts(endSunday, weeks);
   const rows = new Map<string, WeeklyChannels>(
-    starts.map((s) => [s, { weekStart: s, label: s.slice(8, 10) + "/" + s.slice(5, 7), ios: 0, android: 0, web: 0, invite: 0, total: 0 }]),
+    starts.map((s) => [
+      s,
+      {
+        weekStart: s,
+        label: s.slice(8, 10) + "/" + s.slice(5, 7),
+        ios: 0,
+        android: 0,
+        web: 0,
+        invite: 0,
+        total: 0,
+      },
+    ]),
   );
   for (const p of people) {
     const r = rows.get(weekStart(d0(p)));
@@ -120,7 +151,9 @@ export type ActivationFunnel = {
 /** Personnes arrivées dans la fenêtre ET jugeables à J+7. */
 export function activationFunnel(people: Person[], w: Window, today: string): ActivationFunnel {
   const cohort = people.filter((p) => inWindow(d0(p), w) && eligibleAt7(p, today));
-  const firstRecipe7d = cohort.filter((p) => p.first_recipe_at != null && daysBetween(d0(p), p.first_recipe_at.slice(0, 10)) <= 7).length;
+  const firstRecipe7d = cohort.filter(
+    (p) => p.first_recipe_at != null && daysBetween(d0(p), p.first_recipe_at.slice(0, 10)) <= 7,
+  ).length;
   const activated = cohort.filter(isActivated).length;
   return {
     arrivals: cohort.length,
@@ -134,7 +167,11 @@ export function activationFunnel(people: Person[], w: Window, today: string): Ac
 export type MethodActivation = { method: string; label: string; r: Ratio };
 
 /** Activation selon la méthode du tout premier ajout, sur les arrivées jugeables depuis `since`. */
-export function activationByFirstMethod(people: Person[], since: string, today: string): MethodActivation[] {
+export function activationByFirstMethod(
+  people: Person[],
+  since: string,
+  today: string,
+): MethodActivation[] {
   const cohort = people.filter((p) => d0(p) >= since && eligibleAt7(p, today));
   const by = new Map<string, { n: number; a: number }>();
   for (const p of cohort) {
@@ -145,17 +182,36 @@ export function activationByFirstMethod(people: Person[], since: string, today: 
     by.set(key, e);
   }
   return [...by.entries()]
-    .map(([method, { n, a }]) => ({ method, label: method === "none" ? "Aucune recette" : (METHOD_LABELS[method] ?? method), r: ratio(a, n) }))
+    .map(([method, { n, a }]) => ({
+      method,
+      label: method === "none" ? "Aucune recette" : (METHOD_LABELS[method] ?? method),
+      r: ratio(a, n),
+    }))
     .sort((x, y) => y.r.n - x.r.n || y.r.total - x.r.total);
 }
 
-export type WeeklyActivation = { weekStart: string; label: string; arrivals: number; activated: number };
+export type WeeklyActivation = {
+  weekStart: string;
+  label: string;
+  arrivals: number;
+  activated: number;
+};
 
-export function activationWeekly(people: Person[], endSunday: string, weeks: number, today: string): WeeklyActivation[] {
+export function activationWeekly(
+  people: Person[],
+  endSunday: string,
+  weeks: number,
+  today: string,
+): WeeklyActivation[] {
   // Dernière semaine jugeable : arrivées jusqu'au dimanche d'il y a 7 jours.
   const end = addDays(endSunday, -7);
   const starts = weekStarts(end, weeks);
-  const rows = new Map<string, WeeklyActivation>(starts.map((s) => [s, { weekStart: s, label: s.slice(8, 10) + "/" + s.slice(5, 7), arrivals: 0, activated: 0 }]));
+  const rows = new Map<string, WeeklyActivation>(
+    starts.map((s) => [
+      s,
+      { weekStart: s, label: s.slice(8, 10) + "/" + s.slice(5, 7), arrivals: 0, activated: 0 },
+    ]),
+  );
   for (const p of people) {
     if (!eligibleAt7(p, today)) continue;
     const r = rows.get(weekStart(d0(p)));
@@ -183,19 +239,40 @@ export function rollingM1(people: Person[], endSunday: string): RollingM1 {
   return { r: ratio(cohort.filter((p) => p.active_m1).length, cohort.length), window };
 }
 
-export type CohortCell = { r: Ratio; eligible: number; state: "done" | "partial" | "pending" | "none"; pendingFrom?: string };
-export type CohortRow = { month: string; n: number; m1: CohortCell; m2: CohortCell; m3: CohortCell; activeNow: number };
+export type CohortCell = {
+  r: Ratio;
+  eligible: number;
+  state: "done" | "partial" | "pending" | "none";
+  pendingFrom?: string;
+};
+export type CohortRow = {
+  month: string;
+  n: number;
+  m1: CohortCell;
+  m2: CohortCell;
+  m3: CohortCell;
+  activeNow: number;
+};
 
 function cohortCell(cohort: Person[], k: 1 | 2 | 3, today: string): CohortCell {
   const eligible = cohort.filter((p) => eligibleM(p, k, today));
   if (cohort.length === 0) return { r: ratio(0, 0), eligible: 0, state: "none" };
   if (eligible.length === 0) {
     const firstD0 = cohort.map(d0).sort()[0];
-    return { r: ratio(0, 0), eligible: 0, state: "pending", pendingFrom: addDays(firstD0, k * M_LEN + M_LEN) };
+    return {
+      r: ratio(0, 0),
+      eligible: 0,
+      state: "pending",
+      pendingFrom: addDays(firstD0, k * M_LEN + M_LEN),
+    };
   }
-  const key = (`active_m${k}`) as "active_m1" | "active_m2" | "active_m3";
+  const key = `active_m${k}` as "active_m1" | "active_m2" | "active_m3";
   const active = eligible.filter((p) => p[key]).length;
-  return { r: ratio(active, eligible.length), eligible: eligible.length, state: eligible.length === cohort.length ? "done" : "partial" };
+  return {
+    r: ratio(active, eligible.length),
+    eligible: eligible.length,
+    state: eligible.length === cohort.length ? "done" : "partial",
+  };
 }
 
 /** Premier mois du parc mesuré sous le modèle d'identité actuel (cutover
@@ -232,7 +309,12 @@ export function retentionCurves(rows: CohortRow[]): RetentionCurve[] {
     .map((r) => ({
       month: r.month,
       n: r.n,
-      points: [100, r.m1.r.pct, r.m2.state === "pending" || r.m2.state === "none" ? null : r.m2.r.pct, r.m3.state === "pending" || r.m3.state === "none" ? null : r.m3.r.pct],
+      points: [
+        100,
+        r.m1.r.pct,
+        r.m2.state === "pending" || r.m2.state === "none" ? null : r.m2.r.pct,
+        r.m3.state === "pending" || r.m3.state === "none" ? null : r.m3.r.pct,
+      ],
     }));
 }
 
@@ -267,7 +349,10 @@ export function engagement(people: Person[]): Engagement {
     engaged28: active.filter((p) => p.recipes_28d > 0 || p.views_28d > 0).length,
     adders28: active.filter((p) => p.recipes_28d > 0).length,
     viewers28: active.filter((p) => p.views_28d > 0).length,
-    distribution: bins.map((b) => ({ label: b.label, value: active.filter((p) => b.test(p.recipes_28d)).length })),
+    distribution: bins.map((b) => ({
+      label: b.label,
+      value: active.filter((p) => b.test(p.recipes_28d)).length,
+    })),
     recipesPerActive: active.length ? +(recipes28 / active.length).toFixed(1) : 0,
     multiCarnet: people.filter((p) => p.carnets > 1).length,
     withEmail: people.filter((p) => p.has_email).length,

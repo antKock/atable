@@ -48,9 +48,7 @@ test("hub → détail : rename inline, invitation (code + lien), dernier membre 
   await context.close();
 });
 
-test("détail : suppression avec double confirmation → foyer effacé", async ({
-  browser,
-}) => {
+test("détail : suppression avec double confirmation → foyer effacé", async ({ browser }) => {
   const { context, page } = await newVisitor(browser);
   const name = uniqueName("Foyer À Supprimer");
   const code = await createHouseholdViaUI(page, name);

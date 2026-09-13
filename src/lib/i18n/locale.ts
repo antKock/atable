@@ -45,9 +45,7 @@ export function parseAcceptLanguage(header: string | null | undefined): Locale {
     .split(",")
     .map((part, index) => {
       const [tag, ...params] = part.trim().split(";");
-      const q = params
-        .map((p) => p.trim().toLowerCase())
-        .find((p) => p.startsWith("q="));
+      const q = params.map((p) => p.trim().toLowerCase()).find((p) => p.startsWith("q="));
       const weight = q ? Number(q.slice(2)) : 1;
       return { tag: tag.trim(), weight: Number.isFinite(weight) ? weight : 0, index };
     })

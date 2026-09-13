@@ -91,9 +91,14 @@ describe("PATCH /api/recipes/[id]/move", () => {
     ]);
     const res = await PATCH(req({ householdId: "hh-b" }), ctx);
     expect(res.status).toBe(200);
-    expect(photos.copy).toHaveBeenCalledWith("hh-a/recipe-1/photo.webp", "hh-b/recipe-1/photo.webp");
+    expect(photos.copy).toHaveBeenCalledWith(
+      "hh-a/recipe-1/photo.webp",
+      "hh-b/recipe-1/photo.webp",
+    );
     const update = supa.calls.find((c) => c.table === "recipes" && c.ops[0].method === "update")!;
-    expect((update.ops[0].args[0] as { photo_url: string }).photo_url).toContain("hh-b/recipe-1/photo.webp");
+    expect((update.ops[0].args[0] as { photo_url: string }).photo_url).toContain(
+      "hh-b/recipe-1/photo.webp",
+    );
     expect(photos.remove).toHaveBeenCalledWith(["hh-a/recipe-1/photo.webp"]);
   });
 
@@ -137,7 +142,12 @@ describe("PATCH /api/recipes/[id]/move", () => {
 
   it("403 « monde gelé » : recette seed du foyer démo", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(
-      owner({ memberships: [{ householdId: "demo", role: "member", isDemo: true }, { householdId: "hh-b", role: "member", isDemo: false }] }),
+      owner({
+        memberships: [
+          { householdId: "demo", role: "member", isDemo: true },
+          { householdId: "hh-b", role: "member", isDemo: false },
+        ],
+      }),
     );
     supa.queueResults([{ data: recipeRow({ household_id: "demo", is_seed: true }) }]);
     expect((await PATCH(req({ householdId: "hh-b" }), ctx)).status).toBe(403);

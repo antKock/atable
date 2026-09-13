@@ -32,7 +32,8 @@ function parseFiltersFromParams(params: URLSearchParams): FilterState {
   return {
     season: params.get("season") === "1",
     tagIds: params.get("tags")?.split(",").filter(Boolean) ?? [],
-    duration: duration && VALID_DURATIONS.has(duration) ? (duration as FilterState["duration"]) : null,
+    duration:
+      duration && VALID_DURATIONS.has(duration) ? (duration as FilterState["duration"]) : null,
     cost: cost && VALID_COSTS.has(cost) ? (cost as FilterState["cost"]) : null,
     foyerIds: params.get("foyers")?.split(",").filter(Boolean) ?? [],
   };
@@ -57,32 +58,26 @@ export default function LibraryContent({
   const router = useRouter();
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  const { data: libraryData, isLoading, error, mutate } = useSWR<{
+  const {
+    data: libraryData,
+    isLoading,
+    error,
+    mutate,
+  } = useSWR<{
     recipes: LibraryRecipeItem[];
     tags: Tag[];
     households: { id: string; name: string }[];
   }>("/api/library", swrFetcher, { revalidateOnMount: true });
 
-  const liveRecipes = useMemo(
-    () => libraryData?.recipes ?? [],
-    [libraryData?.recipes],
-  );
-  const liveTags = useMemo(
-    () => libraryData?.tags ?? [],
-    [libraryData?.tags],
-  );
-  const foyers = useMemo(
-    () => libraryData?.households ?? [],
-    [libraryData?.households],
-  );
+  const liveRecipes = useMemo(() => libraryData?.recipes ?? [], [libraryData?.recipes]);
+  const liveTags = useMemo(() => libraryData?.tags ?? [], [libraryData?.tags]);
+  const foyers = useMemo(() => libraryData?.households ?? [], [libraryData?.households]);
   // Marqueur d'origine (label texte discret) et pill « Foyer » : seulement en
   // multi-foyer (maquette 2.3, décision n°11).
   const multiFoyer = foyers.length > 1;
 
   const [query, setQuery] = useState("");
-  const [filters, setFilters] = useState<FilterState>(() =>
-    parseFiltersFromParams(searchParams),
-  );
+  const [filters, setFilters] = useState<FilterState>(() => parseFiltersFromParams(searchParams));
 
   const searchResults = useRecipeSearch(liveRecipes, query);
   const isSearching = query.trim().length > 0;
@@ -133,10 +128,7 @@ export default function LibraryContent({
         </div>
         <div className="grid grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="card-surface"
-            >
+            <div key={i} className="card-surface">
               <Skeleton className="aspect-3/4 w-full rounded-none" />
               <div className="px-3 py-2.5">
                 <Skeleton className="h-4 w-4/5" />

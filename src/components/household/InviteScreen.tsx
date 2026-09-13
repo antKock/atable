@@ -1,20 +1,20 @@
-import { Users, Eye } from 'lucide-react'
-import { getT } from '@/lib/i18n/server'
-import BackButton from '@/components/ui/BackButton'
-import CodeDisplay from '@/components/household/CodeDisplay'
-import InviteLinkDisplay from '@/components/household/InviteLinkDisplay'
+import { Users, Eye } from "lucide-react";
+import { getT } from "@/lib/i18n/server";
+import BackButton from "@/components/ui/BackButton";
+import CodeDisplay from "@/components/household/CodeDisplay";
+import InviteLinkDisplay from "@/components/household/InviteLinkDisplay";
 
 type Props = {
-  householdId: string
-  joinCode: string
-  guestJoinCode: string
-}
+  householdId: string;
+  joinCode: string;
+  guestJoinCode: string;
+};
 
 // Écran plein « Inviter » (maquette 2.1, Lot 3). Deux blocs de même grammaire
 // (icône + rôle + description, puis lien + code + copier), un par rôle. La
 // grammaire lien/code réutilise InviteLinkDisplay + CodeDisplay du Lot 1.
 export default async function InviteScreen({ householdId, joinCode, guestJoinCode }: Props) {
-  const t = await getT()
+  const t = await getT();
   return (
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-4">
       <BackButton href={`/household/${householdId}`} />
@@ -57,5 +57,5 @@ export default async function InviteScreen({ householdId, joinCode, guestJoinCod
 
       <p className="text-sm text-muted-foreground">{t.household.invite.note}</p>
     </div>
-  )
+  );
 }

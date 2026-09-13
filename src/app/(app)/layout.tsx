@@ -1,8 +1,8 @@
-import { redirect } from 'next/navigation'
-import Navigation from '@/components/layout/Navigation'
-import DeviceTokenProvider from '@/components/layout/DeviceTokenProvider'
-import { Toaster } from '@/components/ui/sonner'
-import { getOwnerContext, isGuestOwner } from '@/lib/auth/owner-context'
+import { redirect } from "next/navigation";
+import Navigation from "@/components/layout/Navigation";
+import DeviceTokenProvider from "@/components/layout/DeviceTokenProvider";
+import { Toaster } from "@/components/ui/sonner";
+import { getOwnerContext, isGuestOwner } from "@/lib/auth/owner-context";
 
 export default async function AppShell({ children }: { children: React.ReactNode }) {
   // Le JWT a passé le proxy (signature) mais la session doit exister en
@@ -10,15 +10,15 @@ export default async function AppShell({ children }: { children: React.ReactNode
   // Une erreur DB, elle, PROPAGE (error boundary) — jamais de purge de cookie
   // sur incident transitoire. getOwnerContext est mémoïsé par requête —
   // layout + page = une seule requête.
-  const owner = await getOwnerContext()
+  const owner = await getOwnerContext();
   // Session inconnue OU owner sans aucune appartenance : dans les deux cas
   // l'appareil n'a plus accès à un foyer. Le second cas = retrait de membre
   // (Lot 3) : le hid du JWT est vestigial, donc sans cette garde un owner
   // orphelin verrait encore les recettes via x-household-id. Déconnexion propre
   // → l'accès est coupé dès la page suivante (mono-appartenance).
-  if (!owner || owner.memberships.length === 0) redirect('/api/auth/session/clear')
+  if (!owner || owner.memberships.length === 0) redirect("/api/auth/session/clear");
 
-  const isGuest = isGuestOwner(owner)
+  const isGuest = isGuestOwner(owner);
 
   // Tous les hints (install + partage/email + démo) sont rendus DANS la page
   // /home (`HomeHints`), sous la top bar — pas ici. Un layout partagé ne se
@@ -35,8 +35,8 @@ export default async function AppShell({ children }: { children: React.ReactNode
             // Bas : dégage la nav flottante ET la barre système Android (safe
             // area). Sans l'inset, le dernier contenu passe sous la barre
             // d'action Android en edge-to-edge (targetSdk 36).
-            paddingBottom: 'calc(7rem + env(safe-area-inset-bottom))',
-            paddingTop: 'env(safe-area-inset-top)',
+            paddingBottom: "calc(7rem + env(safe-area-inset-bottom))",
+            paddingTop: "env(safe-area-inset-top)",
           }}
         >
           {children}
@@ -45,5 +45,5 @@ export default async function AppShell({ children }: { children: React.ReactNode
       <Navigation isGuest={isGuest} />
       <Toaster />
     </>
-  )
+  );
 }

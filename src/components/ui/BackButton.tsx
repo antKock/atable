@@ -24,11 +24,17 @@ type Props = Target & {
   className?: string;
 };
 
-const VARIANTS: Record<Variant, { className: string; style?: React.CSSProperties; icon: React.ReactNode }> = {
+const VARIANTS: Record<
+  Variant,
+  { className: string; style?: React.CSSProperties; icon: React.ReactNode }
+> = {
   circle: {
     className:
       "absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-full text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-    style: { background: "#fff", boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)" },
+    style: {
+      background: "#fff",
+      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+    },
     icon: <ArrowLeft size={18} strokeWidth={1.75} aria-hidden="true" />,
   },
   header: {
@@ -48,7 +54,13 @@ const VARIANTS: Record<Variant, { className: string; style?: React.CSSProperties
   },
 };
 
-export default function BackButton({ variant = "chevron", label, className, href, onClick }: Props) {
+export default function BackButton({
+  variant = "chevron",
+  label,
+  className,
+  href,
+  onClick,
+}: Props) {
   const t = useT();
   const v = VARIANTS[variant];
   const cls = className ? `${v.className} ${className}` : v.className;

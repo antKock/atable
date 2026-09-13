@@ -65,10 +65,9 @@ export function buildImportVoiceSchema(t: FullDictionary) {
   return z
     .instanceof(File, { message: t.api.audioRequired })
     .refine((f) => f.size <= MAX_VOICE_FILE_SIZE, { message: t.api.audioTooLarge })
-    .refine(
-      (f) => (VALID_VOICE_MIME_TYPES as readonly string[]).includes(f.type.split(";")[0]),
-      { message: t.api.audioFormatUnsupported },
-    );
+    .refine((f) => (VALID_VOICE_MIME_TYPES as readonly string[]).includes(f.type.split(";")[0]), {
+      message: t.api.audioFormatUnsupported,
+    });
 }
 
 export type ImportResult = z.infer<typeof ImportResultSchema>;

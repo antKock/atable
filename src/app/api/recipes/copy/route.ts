@@ -13,7 +13,7 @@ import { enforceShareCopyQuota } from "@/lib/import-quota";
 async function duplicateImage(
   sourceUrl: string | null,
   newRecipeId: string,
-  suffix: string
+  suffix: string,
 ): Promise<string | null> {
   if (!sourceUrl) return null;
   const fromPath = photoPathFromUrl(sourceUrl);
@@ -62,7 +62,7 @@ export const POST = withOwnerAuth(
     const { data: source, error: sourceError } = await supabase
       .from("recipes")
       .select(
-        "id, household_id, title, ingredients, steps, notes, photo_url, generated_image_url, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, recipe_tags(tag_id)"
+        "id, household_id, title, ingredients, steps, notes, photo_url, generated_image_url, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, recipe_tags(tag_id)",
       )
       .eq("share_token", token)
       .single();

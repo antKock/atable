@@ -55,7 +55,10 @@ export const PATCH = withOwnerAuth(
 
     // Recette d'un foyer de l'owner + gardes d'écriture sur la SOURCE (membre,
     // seed démo) — ordre commun 404 → membre → démo (loadOwnedRecipe).
-    const loaded = await loadOwnedRecipe(supabase, id, owner, { columns: ["photo_url"], write: true });
+    const loaded = await loadOwnedRecipe(supabase, id, owner, {
+      columns: ["photo_url"],
+      write: true,
+    });
     if (loaded instanceof NextResponse) return loaded;
     const { recipe } = loaded;
     const sourceHid = recipe.household_id;
@@ -70,10 +73,7 @@ export const PATCH = withOwnerAuth(
     }
 
     // 1) Copier l'image foyer-scopée vers le chemin du foyer cible (best-effort).
-    const relocated = await relocateFoyerScopedImage(recipe.photo_url,
-      sourceHid,
-      destHid,
-    );
+    const relocated = await relocateFoyerScopedImage(recipe.photo_url, sourceHid, destHid);
 
     // 2) Mettre à jour la recette (foyer + éventuelle nouvelle URL de photo).
     // last_moved_at : trace du déplacement pour le dashboard (032) — seul le

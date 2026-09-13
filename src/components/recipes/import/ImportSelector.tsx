@@ -144,10 +144,8 @@ export default function ImportSelector({
     const ext = blob.type.includes("mp4") ? "mp4" : blob.type.includes("ogg") ? "ogg" : "webm";
     const formData = new FormData();
     formData.append("audio", blob, `recording.${ext}`);
-    await runImport(
-      { path: "/api/recipes/import/voice", body: formData },
-      "voice",
-      (code) => (code === "IMPORT_QUOTA" ? t.import.errorImportQuota : t.import.voice.error),
+    await runImport({ path: "/api/recipes/import/voice", body: formData }, "voice", (code) =>
+      code === "IMPORT_QUOTA" ? t.import.errorImportQuota : t.import.voice.error,
     );
   }
 
@@ -193,9 +191,7 @@ export default function ImportSelector({
   return (
     <div className="flex flex-col gap-3">
       {!autoImportUrl && !expanded && (
-        <h2
-          className="display mb-1 text-[22px] font-semibold tracking-[-0.015em]"
-        >
+        <h2 className="display mb-1 text-[22px] font-semibold tracking-[-0.015em]">
           {t.import.question}
         </h2>
       )}

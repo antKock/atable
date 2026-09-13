@@ -17,15 +17,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(__dirname, "..");
 
 const SVG_SOURCE = path.join(ROOT, "docs/icons/mijote-icon-1024.svg");
-const TARGET_DIR = path.join(
-  ROOT,
-  "ios/App/App/Assets.xcassets/Splash.imageset",
-);
-const TARGET_FILES = [
-  "splash-2732x2732.png",
-  "splash-2732x2732-1.png",
-  "splash-2732x2732-2.png",
-];
+const TARGET_DIR = path.join(ROOT, "ios/App/App/Assets.xcassets/Splash.imageset");
+const TARGET_FILES = ["splash-2732x2732.png", "splash-2732x2732-1.png", "splash-2732x2732-2.png"];
 
 const SPLASH_SIZE = 2732;
 // Cocotte width relative to the canvas. The icon SVG has empty top/bottom
@@ -42,10 +35,7 @@ async function main() {
   // Strip the two background rects (green radial disc + multiply darken
   // overlay). The cocotte itself and its shadow remain untouched and render
   // against the new cream canvas.
-  svg = svg.replace(
-    /\s*<rect width="1024" height="1024" fill="url\(#bg\)"><\/rect>/,
-    "",
-  );
+  svg = svg.replace(/\s*<rect width="1024" height="1024" fill="url\(#bg\)"><\/rect>/, "");
   svg = svg.replace(
     /\s*<rect width="1024" height="1024" fill="#000000" opacity="0\.05" style="mix-blend-mode: multiply"><\/rect>/,
     "",

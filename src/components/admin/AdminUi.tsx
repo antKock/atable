@@ -5,7 +5,13 @@
 import type { ReactNode } from "react";
 import { type Ratio, nLabel, pctLabel } from "@/lib/admin/v3/ratio";
 
-export function Topbar({ current, dataDate }: { current: "stats" | "explorer" | "sante"; dataDate: string }) {
+export function Topbar({
+  current,
+  dataDate,
+}: {
+  current: "stats" | "explorer" | "sante";
+  dataDate: string;
+}) {
   return (
     <div className="topbar">
       <div className="brand">
@@ -16,9 +22,15 @@ export function Topbar({ current, dataDate }: { current: "stats" | "explorer" | 
         <span>
           Données au <b>{dataDate}</b> · Apple J-1 · 12 semaines
         </span>
-        <a href="/admin/stats" className={current === "stats" ? "active" : undefined}>Pilotage</a>
-        <a href="/admin/explorer" className={current === "explorer" ? "active" : undefined}>Explorer</a>
-        <a href="/admin/sante" className={current === "sante" ? "active" : undefined}>Santé</a>
+        <a href="/admin/stats" className={current === "stats" ? "active" : undefined}>
+          Pilotage
+        </a>
+        <a href="/admin/explorer" className={current === "explorer" ? "active" : undefined}>
+          Explorer
+        </a>
+        <a href="/admin/sante" className={current === "sante" ? "active" : undefined}>
+          Santé
+        </a>
       </div>
     </div>
   );
@@ -89,7 +101,13 @@ export function Funnel({ rows }: { rows: FunnelRow[] }) {
         <div className="frow" key={r.label}>
           <div className="l">{r.label}</div>
           <div className="b">
-            <div className="bar" style={{ width: `${Math.max(2, (r.value / max) * 100)}%`, background: r.color ?? FUNNEL_COLORS[i % FUNNEL_COLORS.length] }} />
+            <div
+              className="bar"
+              style={{
+                width: `${Math.max(2, (r.value / max) * 100)}%`,
+                background: r.color ?? FUNNEL_COLORS[i % FUNNEL_COLORS.length],
+              }}
+            />
             <span className="v">
               {r.value.toLocaleString("fr-FR")}
               {r.hint && <small>{r.hint}</small>}
@@ -102,19 +120,41 @@ export function Funnel({ rows }: { rows: FunnelRow[] }) {
 }
 
 /** Ligne « libellé · barre · n / N » (activation par méthode, sources). */
-export function BarRow({ label, value, max, text, color }: { label: string; value: number; max: number; text: string; color?: string }) {
+export function BarRow({
+  label,
+  value,
+  max,
+  text,
+  color,
+}: {
+  label: string;
+  value: number;
+  max: number;
+  text: string;
+  color?: string;
+}) {
   return (
     <div className="r">
       <span>{label}</span>
       <div className="track">
-        <div className="fill" style={{ width: `${max > 0 ? (value / max) * 100 : 0}%`, background: value === 0 ? "var(--d-grid)" : color }} />
+        <div
+          className="fill"
+          style={{
+            width: `${max > 0 ? (value / max) * 100 : 0}%`,
+            background: value === 0 ? "var(--d-grid)" : color,
+          }}
+        />
       </div>
       <span className="v">{text}</span>
     </div>
   );
 }
 
-export function BigStats({ stats }: { stats: { value: ReactNode; label: string; hint?: ReactNode }[] }) {
+export function BigStats({
+  stats,
+}: {
+  stats: { value: ReactNode; label: string; hint?: ReactNode }[];
+}) {
   return (
     <div className="big">
       {stats.map((s, i) => (
@@ -137,7 +177,20 @@ export function RatioText({ r, big }: { r: Ratio; big?: boolean }) {
   return (
     <span title={title} style={r.fragile ? { color: "var(--d-faint)" } : undefined}>
       {pctLabel(r)}
-      {big ? <small> {nLabel(r)}</small> : <span style={{ fontFamily: "var(--d-sans)", fontSize: 11, color: "var(--d-faint)", marginLeft: 6 }}>{nLabel(r)}</span>}
+      {big ? (
+        <small> {nLabel(r)}</small>
+      ) : (
+        <span
+          style={{
+            fontFamily: "var(--d-sans)",
+            fontSize: 11,
+            color: "var(--d-faint)",
+            marginLeft: 6,
+          }}
+        >
+          {nLabel(r)}
+        </span>
+      )}
     </span>
   );
 }

@@ -121,7 +121,7 @@ describe("RecipeForm — servings stepper (spec #12)", () => {
           servings: 6,
           generatedImageUrl: null,
         }}
-      />
+      />,
     );
     const { input } = getStepper();
     expect(input.value).toBe("6");
@@ -149,76 +149,54 @@ describe("RecipeForm (edit mode)", () => {
   };
 
   it("does NOT auto-focus the title field in edit mode", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     const titleInput = screen.getByDisplayValue("Poulet rôti");
     expect(document.activeElement).not.toBe(titleInput);
   });
 
   it("pre-fills the title field with existing data (Story 5.2)", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     expect(screen.getByDisplayValue("Poulet rôti")).toBeDefined();
   });
 
   it("pre-fills the ingredients field", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     const ingredientsField = screen.getByLabelText(/Ingrédients/i) as HTMLTextAreaElement;
     expect(ingredientsField.value).toBe("1 poulet\nThym");
   });
 
   it("renders existing tags as chips in edit mode", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     expect(screen.getByText("viande")).toBeDefined();
     expect(screen.getByText("four")).toBeDefined();
   });
 
   it("shows remove buttons for existing tags in edit mode", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     expect(screen.getByLabelText("Retirer viande")).toBeDefined();
     expect(screen.getByLabelText("Retirer four")).toBeDefined();
   });
 
   it("pre-fills v3 metadata fields in edit mode", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     // Prep, cook and complexity are now ChipSelector groups, not <select>.
     // Verify the active chip is aria-pressed.
     const prepGroup = screen.getByRole("group", { name: "Prép." });
-    expect(prepGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe(
-      "20-30 min"
-    );
+    expect(prepGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe("20-30 min");
     const cookGroup = screen.getByRole("group", { name: "Cuisson" });
-    expect(cookGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe(
-      "1h - 2h"
-    );
+    expect(cookGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe("1h - 2h");
     const complexityGroup = screen.getByRole("group", { name: "Difficulté" });
-    expect(
-      complexityGroup.querySelector('[aria-pressed="true"]')?.textContent
-    ).toBe("Moyen");
+    expect(complexityGroup.querySelector('[aria-pressed="true"]')?.textContent).toBe("Moyen");
   });
 
   it("pre-selects cost chip in edit mode", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     const costChip = screen.getByRole("button", { name: "€€" });
     expect(costChip.getAttribute("aria-pressed")).toBe("true");
   });
 
   it("pre-selects season chips in edit mode", () => {
-    render(
-      <RecipeForm mode="edit" recipeId="123" initialData={initialData} />
-    );
+    render(<RecipeForm mode="edit" recipeId="123" initialData={initialData} />);
     const automne = screen.getByRole("button", { name: "Automne" });
     const hiver = screen.getByRole("button", { name: "Hiver" });
     expect(automne.getAttribute("aria-pressed")).toBe("true");

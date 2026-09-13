@@ -23,8 +23,12 @@ const FG_SCALE = 0.62;
 
 // density → [legacy 48dp px, adaptive 108dp px]
 const D = {
-  ldpi: [36, 81], mdpi: [48, 108], hdpi: [72, 162],
-  xhdpi: [96, 216], xxhdpi: [144, 324], xxxhdpi: [192, 432],
+  ldpi: [36, 81],
+  mdpi: [48, 108],
+  hdpi: [72, 162],
+  xhdpi: [96, 216],
+  xxhdpi: [144, 324],
+  xxxhdpi: [192, 432],
 };
 
 const svg = readFileSync(SVG, "utf8");
@@ -36,16 +40,28 @@ const pot = svg.slice(svg.indexOf('<g transform="translate(0 60)">'), svg.lastIn
 const bgSvg = `${open}${defs}${bgRects}</svg>`;
 const fgSvg = `${open}${defs}<g transform="translate(512 512) scale(${FG_SCALE}) translate(-512 -512)">${pot}</g></svg>`;
 
-const circle = (s) => Buffer.from(`<svg width="${s}" height="${s}"><circle cx="${s / 2}" cy="${s / 2}" r="${s / 2}" fill="#fff"/></svg>`);
+const circle = (s) =>
+  Buffer.from(
+    `<svg width="${s}" height="${s}"><circle cx="${s / 2}" cy="${s / 2}" r="${s / 2}" fill="#fff"/></svg>`,
+  );
 
 for (const [d, [legacy, adaptive]] of Object.entries(D)) {
   const dir = `${RES}/mipmap-${d}`;
   // Legacy square (full design) + round (full design circle-masked)
   await sharp(FULL_PNG).resize(legacy, legacy).png().toFile(`${dir}/ic_launcher.png`);
-  await sharp(FULL_PNG).resize(legacy, legacy)
-    .composite([{ input: circle(legacy), blend: "dest-in" }]).png().toFile(`${dir}/ic_launcher_round.png`);
+  await sharp(FULL_PNG)
+    .resize(legacy, legacy)
+    .composite([{ input: circle(legacy), blend: "dest-in" }])
+    .png()
+    .toFile(`${dir}/ic_launcher_round.png`);
   // Adaptive layers at 108dp
-  await sharp(Buffer.from(bgSvg)).resize(adaptive, adaptive).png().toFile(`${dir}/ic_launcher_background.png`);
-  await sharp(Buffer.from(fgSvg)).resize(adaptive, adaptive).png().toFile(`${dir}/ic_launcher_foreground.png`);
+  await sharp(Buffer.from(bgSvg))
+    .resize(adaptive, adaptive)
+    .png()
+    .toFile(`${dir}/ic_launcher_background.png`);
+  await sharp(Buffer.from(fgSvg))
+    .resize(adaptive, adaptive)
+    .png()
+    .toFile(`${dir}/ic_launcher_foreground.png`);
 }
 console.log(`✓ regenerated launcher icons (foreground pot @ ${FG_SCALE}, adaptive layers @ 108dp)`);

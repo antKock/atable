@@ -46,8 +46,10 @@ describe("buildSystemPrompt", () => {
 
 describe("sanitizeDietTags", () => {
   it("drops Végétarien when an animal-protein tag is present", () => {
-    expect(sanitizeDietTags(["Poisson", "Végétarien", "Plat principal"]))
-      .toEqual(["Poisson", "Plat principal"]);
+    expect(sanitizeDietTags(["Poisson", "Végétarien", "Plat principal"])).toEqual([
+      "Poisson",
+      "Plat principal",
+    ]);
     expect(sanitizeDietTags(["Fruits de mer", "Végétarien"])).toEqual(["Fruits de mer"]);
     expect(sanitizeDietTags(["Poulet", "Végétarien", "Végan"])).toEqual(["Poulet"]);
   });
@@ -57,7 +59,11 @@ describe("sanitizeDietTags", () => {
   });
 
   it("keeps diet tags on genuinely vegetarian recipes", () => {
-    expect(sanitizeDietTags(["Légumineuses", "Végétarien", "Végan", "Indienne"]))
-      .toEqual(["Légumineuses", "Végétarien", "Végan", "Indienne"]);
+    expect(sanitizeDietTags(["Légumineuses", "Végétarien", "Végan", "Indienne"])).toEqual([
+      "Légumineuses",
+      "Végétarien",
+      "Végan",
+      "Indienne",
+    ]);
   });
 });

@@ -19,21 +19,23 @@ async function forgedToken(): Promise<string> {
     .sign(secret);
 }
 
-test("lot 0 : cookie forgé (sid inexistant) → API protégée en 401", async ({ browser, baseURL }) => {
+test("lot 0 : cookie forgé (sid inexistant) → API protégée en 401", async ({
+  browser,
+  baseURL,
+}) => {
   const { context } = await newVisitor(browser);
-  await context.addCookies([
-    { name: "atable_session", value: await forgedToken(), url: baseURL! },
-  ]);
+  await context.addCookies([{ name: "atable_session", value: await forgedToken(), url: baseURL! }]);
   const res = await context.request.get("/api/carousels");
   expect(res.status()).toBe(401);
   await context.close();
 });
 
-test("lot 0 : cookie forgé (sid inexistant) → déconnecté vers la landing, sans 500", async ({ browser, baseURL }) => {
+test("lot 0 : cookie forgé (sid inexistant) → déconnecté vers la landing, sans 500", async ({
+  browser,
+  baseURL,
+}) => {
   const { context, page } = await newVisitor(browser);
-  await context.addCookies([
-    { name: "atable_session", value: await forgedToken(), url: baseURL! },
-  ]);
+  await context.addCookies([{ name: "atable_session", value: await forgedToken(), url: baseURL! }]);
 
   const serverErrors: string[] = [];
   page.on("response", (r) => {

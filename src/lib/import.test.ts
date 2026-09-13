@@ -53,17 +53,12 @@ describe("extractRecipeFromImages", () => {
     const request = mockChat.mock.calls[0][0];
     expect(request.model).toBe(AI_MODELS.vision);
     const userContent = request.messages[1].content;
-    expect(userContent.some((p: { type: string }) => p.type === "image_url")).toBe(
-      true,
-    );
+    expect(userContent.some((p: { type: string }) => p.type === "image_url")).toBe(true);
   });
 
   it("prefixes raw base64 with a data URI, keeps existing data URIs", async () => {
     mockChat.mockResolvedValue(chatCompletion(importResult()));
-    await extractRecipeFromImages([
-      "rawbytes",
-      "data:image/png;base64,already",
-    ]);
+    await extractRecipeFromImages(["rawbytes", "data:image/png;base64,already"]);
     const userContent = mockChat.mock.calls[0][0].messages[1].content;
     const urls = userContent
       .filter((p: { type: string }) => p.type === "image_url")
@@ -94,9 +89,7 @@ describe("extractRecipeFromImages", () => {
 describe("list-marker normalisation", () => {
   it("strips leading bullets and dashes from ingredients", async () => {
     mockChat.mockResolvedValue(
-      chatCompletion(
-        importResult({ ingredients: "- Pommes\n• Pâte brisée\n* Sucre" }),
-      ),
+      chatCompletion(importResult({ ingredients: "- Pommes\n• Pâte brisée\n* Sucre" })),
     );
     const result = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("Pommes\nPâte brisée\nSucre");
@@ -111,16 +104,12 @@ describe("list-marker normalisation", () => {
       ),
     );
     const result = await extractRecipeFromImages(["x"]);
-    expect(result.steps).toBe(
-      "Éplucher les pommes\nGarnir la pâte\nEnfourner",
-    );
+    expect(result.steps).toBe("Éplucher les pommes\nGarnir la pâte\nEnfourner");
   });
 
   it("keeps leading quantities in ingredients (does not strip bare numbers)", async () => {
     mockChat.mockResolvedValue(
-      chatCompletion(
-        importResult({ ingredients: "200 g de farine\n2 oeufs\n- 1 pincée de sel" }),
-      ),
+      chatCompletion(importResult({ ingredients: "200 g de farine\n2 oeufs\n- 1 pincée de sel" })),
     );
     const result = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("200 g de farine\n2 oeufs\n1 pincée de sel");
@@ -144,12 +133,8 @@ describe("list-marker normalisation", () => {
       ),
     );
     const result = await extractRecipeFromImages(["x"]);
-    expect(result.ingredients).toBe(
-      "// Pour la pâte\nFarine\n// Pour la garniture\nPommes",
-    );
-    expect(result.steps).toBe(
-      "// Pour la pâte\nPétrir\n// Pour la garniture\nÉplucher",
-    );
+    expect(result.ingredients).toBe("// Pour la pâte\nFarine\n// Pour la garniture\nPommes");
+    expect(result.steps).toBe("// Pour la pâte\nPétrir\n// Pour la garniture\nÉplucher");
   });
 });
 
@@ -159,9 +144,7 @@ describe("list-marker normalisation", () => {
 describe("ingredient deduplication", () => {
   it("drops exact duplicates case- and whitespace-insensitively, keeping the first", async () => {
     mockChat.mockResolvedValue(
-      chatCompletion(
-        importResult({ ingredients: "Sel\n200 g de farine\nsel\n200 g  de farine" }),
-      ),
+      chatCompletion(importResult({ ingredients: "Sel\n200 g de farine\nsel\n200 g  de farine" })),
     );
     const result = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("Sel\n200 g de farine");
@@ -194,8 +177,7 @@ describe("ingredient deduplication", () => {
 // extractRecipeFromVoice — Whisper transcription + structuring
 // --------------------------------------------------------------------------
 describe("extractRecipeFromVoice", () => {
-  const audioFile = () =>
-    new File(["fake audio bytes"], "recipe.webm", { type: "audio/webm" });
+  const audioFile = () => new File(["fake audio bytes"], "recipe.webm", { type: "audio/webm" });
 
   it("transcribes audio then structures it into a recipe", async () => {
     mockTranscribe.mockResolvedValue("Pour la tarte il faut des pommes");
@@ -237,9 +219,7 @@ describe("extractRecipeFromUrl", () => {
   const mockFetch = () => fetch as unknown as Mock;
 
   it("fetches the page and extracts a recipe", async () => {
-    mockFetch().mockResolvedValue(
-      new Response("<h1>Ma Recette</h1>", { status: 200 }),
-    );
+    mockFetch().mockResolvedValue(new Response("<h1>Ma Recette</h1>", { status: 200 }));
     mockChat.mockResolvedValue(chatCompletion(importResult()));
     const result = await extractRecipeFromUrl("https://marmiton.org/r/1");
     expect(result.title).toBe("Tarte aux pommes");
@@ -268,42 +248,32 @@ describe("extractRecipeFromUrl", () => {
 
   it("throws SITE_BLOCKED on HTTP 403", async () => {
     mockFetch().mockResolvedValue(new Response("", { status: 403 }));
-    const err = await extractRecipeFromUrl("https://x.com/r").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ImportError);
     expect((err as ImportError).code).toBe("SITE_BLOCKED");
   });
 
   it("throws SITE_BLOCKED on HTTP 429", async () => {
     mockFetch().mockResolvedValue(new Response("", { status: 429 }));
-    const err = await extractRecipeFromUrl("https://x.com/r").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch((e: unknown) => e);
     expect((err as ImportError).code).toBe("SITE_BLOCKED");
   });
 
   it("throws SITE_UNREACHABLE on a network error", async () => {
     mockFetch().mockRejectedValue(new Error("ECONNREFUSED"));
-    const err = await extractRecipeFromUrl("https://x.com/r").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ImportError);
     expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
   });
 
   it("throws SITE_UNREACHABLE on a 500 response", async () => {
     mockFetch().mockResolvedValue(new Response("", { status: 500 }));
-    const err = await extractRecipeFromUrl("https://x.com/r").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch((e: unknown) => e);
     expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
   });
 
   it("blocks a private-IP target before any fetch (SSRF)", async () => {
-    const err = await extractRecipeFromUrl("https://169.254.169.254/meta").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://169.254.169.254/meta").catch((e: unknown) => e);
     expect(err).toBeInstanceOf(ImportError);
     expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
     expect(mockFetch()).not.toHaveBeenCalled();
@@ -325,9 +295,7 @@ describe("extractRecipeFromUrl", () => {
     mockFetch().mockResolvedValue(
       new Response(null, { status: 302, headers: { location: "https://10.0.0.5/internal" } }),
     );
-    const err = await extractRecipeFromUrl("https://x.com/r").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch((e: unknown) => e);
     expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
     expect(mockFetch()).toHaveBeenCalledTimes(1);
   });
@@ -336,9 +304,7 @@ describe("extractRecipeFromUrl", () => {
     mockFetch().mockResolvedValue(
       new Response(null, { status: 301, headers: { location: "https://x.com/loop" } }),
     );
-    const err = await extractRecipeFromUrl("https://x.com/r").catch(
-      (e: unknown) => e,
-    );
+    const err = await extractRecipeFromUrl("https://x.com/r").catch((e: unknown) => e);
     expect((err as ImportError).code).toBe("SITE_UNREACHABLE");
   });
 });

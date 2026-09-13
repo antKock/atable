@@ -21,11 +21,7 @@ export default async function LibraryPage({ searchParams }: Props) {
 
   return (
     <div className="pb-8 pt-6">
-      <h1
-        className="display-xl mb-4 px-4 text-foreground"
-      >
-        {t.nav.library}
-      </h1>
+      <h1 className="display-xl mb-4 px-4 text-foreground">{t.nav.library}</h1>
       <LibraryContent autoFocusSearch={search === "true"} isGuest={isGuest} />
     </div>
   );

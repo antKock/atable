@@ -1,64 +1,64 @@
-'use client'
+"use client";
 
-import { useState, useEffect, useRef } from 'react'
-import { Pencil, Check, X } from 'lucide-react'
-import { useT } from '@/lib/i18n/client'
+import { useState, useEffect, useRef } from "react";
+import { Pencil, Check, X } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
-  value: string
-  onSave: (newValue: string) => Promise<void>
-  readOnly?: boolean
-}
+  value: string;
+  onSave: (newValue: string) => Promise<void>;
+  readOnly?: boolean;
+};
 
 export default function InlineEditableField({ value, onSave, readOnly = false }: Props) {
-  const t = useT()
-  const [mode, setMode] = useState<'display' | 'edit'>('display')
-  const [editValue, setEditValue] = useState(value)
-  const [error, setError] = useState<string | null>(null)
-  const [isSaving, setIsSaving] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const t = useT();
+  const [mode, setMode] = useState<"display" | "edit">("display");
+  const [editValue, setEditValue] = useState(value);
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (mode === 'edit') {
-      inputRef.current?.focus()
+    if (mode === "edit") {
+      inputRef.current?.focus();
     }
-  }, [mode])
+  }, [mode]);
 
   const enterEdit = () => {
-    setEditValue(value)
-    setError(null)
-    setMode('edit')
-  }
+    setEditValue(value);
+    setError(null);
+    setMode("edit");
+  };
 
   const cancel = () => {
-    setMode('display')
-    setError(null)
-  }
+    setMode("display");
+    setError(null);
+  };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') handleSave()
-    if (e.key === 'Escape') cancel()
-  }
+    if (e.key === "Enter") handleSave();
+    if (e.key === "Escape") cancel();
+  };
 
   const handleSave = async () => {
-    const trimmed = editValue.trim()
+    const trimmed = editValue.trim();
     if (!trimmed) {
-      setError(t.household.nameEmpty)
-      return
+      setError(t.household.nameEmpty);
+      return;
     }
-    setIsSaving(true)
-    setError(null)
+    setIsSaving(true);
+    setError(null);
     try {
-      await onSave(trimmed)
-      setMode('display')
+      await onSave(trimmed);
+      setMode("display");
     } catch (err) {
-      setError(err instanceof Error ? err.message : t.household.renameError)
+      setError(err instanceof Error ? err.message : t.household.renameError);
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
-  if (mode === 'display') {
+  if (mode === "display") {
     return (
       <div className="flex items-center gap-2">
         <span className="text-xl font-semibold text-foreground">{value}</span>
@@ -73,7 +73,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
           </button>
         )}
       </div>
-    )
+    );
   }
 
   return (
@@ -113,5 +113,5 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
       </div>
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
-  )
+  );
 }

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
-import * as Sentry from '@sentry/nextjs'
-import { createServerClient } from '@/lib/supabase/server'
-import { isCronAuthorized } from '@/lib/cron-auth'
-import { createAppleConnectClient, credentialsFromEnv } from '@/lib/apple-connect/client'
-import { syncAppStore } from '@/lib/apple-connect/sync'
+import { NextRequest, NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
+import { createServerClient } from "@/lib/supabase/server";
+import { isCronAuthorized } from "@/lib/cron-auth";
+import { createAppleConnectClient, credentialsFromEnv } from "@/lib/apple-connect/client";
+import { syncAppStore } from "@/lib/apple-connect/sync";
 
 // Rapatriement quotidien des stats App Store (backlog #19, migration 042).
 // Même contrat que demo-reset : GET + `Authorization: Bearer $CRON_SECRET`,
@@ -16,18 +16,18 @@ import { syncAppStore } from '@/lib/apple-connect/sync'
 // Sentry — le cron est simplement « non configuré » (staging sans clé).
 
 export async function GET(request: NextRequest) {
-  if (!isCronAuthorized(request.headers.get('authorization'))) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!isCronAuthorized(request.headers.get("authorization"))) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const appId = process.env.APPLE_CONNECT_APP_ID
+  const appId = process.env.APPLE_CONNECT_APP_ID;
   if (!appId || !process.env.APPLE_CONNECT_KEY) {
-    return NextResponse.json({ error: 'App Store Connect not configured' }, { status: 503 })
+    return NextResponse.json({ error: "App Store Connect not configured" }, { status: 503 });
   }
 
   try {
     const summary = await Sentry.withMonitor(
-      'app-store-sync',
+      "app-store-sync",
       () =>
         syncAppStore({
           client: createAppleConnectClient(credentialsFromEnv()),
@@ -35,16 +35,16 @@ export async function GET(request: NextRequest) {
           appId,
         }),
       {
-        schedule: { type: 'crontab', value: '0 10 * * *' },
+        schedule: { type: "crontab", value: "0 10 * * *" },
         checkinMargin: 30,
         maxRuntime: 10,
-        timezone: 'UTC',
+        timezone: "UTC",
       },
-    )
-    return NextResponse.json(summary)
+    );
+    return NextResponse.json(summary);
   } catch (err) {
-    Sentry.captureException(err)
-    console.error('[cron/app-store-sync] Sync failed:', err)
-    return NextResponse.json({ error: 'Sync failed' }, { status: 500 })
+    Sentry.captureException(err);
+    console.error("[cron/app-store-sync] Sync failed:", err);
+    return NextResponse.json({ error: "Sync failed" }, { status: 500 });
   }
 }

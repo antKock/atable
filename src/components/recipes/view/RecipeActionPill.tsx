@@ -63,10 +63,9 @@ export default function RecipeActionPill({
     if (!data) return;
     const target = memberFoyers.find((f) => f.id === householdId);
     setMoveOpen(false);
-    toast.success(
-      target ? t.household.picker.moved(target.name) : t.feedback.recipeUpdated,
-      { duration: 2500 },
-    );
+    toast.success(target ? t.household.picker.moved(target.name) : t.feedback.recipeUpdated, {
+      duration: 2500,
+    });
     router.refresh();
   }
 
@@ -76,8 +75,7 @@ export default function RecipeActionPill({
         className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full p-1"
         style={{
           background: "#fff",
-          boxShadow:
-            "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
+          boxShadow: "0 2px 8px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.10)",
         }}
       >
         <ShareButton

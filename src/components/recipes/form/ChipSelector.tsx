@@ -43,13 +43,9 @@ export default function ChipSelector({
             className="inline-flex items-center gap-1 rounded-full text-sm font-medium transition-colors"
             style={{
               padding: isSelected ? "6px 14px 6px 11px" : "6px 14px",
-              background: isSelected
-                ? "var(--chip-bg-selected)"
-                : "var(--surface)",
+              background: isSelected ? "var(--chip-bg-selected)" : "var(--surface)",
               color: isSelected ? "var(--chip-text-selected)" : "var(--foreground)",
-              border: isSelected
-                ? "1px solid transparent"
-                : "1px solid var(--border)",
+              border: isSelected ? "1px solid transparent" : "1px solid var(--border)",
             }}
           >
             {isSelected && (

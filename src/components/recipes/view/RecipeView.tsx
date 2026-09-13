@@ -9,15 +9,10 @@ import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 import { parseSections } from "@/lib/recipe-sections";
 import type { Recipe } from "@/types/recipe";
 
-function SectionLabel({
-  id,
-  children,
-}: {
-  id?: string;
-  children: ReactNode;
-}) {
+function SectionLabel({ id, children }: { id?: string; children: ReactNode }) {
   return (
-    <h2 className="display"
+    <h2
+      className="display"
       id={id}
       style={{
         fontWeight: 500,
@@ -35,7 +30,8 @@ function SectionLabel({
 // Heading for a "// Nom" group inside ingredients or steps.
 function SubsectionLabel({ children }: { children: ReactNode }) {
   return (
-    <h3 className="display"
+    <h3
+      className="display"
       style={{
         fontStyle: "italic",
         fontWeight: 500,
@@ -161,9 +157,7 @@ export default function RecipeView({ recipe, householdName, heroOverlay, t }: Pr
             </SectionLabel>
             {ingredientSections.map((section, si) => (
               <div key={si} className={si > 0 ? "mt-5" : undefined}>
-                {section.title && (
-                  <SubsectionLabel>{section.title}</SubsectionLabel>
-                )}
+                {section.title && <SubsectionLabel>{section.title}</SubsectionLabel>}
                 <ul className="pl-4">
                   {section.items.map((line, i) => (
                     <li key={i} className="py-2.5 text-base text-foreground">
@@ -183,9 +177,7 @@ export default function RecipeView({ recipe, householdName, heroOverlay, t }: Pr
             <div className="flex flex-col gap-6">
               {stepSections.map((section, si) => (
                 <div key={si}>
-                  {section.title && (
-                    <SubsectionLabel>{section.title}</SubsectionLabel>
-                  )}
+                  {section.title && <SubsectionLabel>{section.title}</SubsectionLabel>}
                   <ol className="flex flex-col gap-4">
                     {section.items.map((line, i) => (
                       <li key={i} className="flex gap-3">
@@ -204,9 +196,7 @@ export default function RecipeView({ recipe, householdName, heroOverlay, t }: Pr
                         >
                           {i + 1}
                         </span>
-                        <p className="flex-1 text-base leading-relaxed text-foreground">
-                          {line}
-                        </p>
+                        <p className="flex-1 text-base leading-relaxed text-foreground">{line}</p>
                       </li>
                     ))}
                   </ol>

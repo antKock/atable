@@ -24,7 +24,10 @@ vi.mock("@/hooks/usePhotoUpload", async (importOriginal) => {
 const fetchMock = vi.fn();
 
 function jsonResponse(status: number, body: unknown) {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
 
 function form(overrides: Partial<FormState> = {}): FormState {
@@ -48,7 +51,11 @@ describe("useRecipeSave — création", () => {
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/recipes");
     expect(init.method).toBe("POST");
-    expect(JSON.parse(init.body)).toMatchObject({ title: "Tarte", source: "url", householdId: "hh-1" });
+    expect(JSON.parse(init.body)).toMatchObject({
+      title: "Tarte",
+      source: "url",
+      householdId: "hh-1",
+    });
     expect(toast.success).toHaveBeenCalled();
     expect(mutate).toHaveBeenCalledWith("/api/carousels");
     expect(mutate).toHaveBeenCalledWith("/api/library");

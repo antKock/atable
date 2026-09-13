@@ -16,10 +16,7 @@ describe("withRetry", () => {
 
   it("retries a 500 error then succeeds", async () => {
     vi.useFakeTimers();
-    const fn = vi
-      .fn()
-      .mockRejectedValueOnce(openAIError(500))
-      .mockResolvedValueOnce("ok");
+    const fn = vi.fn().mockRejectedValueOnce(openAIError(500)).mockResolvedValueOnce("ok");
     const p = withRetry(fn);
     await vi.runAllTimersAsync();
     await expect(p).resolves.toBe("ok");
@@ -105,7 +102,9 @@ describe("withRetry", () => {
 describe("withDeadline", () => {
   it("résout avec la valeur quand le travail finit avant l'échéance", async () => {
     const { withDeadline } = await import("./retry");
-    await expect(withDeadline(Promise.resolve("ok"), 1000, () => new Error("late"))).resolves.toBe("ok");
+    await expect(withDeadline(Promise.resolve("ok"), 1000, () => new Error("late"))).resolves.toBe(
+      "ok",
+    );
   });
 
   it("rejette avec l'erreur fournie une fois l'échéance passée", async () => {

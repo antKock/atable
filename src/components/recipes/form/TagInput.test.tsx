@@ -15,7 +15,10 @@ const TAGS = [
 const fetchMock = vi.fn();
 
 function jsonResponse(status: number, body: unknown) {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
 
 function renderInput(props: Partial<React.ComponentProps<typeof TagInput>> = {}) {
@@ -43,7 +46,12 @@ describe("TagInput (revue 2026-09-12 : SWR + TagListbox)", () => {
     fireEvent.change(input, { target: { value: "e" } });
     const options = await screen.findAllByRole("option");
     // « Dessert », « Végétarien », « Perso » + « Créer ‘e’ » (pas de correspondance exacte)
-    expect(options.map((o) => o.id)).toEqual(["tag-option-0", "tag-option-1", "tag-option-2", "tag-option-3"]);
+    expect(options.map((o) => o.id)).toEqual([
+      "tag-option-0",
+      "tag-option-1",
+      "tag-option-2",
+      "tag-option-3",
+    ]);
     expect(options[3].textContent).toContain("Créer");
   });
 
@@ -63,7 +71,9 @@ describe("TagInput (revue 2026-09-12 : SWR + TagListbox)", () => {
   it("affiche une erreur quand le catalogue ne charge pas, sans bloquer la création", async () => {
     fetchMock.mockResolvedValueOnce(new Response("<html>", { status: 502 }));
     renderInput();
-    expect((await screen.findByRole("alert")).textContent).toContain("Impossible de charger les tags");
+    expect((await screen.findByRole("alert")).textContent).toContain(
+      "Impossible de charger les tags",
+    );
     const input = screen.getByRole("combobox", { name: "Tags" });
     fireEvent.change(input, { target: { value: "Nouveau" } });
     expect((await screen.findAllByRole("option"))[0].textContent).toContain("Créer");
@@ -79,7 +89,9 @@ describe("TagInput (revue 2026-09-12 : SWR + TagListbox)", () => {
     fireEvent.change(input, { target: { value: "Nouveau" } });
     const create = (await screen.findAllByRole("option")).at(-1)!;
     fireEvent.mouseDown(create);
-    await waitFor(() => expect(onAdd).toHaveBeenCalledWith({ id: "t9", name: "Nouveau", category: null }));
+    await waitFor(() =>
+      expect(onAdd).toHaveBeenCalledWith({ id: "t9", name: "Nouveau", category: null }),
+    );
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(fetchMock.mock.calls[1][1].method).toBe("POST");
   });

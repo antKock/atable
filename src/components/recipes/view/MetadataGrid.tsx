@@ -37,8 +37,7 @@ export default function MetadataGrid({
       className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-4 gap-y-3 rounded-lg px-4 py-3"
       style={{
         background: "linear-gradient(168deg, #FFFFFF, #F7F5EE)",
-        boxShadow:
-          "0 1px 3px rgba(110, 122, 56, 0.05), 0 2px 8px rgba(110, 122, 56, 0.04)",
+        boxShadow: "0 1px 3px rgba(110, 122, 56, 0.05), 0 2px 8px rgba(110, 122, 56, 0.04)",
         border: "1px solid rgba(110, 122, 56, 0.08)",
       }}
       aria-live="polite"

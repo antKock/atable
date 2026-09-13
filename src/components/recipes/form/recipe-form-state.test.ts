@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { buildRecipePayload, formReducer, initFormState, type FormState } from "@/components/recipes/form/recipe-form-state";
+import {
+  buildRecipePayload,
+  formReducer,
+  initFormState,
+  type FormState,
+} from "@/components/recipes/form/recipe-form-state";
 
 const base = (): FormState => ({
   ...initFormState({ initialData: null, isEdit: false }),
@@ -39,7 +44,10 @@ describe("buildRecipePayload", () => {
 
   it("création : source (manual par défaut), foyer choisi, willUploadPhoto si une photo suit", () => {
     const file = new File([new Uint8Array(3)], "p.jpg", { type: "image/jpeg" });
-    const p = buildRecipePayload({ ...base(), photoFile: file }, { isEdit: false, chosenHouseholdId: "hh-2" });
+    const p = buildRecipePayload(
+      { ...base(), photoFile: file },
+      { isEdit: false, chosenHouseholdId: "hh-2" },
+    );
     expect(p.source).toBe("manual");
     expect(p.householdId).toBe("hh-2");
     expect(p.willUploadPhoto).toBe(true);
@@ -58,12 +66,18 @@ describe("formReducer — invariants photo", () => {
   const file = new File([new Uint8Array(3)], "p.jpg", { type: "image/jpeg" });
 
   it("remplacer une photo annule la suppression et la régénération", () => {
-    const s = formReducer({ ...base(), photoRemoved: true, regenerateRequested: true }, { type: "replacePhoto", file });
+    const s = formReducer(
+      { ...base(), photoRemoved: true, regenerateRequested: true },
+      { type: "replacePhoto", file },
+    );
     expect(s).toMatchObject({ photoFile: file, photoRemoved: false, regenerateRequested: false });
   });
 
   it("retirer la photo annule le fichier en attente et la régénération", () => {
-    const s = formReducer({ ...base(), photoFile: file, regenerateRequested: true }, { type: "removePhoto" });
+    const s = formReducer(
+      { ...base(), photoFile: file, regenerateRequested: true },
+      { type: "removePhoto" },
+    );
     expect(s).toMatchObject({ photoFile: null, photoRemoved: true, regenerateRequested: false });
   });
 
@@ -73,7 +87,10 @@ describe("formReducer — invariants photo", () => {
   });
 
   it("addTag ignore un doublon", () => {
-    const s = formReducer(base(), { type: "addTag", tag: { id: "t1", name: "Dessert", category: null } });
+    const s = formReducer(base(), {
+      type: "addTag",
+      tag: { id: "t1", name: "Dessert", category: null },
+    });
     expect(s.selectedTags).toHaveLength(1);
   });
 });

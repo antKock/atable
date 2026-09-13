@@ -20,7 +20,10 @@ const CATEGORY_ORDER = [
 ];
 
 const normalize = (s: string) =>
-  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  s
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
 
 interface TagInputProps {
   selectedTags: Tag[];
@@ -33,10 +36,11 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
   // Catalogue des tags via SWR (même cache persistant que les deux listes) :
   // une erreur réseau remonte dans `error` au lieu d'être avalée, et un tag
   // créé est ajouté au cache sans refetch.
-  const { data: tagsData, error: tagsError, mutate: mutateTags } = useSWR<{ tags: Tag[] }>(
-    "/api/tags",
-    swrFetcher,
-  );
+  const {
+    data: tagsData,
+    error: tagsError,
+    mutate: mutateTags,
+  } = useSWR<{ tags: Tag[] }>("/api/tags", swrFetcher);
   const allTags = tagsData?.tags ?? [];
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
@@ -56,7 +60,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
     (tag) =>
       !selectedIds.has(tag.id) &&
       (normalize(tag.name).includes(normalizedQuery) ||
-        normalize(tagLabel(t, tag.name)).includes(normalizedQuery))
+        normalize(tagLabel(t, tag.name)).includes(normalizedQuery)),
   );
 
   // Group by category — clé de groupe = valeur stockée (FR canonique) ; les
@@ -89,7 +93,9 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
   }
 
   const hasExactMatch = allTags.some(
-    (tag) => normalize(tag.name) === normalizedQuery || normalize(tagLabel(t, tag.name)) === normalizedQuery
+    (tag) =>
+      normalize(tag.name) === normalizedQuery ||
+      normalize(tagLabel(t, tag.name)) === normalizedQuery,
   );
   const showCreateOption = query.trim().length > 0 && !hasExactMatch;
   if (showCreateOption) {
@@ -115,7 +121,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
       setIsOpen(false);
       inputRef.current?.focus();
     },
-    [onAdd]
+    [onAdd],
   );
 
   const createTag = useCallback(async () => {
@@ -190,8 +196,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
     }
   }, [activeIndex]);
 
-  const activeDescendant =
-    activeIndex >= 0 ? `tag-option-${activeIndex}` : undefined;
+  const activeDescendant = activeIndex >= 0 ? `tag-option-${activeIndex}` : undefined;
 
   return (
     <div ref={containerRef} className="relative">

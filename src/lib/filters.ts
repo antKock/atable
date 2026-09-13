@@ -102,14 +102,10 @@ export function matchesFilters(
 
   // Duration filter
   if (filters.duration) {
-    const total = getTotalDuration(
-      recipe.prepTime ?? null,
-      recipe.cookTime ?? null,
-    );
+    const total = getTotalDuration(recipe.prepTime ?? null, recipe.cookTime ?? null);
     if (total === 0) return false;
     if (filters.duration === "lt30" && total > 30) return false;
-    if (filters.duration === "30to60" && (total < 30 || total > 60))
-      return false;
+    if (filters.duration === "30to60" && (total < 30 || total > 60)) return false;
     if (filters.duration === "gt60" && total <= 60) return false;
   }
 
