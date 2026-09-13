@@ -10,9 +10,9 @@ import {
 describe("ImportScreenshotSchema", () => {
   it("accepts 1 to 5 non-empty images", () => {
     expect(ImportScreenshotSchema.safeParse({ images: ["a"] }).success).toBe(true);
-    expect(
-      ImportScreenshotSchema.safeParse({ images: ["a", "b", "c", "d", "e"] }).success,
-    ).toBe(true);
+    expect(ImportScreenshotSchema.safeParse({ images: ["a", "b", "c", "d", "e"] }).success).toBe(
+      true,
+    );
   });
 
   it("rejects an empty array", () => {
@@ -39,15 +39,13 @@ describe("ImportScreenshotSchema", () => {
 
 describe("ImportUrlSchema", () => {
   it("accepts an https URL", () => {
-    expect(
-      ImportUrlSchema.safeParse({ url: "https://marmiton.org/recette/123" }).success,
-    ).toBe(true);
+    expect(ImportUrlSchema.safeParse({ url: "https://marmiton.org/recette/123" }).success).toBe(
+      true,
+    );
   });
 
   it("rejects an http URL", () => {
-    expect(
-      ImportUrlSchema.safeParse({ url: "http://marmiton.org/recette" }).success,
-    ).toBe(false);
+    expect(ImportUrlSchema.safeParse({ url: "http://marmiton.org/recette" }).success).toBe(false);
   });
 
   it("rejects a non-URL string", () => {
@@ -102,15 +100,11 @@ describe("ImportResultSchema", () => {
   });
 
   it("rejects an invalid season", () => {
-    expect(
-      ImportResultSchema.safeParse({ ...valid, seasons: ["spring"] }).success,
-    ).toBe(false);
+    expect(ImportResultSchema.safeParse({ ...valid, seasons: ["spring"] }).success).toBe(false);
   });
 
   it("rejects an invalid prepTime", () => {
-    expect(
-      ImportResultSchema.safeParse({ ...valid, prepTime: "5 min" }).success,
-    ).toBe(false);
+    expect(ImportResultSchema.safeParse({ ...valid, prepTime: "5 min" }).success).toBe(false);
   });
 });
 

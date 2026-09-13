@@ -61,7 +61,13 @@ describe("POST /api/owner/email/verify", () => {
   it.each([
     ["cible inconnue", () => vi.mocked(findOwnerByEmail).mockResolvedValue(null)],
     ["cible = soi-même", () => vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "owner-1" })],
-    ["code faux", () => { vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "owner-target" }); vi.mocked(verifyLoginCode).mockResolvedValue(false); }],
+    [
+      "code faux",
+      () => {
+        vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "owner-target" });
+        vi.mocked(verifyLoginCode).mockResolvedValue(false);
+      },
+    ],
   ])("%s → 400 générique, aucune fusion", async (_label, arrange) => {
     arrange();
     const res = await POST(request({ email: "a@b.fr", code: "123456" }));

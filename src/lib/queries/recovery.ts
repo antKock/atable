@@ -182,12 +182,10 @@ export async function executeMergeOwners(
       row.id,
       {
         name: row.name ?? null,
-        memberships: (row.memberships ?? []).map(
-          (m) => ({
-            householdId: m.household_id,
-            role: m.role === "guest" ? ("guest" as const) : ("member" as const),
-          }),
-        ),
+        memberships: (row.memberships ?? []).map((m) => ({
+          householdId: m.household_id,
+          role: m.role === "guest" ? ("guest" as const) : ("member" as const),
+        })),
       } satisfies MergeOwner,
     ]),
   );

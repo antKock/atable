@@ -27,9 +27,7 @@ test("partage : mint du token → page publique → copie depuis un autre foyer"
   const guest = await newVisitor(browser);
   await guest.page.goto(`/r/${token}`);
   await expect(guest.page.getByText(title).first()).toBeVisible();
-  await expect(
-    guest.page.getByRole("button", { name: "Enregistrer cette recette" }),
-  ).toBeVisible();
+  await expect(guest.page.getByRole("button", { name: "Enregistrer cette recette" })).toBeVisible();
   await guest.context.close();
 
   // Foyer B : « Ajouter à mon carnet » → recette copiée

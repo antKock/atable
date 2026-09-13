@@ -51,7 +51,8 @@ export function useEnrichmentPolling(
           enrichmentStatus?: string;
           imageStatus?: string;
         } | null;
-        if (typeof parsed?.enrichmentStatus !== "string" || typeof parsed.imageStatus !== "string") return;
+        if (typeof parsed?.enrichmentStatus !== "string" || typeof parsed.imageStatus !== "string")
+          return;
         const { enrichmentStatus, imageStatus } = parsed;
 
         if (

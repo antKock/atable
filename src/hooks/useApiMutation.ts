@@ -33,7 +33,10 @@ export function useApiMutation<T = Record<string, unknown>>({
   const [loading, setLoading] = useState(false);
 
   const run = useCallback(
-    async (url: string, init: Omit<ApiRequestInit, "fallbackError"> = {}): Promise<T | undefined> => {
+    async (
+      url: string,
+      init: Omit<ApiRequestInit, "fallbackError"> = {},
+    ): Promise<T | undefined> => {
       setLoading(true);
       try {
         return await apiRequest<T>(url, { ...init, fallbackError });

@@ -24,14 +24,20 @@ const FILTERS: { key: Filter; label: string }[] = [
 
 function status(p: Person, today: string): { key: Filter; label: string; cls: string } {
   const d0 = p.created_at.slice(0, 10);
-  const ageDays = Math.round((new Date(today + "T00:00:00Z").getTime() - new Date(d0 + "T00:00:00Z").getTime()) / 86_400_000);
+  const ageDays = Math.round(
+    (new Date(today + "T00:00:00Z").getTime() - new Date(d0 + "T00:00:00Z").getTime()) / 86_400_000,
+  );
   if (ageDays <= 28) return { key: "new", label: "nouvelle", cls: "ok" };
   if (p.active_28d) return { key: "active", label: "active", cls: "ok" };
   if (p.active_prev28) return { key: "leaving", label: "en train de partir", cls: "warn" };
   return { key: "gone", label: "partie", cls: "bad" };
 }
 
-export default async function ExplorerPage({ searchParams }: { searchParams: Promise<{ [k: string]: string | string[] | undefined }> }) {
+export default async function ExplorerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [k: string]: string | string[] | undefined }>;
+}) {
   const owner = await getOwnerContext();
   if (!owner || !isAdminOwner(owner)) notFound();
   const sp = await searchParams;
@@ -41,8 +47,14 @@ export default async function ExplorerPage({ searchParams }: { searchParams: Pro
   const today = data.windows.today;
   const people = raw.people
     .map((p) => ({ p, st: status(p, today) }))
-    .filter(({ p, st }) => filter === "all" || (filter === "active" ? p.active_28d : st.key === filter))
-    .sort((a, b) => (b.p.last_active_day ?? "").localeCompare(a.p.last_active_day ?? "") || b.p.recipes_total - a.p.recipes_total);
+    .filter(
+      ({ p, st }) => filter === "all" || (filter === "active" ? p.active_28d : st.key === filter),
+    )
+    .sort(
+      (a, b) =>
+        (b.p.last_active_day ?? "").localeCompare(a.p.last_active_day ?? "") ||
+        b.p.recipes_total - a.p.recipes_total,
+    );
   const carnets = [...raw.carnets].sort((a, b) => b.recipes - a.recipes);
 
   return (
@@ -50,15 +62,27 @@ export default async function ExplorerPage({ searchParams }: { searchParams: Pro
       <Topbar current="explorer" dataDate={shortDate(today)} />
       <div className="page">
         <div className="section" style={{ marginTop: 8 }}>
-          <SectionHead n="A" title="Personnes" q="Surnom auto ou prénom choisi · jamais d'e-mail affiché" />
+          <SectionHead
+            n="A"
+            title="Personnes"
+            q="Surnom auto ou prénom choisi · jamais d'e-mail affiché"
+          />
           <div className="chips" style={{ marginBottom: 12 }}>
             {FILTERS.map((f) => (
-              <a key={f.key} href={`/admin/explorer?filter=${f.key}`} className={"chip" + (filter === f.key ? " active" : "")}>
+              <a
+                key={f.key}
+                href={`/admin/explorer?filter=${f.key}`}
+                className={"chip" + (filter === f.key ? " active" : "")}
+              >
                 {f.label}
               </a>
             ))}
           </div>
-          <Card span={12} title={`${people.length} personne${people.length > 1 ? "s" : ""}`} sub="Triées par dernière activité · « en train de partir » = active il y a 4-8 semaines, silencieuse depuis 4 semaines">
+          <Card
+            span={12}
+            title={`${people.length} personne${people.length > 1 ? "s" : ""}`}
+            sub="Triées par dernière activité · « en train de partir » = active il y a 4-8 semaines, silencieuse depuis 4 semaines"
+          >
             <div style={{ overflowX: "auto" }}>
               <table className="list">
                 <thead>
@@ -85,9 +109,15 @@ export default async function ExplorerPage({ searchParams }: { searchParams: Pro
                         <span className={"pill " + st.cls}>{st.label}</span>
                       </td>
                       <td>{shortDate(p.created_at.slice(0, 10))}</td>
-                      <td>{CHANNEL_LABELS[p.channel]}{p.via_demo ? " · démo" : ""}</td>
+                      <td>
+                        {CHANNEL_LABELS[p.channel]}
+                        {p.via_demo ? " · démo" : ""}
+                      </td>
                       <td>{p.first_method ?? "—"}</td>
-                      <td className="num">{p.carnets}{p.guest_of ? ` +${p.guest_of} inv.` : ""}</td>
+                      <td className="num">
+                        {p.carnets}
+                        {p.guest_of ? ` +${p.guest_of} inv.` : ""}
+                      </td>
                       <td className="num">{p.recipes_total}</td>
                       <td className="num">{p.recipes_28d}</td>
                       <td className="num">{p.active_days_28d}</td>
@@ -104,7 +134,11 @@ export default async function ExplorerPage({ searchParams }: { searchParams: Pro
 
         <div className="section">
           <SectionHead n="B" title="Carnets" q="Par nombre de recettes" />
-          <Card span={12} title={`${carnets.length} carnet${carnets.length > 1 ? "s" : ""} réels`} sub="Membres, invités en lecture, recettes, liens de partage, dernière activité via les membres">
+          <Card
+            span={12}
+            title={`${carnets.length} carnet${carnets.length > 1 ? "s" : ""} réels`}
+            sub="Membres, invités en lecture, recettes, liens de partage, dernière activité via les membres"
+          >
             <div style={{ overflowX: "auto" }}>
               <table className="list">
                 <thead>

@@ -63,7 +63,9 @@ describe("POST /api/activity/ping", () => {
   });
 
   it("records the app version when provided", async () => {
-    await POST(postRequest({ platform: "ios", appVersion: "55adf8d6456da1d13a647e6884e6acfb504e1d3f" }));
+    await POST(
+      postRequest({ platform: "ios", appVersion: "55adf8d6456da1d13a647e6884e6acfb504e1d3f" }),
+    );
     expect(payloadOf("daily_activity", "upsert").app_version).toBe(
       "55adf8d6456da1d13a647e6884e6acfb504e1d3f",
     );

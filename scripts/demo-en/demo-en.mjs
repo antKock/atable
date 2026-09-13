@@ -16,7 +16,14 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { ENV_FILES, confirmProd, dbClient, loadEnvLocal, rehostPhoto, restConfig } from "../lib/env.mjs";
+import {
+  ENV_FILES,
+  confirmProd,
+  dbClient,
+  loadEnvLocal,
+  rehostPhoto,
+  restConfig,
+} from "../lib/env.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const JSON_PATH = path.join(HERE, "recipes.en.json");
@@ -38,9 +45,14 @@ if (cmd === "translate") {
   const staging = loadEnvLocal(ENV_FILES.staging);
   const prodEnv = loadEnvLocal(ENV_FILES.prod);
   const sb = await dbClient(staging);
-  const { data: rows, error } = await sb.from("recipes")
-    .select("id,title,ingredients,steps,notes,prep_time,cook_time,cost,complexity,seasons,servings,generated_image_url,image_prompt,created_at,recipe_tags(tags(name))")
-    .eq("household_id", staging.DEMO_HOUSEHOLD_ID).eq("is_seed", true).order("created_at");
+  const { data: rows, error } = await sb
+    .from("recipes")
+    .select(
+      "id,title,ingredients,steps,notes,prep_time,cook_time,cost,complexity,seasons,servings,generated_image_url,image_prompt,created_at,recipe_tags(tags(name))",
+    )
+    .eq("household_id", staging.DEMO_HOUSEHOLD_ID)
+    .eq("is_seed", true)
+    .order("created_at");
   if (error) throw error;
   console.log(`source : ${rows.length} recettes seed FR (staging)`);
   const OpenAI = (await import("openai")).default;
@@ -51,23 +63,60 @@ Rules:
 - Keep the line structure: one ingredient per line, one step per line. A line starting with "// " is a section header: keep the "// " prefix and translate the header.
 - Title in Title Case (e.g. "Beef Bourguignon"). Keep well-known French dish names as commonly used in English ("Ratatouille", "Tarte Tatin", "Crêpes", "Gratin Dauphinois", "Tartiflette", "Tiramisu").
 - Do not add or remove ingredients or steps. No commentary. Return JSON only.`;
-  const schema = { name: "recipe_translation", strict: true, schema: { type: "object", additionalProperties: false, required: ["title", "ingredients", "steps", "notes"], properties: { title: { type: "string" }, ingredients: { type: ["string", "null"] }, steps: { type: ["string", "null"] }, notes: { type: ["string", "null"] } } } };
+  const schema = {
+    name: "recipe_translation",
+    strict: true,
+    schema: {
+      type: "object",
+      additionalProperties: false,
+      required: ["title", "ingredients", "steps", "notes"],
+      properties: {
+        title: { type: "string" },
+        ingredients: { type: ["string", "null"] },
+        steps: { type: ["string", "null"] },
+        notes: { type: ["string", "null"] },
+      },
+    },
+  };
   const out = [];
   let n = 0;
   for (const r of rows) {
     n++;
     const res = await openai.chat.completions.create({
-      model: "gpt-5.6-luna", reasoning_effort: "none",
+      model: "gpt-5.6-luna",
+      reasoning_effort: "none",
       response_format: { type: "json_schema", json_schema: schema },
-      messages: [{ role: "system", content: SYSTEM }, { role: "user", content: JSON.stringify({ title: r.title, ingredients: r.ingredients, steps: r.steps, notes: r.notes }) }],
+      messages: [
+        { role: "system", content: SYSTEM },
+        {
+          role: "user",
+          content: JSON.stringify({
+            title: r.title,
+            ingredients: r.ingredients,
+            steps: r.steps,
+            notes: r.notes,
+          }),
+        },
+      ],
     });
     const tr = JSON.parse(res.choices[0].message.content ?? "{}");
     out.push({
-      id: recipeId(n), source_fr_id: r.id, source_title_fr: r.title,
-      title: tr.title, ingredients: tr.ingredients, steps: tr.steps, notes: tr.notes,
-      prep_time: r.prep_time, cook_time: r.cook_time, cost: r.cost, complexity: r.complexity,
-      seasons: r.seasons, servings: r.servings, image_prompt: r.image_prompt,
-      generated_image_url: r.generated_image_url, tags: r.recipe_tags.map((rt) => rt.tags?.name).filter(Boolean),
+      id: recipeId(n),
+      source_fr_id: r.id,
+      source_title_fr: r.title,
+      title: tr.title,
+      ingredients: tr.ingredients,
+      steps: tr.steps,
+      notes: tr.notes,
+      prep_time: r.prep_time,
+      cook_time: r.cook_time,
+      cost: r.cost,
+      complexity: r.complexity,
+      seasons: r.seasons,
+      servings: r.servings,
+      image_prompt: r.image_prompt,
+      generated_image_url: r.generated_image_url,
+      tags: r.recipe_tags.map((rt) => rt.tags?.name).filter(Boolean),
     });
     console.log(`  ${n}/${rows.length} ${r.title} → ${tr.title}`);
   }
@@ -81,9 +130,14 @@ Rules:
   const host = new URL(restConfig(env).url).host;
   const recipes = JSON.parse(readFileSync(JSON_PATH, "utf8"));
   console.log(`${envName} (${host}) : ${recipes.length} recettes EN${dryRun ? " [dry-run]" : ""}`);
-  const { data: tags, error: tagsError } = await sb.from("tags").select("id,name").is("household_id", null);
+  const { data: tags, error: tagsError } = await sb
+    .from("tags")
+    .select("id,name")
+    .is("household_id", null);
   if (tagsError || !tags) {
-    console.error(`lecture des tags globaux (${envName}) impossible : ${tagsError?.message ?? "réponse vide"}`);
+    console.error(
+      `lecture des tags globaux (${envName}) impossible : ${tagsError?.message ?? "réponse vide"}`,
+    );
     process.exit(1);
   }
   const tagId = new Map(tags.map((t) => [t.name, t.id]));
@@ -92,38 +146,79 @@ Rules:
   // ré-héberge sur l'env cible.
   const stagingEnv = envName === "prod" ? loadEnvLocal(ENV_FILES.staging) : env;
   const rehost = (url) => rehostPhoto(url, stagingEnv, env);
-  if (dryRun) { for (const r of recipes) console.log(`  [dry] ${r.title} (${r.tags.length} tags)`); process.exit(0); }
+  if (dryRun) {
+    for (const r of recipes) console.log(`  [dry] ${r.title} (${r.tags.length} tags)`);
+    process.exit(0);
+  }
   await confirmProd("création / mise à jour du foyer démo EN", { envFile });
   // Codes d'invitation fixes et devinables : sans risque, resolveInviteCode
   // (src/lib/auth/invite-code.ts) filtre `is_demo = false` — un foyer démo
   // n'est jamais joignable par code, membre comme invité.
   const { error: hhErr } = await sb.from("households").upsert(
-    { id: DEMO_EN_HOUSEHOLD_ID, name: "Mijote Demo", join_code: "DEMO-0001", guest_join_code: "DEMOGUEST-0001", is_demo: true },
+    {
+      id: DEMO_EN_HOUSEHOLD_ID,
+      name: "Mijote Demo",
+      join_code: "DEMO-0001",
+      guest_join_code: "DEMOGUEST-0001",
+      is_demo: true,
+    },
     { onConflict: "id" },
   );
   if (hhErr) throw hhErr;
-  let missing = 0, links = 0;
+  let missing = 0,
+    links = 0;
   for (const [i, r] of recipes.entries()) {
     const image = rehost(r.generated_image_url);
-    if (image) { const head = await fetch(image, { method: "HEAD" }); if (!head.ok) { missing++; console.warn(`  image absente : ${r.title}`); } }
-    const { error } = await sb.from("recipes").upsert({
-      id: r.id, household_id: DEMO_EN_HOUSEHOLD_ID, is_seed: true,
-      title: r.title, ingredients: r.ingredients, steps: r.steps, notes: r.notes,
-      prep_time: r.prep_time, cook_time: r.cook_time, cost: r.cost, complexity: r.complexity,
-      seasons: r.seasons, servings: r.servings, image_prompt: r.image_prompt,
-      generated_image_url: image, image_status: image ? "done" : "none",
-      enrichment_status: "enriched", source: "manual", created_at: seedCreatedAt(i),
-    }, { onConflict: "id" });
+    if (image) {
+      const head = await fetch(image, { method: "HEAD" });
+      if (!head.ok) {
+        missing++;
+        console.warn(`  image absente : ${r.title}`);
+      }
+    }
+    const { error } = await sb.from("recipes").upsert(
+      {
+        id: r.id,
+        household_id: DEMO_EN_HOUSEHOLD_ID,
+        is_seed: true,
+        title: r.title,
+        ingredients: r.ingredients,
+        steps: r.steps,
+        notes: r.notes,
+        prep_time: r.prep_time,
+        cook_time: r.cook_time,
+        cost: r.cost,
+        complexity: r.complexity,
+        seasons: r.seasons,
+        servings: r.servings,
+        image_prompt: r.image_prompt,
+        generated_image_url: image,
+        image_status: image ? "done" : "none",
+        enrichment_status: "enriched",
+        source: "manual",
+        created_at: seedCreatedAt(i),
+      },
+      { onConflict: "id" },
+    );
     if (error) throw new Error(`${r.title}: ${error.message}`);
     const ids = r.tags.map((name) => tagId.get(name)).filter(Boolean);
     if (ids.length) {
-      const { error: tagErr } = await sb.from("recipe_tags").upsert(ids.map((tag_id) => ({ recipe_id: r.id, tag_id })), { onConflict: "recipe_id,tag_id" });
+      const { error: tagErr } = await sb.from("recipe_tags").upsert(
+        ids.map((tag_id) => ({ recipe_id: r.id, tag_id })),
+        { onConflict: "recipe_id,tag_id" },
+      );
       if (tagErr) throw new Error(`${r.title} tags: ${tagErr.message}`);
       links += ids.length;
     }
   }
-  const { count } = await sb.from("recipes").select("id", { count: "exact", head: true }).eq("household_id", DEMO_EN_HOUSEHOLD_ID).eq("is_seed", true);
-  console.log(`appliqué : ${recipes.length} recettes, ${links} liens de tags, ${missing} images manquantes — seed EN en base : ${count}`);
+  const { count } = await sb
+    .from("recipes")
+    .select("id", { count: "exact", head: true })
+    .eq("household_id", DEMO_EN_HOUSEHOLD_ID)
+    .eq("is_seed", true);
+  console.log(
+    `appliqué : ${recipes.length} recettes, ${links} liens de tags, ${missing} images manquantes — seed EN en base : ${count}`,
+  );
   console.log(`→ poser DEMO_HOUSEHOLD_ID_EN=${DEMO_EN_HOUSEHOLD_ID} dans l'env ${envName}`);
 } else {
   console.error("usage : demo-en.mjs translate | apply --env staging|prod [--dry-run]");

@@ -31,10 +31,7 @@ export default function ImportLoading() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(
-      () => setStep((p) => (p + 1) % order.length),
-      PHRASE_INTERVAL_MS,
-    );
+    const id = setInterval(() => setStep((p) => (p + 1) % order.length), PHRASE_INTERVAL_MS);
     return () => clearInterval(id);
   }, [order.length]);
 

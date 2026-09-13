@@ -171,10 +171,12 @@ Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchée
   *`bench/results/` n'était pas suivi par git (local seulement) — rien à retirer du repo.*
 - [x] Exports morts : `transcriptionCostUsd` (`src/lib/ai-cost.ts:70`), `monthLabel`
   (`src/lib/admin/v3/weeks.ts:66`). Commentaire obsolète `ai-cost.ts:16` (RPC v2).
-- [ ] Prettier + passe unique + `--check` en CI (deux styles coexistent : 17 fichiers
+- [x] Prettier + passe unique + `--check` en CI (deux styles coexistent : 17 fichiers
   quotes simples / sans point-virgule contre 18, rien que dans l'API). *`NextRequest`
-  partout et forme d'erreur `{ error, code? }` typée (`ApiErrorBody`, lib/api/body.ts) :
-  faits. Prettier : PR à part (diff massif), voir ci-dessous.*
+  partout et forme d'erreur `{ error, code? }` typée (`ApiErrorBody`, lib/api/body.ts).
+  Prettier 3 (`.prettierrc.json` : 100 col., double quotes, point-virgule, virgule finale),
+  `npm run format` / `format:check`, étape « Format » dans `ci.yml` et `deploy.yml`, passe
+  unique sur 308 fichiers (PR à part).*
 - [x] `tsconfig.json` : `target: "ES2022"`, purger les `include` `.next-*` accumulés.
 - [x] Rangement : `DeepLinkHandler.tsx` et `VersionWatcher.tsx` → `components/providers/` ;
   `components/app/` → `components/hints/` ; sous-découper `components/recipes/` (30

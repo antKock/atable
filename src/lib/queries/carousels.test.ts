@@ -89,10 +89,7 @@ describe("fetchCarouselSections", () => {
   });
 
   it("excludes never-opened recipes from Les plus vues", async () => {
-    const rows = [
-      mockRecipeRow({ view_count: 0 }),
-      mockRecipeRow({ view_count: 3 }),
-    ];
+    const rows = [mockRecipeRow({ view_count: 0 }), mockRecipeRow({ view_count: 3 })];
     const supabase = mockSupabase(rows);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sections = await fetchCarouselSections(supabase as any, ["hh-1"]);

@@ -28,8 +28,7 @@ export interface VoiceRecorderState {
 // avoid hydration mismatch; client snapshot reads the real APIs.
 const noopSubscribe = () => () => {};
 const detectMediaSupport = () =>
-  typeof MediaRecorder !== "undefined" &&
-  !!navigator.mediaDevices?.getUserMedia;
+  typeof MediaRecorder !== "undefined" && !!navigator.mediaDevices?.getUserMedia;
 const ssrMediaSupport = () => false;
 
 /** Détection seule (sans enregistreur) — le sélecteur d'import s'en sert pour

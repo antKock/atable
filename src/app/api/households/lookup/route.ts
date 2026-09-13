@@ -1,56 +1,47 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { headers } from 'next/headers'
-import { getClientIp } from '@/lib/request-ip'
-import { createServerClient } from '@/lib/supabase/server'
-import { JoinCodeSchema } from '@/lib/schemas/household'
-import { resolveInviteCode } from '@/lib/auth/invite-code'
-import { joinRateLimit, joinCodeRateLimit } from '@/lib/redis'
-import { getT } from '@/lib/i18n/server'
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { getClientIp } from "@/lib/request-ip";
+import { createServerClient } from "@/lib/supabase/server";
+import { JoinCodeSchema } from "@/lib/schemas/household";
+import { resolveInviteCode } from "@/lib/auth/invite-code";
+import { joinRateLimit, joinCodeRateLimit } from "@/lib/redis";
+import { getT } from "@/lib/i18n/server";
 
 export async function GET(request: NextRequest) {
-  const t = await getT()
-  const code = request.nextUrl.searchParams.get('code') ?? ''
+  const t = await getT();
+  const code = request.nextUrl.searchParams.get("code") ?? "";
 
-  const result = JoinCodeSchema.safeParse(code)
+  const result = JoinCodeSchema.safeParse(code);
   if (!result.success) {
-    return NextResponse.json({ error: t.api.codeInvalidFormat }, { status: 400 })
+    return NextResponse.json({ error: t.api.codeInvalidFormat }, { status: 400 });
   }
 
   // Rate limiting
-  const hdrs = await headers()
-  const ip = getClientIp(hdrs)
-  const { success } = await joinRateLimit.limit(ip)
+  const hdrs = await headers();
+  const ip = getClientIp(hdrs);
+  const { success } = await joinRateLimit.limit(ip);
   if (!success) {
-    return NextResponse.json(
-      { error: t.join.rateLimited },
-      { status: 429 }
-    )
+    return NextResponse.json({ error: t.join.rateLimited }, { status: 429 });
   }
 
   // Global per-code limit: stops a distributed brute-force that rotates IPs
-  const { success: codeAllowed } = await joinCodeRateLimit.limit(result.data)
+  const { success: codeAllowed } = await joinCodeRateLimit.limit(result.data);
   if (!codeAllowed) {
-    return NextResponse.json(
-      { error: t.join.rateLimited },
-      { status: 429 }
-    )
+    return NextResponse.json({ error: t.join.rateLimited }, { status: 429 });
   }
 
-  const supabase = createServerClient()
+  const supabase = createServerClient();
   // Résout contre join_code OU guest_join_code : le rôle porté par le code est
   // renvoyé pour que l'écran de confirmation affiche la bonne copy (Lot 3).
-  const invite = await resolveInviteCode(supabase, result.data)
+  const invite = await resolveInviteCode(supabase, result.data);
 
   if (!invite) {
-    return NextResponse.json(
-      { error: t.join.notFound },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: t.join.notFound }, { status: 404 });
   }
 
   return NextResponse.json({
     householdId: invite.householdId,
     householdName: invite.householdName,
     role: invite.role,
-  })
+  });
 }

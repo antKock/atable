@@ -73,7 +73,15 @@ describe("GET /api/recipes/[id]", () => {
 describe("PUT /api/recipes/[id]", () => {
   it("updates an existing recipe", async () => {
     supa.queueResults([
-      { data: { id: "recipe-1", title: "Old", ingredients: null, steps: null, household_id: "household-1" } },
+      {
+        data: {
+          id: "recipe-1",
+          title: "Old",
+          ingredients: null,
+          steps: null,
+          household_id: "household-1",
+        },
+      },
       { data: recipeDbRow({ title: "Nouveau titre" }), error: null },
     ]);
     const res = await PUT(req("PUT", { title: "Nouveau titre" }), ctx());
@@ -97,10 +105,7 @@ describe("DELETE /api/recipes/[id]", () => {
   const LEGACY = "https://x.supabase.co/storage/v1/object/public/recipe-photos";
 
   it("deletes a recipe and returns 204", async () => {
-    supa.queueResults([
-      { data: { id: "recipe-1", household_id: "household-1" } },
-      { error: null },
-    ]);
+    supa.queueResults([{ data: { id: "recipe-1", household_id: "household-1" } }, { error: null }]);
     const res = await DELETE(req("DELETE"), ctx());
     expect(res.status).toBe(204);
   });
@@ -125,7 +130,13 @@ describe("DELETE /api/recipes/[id]", () => {
 
   it("répond 204 même si la purge du stockage échoue (la ligne est déjà partie)", async () => {
     supa.queueResults([
-      { data: { id: "recipe-1", household_id: "household-1", photo_url: `${LEGACY}/h/r/photo.webp` } },
+      {
+        data: {
+          id: "recipe-1",
+          household_id: "household-1",
+          photo_url: `${LEGACY}/h/r/photo.webp`,
+        },
+      },
       { error: null },
     ]);
     vi.mocked(purgeRecipePhotos).mockRejectedValueOnce(new Error("s3 down"));

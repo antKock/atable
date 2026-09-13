@@ -19,9 +19,7 @@ describe("Navigation", () => {
 
   it("renders links pointing to correct hrefs", () => {
     const { container } = render(<Navigation />);
-    const hrefs = Array.from(container.querySelectorAll("a")).map((a) =>
-      a.getAttribute("href")
-    );
+    const hrefs = Array.from(container.querySelectorAll("a")).map((a) => a.getAttribute("href"));
     expect(hrefs).toContain("/home");
     expect(hrefs).toContain("/library");
     expect(hrefs).toContain("/recipes/new");

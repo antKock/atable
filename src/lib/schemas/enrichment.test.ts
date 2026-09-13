@@ -24,9 +24,7 @@ describe("EnrichmentResponseSchema", () => {
   });
 
   it("accepts an empty tags array", () => {
-    expect(EnrichmentResponseSchema.safeParse({ ...valid, tags: [] }).success).toBe(
-      true,
-    );
+    expect(EnrichmentResponseSchema.safeParse({ ...valid, tags: [] }).success).toBe(true);
   });
 
   it("rejects more than 10 tags", () => {
@@ -35,21 +33,19 @@ describe("EnrichmentResponseSchema", () => {
   });
 
   it("rejects an invalid season", () => {
-    expect(
-      EnrichmentResponseSchema.safeParse({ ...valid, seasons: ["spring"] }).success,
-    ).toBe(false);
+    expect(EnrichmentResponseSchema.safeParse({ ...valid, seasons: ["spring"] }).success).toBe(
+      false,
+    );
   });
 
   it("rejects an invalid complexity", () => {
-    expect(
-      EnrichmentResponseSchema.safeParse({ ...valid, complexity: "easy" }).success,
-    ).toBe(false);
+    expect(EnrichmentResponseSchema.safeParse({ ...valid, complexity: "easy" }).success).toBe(
+      false,
+    );
   });
 
   it("rejects a null prepTime (required, not nullable)", () => {
-    expect(
-      EnrichmentResponseSchema.safeParse({ ...valid, prepTime: null }).success,
-    ).toBe(false);
+    expect(EnrichmentResponseSchema.safeParse({ ...valid, prepTime: null }).success).toBe(false);
   });
 
   it("rejects a missing imagePrompt", () => {

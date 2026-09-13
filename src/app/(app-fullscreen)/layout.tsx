@@ -1,17 +1,17 @@
-import { redirect } from 'next/navigation'
-import { Toaster } from '@/components/ui/sonner'
-import DeviceTokenProvider from '@/components/layout/DeviceTokenProvider'
-import { getOwnerContext } from '@/lib/auth/owner-context'
+import { redirect } from "next/navigation";
+import { Toaster } from "@/components/ui/sonner";
+import DeviceTokenProvider from "@/components/layout/DeviceTokenProvider";
+import { getOwnerContext } from "@/lib/auth/owner-context";
 
 export default async function FullscreenShell({ children }: { children: React.ReactNode }) {
   // Même garde que (app)/layout : le JWT a passé le proxy, mais la
   // session doit se résoudre en owner en DB — sinon déconnexion propre.
   // (Erreur DB → propage vers l'error boundary, pas de purge de cookie.)
-  const owner = await getOwnerContext()
+  const owner = await getOwnerContext();
   // Session inconnue OU owner sans appartenance (retrait de membre, Lot 3) :
   // déconnexion propre — sinon un owner orphelin lirait encore une fiche par
   // URL directe via le hid vestigial du JWT. Cf. (app)/layout.tsx.
-  if (!owner || owner.memberships.length === 0) redirect('/api/auth/session/clear')
+  if (!owner || owner.memberships.length === 0) redirect("/api/auth/session/clear");
 
   return (
     <>
@@ -19,15 +19,15 @@ export default async function FullscreenShell({ children }: { children: React.Re
       <main
         className="min-h-screen"
         style={{
-          paddingTop: 'env(safe-area-inset-top)',
+          paddingTop: "env(safe-area-inset-top)",
           // Dégage la barre système Android (edge-to-edge) sous le contenu de
           // bas de page. Les formulaires gèrent en plus leur propre footer.
-          paddingBottom: 'env(safe-area-inset-bottom)',
+          paddingBottom: "env(safe-area-inset-bottom)",
         }}
       >
         {children}
       </main>
       <Toaster />
     </>
-  )
+  );
 }

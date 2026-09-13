@@ -93,17 +93,13 @@ describe("resolveOwnerContext", () => {
     supa.queueResult({
       data: sessionRow({
         owners: {
-          memberships: [
-            { household_id: "hh-demo", role: "guest", households: { is_demo: true } },
-          ],
+          memberships: [{ household_id: "hh-demo", role: "guest", households: { is_demo: true } }],
         },
       }),
       error: null,
     });
     const ctx = await resolveOwnerContext("session-1");
-    expect(ctx?.memberships).toEqual([
-      { householdId: "hh-demo", role: "guest", isDemo: true },
-    ]);
+    expect(ctx?.memberships).toEqual([{ householdId: "hh-demo", role: "guest", isDemo: true }]);
   });
 
   it("session inconnue → null", async () => {

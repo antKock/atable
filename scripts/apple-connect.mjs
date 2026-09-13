@@ -17,24 +17,24 @@
 //   node scripts/apple-connect.mjs analytics-instances <reportId>
 //   node scripts/apple-connect.mjs analytics-download <instanceId>
 
-import { loadEnvLocal } from './lib/env.mjs';
-import { createAppleConnectClient, credentialsFromEnv } from '../src/lib/apple-connect/client.ts';
+import { loadEnvLocal } from "./lib/env.mjs";
+import { createAppleConnectClient, credentialsFromEnv } from "../src/lib/apple-connect/client.ts";
 
 const [cmd, arg1, arg2] = process.argv.slice(2);
-loadEnvLocal('.env.local');
+loadEnvLocal(".env.local");
 
 const { api, downloadInstance } = createAppleConnectClient(credentialsFromEnv());
 
 switch (cmd) {
-  case 'apps': {
-    const data = await api('/v1/apps');
+  case "apps": {
+    const data = await api("/v1/apps");
     for (const app of data.data) {
       console.log(`${app.id}  ${app.attributes.bundleId}  ${app.attributes.name}`);
     }
     break;
   }
 
-  case 'get': {
+  case "get": {
     const data = await api(arg1);
     console.log(JSON.stringify(data, null, 2));
     break;
@@ -43,16 +43,18 @@ switch (cmd) {
   // Écriture générique : corps JSON:API lu sur stdin.
   //   echo '{"data":{...}}' | node scripts/apple-connect.mjs post /v1/appInfoLocalizations
   //   echo '{"data":{...}}' | node scripts/apple-connect.mjs patch /v1/appInfoLocalizations/<id>
-  case 'post':
-  case 'patch': {
+  case "post":
+  case "patch": {
     const raw = await new Promise((resolve) => {
-      let buf = '';
-      process.stdin.setEncoding('utf8');
-      process.stdin.on('data', (c) => (buf += c));
-      process.stdin.on('end', () => resolve(buf));
+      let buf = "";
+      process.stdin.setEncoding("utf8");
+      process.stdin.on("data", (c) => (buf += c));
+      process.stdin.on("end", () => resolve(buf));
     });
     if (!raw.trim()) {
-      console.error(`corps JSON attendu sur stdin (echo '{"data":{…}}' | node scripts/apple-connect.mjs ${cmd} ${arg1 ?? '<path>'})`);
+      console.error(
+        `corps JSON attendu sur stdin (echo '{"data":{…}}' | node scripts/apple-connect.mjs ${cmd} ${arg1 ?? "<path>"})`,
+      );
       process.exit(1);
     }
     let body;
@@ -67,14 +69,14 @@ switch (cmd) {
     break;
   }
 
-  case 'analytics-create': {
-    const data = await api('/v1/analyticsReportRequests', {
-      method: 'POST',
+  case "analytics-create": {
+    const data = await api("/v1/analyticsReportRequests", {
+      method: "POST",
       body: {
         data: {
-          type: 'analyticsReportRequests',
-          attributes: { accessType: arg2 || 'ONE_TIME_SNAPSHOT' },
-          relationships: { app: { data: { type: 'apps', id: arg1 } } },
+          type: "analyticsReportRequests",
+          attributes: { accessType: arg2 || "ONE_TIME_SNAPSHOT" },
+          relationships: { app: { data: { type: "apps", id: arg1 } } },
         },
       },
     });
@@ -82,16 +84,18 @@ switch (cmd) {
     break;
   }
 
-  case 'analytics-requests': {
+  case "analytics-requests": {
     const data = await api(`/v1/apps/${arg1}/analyticsReportRequests`);
     for (const r of data.data) {
-      console.log(`${r.id}  ${r.attributes.accessType}  stoppedDueToInactivity=${r.attributes.stoppedDueToInactivity}`);
+      console.log(
+        `${r.id}  ${r.attributes.accessType}  stoppedDueToInactivity=${r.attributes.stoppedDueToInactivity}`,
+      );
     }
     break;
   }
 
-  case 'analytics-reports': {
-    const params = arg2 ? `?filter[category]=${encodeURIComponent(arg2)}` : '?limit=200';
+  case "analytics-reports": {
+    const params = arg2 ? `?filter[category]=${encodeURIComponent(arg2)}` : "?limit=200";
     const data = await api(`/v1/analyticsReportRequests/${arg1}/reports${params}`);
     for (const r of data.data) {
       console.log(`${r.id}  [${r.attributes.category}]  ${r.attributes.name}`);
@@ -99,7 +103,7 @@ switch (cmd) {
     break;
   }
 
-  case 'analytics-instances': {
+  case "analytics-instances": {
     const data = await api(`/v1/analyticsReports/${arg1}/instances`);
     for (const i of data.data) {
       console.log(`${i.id}  ${i.attributes.granularity}  ${i.attributes.processingDate}`);
@@ -107,12 +111,12 @@ switch (cmd) {
     break;
   }
 
-  case 'analytics-download': {
+  case "analytics-download": {
     process.stdout.write(await downloadInstance(arg1));
     break;
   }
 
   default:
-    console.error('Commande inconnue. Voir l’en-tête du script pour l’usage.');
+    console.error("Commande inconnue. Voir l’en-tête du script pour l’usage.");
     process.exit(1);
 }

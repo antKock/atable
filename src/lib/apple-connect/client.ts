@@ -23,10 +23,14 @@ export type AppleConnectCredentials = {
 };
 
 /** Lit les identifiants dans l'environnement ; lève si une variable manque. */
-export function credentialsFromEnv(env: Record<string, string | undefined> = process.env): AppleConnectCredentials {
+export function credentialsFromEnv(
+  env: Record<string, string | undefined> = process.env,
+): AppleConnectCredentials {
   const { APPLE_CONNECT_KEY, APPLE_CONNECT_KEY_ID, APPLE_CONNECT_ISSUER_ID } = env;
   if (!APPLE_CONNECT_KEY || !APPLE_CONNECT_KEY_ID || !APPLE_CONNECT_ISSUER_ID) {
-    throw new Error("Variables APPLE_CONNECT_KEY / APPLE_CONNECT_KEY_ID / APPLE_CONNECT_ISSUER_ID manquantes");
+    throw new Error(
+      "Variables APPLE_CONNECT_KEY / APPLE_CONNECT_KEY_ID / APPLE_CONNECT_ISSUER_ID manquantes",
+    );
   }
   return { key: APPLE_CONNECT_KEY, keyId: APPLE_CONNECT_KEY_ID, issuerId: APPLE_CONNECT_ISSUER_ID };
 }
@@ -36,7 +40,10 @@ function b64url(input: string | Buffer): string {
 }
 
 /** JWT App Store Connect (ES256, 15 min), signé avec la clé .p8 (DER pkcs8 en base64). */
-export function makeToken(creds: AppleConnectCredentials, now: number = Math.floor(Date.now() / 1000)): string {
+export function makeToken(
+  creds: AppleConnectCredentials,
+  now: number = Math.floor(Date.now() / 1000),
+): string {
   const key = createPrivateKey({
     key: Buffer.from(creds.key, "base64"),
     format: "der",
@@ -45,7 +52,9 @@ export function makeToken(creds: AppleConnectCredentials, now: number = Math.flo
   const header = { alg: "ES256", kid: creds.keyId, typ: "JWT" };
   const payload = { iss: creds.issuerId, iat: now, exp: now + 15 * 60, aud: "appstoreconnect-v1" };
   const signingInput = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(payload))}`;
-  const signature = createSign("SHA256").update(signingInput).sign({ key, dsaEncoding: "ieee-p1363" });
+  const signature = createSign("SHA256")
+    .update(signingInput)
+    .sign({ key, dsaEncoding: "ieee-p1363" });
   return `${signingInput}.${b64url(signature)}`;
 }
 
@@ -67,7 +76,10 @@ export function createAppleConnectClient(
   creds: AppleConnectCredentials,
   fetchImpl: FetchLike = (input, init) => fetch(input, init),
 ): AppleConnectClient {
-  async function api<T>(pathOrUrl: string, init: { method?: string; body?: unknown } = {}): Promise<T> {
+  async function api<T>(
+    pathOrUrl: string,
+    init: { method?: string; body?: unknown } = {},
+  ): Promise<T> {
     const url = pathOrUrl.startsWith("http") ? pathOrUrl : `${APPLE_CONNECT_API}${pathOrUrl}`;
     const host = new URL(url).host;
     if (host !== API_HOST) {
@@ -112,7 +124,10 @@ export type ReportInstance = { id: string; granularity: string; processingDate: 
 type JsonApiList<A> = { data: { id: string; attributes: A }[]; links?: { next?: string } };
 
 /** Suit les liens `next` d'une collection JSON:API. */
-async function listAll<A>(client: AppleConnectClient, firstPath: string): Promise<{ id: string; attributes: A }[]> {
+async function listAll<A>(
+  client: AppleConnectClient,
+  firstPath: string,
+): Promise<{ id: string; attributes: A }[]> {
   const out: { id: string; attributes: A }[] = [];
   let next: string | undefined = firstPath;
   while (next) {
@@ -124,20 +139,31 @@ async function listAll<A>(client: AppleConnectClient, firstPath: string): Promis
 }
 
 /** Id de la requête ONGOING (quotidienne) de l'app — la seule voie « données fraîches ». */
-export async function findOngoingRequestId(client: AppleConnectClient, appId: string): Promise<string> {
+export async function findOngoingRequestId(
+  client: AppleConnectClient,
+  appId: string,
+): Promise<string> {
   const requests = await listAll<{ accessType: string; stoppedDueToInactivity: boolean }>(
     client,
     `/v1/apps/${appId}/analyticsReportRequests`,
   );
-  const ongoing = requests.find((r) => r.attributes.accessType === "ONGOING" && !r.attributes.stoppedDueToInactivity);
+  const ongoing = requests.find(
+    (r) => r.attributes.accessType === "ONGOING" && !r.attributes.stoppedDueToInactivity,
+  );
   if (!ongoing) {
-    throw new Error(`aucune requête analytics ONGOING active pour l'app ${appId} (analytics-create <appId> ONGOING)`);
+    throw new Error(
+      `aucune requête analytics ONGOING active pour l'app ${appId} (analytics-create <appId> ONGOING)`,
+    );
   }
   return ongoing.id;
 }
 
 /** Id du rapport nommé (ex. « App Downloads Standard ») dans une requête. */
-export async function findReportId(client: AppleConnectClient, requestId: string, name: string): Promise<string> {
+export async function findReportId(
+  client: AppleConnectClient,
+  requestId: string,
+  name: string,
+): Promise<string> {
   const reports = await listAll<{ name: string; category: string }>(
     client,
     `/v1/analyticsReportRequests/${requestId}/reports?filter[name]=${encodeURIComponent(name)}`,
@@ -148,13 +174,20 @@ export async function findReportId(client: AppleConnectClient, requestId: string
 }
 
 /** Instances DAILY d'un rapport, triées par processingDate croissante. */
-export async function listDailyInstances(client: AppleConnectClient, reportId: string): Promise<ReportInstance[]> {
+export async function listDailyInstances(
+  client: AppleConnectClient,
+  reportId: string,
+): Promise<ReportInstance[]> {
   const instances = await listAll<{ granularity: string; processingDate: string }>(
     client,
     `/v1/analyticsReports/${reportId}/instances?filter[granularity]=DAILY&limit=200`,
   );
   return instances
-    .map((i) => ({ id: i.id, granularity: i.attributes.granularity, processingDate: i.attributes.processingDate }))
+    .map((i) => ({
+      id: i.id,
+      granularity: i.attributes.granularity,
+      processingDate: i.attributes.processingDate,
+    }))
     .filter((i) => i.granularity === "DAILY")
     .sort((a, b) => a.processingDate.localeCompare(b.processingDate));
 }

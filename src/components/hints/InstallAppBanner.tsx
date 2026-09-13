@@ -7,8 +7,7 @@ import { useT } from "@/lib/i18n/client";
 import MiniStrip from "@/components/hints/MiniStrip";
 
 // Canonical App Store listing for Mijote (id 6772487648).
-const APP_STORE_URL =
-  "https://apps.apple.com/fr/app/mijote-tes-recettes/id6772487648";
+const APP_STORE_URL = "https://apps.apple.com/fr/app/mijote-tes-recettes/id6772487648";
 const DISMISS_COOKIE = "mijote_install_dismissed";
 const DISMISS_MAX_AGE = 60 * 60 * 24 * 180; // 180 days
 
@@ -87,12 +86,8 @@ export default function InstallAppBanner({ code }: Props) {
         <X size={16} />
       </button>
 
-      <p className="pr-8 text-sm font-semibold text-foreground">
-        {t.installBanner.codeTitle}
-      </p>
-      <p className="mt-0.5 text-xs text-muted-foreground">
-        {t.installBanner.codeBody}
-      </p>
+      <p className="pr-8 text-sm font-semibold text-foreground">{t.installBanner.codeTitle}</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{t.installBanner.codeBody}</p>
       <button
         type="button"
         onClick={copyCode}

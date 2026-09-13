@@ -51,8 +51,12 @@ describe("dictionnaires fr / en", () => {
   });
 
   it("mêmes feuilles (parité structurelle, client + serveur)", () => {
-    const frPaths = leaves(fr).map((l) => l.path).sort();
-    const enPaths = leaves(en).map((l) => l.path).sort();
+    const frPaths = leaves(fr)
+      .map((l) => l.path)
+      .sort();
+    const enPaths = leaves(en)
+      .map((l) => l.path)
+      .sort();
     expect(enPaths).toEqual(frPaths);
   });
 

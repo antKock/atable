@@ -11,16 +11,11 @@
     "cook_time": "1h - 2h",
     "cost": "€€",
     "complexity": "moyen",
-    "seasons": [
-      "hiver"
-    ],
+    "seasons": ["hiver"],
     "servings": null,
     "image_prompt": "A beautifully presented Veal Blanquette in a white ceramic bowl, featuring tender veal chunks coated in a creamy, pale sauce. The dish is garnished with sliced carrots and a sprinkle of finely chopped parsley. The bowl is set on a rustic wooden table, highlighting the warmth of the dish. The background is softly blurred, emphasizing the creamy texture and inviting appearance of the veal.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000013/ai-image.webp",
-    "tags": [
-      "Française",
-      "Plat principal"
-    ]
+    "tags": ["Française", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e002",
@@ -34,21 +29,11 @@
     "cook_time": "1h - 2h",
     "cost": "€€",
     "complexity": "moyen",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A beautiful bowl of beef bourguignon, rich in deep red wine sauce, garnished with finely chopped parsley. The dish features tender chunks of beef, lardons, and sliced mushrooms, with a glossy finish from the sauce. The vibrant colors of the carrots and onions peek through, set against a rustic wooden table background, captured from a top-down angle.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/ea9ce007-bf10-4cce-a354-39a73b2c88cf/ai-image.webp",
-    "tags": [
-      "Bœuf",
-      "En batch",
-      "Française",
-      "Comfort food",
-      "Plat principal",
-      "Repas de fête"
-    ]
+    "tags": ["Bœuf", "En batch", "Française", "Comfort food", "Plat principal", "Repas de fête"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e003",
@@ -62,18 +47,11 @@
     "cook_time": "15-30 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "ete"
-    ],
+    "seasons": ["ete"],
     "servings": null,
     "image_prompt": "A delicious homemade burger displayed on a wooden board. The burger features a golden toasted bun, a perfectly cooked beef patty with melted cheddar cheese on top. Fresh green lettuce, sliced red onion, and juicy red tomato slices are visible, adding vibrant colors. Ketchup and mustard are artistically drizzled on the side of the plate. The burger is presented in an inviting manner, ready to be enjoyed.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000017/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Américaine",
-      "Comfort food",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Américaine", "Comfort food", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e004",
@@ -87,20 +65,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "hiver",
-      "automne"
-    ],
+    "seasons": ["hiver", "automne"],
     "servings": null,
     "image_prompt": "A hearty bowl of Chili con carne with ground beef, kidney beans, and diced tomatoes. The dish is garnished with bits of red bell pepper and a sprinkle of spices. The bowl is rustic and set on a wooden table with a warm, inviting color palette of reds and browns. The dish is steaming slightly, suggesting it's hot and freshly made, viewed from a slight angle to capture the textures and colors.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000015/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Méditerranéenne",
-      "Bœuf",
-      "Rapide",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Méditerranéenne", "Bœuf", "Rapide", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e005",
@@ -114,20 +83,11 @@
     "cook_time": "< 15 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["printemps", "ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A close-up view of freshly baked chocolate chip cookies arranged neatly on a baking tray, golden brown edges with gooey chocolate chips melting slightly, warm and inviting with a soft texture. The background is lightly blurred to focus on the cookies, emphasizing their texture and color.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000030/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Dessert"
-    ]
+    "tags": ["Facile", "Végétarien", "Dessert"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e006",
@@ -141,18 +101,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€€",
     "complexity": "moyen",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A vibrant dish featuring golden chicken thighs and grilled merguez sausages on a bed of fluffy couscous. The couscous is topped with a colorful medley of chunky carrots, zucchini, turnips, and chickpeas, all bathed in a fragrant broth. The scene is garnished with spices, emphasizing the dish's robust flavors, presented in a large rustic bowl, from a slightly elevated angle.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000016/ai-image.webp",
-    "tags": [
-      "Africaine",
-      "Végétarien",
-      "Plat principal"
-    ]
+    "tags": ["Africaine", "Végétarien", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e007",
@@ -166,23 +119,11 @@
     "cook_time": "< 15 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["printemps", "ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A stack of golden-brown Breton crêpes served on a rustic wooden plate, drizzled with melted butter and dusted with sugar. A small jar of strawberry jam is placed beside the plate, adding a pop of red color. The scene is slightly top-down, showcasing the texture of the crêpes and the inviting presentation on a textured linen tablecloth.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/f3b3410e-1670-4443-880a-40ee5b8d88ef/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Végétarien",
-      "Petit-déjeuner",
-      "Plat principal",
-      "Dessert"
-    ]
+    "tags": ["Facile", "Rapide", "Végétarien", "Petit-déjeuner", "Plat principal", "Dessert"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e008",
@@ -196,12 +137,7 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["printemps", "ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A vibrant bowl of chickpea curry featuring creamy coconut milk and vibrant red tomatoes. The curry is garnished with fresh chopped cilantro, and you can see pieces of onion, garlic, and ginger. The dish is served in a rustic bowl with a side of fluffy white rice and a wooden spoon, all sitting on a simple, textured tablecloth. The colors are warm and inviting, with hints of yellow from the curry, green from the cilantro, and red from the tomatoes.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000022/ai-image.webp",
@@ -227,20 +163,11 @@
     "cook_time": "< 15 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A delicious plate of creamy gnocchi, topped with grated parmesan cheese, served in a shallow white dish. The gnocchi are plump and coated in a smooth white cream sauce, flecked with golden bits of sautéed garlic. A sprinkle of grated nutmeg adds a touch of warmth, while a drizzle of olive oil glistens on the surface. The plate is set on a rustic wooden table, with a few scattered cheese shavings around it.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000021/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Française",
-      "Comfort food",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Végétarien", "Française", "Comfort food", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e010",
@@ -254,20 +181,11 @@
     "cook_time": "1h - 2h",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A golden-brown gratin dauphinois served in a rustic ceramic dish, with layers of creamy potato slices visible, garnished with a sprinkle of nutmeg on top. The dish is placed on a wooden table, with some fresh herbs around for decoration, and soft light highlighting its creamy texture.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/427ab9ca-440c-4de5-830c-9aee3bcd473a/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Française",
-      "Accompagnement",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Végétarien", "Française", "Accompagnement", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e011",
@@ -281,10 +199,7 @@
     "cook_time": "30 min - 1h",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "hiver",
-      "automne"
-    ],
+    "seasons": ["hiver", "automne"],
     "servings": null,
     "image_prompt": "A rectangular dish of lasagna freshly baked, with layers visible of rich meaty bolognese sauce and creamy béchamel. Topped with a golden, bubbly layer of grated parmesan. The lasagna is garnished with a light drizzle of olive oil, served on a wooden surface. The dish is presented at a slight angle to emphasize the layers, inviting and hearty, with warm shades of orange and brown.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000019/ai-image.webp",
@@ -310,18 +225,11 @@
     "cook_time": "< 15 min",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A beautifully plated duck breast with crispy skin, sliced to show its pink interior, drizzled with a glossy honey sauce. The dish is presented on a white plate, with the rich brown sauce pooling around the duck. The colors are warm and inviting, with the golden hue of the honey contrasting against the dark, savory tones of the duck. The setting is simple and elegant, shot from a slightly elevated angle.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000014/ai-image.webp",
-    "tags": [
-      "Sauce / Condiment",
-      "Française",
-      "Plat principal"
-    ]
+    "tags": ["Sauce / Condiment", "Française", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e013",
@@ -335,17 +243,11 @@
     "cook_time": "Aucune",
     "cost": "€€€",
     "complexity": "moyen",
-    "seasons": [
-      "ete"
-    ],
+    "seasons": ["ete"],
     "servings": null,
     "image_prompt": "A beautifully plated chocolate mousse in a glass serving dish, showcasing a rich dark chocolate color topped with a light dusting of cocoa powder. The mousse is fluffy and airy, with a smooth texture. Garnished with a sprig of mint and small chocolate shavings on the top. The background is softly blurred, emphasizing the dessert, with natural light illuminating the glass.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/d18fbb9d-1943-4e1c-a144-de46e15a753c/ai-image.webp",
-    "tags": [
-      "Rapide",
-      "Végétarien",
-      "Dessert"
-    ]
+    "tags": ["Rapide", "Végétarien", "Dessert"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e014",
@@ -359,21 +261,11 @@
     "cook_time": "< 15 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["printemps", "ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A close-up view of a fluffy omelette folded over, filled with vibrant green chopped herbs like parsley and chives. The omelette is golden yellow with a slight sheen from the butter, resting on a clean white plate. The background is softly blurred, emphasizing the texture and colors of the omelette with a hint of seasoning visible.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000027/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Petit-déjeuner",
-      "Œufs"
-    ]
+    "tags": ["Facile", "Végétarien", "Petit-déjeuner", "Œufs"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e015",
@@ -387,17 +279,11 @@
     "cook_time": "< 15 min",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "ete"
-    ],
+    "seasons": ["ete"],
     "servings": null,
     "image_prompt": "A beautifully arranged plate of Pad Thaï with shrimp, showcasing the rice noodles stir-fried with vegetables. The dish is garnished with crushed peanuts and sliced green onions. The vibrant colors of the white noodles, pink shrimp, and green sprouts are prominent. The lime is cut in half, placed beside the dish for freshness. The scene is viewed from the top angle, making it eye-catching and appetizing.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000020/ai-image.webp",
-    "tags": [
-      "Asiatique",
-      "Végan",
-      "Plat principal"
-    ]
+    "tags": ["Asiatique", "Végan", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e016",
@@ -411,18 +297,11 @@
     "cook_time": "1h - 2h",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A beautifully roasted whole chicken with golden-brown skin, garnished with fresh herbs like rosemary and thyme. There are two lemon halves inside the cavity, and the chicken is resting on a wooden cutting board, surrounded by sprigs of herbs. The background features a rustic kitchen setting with warm lighting, creating a cozy atmosphere.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/84ec4b1e-f8fa-4e7f-9370-f91e390f7f22/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Poulet",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Poulet", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e017",
@@ -436,20 +315,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["printemps", "ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A freshly baked Quiche Lorraine on a wooden table, golden-brown crust with crispy lardons visible on the top, garnished with a sprinkle of fresh herbs. The slice of quiche reveals a creamy filling with a hint of nutmeg. The dish is presented on a rustic ceramic pie plate, with a fork and a side salad in the background. Natural light enhances the colors of the ingredients.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/8cdc69bc-bd3e-42c6-901d-dd82319aa578/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Rapide", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e018",
@@ -463,22 +333,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne"
-    ],
+    "seasons": ["printemps", "ete", "automne"],
     "servings": null,
     "image_prompt": "A colorful ratatouille served in a rustic bowl, showcasing vibrant diced zucchini, eggplant, tomatoes, red and green bell peppers, and onions. The dish is garnished with fresh herbs, with a drizzle of olive oil. The background features a wooden table and a small bouquet of Provençal herbs to enhance the rustic French aesthetic.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/c3802e3e-3021-47ab-85da-6c28be765526/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Méditerranéenne",
-      "En batch",
-      "Rapide",
-      "Végétarien",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Méditerranéenne", "En batch", "Rapide", "Végétarien", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e019",
@@ -492,22 +351,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["printemps", "ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A creamy mushroom risotto served in a white bowl, with a sprinkle of freshly chopped parsley on top. The risotto is rich and creamy, highlighting the earthy tones of the mushrooms. In the background, a rustic wooden table adds warmth to the scene, while a glass of white wine sits gracefully beside the bowl. The angle of view is slightly above to capture the texture and color of the dish.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/593f2f0f-3289-4186-8dcf-5c2fb99ba853/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Végétarien",
-      "Italienne",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Rapide", "Végétarien", "Italienne", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e020",
@@ -521,22 +369,11 @@
     "cook_time": "< 15 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne"
-    ],
+    "seasons": ["printemps", "ete", "automne"],
     "servings": null,
     "image_prompt": "A visually appealing presentation of a warm goat cheese salad. Featuring toasted slices of rustic country bread topped with golden-brown rounds of goat cheese, drizzled with honey. Surrounding the bread is a vibrant mix of fresh greens, with scattered walnut halves adding texture. A light drizzle of balsamic vinaigrette glistens on the salad. The scene is shot from above, showcasing the contrast of colors and textures, with a warm wooden table in the background.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000026/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Végétarien",
-      "Entrée",
-      "Française",
-      "Salade"
-    ]
+    "tags": ["Facile", "Rapide", "Végétarien", "Entrée", "Française", "Salade"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e021",
@@ -550,19 +387,11 @@
     "cook_time": "< 15 min",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "ete"
-    ],
+    "seasons": ["ete"],
     "servings": null,
     "image_prompt": "A beautifully arranged Niçoise salad on a large white plate. The salad features vibrant colors: bright green haricots verts, rich red tomatoes, crisp yellow and green bell peppers, and the deep blue-black of olives. There are quarters of hard-boiled eggs and chunks of canned tuna scattered throughout. Garnished with fresh basil leaves, the dish is drizzled with light olive oil and vinegar. The angle of view is slightly elevated to capture the full spectrum of colors and textures.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/a3f604fe-f0c4-4816-bf3c-f8e9cde75508/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Végétarien",
-      "Entrée",
-      "Salade"
-    ]
+    "tags": ["Facile", "Rapide", "Végétarien", "Entrée", "Salade"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e022",
@@ -576,21 +405,11 @@
     "cook_time": "< 15 min",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne"
-    ],
+    "seasons": ["printemps", "ete", "automne"],
     "servings": null,
     "image_prompt": "A beautifully arranged plate of salmon fillets wrapped in parchment paper, with vibrant green spiralized zucchini, thinly sliced onion, and bright lemon segments peeking out. The salmon has a light glaze of olive oil and is garnished with fresh dill. The scene is well-lit and presented from a top-down view, focusing on the fresh, colorful ingredients, accentuated with a soft, neutral background.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000018/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Poisson",
-      "Végétarien",
-      "Plat principal"
-    ]
+    "tags": ["Facile", "Rapide", "Poisson", "Végétarien", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e023",
@@ -604,17 +423,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "hiver"
-    ],
+    "seasons": ["hiver"],
     "servings": null,
     "image_prompt": "A bowl of French onion soup topped with a golden-brown layer of melted gruyère cheese, with crisped bread slices peeking out. The soup is rich and caramel-colored, filled with sliced onions. The presentation is inviting, showcasing the bubbling cheese with a rustic wooden table background.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000025/ai-image.webp",
-    "tags": [
-      "Française",
-      "Plat principal",
-      "Soupe"
-    ]
+    "tags": ["Française", "Plat principal", "Soupe"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e024",
@@ -628,20 +441,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "hiver",
-      "automne"
-    ],
+    "seasons": ["hiver", "automne"],
     "servings": null,
     "image_prompt": "A creamy orange-red lentil soup served in a rustic bowl, garnished with a sprinkle of cumin and a drizzle of olive oil. The bowl is surrounded by a few fresh carrots and an onion, with a wooden spoon resting next to it. The background is softly blurred to highlight the soup, with warm, inviting colors.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/d961a749-ff1f-4739-89f1-68d209bd34a2/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Rapide",
-      "Légumineuses",
-      "Végétarien",
-      "Soupe"
-    ]
+    "tags": ["Facile", "Rapide", "Légumineuses", "Végétarien", "Soupe"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e025",
@@ -655,21 +459,11 @@
     "cook_time": "Aucune",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "printemps",
-      "ete",
-      "automne"
-    ],
+    "seasons": ["printemps", "ete", "automne"],
     "servings": null,
     "image_prompt": "A vibrant and fresh Lebanese tabbouleh, featuring finely chopped parsley, mint, and onions mixed with diced tomatoes and bulgur. The dish is presented in a large white bowl, garnished with lemon wedges and a drizzle of olive oil, on a rustic wooden table. The colors include deep green from the herbs, bright red from the tomatoes, and golden yellow from the lemon. The photo is taken from a top-down angle.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/17ab1bb8-725b-49f9-9c91-a5364b0358e3/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Libanaise / Orientale",
-      "Salade",
-      "Léger"
-    ]
+    "tags": ["Facile", "Végétarien", "Libanaise / Orientale", "Salade", "Léger"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e026",
@@ -683,20 +477,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A golden-brown apple tart presented on a rustic wooden table. The tart is sliced, revealing layers of sweet apples arranged on a creamy custard base, lightly dusted with cinnamon. The edges of the pastry are perfectly crisp, and a few whole apples are artistically placed around for decoration. Warm light highlights the tart's texture and colors.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/a1d05662-13ae-438a-ace5-3d3d873ebccc/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Française",
-      "Comfort food",
-      "Dessert"
-    ]
+    "tags": ["Facile", "Végétarien", "Française", "Comfort food", "Dessert"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e027",
@@ -710,18 +495,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "automne"
-    ],
+    "seasons": ["automne"],
     "servings": null,
     "image_prompt": "A beautifully presented Tarte Tatin, featuring caramelized apples arranged in a circular pattern on top of a golden-brown pastry crust. The apples are glossy and glistening with caramel, with rich shades of amber and brown. The tart is displayed on a rustic wooden table, viewed from a slight angle to emphasize the height and layers of the tart. The background is softly blurred to focus on the dessert.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000028/ai-image.webp",
-    "tags": [
-      "Végétarien",
-      "Française",
-      "Comfort food",
-      "Dessert"
-    ]
+    "tags": ["Végétarien", "Française", "Comfort food", "Dessert"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e028",
@@ -735,17 +513,11 @@
     "cook_time": "30 min - 1h",
     "cost": "€€",
     "complexity": "moyen",
-    "seasons": [
-      "hiver"
-    ],
+    "seasons": ["hiver"],
     "servings": null,
     "image_prompt": "A golden-brown tartiflette baked in a round dish, with visible layers of creamy potato, crispy bacon, and melted reblochon cheese on top, glistening with a rich golden hue. The dish is placed on a rustic wooden table, surrounded by a light scattering of coarse black pepper. The angle is slightly overhead, allowing a clear view of the bubbling cheese and the crown of crispy edges.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000023/ai-image.webp",
-    "tags": [
-      "Française",
-      "Comfort food",
-      "Plat principal"
-    ]
+    "tags": ["Française", "Comfort food", "Plat principal"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e029",
@@ -759,21 +531,11 @@
     "cook_time": "Aucune",
     "cost": "€€",
     "complexity": "facile",
-    "seasons": [
-      "ete",
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["ete", "automne", "hiver"],
     "servings": null,
     "image_prompt": "A completed tiramisu in a rectangular glass dish, showcasing alternating layers of coffee-soaked ladyfingers and creamy mascarpone mixture. The top is dusted with a generous layer of cocoa powder, with a rich, dark color contrasting against the light, fluffy cream. The dish is placed on a wooden table, with a few cocoa powder sprinkles around, capturing an inviting and decadent appearance.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000029/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Française",
-      "Comfort food",
-      "Dessert"
-    ]
+    "tags": ["Facile", "Végétarien", "Française", "Comfort food", "Dessert"]
   },
   {
     "id": "00000000-0000-0000-0000-00000000e030",
@@ -787,17 +549,10 @@
     "cook_time": "30 min - 1h",
     "cost": "€",
     "complexity": "facile",
-    "seasons": [
-      "automne",
-      "hiver"
-    ],
+    "seasons": ["automne", "hiver"],
     "servings": null,
     "image_prompt": "A creamy pumpkin soup in a rustic bowl, vibrant orange color, garnished subtly with a sprinkle of nutmeg, served with a drizzle of cream. The bowl is placed on a wooden table with a linen napkin beside it, captured from a slightly elevated angle.",
     "generated_image_url": "https://aoatjnzzaoaanexqfsxd.supabase.co/storage/v1/object/public/recipe-photos/generated/00000000-0000-0000-0000-000000000024/ai-image.webp",
-    "tags": [
-      "Facile",
-      "Végétarien",
-      "Soupe"
-    ]
+    "tags": ["Facile", "Végétarien", "Soupe"]
   }
 ]

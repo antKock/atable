@@ -135,9 +135,7 @@ describe("POST /api/recipes/copy", () => {
     ).toBe(true);
 
     expect(
-      calledWith(supa, "recipe_tags", "insert", [
-        { recipe_id: "recipe-new", tag_id: "tag-1" },
-      ]),
+      calledWith(supa, "recipe_tags", "insert", [{ recipe_id: "recipe-new", tag_id: "tag-1" }]),
     ).toBe(true);
   });
 

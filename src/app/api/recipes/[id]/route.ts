@@ -16,18 +16,16 @@ export const maxDuration = 60;
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export const GET = withOwnerAuth(
-  async (_request: NextRequest, { params }: RouteContext, owner) => {
-    const { id } = await params;
-    const supabase = createServerClient();
-    // Lecture : accessible si la recette appartient à l'un des foyers de
-    // l'owner (membre OU invité) — plus seulement le foyer du cookie (Lot 4).
-    const loaded = await loadOwnedRecipe(supabase, id, owner, { all: true, withTags: true });
-    if (loaded instanceof NextResponse) return loaded;
+export const GET = withOwnerAuth(async (_request: NextRequest, { params }: RouteContext, owner) => {
+  const { id } = await params;
+  const supabase = createServerClient();
+  // Lecture : accessible si la recette appartient à l'un des foyers de
+  // l'owner (membre OU invité) — plus seulement le foyer du cookie (Lot 4).
+  const loaded = await loadOwnedRecipe(supabase, id, owner, { all: true, withTags: true });
+  if (loaded instanceof NextResponse) return loaded;
 
-    return NextResponse.json(mapDbRowToRecipe(loaded.recipe));
-  },
-);
+  return NextResponse.json(mapDbRowToRecipe(loaded.recipe));
+});
 
 export const PUT = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
@@ -110,16 +108,14 @@ export const PUT = withOwnerAuth(
       if (result.data.tagIds.length > 0) {
         const { error: insertError } = await supabase
           .from("recipe_tags")
-          .insert(
-            result.data.tagIds.map((tagId) => ({ recipe_id: id, tag_id: tagId })),
-          );
+          .insert(result.data.tagIds.map((tagId) => ({ recipe_id: id, tag_id: tagId })));
 
         // Rollback: restore previous tags if insert failed
         if (insertError) {
           if (existingTags && existingTags.length > 0) {
-            await supabase.from("recipe_tags").insert(
-              existingTags.map((t) => ({ recipe_id: id, tag_id: t.tag_id })),
-            );
+            await supabase
+              .from("recipe_tags")
+              .insert(existingTags.map((t) => ({ recipe_id: id, tag_id: t.tag_id })));
           }
           throw insertError;
         }

@@ -1,37 +1,37 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import Link from 'next/link'
-import { ArrowRight, ShieldCheck, Users, Sparkles, X } from 'lucide-react'
-import { toast } from 'sonner'
-import { useT } from '@/lib/i18n/client'
-import { createHouseholdQuick } from '@/lib/household-create'
+import { useState } from "react";
+import Link from "next/link";
+import { ArrowRight, ShieldCheck, Users, Sparkles, X } from "lucide-react";
+import { toast } from "sonner";
+import { useT } from "@/lib/i18n/client";
+import { createHouseholdQuick } from "@/lib/household-create";
 
-const DISMISS_MAX_AGE = 60 * 60 * 24 * 180 // 180 jours, comme install
+const DISMISS_MAX_AGE = 60 * 60 * 24 * 180; // 180 jours, comme install
 
 type Props = {
   // Variante = icône + (pour share/email) cookie de dismiss + CTA lien. La
   // variante `demo` est un cas à part : non dismissable, et son CTA n'est pas
   // un lien mais l'ouverture directe du formulaire de création (conversion).
-  variant: 'share' | 'email' | 'demo'
-  title: string
-  body: string
-  cta: string
+  variant: "share" | "email" | "demo";
+  title: string;
+  body: string;
+  cta: string;
   // Requis pour share/email (destination du CTA). Ignoré pour `demo`.
-  href?: string
-  dismissToast?: string
-}
+  href?: string;
+  dismissToast?: string;
+};
 
 const ICONS = {
   share: Users,
   email: ShieldCheck,
   demo: Sparkles,
-} as const
+} as const;
 
 const COOKIES = {
-  share: 'mijote_share_hint_dismissed',
-  email: 'mijote_email_hint_dismissed',
-} as const
+  share: "mijote_share_hint_dismissed",
+  email: "mijote_email_hint_dismissed",
+} as const;
 
 // Hint principal de la home (#14, maquette 1.1) : généralisation de la
 // grammaire InstallAppBanner — icône + titre + corps + CTA + croix. Dismiss
@@ -42,39 +42,41 @@ const COOKIES = {
 // plein écran (conversion démo → owner neuf via POST /api/households) au lieu
 // de renvoyer sur l'accueil.
 export default function HintCard({ variant, title, body, cta, href, dismissToast }: Props) {
-  const t = useT()
-  const [hidden, setHidden] = useState(false)
-  const [creating, setCreating] = useState(false)
-  const Icon = ICONS[variant]
-  const isDemo = variant === 'demo'
+  const t = useT();
+  const [hidden, setHidden] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const Icon = ICONS[variant];
+  const isDemo = variant === "demo";
 
   // Conversion démo → carnet EN UN TAP (spec #23) : plus de formulaire de nom.
   async function convert() {
-    if (creating) return
-    setCreating(true)
+    if (creating) return;
+    setCreating(true);
     try {
-      const { redirect } = await createHouseholdQuick(t.household.createError)
-      window.location.href = redirect
+      const { redirect } = await createHouseholdQuick(t.household.createError);
+      window.location.href = redirect;
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t.household.createError)
-      setCreating(false)
+      toast.error(err instanceof Error ? err.message : t.household.createError);
+      setCreating(false);
     }
   }
 
   function dismiss() {
-    if (isDemo) return
-    document.cookie = `${COOKIES[variant]}=1; max-age=${DISMISS_MAX_AGE}; path=/`
-    setHidden(true)
-    if (dismissToast) toast(dismissToast, { duration: 3000 })
+    if (isDemo) return;
+    document.cookie = `${COOKIES[variant]}=1; max-age=${DISMISS_MAX_AGE}; path=/`;
+    setHidden(true);
+    if (dismissToast) toast(dismissToast, { duration: 3000 });
   }
 
-  if (hidden) return null
+  if (hidden) return null;
 
   const ctaClasses =
-    'mt-2 inline-flex min-h-8 items-center gap-1 text-[13px] font-semibold text-accent transition-opacity hover:opacity-80'
+    "mt-2 inline-flex min-h-8 items-center gap-1 text-[13px] font-semibold text-accent transition-opacity hover:opacity-80";
 
   return (
-    <div className={`relative rounded-[14px] bg-accent/10 py-3.5 pl-3.5 ${isDemo ? 'pr-3.5' : 'pr-10'}`}>
+    <div
+      className={`relative rounded-[14px] bg-accent/10 py-3.5 pl-3.5 ${isDemo ? "pr-3.5" : "pr-10"}`}
+    >
       {!isDemo && (
         <button
           type="button"
@@ -94,7 +96,7 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{body}</p>
           {isDemo ? (
             <button type="button" onClick={convert} disabled={creating} className={ctaClasses}>
-              {creating ? '…' : cta}
+              {creating ? "…" : cta}
               <ArrowRight size={13} strokeWidth={2.2} aria-hidden="true" />
             </button>
           ) : (
@@ -105,7 +107,6 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
           )}
         </div>
       </div>
-
     </div>
-  )
+  );
 }

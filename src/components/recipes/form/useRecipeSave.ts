@@ -52,7 +52,11 @@ export function useRecipeSave(ctx: RecipeSaveContext) {
       });
 
       if (ctx.mode === "edit") {
-        await apiRequest(`/api/recipes/${ctx.recipeId}`, { method: "PUT", body: payload, fallbackError });
+        await apiRequest(`/api/recipes/${ctx.recipeId}`, {
+          method: "PUT",
+          body: payload,
+          fallbackError,
+        });
         toast.success(t.feedback.recipeUpdated, { duration: 2500 });
         invalidateRecipeLists();
         router.push(`/recipes/${ctx.recipeId}`);
@@ -67,7 +71,10 @@ export function useRecipeSave(ctx: RecipeSaveContext) {
         return true;
       }
 
-      const created = await apiRequest<{ id?: string }>("/api/recipes", { body: payload, fallbackError });
+      const created = await apiRequest<{ id?: string }>("/api/recipes", {
+        body: payload,
+        fallbackError,
+      });
       if (!created.id) throw new Error(fallbackError);
       const createdId = created.id;
       toast.success(t.feedback.recipeSaved, { duration: 2500 });

@@ -88,7 +88,8 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
       {!isExt && (
         <div className="mb-8 flex items-center gap-3">
           <BackButton variant="header" onClick={handleBack} />
-          <h1 className="display"
+          <h1
+            className="display"
             style={{
               fontStyle: "italic",
               fontWeight: 500,

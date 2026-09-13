@@ -30,7 +30,10 @@ describe("parseJsonBody", () => {
     const r = (await parseJsonBody(req('{"name":""}'), { schema })) as NextResponse;
     expect(r.status).toBe(422);
     expect(await r.json()).toEqual({ error: "nom requis", code: "INVALID_DATA" });
-    const r2 = (await parseJsonBody(req('{"name":""}'), { schema, invalidStatus: 400 })) as NextResponse;
+    const r2 = (await parseJsonBody(req('{"name":""}'), {
+      schema,
+      invalidStatus: 400,
+    })) as NextResponse;
     expect(r2.status).toBe(400);
   });
 
@@ -42,7 +45,10 @@ describe("parseJsonBody", () => {
       unreadableMessage: () => "illisible",
     });
     expect(await (r as NextResponse).json()).toMatchObject({ error: "format" });
-    const r2 = await parseJsonBody(req("nope"), { schema: z.string(), unreadableMessage: () => "illisible" });
+    const r2 = await parseJsonBody(req("nope"), {
+      schema: z.string(),
+      unreadableMessage: () => "illisible",
+    });
     expect(await (r2 as NextResponse).json()).toMatchObject({ error: "illisible" });
   });
 

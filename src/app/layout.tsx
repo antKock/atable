@@ -29,7 +29,7 @@ const dmMono = DM_Mono({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#F5F1E8", /* DS_UPDATE 2026-05-23: was #F8FAF7 — keep in sync with --background */
+  themeColor: "#F5F1E8" /* DS_UPDATE 2026-05-23: was #F8FAF7 — keep in sync with --background */,
   // Required for env(safe-area-inset-*) to resolve to non-zero values on
   // notched iPhones — without it the WebView ignores all safe-area padding.
   viewportFit: "cover",
@@ -80,7 +80,9 @@ export default async function RootLayout({
   const { previewEnabled } = readI18nFlags();
   return (
     <html lang={locale}>
-      <body className={`${inter.variable} ${fraunces.variable} ${dmMono.variable} font-sans antialiased`}>
+      <body
+        className={`${inter.variable} ${fraunces.variable} ${dmMono.variable} font-sans antialiased`}
+      >
         <LocaleProvider locale={locale}>
           {previewEnabled && <LocalePreviewSwitch />}
           <VersionWatcher />

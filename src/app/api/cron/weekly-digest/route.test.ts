@@ -13,9 +13,22 @@ vi.mock("@sentry/nextjs", () => ({ captureException: vi.fn() }));
 const overview = {
   dataDate: "2026-09-14",
   weekLabel: "semaine du 7 sept.",
-  northStar: { value: 41, engaged: 28, total: 81, delta: 18, fourWeeksAgo: 23, series: [], seriesLabels: [] },
+  northStar: {
+    value: 41,
+    engaged: 28,
+    total: 81,
+    delta: 18,
+    fourWeeksAgo: 23,
+    series: [],
+    seriesLabels: [],
+  },
   tiles: [{ id: "new", label: "Nouvelles personnes · 4 sem.", value: "25", compare: "vs 15" }],
-  health: { ok: true, pipeline: { ok: true, detail: "" }, crons: { ok: true, detail: "" }, demo: { ok: true, detail: "" } },
+  health: {
+    ok: true,
+    pipeline: { ok: true, detail: "" },
+    crons: { ok: true, detail: "" },
+    demo: { ok: true, detail: "" },
+  },
   moved: ["11 nouvelles personnes la semaine dernière."],
 };
 
@@ -46,7 +59,10 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const req = (auth?: string) => new NextRequest("https://test.local/api/cron/weekly-digest", { headers: auth ? { authorization: auth } : {} });
+const req = (auth?: string) =>
+  new NextRequest("https://test.local/api/cron/weekly-digest", {
+    headers: auth ? { authorization: auth } : {},
+  });
 
 describe("GET /api/cron/weekly-digest", () => {
   it("401 sans secret", async () => {
@@ -72,12 +88,20 @@ describe("GET /api/cron/weekly-digest", () => {
     const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit];
     expect(url).toBe("https://api.resend.com/emails");
     const payload = JSON.parse(String(init.body));
-    expect(payload).toMatchObject({ from: "Mijote <no-reply@mijote.test>", to: "anthony@example.com" });
+    expect(payload).toMatchObject({
+      from: "Mijote <no-reply@mijote.test>",
+      to: "anthony@example.com",
+    });
     expect(payload.text).toContain("https://mijote.test/admin/stats");
     expect(payload.html).toContain("11 nouvelles personnes");
 
-    const insert = supa.calls.find((c) => c.table === "digests_sent" && c.ops.some((o) => o.method === "insert"));
-    expect(insert?.ops.find((o) => o.method === "insert")?.args[0]).toMatchObject({ week: body.week, sent_to: "anthony@example.com" });
+    const insert = supa.calls.find(
+      (c) => c.table === "digests_sent" && c.ops.some((o) => o.method === "insert"),
+    );
+    expect(insert?.ops.find((o) => o.method === "insert")?.args[0]).toMatchObject({
+      week: body.week,
+      sent_to: "anthony@example.com",
+    });
   });
 
   it("ne renvoie pas deux fois la même semaine (idempotent)", async () => {
@@ -93,6 +117,10 @@ describe("GET /api/cron/weekly-digest", () => {
     const res = await GET(req("Bearer test-cron-secret"));
     expect(res.status).toBe(500);
     expect(Sentry.captureException).toHaveBeenCalledTimes(1);
-    expect(supa.calls.some((c) => c.table === "digests_sent" && c.ops.some((o) => o.method === "insert"))).toBe(false);
+    expect(
+      supa.calls.some(
+        (c) => c.table === "digests_sent" && c.ops.some((o) => o.method === "insert"),
+      ),
+    ).toBe(false);
   });
 });

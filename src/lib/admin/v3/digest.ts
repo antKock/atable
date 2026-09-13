@@ -21,7 +21,10 @@ export function renderDigest(o: Overview, opts: { weekLabel: string; statsUrl: s
     "",
     `Cuisiniers actifs (28 j) : ${ns.value} (${delta} vs 4 semaines plus tôt, ${ns.fourWeeksAgo}) · ${ns.engaged} ont ajouté ou consulté une recette · ${ns.total} personnes au total`,
     "",
-    ...o.tiles.map((t) => `${t.label} : ${t.value}${t.unit ? ` ${t.unit}` : ""}${t.fragile ? " (fragile)" : ""} — ${t.compare}`),
+    ...o.tiles.map(
+      (t) =>
+        `${t.label} : ${t.value}${t.unit ? ` ${t.unit}` : ""}${t.fragile ? " (fragile)" : ""} — ${t.compare}`,
+    ),
     "",
     "Ce qui a bougé :",
     ...(o.moved.length ? o.moved.map((m) => `- ${m}`) : ["- rien de notable cette semaine"]),

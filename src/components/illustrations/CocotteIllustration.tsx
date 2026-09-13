@@ -9,13 +9,7 @@ export default function CocotteIllustration({
 }: CocotteIllustrationProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 80 80" aria-hidden="true">
-      <g
-        stroke={accent}
-        strokeWidth="1.4"
-        fill="none"
-        strokeLinecap="round"
-        opacity="0.55"
-      >
+      <g stroke={accent} strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.55">
         <path d="M28 17 Q30 13 28 9 Q26 5 28 1" />
         <path d="M40 15 Q42 11 40 7 Q38 3 40 -1" />
         <path d="M52 17 Q54 13 52 9 Q50 5 52 1" />
@@ -32,20 +26,9 @@ export default function CocotteIllustration({
         strokeWidth="1.5"
         fill="none"
       />
-      <path
-        d="M10 30 Q10 22 40 22 Q70 22 70 30 Z"
-        fill={accent}
-        opacity="0.78"
-      />
+      <path d="M10 30 Q10 22 40 22 Q70 22 70 30 Z" fill={accent} opacity="0.78" />
       <circle cx="40" cy="19" r="2.5" fill={accent} opacity="0.78" />
-      <ellipse
-        cx="40"
-        cy="68"
-        rx="30"
-        ry="2.5"
-        fill={accent}
-        opacity="0.10"
-      />
+      <ellipse cx="40" cy="68" rx="30" ry="2.5" fill={accent} opacity="0.10" />
     </svg>
   );
 }

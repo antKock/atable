@@ -28,9 +28,7 @@ export default function RecipeReminderCard({ recipeId, title, photoUrl }: Props)
         }
       />
       <div className="min-w-0 flex-1">
-        <div className="mb-0.5 text-xs text-muted-foreground">
-          {t.share.reminderLabel}
-        </div>
+        <div className="mb-0.5 text-xs text-muted-foreground">{t.share.reminderLabel}</div>
         <div
           className="display truncate text-foreground"
           style={{

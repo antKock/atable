@@ -30,10 +30,7 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
     : "id, title, ingredients, photo_url, created_at, generated_image_url, enrichment_status, image_status, recipe_tags(tag_id, tags(id, name, category))";
 
   // Union des foyers de l'owner (Lot 4) — plus de scoping sur un seul `hid`.
-  let query = supabase
-    .from("recipes")
-    .select(selectClause)
-    .in("household_id", ids);
+  let query = supabase.from("recipes").select(selectClause).in("household_id", ids);
 
   if (tagsParam) {
     const tagIds = tagsParam.split(",").filter(Boolean);
@@ -111,9 +108,9 @@ export const POST = withOwnerAuth(
 
     // Insert tags into recipe_tags junction table
     if (result.data.tagIds && result.data.tagIds.length > 0) {
-      await supabase.from("recipe_tags").insert(
-        result.data.tagIds.map((tagId) => ({ recipe_id: data.id, tag_id: tagId })),
-      );
+      await supabase
+        .from("recipe_tags")
+        .insert(result.data.tagIds.map((tagId) => ({ recipe_id: data.id, tag_id: tagId })));
     }
 
     revalidatePath("/home");

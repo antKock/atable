@@ -8,8 +8,7 @@ import type { Metadata } from "next";
 
 export const metadataEn: Metadata = {
   title: "Privacy Policy — Mijote",
-  description:
-    "Privacy policy of the Mijote app. No ads, no tracking, minimal data.",
+  description: "Privacy policy of the Mijote app. No ads, no tracking, minimal data.",
   alternates: { canonical: "/legal/confidentialite" },
   robots: { index: true, follow: true },
   openGraph: {
@@ -24,7 +23,10 @@ const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
   return (
-    <h2 id={id} className="mt-10 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-foreground">
+    <h2
+      id={id}
+      className="mt-10 mb-3 scroll-mt-20 text-xl font-semibold tracking-tight text-foreground"
+    >
       {children}
     </h2>
   );
@@ -46,10 +48,18 @@ function Table({ children }: { children: React.ReactNode }) {
   );
 }
 function Th({ children }: { children: React.ReactNode }) {
-  return <th className="border border-foreground/15 bg-foreground/5 px-3 py-2 text-left font-medium">{children}</th>;
+  return (
+    <th className="border border-foreground/15 bg-foreground/5 px-3 py-2 text-left font-medium">
+      {children}
+    </th>
+  );
 }
 function Td({ children }: { children: React.ReactNode }) {
-  return <td className="border border-foreground/15 px-3 py-2 align-top text-foreground/90">{children}</td>;
+  return (
+    <td className="border border-foreground/15 px-3 py-2 align-top text-foreground/90">
+      {children}
+    </td>
+  );
 }
 const A = ({ href, children }: { href: string; children: React.ReactNode }) => (
   <a href={href} className="underline underline-offset-2">
@@ -72,9 +82,8 @@ export default function PrivacyEn() {
 
         <H2 id="qui-sommes-nous">1. Who we are</H2>
         <P>
-          Mijote (the &ldquo;App&rdquo;, the &ldquo;Service&rdquo;) is a recipe management and
-          meal planning app, available on the web, on the iOS App Store and on Google Play
-          (Android).
+          Mijote (the &ldquo;App&rdquo;, the &ldquo;Service&rdquo;) is a recipe management and meal
+          planning app, available on the web, on the iOS App Store and on Google Play (Android).
         </P>
         <P>The data controller is:</P>
         <UL>
@@ -83,13 +92,19 @@ export default function PrivacyEn() {
           </li>
           <li>
             Contact:{" "}
-            <a href={`mailto:${contactEmail}`} className="text-foreground underline underline-offset-2 hover:no-underline">
+            <a
+              href={`mailto:${contactEmail}`}
+              className="text-foreground underline underline-offset-2 hover:no-underline"
+            >
               {contactEmail}
             </a>
           </li>
           <li>
             App available at:{" "}
-            <a href="https://mijote.anthonykocken.fr" className="text-foreground underline underline-offset-2 hover:no-underline">
+            <a
+              href="https://mijote.anthonykocken.fr"
+              className="text-foreground underline underline-offset-2 hover:no-underline"
+            >
               https://mijote.anthonykocken.fr
             </a>
           </li>
@@ -97,16 +112,16 @@ export default function PrivacyEn() {
 
         <H2 id="approche">2. Our approach: the bare minimum of data</H2>
         <P>
-          Mijote is designed to work <strong>without a traditional account</strong>. You don&apos;t need
-          to provide <strong>an email address, a name, a phone number or a password</strong>. Access
-          is based on the notion of a <strong>cookbook</strong>: a shared recipe collection, opened
-          with an <strong>invite code</strong>.
+          Mijote is designed to work <strong>without a traditional account</strong>. You don&apos;t
+          need to provide <strong>an email address, a name, a phone number or a password</strong>.
+          Access is based on the notion of a <strong>cookbook</strong>: a shared recipe collection,
+          opened with an <strong>invite code</strong>.
         </P>
         <P>
           Two pieces of information are <strong>optional</strong> and only serve you: a{" "}
           <strong>profile name</strong>, shown to the other members of your cookbooks, and a{" "}
-          <strong>recovery email</strong>, used solely to get your cookbooks back if you change
-          or lose your device. Without a recovery email, no email is ever sent to you.
+          <strong>recovery email</strong>, used solely to get your cookbooks back if you change or
+          lose your device. Without a recovery email, no email is ever sent to you.
         </P>
         <P>We commit to the following principles:</P>
         <UL>
@@ -140,10 +155,10 @@ export default function PrivacyEn() {
           </li>
           <li>
             <strong>Recovery email (optional)</strong>: the address you save in your profile to get
-            your cookbooks back on a new device. It is stored as is (lowercased) and is only used
-            to send you, at your request, a sign-in link or code (see{" "}
-            <A href="#sous-traitants">section 6</A> and <A href="#securite">section 10</A>). You
-            can remove it at any time from your profile.
+            your cookbooks back on a new device. It is stored as is (lowercased) and is only used to
+            send you, at your request, a sign-in link or code (see{" "}
+            <A href="#sous-traitants">section 6</A> and <A href="#securite">section 10</A>). You can
+            remove it at any time from your profile.
           </li>
           <li>
             <strong>Recipe share link</strong>: when you share a recipe, we generate a unique
@@ -156,9 +171,9 @@ export default function PrivacyEn() {
             cook times, estimated cost, seasons, tags and photos you add.
           </li>
           <li>
-            <strong>Content submitted to import features</strong>: when you import a recipe you
-            send us, depending on the method: an <strong>audio recording</strong> (voice
-            dictation), one or more <strong>images</strong> (photo or screenshot), or a{" "}
+            <strong>Content submitted to import features</strong>: when you import a recipe you send
+            us, depending on the method: an <strong>audio recording</strong> (voice dictation), one
+            or more <strong>images</strong> (photo or screenshot), or a{" "}
             <strong>web page address</strong> (link). Processing of these is detailed in{" "}
             <A href="#imports-ia">section 5</A>.
           </li>
@@ -167,14 +182,15 @@ export default function PrivacyEn() {
         <H3>3.2 Data collected automatically</H3>
         <UL>
           <li>
-            <strong>Device name</strong>: when a device connects to a cookbook, we derive a
-            readable label (e.g. &ldquo;Apple iPhone 15 · Safari&rdquo;) from your browser&apos;s
-            technical &ldquo;User-Agent&rdquo; header. It is used for diagnostics and security
-            (recognizing a device if you ask us to). The raw header is not kept.
+            <strong>Device name</strong>: when a device connects to a cookbook, we derive a readable
+            label (e.g. &ldquo;Apple iPhone 15 · Safari&rdquo;) from your browser&apos;s technical
+            &ldquo;User-Agent&rdquo; header. It is used for diagnostics and security (recognizing a
+            device if you ask us to). The raw header is not kept.
           </li>
           <li>
             <strong>Session metadata</strong>: random technical identifiers (generated
-            automatically, unrelated to your real identity) and each device&apos;s last activity date.
+            automatically, unrelated to your real identity) and each device&apos;s last activity
+            date.
           </li>
           <li>
             <strong>IP address</strong>: used <strong>only and temporarily</strong> to limit the
@@ -184,9 +200,9 @@ export default function PrivacyEn() {
           <li>
             <strong>Error reports (crashes)</strong>: in case of a technical error or crash, a
             report is sent to our provider <strong>Sentry</strong> (see{" "}
-            <A href="#sous-traitants">section 6</A>). It may contain the error message, device
-            type, OS version and a technical session identifier, to diagnose and fix the problem.
-            It <strong>does not contain the content of your recipes</strong>.
+            <A href="#sous-traitants">section 6</A>). It may contain the error message, device type,
+            OS version and a technical session identifier, to diagnose and fix the problem. It{" "}
+            <strong>does not contain the content of your recipes</strong>.
           </li>
           <li>
             <strong>Memberships and roles</strong>: the list of cookbooks you have access to and
@@ -195,9 +211,9 @@ export default function PrivacyEn() {
           <li>
             <strong>Internal usage statistics</strong>: to understand how the Service is used, our
             servers record, per connected device, the days of activity and the platform (iOS,
-            Android, web), per-recipe counters (number of views, last activity) and daily
-            aggregates (number of demo trials, recovery emails sent…). These statistics are
-            produced without any third-party tool and contain neither name nor email address.
+            Android, web), per-recipe counters (number of views, last activity) and daily aggregates
+            (number of demo trials, recovery emails sent…). These statistics are produced without
+            any third-party tool and contain neither name nor email address.
           </li>
           <li>
             <strong>Language</strong>: the interface is displayed in your device&apos;s language
@@ -208,9 +224,9 @@ export default function PrivacyEn() {
         <H3>3.3 Data we do NOT collect</H3>
         <P>
           Unless you enter them voluntarily in your profile (name, recovery email), we collect no
-          name or email address. We never collect: phone number, postal address, password,
-          location data, health data, banking or payment data, advertising identifiers, contacts,
-          browsing history.
+          name or email address. We never collect: phone number, postal address, password, location
+          data, health data, banking or payment data, advertising identifiers, contacts, browsing
+          history.
         </P>
 
         <H2 id="finalites">4. Purposes and legal bases of processing</H2>
@@ -225,12 +241,16 @@ export default function PrivacyEn() {
           <tbody>
             <tr>
               <Td>Cookbook name, recipes, photos, tags</Td>
-              <Td>Providing the service: creating, storing and sharing your recipes in the cookbook</Td>
+              <Td>
+                Providing the service: creating, storing and sharing your recipes in the cookbook
+              </Td>
               <Td>Performance of the contract (the Service&apos;s terms of use)</Td>
             </tr>
             <tr>
               <Td>Invite code, session identifiers, device name, memberships and roles</Td>
-              <Td>Authenticating you anonymously and managing device and people access to cookbooks</Td>
+              <Td>
+                Authenticating you anonymously and managing device and people access to cookbooks
+              </Td>
               <Td>Performance of the contract</Td>
             </tr>
             <tr>
@@ -240,7 +260,9 @@ export default function PrivacyEn() {
             </tr>
             <tr>
               <Td>Recovery email, sign-in links and codes</Td>
-              <Td>Getting your cookbooks back on a new device; merging two accesses into one profile</Td>
+              <Td>
+                Getting your cookbooks back on a new device; merging two accesses into one profile
+              </Td>
               <Td>Performance of the contract (optional feature you enable)</Td>
             </tr>
             <tr>
@@ -313,37 +335,52 @@ export default function PrivacyEn() {
           </thead>
           <tbody>
             <tr>
-              <Td><strong>OVHcloud</strong></Td>
               <Td>
-                Application hosting, database, photo storage and rate limiting (virtual
-                private server and object storage)
+                <strong>OVHcloud</strong>
               </Td>
               <Td>
-                Cookbooks, recipes, sessions, photos, IP address, technical request data,
-                logs, backups
+                Application hosting, database, photo storage and rate limiting (virtual private
+                server and object storage)
+              </Td>
+              <Td>
+                Cookbooks, recipes, sessions, photos, IP address, technical request data, logs,
+                backups
               </Td>
               <Td>France (Gravelines)</Td>
             </tr>
             <tr>
-              <Td><strong>OpenAI</strong></Td>
+              <Td>
+                <strong>OpenAI</strong>
+              </Td>
               <Td>Audio transcription, image reading, text structuring</Td>
-              <Td>Content submitted to imports (<A href="#imports-ia">section 5</A>)</Td>
+              <Td>
+                Content submitted to imports (<A href="#imports-ia">section 5</A>)
+              </Td>
               <Td>United States</Td>
             </tr>
             <tr>
-              <Td><strong>Apify</strong></Td>
-              <Td>Fetching web page content during link import (Instagram, sites blocking automated access)</Td>
+              <Td>
+                <strong>Apify</strong>
+              </Td>
+              <Td>
+                Fetching web page content during link import (Instagram, sites blocking automated
+                access)
+              </Td>
               <Td>Address of the page to import</Td>
               <Td>United States</Td>
             </tr>
             <tr>
-              <Td><strong>Sentry</strong></Td>
+              <Td>
+                <strong>Sentry</strong>
+              </Td>
               <Td>Error logging and crash reports</Td>
               <Td>Error messages, technical context (device type, OS, session identifier)</Td>
               <Td>United States</Td>
             </tr>
             <tr>
-              <Td><strong>Resend</strong></Td>
+              <Td>
+                <strong>Resend</strong>
+              </Td>
               <Td>Sending access-recovery emails</Td>
               <Td>Recovery email address, sign-in link and code</Td>
               <Td>United States</Td>
@@ -352,16 +389,15 @@ export default function PrivacyEn() {
         </Table>
         <P>
           Regarding <strong>OpenAI</strong>: data sent through their programming interface (API){" "}
-          <strong>is not used to train their models</strong> and is retained by OpenAI for a
-          limited time (for abuse prevention) before deletion, in accordance with their API data
-          processing policy.
+          <strong>is not used to train their models</strong> and is retained by OpenAI for a limited
+          time (for abuse prevention) before deletion, in accordance with their API data processing
+          policy.
         </P>
 
         <H2 id="transferts">7. Data transfers outside the European Union</H2>
         <P>
           <strong>OVHcloud</strong>, which hosts most of your data, operates{" "}
-          <strong>in France</strong>. Several processors nevertheless
-          process data outside the EU:
+          <strong>in France</strong>. Several processors nevertheless process data outside the EU:
         </P>
         <UL>
           <li>
@@ -381,8 +417,7 @@ export default function PrivacyEn() {
         <P>
           These transfers are covered by appropriate safeguards under the GDPR: the European
           Commission&apos;s standard contractual clauses and/or participation in the{" "}
-          <em>EU–US Data Privacy Framework</em> for providers
-          established in the United States.
+          <em>EU–US Data Privacy Framework</em> for providers established in the United States.
         </P>
 
         <H2 id="conservation">8. Retention periods</H2>
@@ -403,14 +438,20 @@ export default function PrivacyEn() {
             </tr>
             <tr>
               <Td>Profile name, recovery email</Td>
-              <Td>As long as your profile exists; editable or removable at any time from the profile</Td>
+              <Td>
+                As long as your profile exists; editable or removable at any time from the profile
+              </Td>
             </tr>
             <tr>
               <Td>Sign-in links and codes</Td>
-              <Td>15 minutes (stored hashed, 5 attempts max), purged at the latest 24 h after expiry</Td>
+              <Td>
+                15 minutes (stored hashed, 5 attempts max), purged at the latest 24 h after expiry
+              </Td>
             </tr>
             <tr>
-              <Td>Session cookie (<code>atable_session</code>)</Td>
+              <Td>
+                Session cookie (<code>atable_session</code>)
+              </Td>
               <Td>180 days, extended each time you use the App</Td>
             </tr>
             <tr>
@@ -431,11 +472,16 @@ export default function PrivacyEn() {
             </tr>
             <tr>
               <Td>Internal usage statistics</Td>
-              <Td>Daily aggregates kept without limit; per-device activity days deleted with the cookbook</Td>
+              <Td>
+                Daily aggregates kept without limit; per-device activity days deleted with the
+                cookbook
+              </Td>
             </tr>
             <tr>
               <Td>Demo account</Td>
-              <Td>Recipes added in the demo deleted every night; demo identities purged after 30 days</Td>
+              <Td>
+                Recipes added in the demo deleted every night; demo identities purged after 30 days
+              </Td>
             </tr>
           </tbody>
         </Table>
@@ -455,9 +501,8 @@ export default function PrivacyEn() {
               <code>atable_session</code> cookie
             </strong>
             : a cookie <strong>strictly necessary</strong> for the Service to work. It keeps you
-            connected to your cookbook. It is secured (inaccessible to JavaScript,
-            cryptographically signed, sent over HTTPS only) and lasts 180 days, extended each time
-            you use the App.
+            connected to your cookbook. It is secured (inaccessible to JavaScript, cryptographically
+            signed, sent over HTTPS only) and lasts 180 days, extended each time you use the App.
           </li>
           <li>
             <strong>Browser local storage</strong> (<code>localStorage</code>): used for strictly
@@ -474,8 +519,8 @@ export default function PrivacyEn() {
           data access restricted to your cookbook.
         </P>
         <P>
-          Sign-in links and codes sent to your recovery email are single-use, valid for 15
-          minutes, stored hashed (SHA-256) and limited to 5 attempts.
+          Sign-in links and codes sent to your recovery email are single-use, valid for 15 minutes,
+          stored hashed (SHA-256) and limited to 5 attempts.
         </P>
         <P>
           However, <strong>a cookbook&apos;s invite code or link acts as an access key</strong>:
@@ -489,12 +534,12 @@ export default function PrivacyEn() {
         <P>You stay in control of your data directly from the App:</P>
         <UL>
           <li>
-            <strong>Leave a cookbook</strong>: removes your access to that cookbook. Its recipes
-            are kept for the other members.
+            <strong>Leave a cookbook</strong>: removes your access to that cookbook. Its recipes are
+            kept for the other members.
           </li>
           <li>
-            <strong>Remove a member</strong>: any member can remove another person from a
-            cookbook; their access is cut immediately.
+            <strong>Remove a member</strong>: any member can remove another person from a cookbook;
+            their access is cut immediately.
           </li>
           <li>
             <strong>Delete a cookbook</strong>: <strong>permanently</strong> deletes all the
@@ -525,21 +570,25 @@ export default function PrivacyEn() {
             directly in the App (editing or deleting your recipes, deleting the cookbook).
           </li>
           <li>
-            For any other request (access, copy of your data, objection), you can contact us at
-            the address given in <A href="#qui-sommes-nous">section 1</A>.
+            For any other request (access, copy of your data, objection), you can contact us at the
+            address given in <A href="#qui-sommes-nous">section 1</A>.
           </li>
         </UL>
         <P>
           Since the App doesn&apos;t let us link a cookbook to a real identity (apart from a
-          recovery email you may have saved), we may ask you for
-          elements establishing that you are indeed a member of the cookbook concerned before
-          acting on a request.
+          recovery email you may have saved), we may ask you for elements establishing that you are
+          indeed a member of the cookbook concerned before acting on a request.
         </P>
         <P>
           If you believe your rights are not being respected, you can lodge a complaint with the
           French data protection authority, the{" "}
           <strong>Commission nationale de l&apos;informatique et des libertés (CNIL)</strong> —{" "}
-          <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+          <a
+            href="https://www.cnil.fr"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline underline-offset-2"
+          >
             www.cnil.fr
           </a>
           .
@@ -560,7 +609,10 @@ export default function PrivacyEn() {
         <H2 id="contact">15. Contact</H2>
         <P>
           For any question about this policy or the processing of your data:{" "}
-          <a href={`mailto:${contactEmail}`} className="text-foreground underline underline-offset-2 hover:no-underline">
+          <a
+            href={`mailto:${contactEmail}`}
+            className="text-foreground underline underline-offset-2 hover:no-underline"
+          >
             {contactEmail}
           </a>
           .

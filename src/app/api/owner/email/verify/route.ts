@@ -1,63 +1,57 @@
-import { NextResponse } from 'next/server'
-import type { NextRequest } from 'next/server'
-import { headers } from 'next/headers'
-import { getClientIp } from '@/lib/request-ip'
-import { withOwnerAuth } from '@/lib/api/with-owner-auth'
-import { RecoveryEmailSchema } from '@/lib/schemas/household'
-import { recoveryVerifyRateLimit } from '@/lib/redis'
-import {
-  findOwnerByEmail,
-  verifyLoginCode,
-  executeMergeOwners,
-} from '@/lib/queries/recovery'
-import { getT } from '@/lib/i18n/server'
-import { parseJsonBody } from '@/lib/api/body'
-import { z } from 'zod'
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { headers } from "next/headers";
+import { getClientIp } from "@/lib/request-ip";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { RecoveryEmailSchema } from "@/lib/schemas/household";
+import { recoveryVerifyRateLimit } from "@/lib/redis";
+import { findOwnerByEmail, verifyLoginCode, executeMergeOwners } from "@/lib/queries/recovery";
+import { getT } from "@/lib/i18n/server";
+import { parseJsonBody } from "@/lib/api/body";
+import { z } from "zod";
 
-const CODE_REGEX = /^\d{6}$/
+const CODE_REGEX = /^\d{6}$/;
 
 // Vérification du code de FUSION (#14, §5) — depuis l'écran « On réunit tes
 // foyers » du profil. La session courante = owner SOURCE (absorbé) ; l'owner
 // qui porte l'email = CIBLE. Après fusion le cookie reste valide : le sid ne
 // change pas, sa session est repointée sur la cible.
-export const POST = withOwnerAuth(
-  async (request: NextRequest, _context: unknown, owner) => {
-    const t = await getT()
-    // Session démo : refusée par la garde par défaut de withOwnerAuth.
+export const POST = withOwnerAuth(async (request: NextRequest, _context: unknown, owner) => {
+  const t = await getT();
+  // Session démo : refusée par la garde par défaut de withOwnerAuth.
 
-    const parsed = await parseJsonBody(request, {
-      t,
-      schema: z.object({ email: RecoveryEmailSchema, code: z.string().regex(CODE_REGEX) }),
-      unreadableMessage: (t) => t.merge.codeInvalid,
-      invalidMessage: (t) => t.merge.codeInvalid,
-    })
-    if (parsed instanceof NextResponse) return parsed
-    const { email: parsedEmail, code } = parsed.data
+  const parsed = await parseJsonBody(request, {
+    t,
+    schema: z.object({ email: RecoveryEmailSchema, code: z.string().regex(CODE_REGEX) }),
+    unreadableMessage: (t) => t.merge.codeInvalid,
+    invalidMessage: (t) => t.merge.codeInvalid,
+  });
+  if (parsed instanceof NextResponse) return parsed;
+  const { email: parsedEmail, code } = parsed.data;
 
-    // Sans plafond ici, un owner (trivial à obtenir) qui connaît l'email d'une
-    // victime pourrait bruteforcer le code de fusion et absorber ses foyers —
-    // le compteur d'essais du token ne suffit pas seul. Même limite que
-    // /api/recovery/verify.
-    const hdrs = await headers()
-    const ip = getClientIp(hdrs)
-    const { success } = await recoveryVerifyRateLimit.limit(ip)
-    if (!success) {
-      return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })
-    }
+  // Sans plafond ici, un owner (trivial à obtenir) qui connaît l'email d'une
+  // victime pourrait bruteforcer le code de fusion et absorber ses foyers —
+  // le compteur d'essais du token ne suffit pas seul. Même limite que
+  // /api/recovery/verify.
+  const hdrs = await headers();
+  const ip = getClientIp(hdrs);
+  const { success } = await recoveryVerifyRateLimit.limit(ip);
+  if (!success) {
+    return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 });
+  }
 
-    // Message générique quel que soit l'échec (cible disparue, code faux,
-    // token expiré/brûlé) : rien à apprendre de cette route.
-    const target = await findOwnerByEmail(parsedEmail)
-    if (!target || target.id === owner.ownerId) {
-      return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 })
-    }
+  // Message générique quel que soit l'échec (cible disparue, code faux,
+  // token expiré/brûlé) : rien à apprendre de cette route.
+  const target = await findOwnerByEmail(parsedEmail);
+  if (!target || target.id === owner.ownerId) {
+    return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 });
+  }
 
-    const valid = await verifyLoginCode(target.id, 'merge', code)
-    if (!valid) {
-      return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 })
-    }
+  const valid = await verifyLoginCode(target.id, "merge", code);
+  if (!valid) {
+    return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 });
+  }
 
-    await executeMergeOwners(owner.ownerId, target.id)
-    return NextResponse.json({ ok: true, redirect: '/household' })
-  },
-)
+  await executeMergeOwners(owner.ownerId, target.id);
+  return NextResponse.json({ ok: true, redirect: "/household" });
+});

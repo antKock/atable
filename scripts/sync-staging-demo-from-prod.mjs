@@ -27,8 +27,14 @@ function loadEnv(file) {
       .filter((l) => l.includes("="))
       .map((l) => {
         const i = l.indexOf("=");
-        return [l.slice(0, i).trim(), l.slice(i + 1).trim().replace(/^"|"$/g, "")];
-      })
+        return [
+          l.slice(0, i).trim(),
+          l
+            .slice(i + 1)
+            .trim()
+            .replace(/^"|"$/g, ""),
+        ];
+      }),
   );
 }
 
@@ -53,11 +59,14 @@ if (PROD.demoEn && STAGING.demoEn) {
   DEMO_PAIRS.push({ label: "EN", prod: PROD.demoEn, staging: STAGING.demoEn });
 } else if (PROD.demoEn || STAGING.demoEn) {
   console.warn(
-    `DEMO_HOUSEHOLD_ID_EN n'est posé que côté ${PROD.demoEn ? "prod" : "staging"} — foyer EN ignoré.`
+    `DEMO_HOUSEHOLD_ID_EN n'est posé que côté ${PROD.demoEn ? "prod" : "staging"} — foyer EN ignoré.`,
   );
 }
 
-for (const [label, env] of [["prod", PROD], ["staging", STAGING]]) {
+for (const [label, env] of [
+  ["prod", PROD],
+  ["staging", STAGING],
+]) {
   if (!env.url || !env.key) {
     console.error(`Missing database URL or key for ${label}`);
     process.exit(1);
@@ -103,104 +112,96 @@ for (const pair of DEMO_PAIRS) {
   await syncHousehold(pair.prod, pair.staging);
 }
 
-console.log(
-  `\nDone — ${updated} updated, ${skipped} skipped, ${tagLinks} tag links recreated.`
-);
+console.log(`\nDone — ${updated} updated, ${skipped} skipped, ${tagLinks} tag links recreated.`);
 if (missingTags.size) {
   console.warn(
-    `Warning: ${missingTags.size} predefined tag(s) missing in staging: ${[...missingTags].join(", ")}`
+    `Warning: ${missingTags.size} predefined tag(s) missing in staging: ${[...missingTags].join(", ")}`,
   );
 }
 
 async function syncHousehold(prodDemoId, stagingDemoId) {
-// ─── 1. Pull prod state ────────────────────────────────────────────────────
-const prodRecipes = await rest(
-  PROD,
-  `recipes?household_id=eq.${prodDemoId}&select=id,title,prep_time,cook_time,cost,complexity,seasons,image_prompt,generated_image_url,enrichment_status,image_status&order=created_at.asc`
-);
-console.log(`Pulled ${prodRecipes.length} prod demo recipes.`);
-if (prodRecipes.length === 0) {
-  console.warn("  ⊘ aucune recette prod pour ce foyer — rien à synchroniser");
-  return;
-}
-
-const prodIds = prodRecipes.map((r) => r.id);
-const inList = (ids) => "(" + ids.map((i) => `"${i}"`).join(",") + ")";
-
-const prodRecipeTags = await rest(
-  PROD,
-  `recipe_tags?recipe_id=in.${inList(prodIds)}&select=recipe_id,tag_id`
-);
-const prodTagIds = [...new Set(prodRecipeTags.map((rt) => rt.tag_id))];
-const prodTags = await rest(
-  PROD,
-  `tags?id=in.${inList(prodTagIds)}&select=id,name`
-);
-const prodTagNameById = Object.fromEntries(prodTags.map((t) => [t.id, t.name]));
-
-// ─── 2. Pull staging state ─────────────────────────────────────────────────
-const stagingRecipes = await rest(
-  STAGING,
-  `recipes?household_id=eq.${stagingDemoId}&select=id,title`
-);
-const stagingIdByTitle = Object.fromEntries(stagingRecipes.map((r) => [r.title, r.id]));
-
-const stagingTags = await rest(
-  STAGING,
-  `tags?is_predefined=eq.true&select=id,name`
-);
-const stagingTagIdByName = Object.fromEntries(stagingTags.map((t) => [t.name, t.id]));
-
-// ─── 3. Apply ──────────────────────────────────────────────────────────────
-for (const r of prodRecipes) {
-  const stagingId = stagingIdByTitle[r.title];
-  if (!stagingId) {
-    console.warn(`  ⊘ no staging recipe for "${r.title}" — skipped`);
-    skipped++;
-    continue;
+  // ─── 1. Pull prod state ────────────────────────────────────────────────────
+  const prodRecipes = await rest(
+    PROD,
+    `recipes?household_id=eq.${prodDemoId}&select=id,title,prep_time,cook_time,cost,complexity,seasons,image_prompt,generated_image_url,enrichment_status,image_status&order=created_at.asc`,
+  );
+  console.log(`Pulled ${prodRecipes.length} prod demo recipes.`);
+  if (prodRecipes.length === 0) {
+    console.warn("  ⊘ aucune recette prod pour ce foyer — rien à synchroniser");
+    return;
   }
 
-  const patch = {
-    photo_url: null,
-    generated_image_url: r.generated_image_url,
-    image_prompt: r.image_prompt,
-    prep_time: r.prep_time,
-    cook_time: r.cook_time,
-    cost: r.cost,
-    complexity: r.complexity,
-    seasons: r.seasons ?? [],
-    enrichment_status: r.enrichment_status,
-    image_status: r.image_status,
-  };
+  const prodIds = prodRecipes.map((r) => r.id);
+  const inList = (ids) => "(" + ids.map((i) => `"${i}"`).join(",") + ")";
 
-  await rest(STAGING, `recipes?id=eq.${stagingId}`, {
-    method: "PATCH",
-    body: JSON.stringify(patch),
-  });
-  updated++;
+  const prodRecipeTags = await rest(
+    PROD,
+    `recipe_tags?recipe_id=in.${inList(prodIds)}&select=recipe_id,tag_id`,
+  );
+  const prodTagIds = [...new Set(prodRecipeTags.map((rt) => rt.tag_id))];
+  const prodTags = await rest(PROD, `tags?id=in.${inList(prodTagIds)}&select=id,name`);
+  const prodTagNameById = Object.fromEntries(prodTags.map((t) => [t.id, t.name]));
 
-  // Recipe tags: reset and re-insert
-  await rest(STAGING, `recipe_tags?recipe_id=eq.${stagingId}`, { method: "DELETE" });
+  // ─── 2. Pull staging state ─────────────────────────────────────────────────
+  const stagingRecipes = await rest(
+    STAGING,
+    `recipes?household_id=eq.${stagingDemoId}&select=id,title`,
+  );
+  const stagingIdByTitle = Object.fromEntries(stagingRecipes.map((r) => [r.title, r.id]));
 
-  const prodTagNames = prodRecipeTags
-    .filter((rt) => rt.recipe_id === r.id)
-    .map((rt) => prodTagNameById[rt.tag_id])
-    .filter(Boolean);
+  const stagingTags = await rest(STAGING, `tags?is_predefined=eq.true&select=id,name`);
+  const stagingTagIdByName = Object.fromEntries(stagingTags.map((t) => [t.name, t.id]));
 
-  const rows = [];
-  for (const name of prodTagNames) {
-    const stagingTagId = stagingTagIdByName[name];
-    if (!stagingTagId) {
-      missingTags.add(name);
+  // ─── 3. Apply ──────────────────────────────────────────────────────────────
+  for (const r of prodRecipes) {
+    const stagingId = stagingIdByTitle[r.title];
+    if (!stagingId) {
+      console.warn(`  ⊘ no staging recipe for "${r.title}" — skipped`);
+      skipped++;
       continue;
     }
-    rows.push({ recipe_id: stagingId, tag_id: stagingTagId });
-  }
-  if (rows.length) {
-    await rest(STAGING, `recipe_tags`, { method: "POST", body: JSON.stringify(rows) });
-    tagLinks += rows.length;
-  }
 
-  console.log(`  ✓ ${r.title} (${prodTagNames.length} tags)`);
-}
+    const patch = {
+      photo_url: null,
+      generated_image_url: r.generated_image_url,
+      image_prompt: r.image_prompt,
+      prep_time: r.prep_time,
+      cook_time: r.cook_time,
+      cost: r.cost,
+      complexity: r.complexity,
+      seasons: r.seasons ?? [],
+      enrichment_status: r.enrichment_status,
+      image_status: r.image_status,
+    };
+
+    await rest(STAGING, `recipes?id=eq.${stagingId}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
+    });
+    updated++;
+
+    // Recipe tags: reset and re-insert
+    await rest(STAGING, `recipe_tags?recipe_id=eq.${stagingId}`, { method: "DELETE" });
+
+    const prodTagNames = prodRecipeTags
+      .filter((rt) => rt.recipe_id === r.id)
+      .map((rt) => prodTagNameById[rt.tag_id])
+      .filter(Boolean);
+
+    const rows = [];
+    for (const name of prodTagNames) {
+      const stagingTagId = stagingTagIdByName[name];
+      if (!stagingTagId) {
+        missingTags.add(name);
+        continue;
+      }
+      rows.push({ recipe_id: stagingId, tag_id: stagingTagId });
+    }
+    if (rows.length) {
+      await rest(STAGING, `recipe_tags`, { method: "POST", body: JSON.stringify(rows) });
+      tagLinks += rows.length;
+    }
+
+    console.log(`  ✓ ${r.title} (${prodTagNames.length} tags)`);
+  }
 }

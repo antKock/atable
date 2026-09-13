@@ -50,15 +50,12 @@ export async function runApifyActor<T = unknown>(
 
   // Apify REST paths use `username~actor-name`, not `username/actor-name`.
   const path = actorId.replace("/", "~");
-  const res = await fetch(
-    `${APIFY_BASE}/acts/${path}/run-sync-get-dataset-items?token=${token}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(input),
-      signal: AbortSignal.timeout(timeoutMs),
-    },
-  );
+  const res = await fetch(`${APIFY_BASE}/acts/${path}/run-sync-get-dataset-items?token=${token}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
 
   if (!res.ok) {
     throw new Error(`Apify actor ${actorId} failed: ${res.status}`);

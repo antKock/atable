@@ -149,50 +149,50 @@ export const t = {
   // (français, jamais traduits), valeurs = libellé affiché. Les tags libres
   // créés par l'utilisateur s'affichent tels quels.
   tagNames: {
-    "Entrée": "Entrée",
+    Entrée: "Entrée",
     "Plat principal": "Plat principal",
-    "Accompagnement": "Accompagnement",
-    "Dessert": "Dessert",
-    "Soupe": "Soupe",
-    "Salade": "Salade",
-    "Apéro": "Apéro",
+    Accompagnement: "Accompagnement",
+    Dessert: "Dessert",
+    Soupe: "Soupe",
+    Salade: "Salade",
+    Apéro: "Apéro",
     "Petit-déjeuner": "Petit-déjeuner",
-    "Goûter": "Goûter",
-    "Boisson": "Boisson",
+    Goûter: "Goûter",
+    Boisson: "Boisson",
     "Sauce / Condiment": "Sauce / Condiment",
     "Pain / Pâtisserie": "Pain / Pâtisserie",
-    "Végétarien": "Végétarien",
-    "Végan": "Végan",
+    Végétarien: "Végétarien",
+    Végan: "Végan",
     "Sans gluten": "Sans gluten",
     "Sans lactose": "Sans lactose",
-    "Léger": "Léger",
+    Léger: "Léger",
     "Comfort food": "Comfort food",
-    "Poulet": "Poulet",
-    "Bœuf": "Bœuf",
-    "Porc": "Porc",
-    "Agneau": "Agneau",
-    "Poisson": "Poisson",
+    Poulet: "Poulet",
+    Bœuf: "Bœuf",
+    Porc: "Porc",
+    Agneau: "Agneau",
+    Poisson: "Poisson",
     "Fruits de mer": "Fruits de mer",
-    "Œufs": "Œufs",
+    Œufs: "Œufs",
     "Tofu / Protéines végétales": "Tofu / Protéines végétales",
-    "Légumineuses": "Légumineuses",
-    "Française": "Française",
-    "Italienne": "Italienne",
-    "Indienne": "Indienne",
+    Légumineuses: "Légumineuses",
+    Française: "Française",
+    Italienne: "Italienne",
+    Indienne: "Indienne",
     "Libanaise / Orientale": "Libanaise / Orientale",
-    "Mexicaine": "Mexicaine",
-    "Asiatique": "Asiatique",
-    "Africaine": "Africaine",
-    "Américaine": "Américaine",
-    "Méditerranéenne": "Méditerranéenne",
-    "Nordique": "Nordique",
-    "Rapide": "Rapide",
+    Mexicaine: "Mexicaine",
+    Asiatique: "Asiatique",
+    Africaine: "Africaine",
+    Américaine: "Américaine",
+    Méditerranéenne: "Méditerranéenne",
+    Nordique: "Nordique",
+    Rapide: "Rapide",
     "En batch": "En batch",
     "Repas de fête": "Repas de fête",
     "Pique-nique": "Pique-nique",
-    "Lunchbox": "Lunchbox",
+    Lunchbox: "Lunchbox",
     "Pas cher": "Pas cher",
-    "Facile": "Facile",
+    Facile: "Facile",
     "One-pot": "One-pot",
     "Sans cuisson": "Sans cuisson",
     "Pour les enfants": "Pour les enfants",
@@ -266,8 +266,7 @@ export const t = {
       fromGallery: "Choisir dans la galerie",
       cancel: "Annuler",
       analyze: "Analyser",
-      count: (n: number) =>
-        `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
+      count: (n: number) => `${n} image${n > 1 ? "s" : ""} sélectionnée${n > 1 ? "s" : ""}`,
     },
     voice: {
       title: "Dicter",
@@ -295,16 +294,12 @@ export const t = {
       chip: "Écrire",
     },
     divider: "ou",
-    error:
-      "Impossible d'extraire la recette. Réessaie ou saisis-la manuellement.",
+    error: "Impossible d'extraire la recette. Réessaie ou saisis-la manuellement.",
     errorSiteBlocked:
       "Ce site bloque l'accès automatique. Essaie avec une capture d'écran ou la saisie manuelle.",
-    errorRateLimit:
-      "Trop de requêtes, réessaie dans quelques instants.",
-    errorImportQuota:
-      "Limite quotidienne d'imports atteinte. Réessaie dans 24h.",
-    errorSiteUnreachable:
-      "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
+    errorRateLimit: "Trop de requêtes, réessaie dans quelques instants.",
+    errorImportQuota: "Limite quotidienne d'imports atteinte. Réessaie dans 24h.",
+    errorSiteUnreachable: "Impossible d'accéder au site. Vérifie l'URL et réessaie.",
   },
 
   // Search
@@ -341,11 +336,11 @@ export const t = {
   // Join via invite link
   joinLink: {
     hero: (name: string) => `Ouvrir « ${name} » ?`,
-    confirm: 'Ouvrir',
-    notFound: 'Ce lien ne correspond à aucun carnet',
+    confirm: "Ouvrir",
+    notFound: "Ce lien ne correspond à aucun carnet",
     backToLanding: "Retour à l'accueil",
     // Code invité (Lot 3) : la confirmation dit que l'accès est en lecture seule
-    guestNote: 'En lecture seule, en direct',
+    guestNote: "En lecture seule, en direct",
   },
 
   // Join household
@@ -359,7 +354,8 @@ export const t = {
     invalidFormat: "Format invalide — ex : OLIVE-4821",
     searching: "Recherche en cours…",
     enterHeading: ["Entre le code", "de ton carnet"],
-    enterBody: "Demande à un membre du carnet son code d'invitation. Tu accéderas instantanément aux recettes partagées.",
+    enterBody:
+      "Demande à un membre du carnet son code d'invitation. Tu accéderas instantanément aux recettes partagées.",
   },
 
   // Household
@@ -379,7 +375,8 @@ export const t = {
     // en mode sans champ (partage de recette : créer OU rejoindre).
     defaultName: "Mon carnet",
     createHeadingQuick: ["Crée ton carnet", "en un geste"],
-    createBody: "Un carnet à partager avec tes proches. Vos recettes s'y retrouvent, réunies au même endroit.",
+    createBody:
+      "Un carnet à partager avec tes proches. Vos recettes s'y retrouvent, réunies au même endroit.",
     nameEmpty: "Le nom ne peut pas être vide",
     menu: "Carnet & profil",
     menuButton: "Carnet & profil",
@@ -513,7 +510,8 @@ export const t = {
     // Déconnexion (même gabarit que « Quitter le foyer »)
     logout: "Se déconnecter",
     logoutConfirmTitle: "Se déconnecter ?",
-    logoutConfirmBody: "Cet appareil sera déconnecté. Tu pourras retrouver tes carnets avec ton email de secours.",
+    logoutConfirmBody:
+      "Cet appareil sera déconnecté. Tu pourras retrouver tes carnets avec ton email de secours.",
     logoutConfirmBodyNoEmail:
       "Cet appareil sera déconnecté. Sans email de secours, tu risques de perdre l'accès à tes carnets — pense à en ajouter un avant.",
     logoutAction: "Se déconnecter",

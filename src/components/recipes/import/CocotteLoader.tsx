@@ -25,13 +25,7 @@ export function CocotteLoader({
       aria-hidden="true"
     >
       {steam && (
-        <g
-          className="steam"
-          fill="none"
-          stroke={accent}
-          strokeWidth={2.4}
-          strokeLinecap="round"
-        >
+        <g className="steam" fill="none" stroke={accent} strokeWidth={2.4} strokeLinecap="round">
           <path
             className="steam-wisp"
             style={{ "--d": "0s" } as CSSProperties}
@@ -51,14 +45,7 @@ export function CocotteLoader({
       )}
 
       {/* Floor shadow */}
-      <ellipse
-        className="cocotte-shadow"
-        cx={40}
-        cy={68}
-        rx={30}
-        ry={2.6}
-        fill={accent}
-      />
+      <ellipse className="cocotte-shadow" cx={40} cy={68} rx={30} ry={2.6} fill={accent} />
 
       {/* Pot body (breathes) */}
       <g className="cocotte-body">

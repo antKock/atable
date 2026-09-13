@@ -29,16 +29,23 @@ describe("checkEnv", () => {
   });
 
   it("uuid nil (seed.sql par défaut) accepté pour DEMO_HOUSEHOLD_ID", () => {
-    expect(checkEnv({ ...VALID, DEMO_HOUSEHOLD_ID: "00000000-0000-0000-0000-000000000000" })).toEqual([]);
+    expect(
+      checkEnv({ ...VALID, DEMO_HOUSEHOLD_ID: "00000000-0000-0000-0000-000000000000" }),
+    ).toEqual([]);
   });
 
   it("id fixe du foyer démo EN (hors RFC 4122) accepté — faux positif vu sur staging le 2026-09-06", () => {
-    expect(checkEnv({ ...VALID, DEMO_HOUSEHOLD_ID_EN: "00000000-0000-0000-0000-00000000e000" })).toEqual([]);
+    expect(
+      checkEnv({ ...VALID, DEMO_HOUSEHOLD_ID_EN: "00000000-0000-0000-0000-00000000e000" }),
+    ).toEqual([]);
   });
 
   it("requise absente ou vide → error", () => {
     const absent = checkEnv({ ...VALID, CRON_SECRET: undefined });
-    expect(issueFor(absent, "CRON_SECRET")).toMatchObject({ level: "error", reason: "absente ou vide" });
+    expect(issueFor(absent, "CRON_SECRET")).toMatchObject({
+      level: "error",
+      reason: "absente ou vide",
+    });
     const empty = checkEnv({ ...VALID, OPENAI_SERVICE_KEY: "  " });
     expect(issueFor(empty, "OPENAI_SERVICE_KEY")?.level).toBe("error");
   });
@@ -82,43 +89,74 @@ describe("checkEnv", () => {
     };
     expect(checkEnv(vps)).toEqual([]);
     // Sans S3, le repli Storage exige encore le couple Supabase.
-    expect(issueFor(checkEnv(without(vps, "S3_BUCKET")), "NEXT_PUBLIC_SUPABASE_URL")?.level).toBe("error");
+    expect(issueFor(checkEnv(without(vps, "S3_BUCKET")), "NEXT_PUBLIC_SUPABASE_URL")?.level).toBe(
+      "error",
+    );
     // Couple PostgREST à moitié posé → error sur la manquante.
-    expect(issueFor(checkEnv(without(vps, "DATABASE_REST_KEY")), "DATABASE_REST_KEY")?.level).toBe("error");
+    expect(issueFor(checkEnv(without(vps, "DATABASE_REST_KEY")), "DATABASE_REST_KEY")?.level).toBe(
+      "error",
+    );
     // S3_BUCKET sans identifiants → error.
-    expect(issueFor(checkEnv(without(vps, "S3_SECRET_ACCESS_KEY")), "S3_SECRET_ACCESS_KEY")?.level).toBe("error");
+    expect(
+      issueFor(checkEnv(without(vps, "S3_SECRET_ACCESS_KEY")), "S3_SECRET_ACCESS_KEY")?.level,
+    ).toBe("error");
   });
 
   it("URL invalide ou hors http(s) → signalée", () => {
-    expect(issueFor(checkEnv({ ...VALID, NEXT_PUBLIC_SUPABASE_URL: "xyz.supabase.co" }), "NEXT_PUBLIC_SUPABASE_URL")?.level).toBe("error");
-    expect(issueFor(checkEnv({ ...VALID, APP_ORIGIN: "ftp://mijote.fr" }), "APP_ORIGIN")?.level).toBe("warn");
+    expect(
+      issueFor(
+        checkEnv({ ...VALID, NEXT_PUBLIC_SUPABASE_URL: "xyz.supabase.co" }),
+        "NEXT_PUBLIC_SUPABASE_URL",
+      )?.level,
+    ).toBe("error");
+    expect(
+      issueFor(checkEnv({ ...VALID, APP_ORIGIN: "ftp://mijote.fr" }), "APP_ORIGIN")?.level,
+    ).toBe("warn");
     expect(checkEnv({ ...VALID, APP_ORIGIN: "https://mijote.anthonykocken.fr" })).toEqual([]);
   });
 
   it("SESSION_SIGNING_SECRET trop court → error (session.ts jetterait à la première requête)", () => {
-    expect(issueFor(checkEnv({ ...VALID, SESSION_SIGNING_SECRET: "court" }), "SESSION_SIGNING_SECRET")?.level).toBe("error");
+    expect(
+      issueFor(checkEnv({ ...VALID, SESSION_SIGNING_SECRET: "court" }), "SESSION_SIGNING_SECRET")
+        ?.level,
+    ).toBe("error");
   });
 
   it("ADMIN_HOUSEHOLD_IDS : liste d'uuid (espaces tolérés), sinon warn", () => {
     expect(checkEnv({ ...VALID, ADMIN_HOUSEHOLD_IDS: `${UUID}, ${UUID}` })).toEqual([]);
-    expect(issueFor(checkEnv({ ...VALID, ADMIN_HOUSEHOLD_IDS: `${UUID},abc` }), "ADMIN_HOUSEHOLD_IDS")?.level).toBe("warn");
-    expect(issueFor(checkEnv({ ...VALID, ADMIN_HOUSEHOLD_IDS: "," }), "ADMIN_HOUSEHOLD_IDS")?.level).toBe("warn");
+    expect(
+      issueFor(checkEnv({ ...VALID, ADMIN_HOUSEHOLD_IDS: `${UUID},abc` }), "ADMIN_HOUSEHOLD_IDS")
+        ?.level,
+    ).toBe("warn");
+    expect(
+      issueFor(checkEnv({ ...VALID, ADMIN_HOUSEHOLD_IDS: "," }), "ADMIN_HOUSEHOLD_IDS")?.level,
+    ).toBe("warn");
   });
 
   it("flags I18N_* : 1/true/0/false insensibles à la casse, sinon warn", () => {
     expect(checkEnv({ ...VALID, I18N_EN_ENABLED: "TRUE", I18N_PREVIEW_COOKIE: " 0 " })).toEqual([]);
-    expect(issueFor(checkEnv({ ...VALID, I18N_EN_ENABLED: "yes" }), "I18N_EN_ENABLED")?.level).toBe("warn");
+    expect(issueFor(checkEnv({ ...VALID, I18N_EN_ENABLED: "yes" }), "I18N_EN_ENABLED")?.level).toBe(
+      "warn",
+    );
   });
 
   it("DEMO_SEED_MIN : entier > 0, sinon warn", () => {
     expect(checkEnv({ ...VALID, DEMO_SEED_MIN: "30" })).toEqual([]);
-    expect(issueFor(checkEnv({ ...VALID, DEMO_SEED_MIN: "0" }), "DEMO_SEED_MIN")?.level).toBe("warn");
-    expect(issueFor(checkEnv({ ...VALID, DEMO_SEED_MIN: "trente" }), "DEMO_SEED_MIN")?.level).toBe("warn");
+    expect(issueFor(checkEnv({ ...VALID, DEMO_SEED_MIN: "0" }), "DEMO_SEED_MIN")?.level).toBe(
+      "warn",
+    );
+    expect(issueFor(checkEnv({ ...VALID, DEMO_SEED_MIN: "trente" }), "DEMO_SEED_MIN")?.level).toBe(
+      "warn",
+    );
   });
 
   it("EMAIL_FROM absente avec RESEND_API_KEY posée → error (le transport jette)", () => {
-    expect(issueFor(checkEnv({ ...VALID, RESEND_API_KEY: "re_x" }), "EMAIL_FROM")?.level).toBe("error");
-    expect(checkEnv({ ...VALID, RESEND_API_KEY: "re_x", EMAIL_FROM: "Mijote <no-reply@mijote.fr>" })).toEqual([]);
+    expect(issueFor(checkEnv({ ...VALID, RESEND_API_KEY: "re_x" }), "EMAIL_FROM")?.level).toBe(
+      "error",
+    );
+    expect(
+      checkEnv({ ...VALID, RESEND_API_KEY: "re_x", EMAIL_FROM: "Mijote <no-reply@mijote.fr>" }),
+    ).toEqual([]);
   });
 
   it("optionnelles attendues absentes : warn en production seulement", () => {
@@ -145,7 +183,12 @@ describe("checkEnv", () => {
   });
 
   it("staging (SENTRY_ENVIRONMENT=staging) : les règles « absente en production » ne s'appliquent pas", () => {
-    const staging = { ...VALID, NODE_ENV: "production", SENTRY_ENVIRONMENT: "staging", APP_ORIGIN: "https://staging.mijote.fr" };
+    const staging = {
+      ...VALID,
+      NODE_ENV: "production",
+      SENTRY_ENVIRONMENT: "staging",
+      APP_ORIGIN: "https://staging.mijote.fr",
+    };
     expect(checkEnv(staging)).toEqual([]);
     // Sans SENTRY_ENVIRONMENT, NODE_ENV=production vaut production (prudence).
     expect(checkEnv({ ...VALID, NODE_ENV: "production" }).length).toBeGreaterThan(0);
@@ -188,7 +231,9 @@ describe("reportEnvIssues", () => {
 
   it("hors production : console.warn seulement, rien vers Sentry", () => {
     reportEnvIssues({ ...VALID, DEMO_HOUSEHOLD_ID: "[SENSITIVE]" });
-    expect(console.warn).toHaveBeenCalledWith(expect.stringContaining("[env-check] DEMO_HOUSEHOLD_ID :"));
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringContaining("[env-check] DEMO_HOUSEHOLD_ID :"),
+    );
     expect(console.error).not.toHaveBeenCalled();
     expect(captureMessage).not.toHaveBeenCalled();
   });

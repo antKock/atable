@@ -8,18 +8,53 @@ const NOW = new Date("2026-09-12T08:00:00Z"); // samedi → dernière semaine cl
 function person(over: Partial<Person> & { created_at: string }): Person {
   return {
     id: over.created_at,
-    display_name: null, has_email: false, named: false, via_demo: false, first_platform: "ios", channel: "ios",
-    carnets: 1, guest_of: 0, first_method: "url", first_recipe_at: over.created_at, recipes_7d: 3, recipes_28d: 2, recipes_total: 5,
-    views_28d: 0, views_total: 0, returned_7d: true, active_m1: false, active_m2: false, active_m3: false,
-    active_28d: true, active_prev28: false, active_days_28d: 2, last_active_day: "2026-09-10", ...over,
+    display_name: null,
+    has_email: false,
+    named: false,
+    via_demo: false,
+    first_platform: "ios",
+    channel: "ios",
+    carnets: 1,
+    guest_of: 0,
+    first_method: "url",
+    first_recipe_at: over.created_at,
+    recipes_7d: 3,
+    recipes_28d: 2,
+    recipes_total: 5,
+    views_28d: 0,
+    views_total: 0,
+    returned_7d: true,
+    active_m1: false,
+    active_m2: false,
+    active_m3: false,
+    active_28d: true,
+    active_prev28: false,
+    active_days_28d: 2,
+    last_active_day: "2026-09-10",
+    ...over,
   };
 }
 
 const health: HealthRow = {
-  ai_calls: 100, recipes_created: 40, recipes_enriched: 40, recipes_failed: 0, recipes_pending_stale: 0,
-  demo_seed_fr: 30, demo_seed_en: 30, last_rollup: "2026-09-12T03:00:00Z", last_app_store_sync: "2026-09-12T09:04:00Z",
-  ai_cost_usd: 3.5, ai_cost_demo_usd: 0.6, demo_trials: 22, demo_frozen_hits: 2, demo_ai_calls: 19, demo_recipes: 11,
-  recovery_sent: 6, recovery_used: 4, merge_used: 1, tokens_burned: 0,
+  ai_calls: 100,
+  recipes_created: 40,
+  recipes_enriched: 40,
+  recipes_failed: 0,
+  recipes_pending_stale: 0,
+  demo_seed_fr: 30,
+  demo_seed_en: 30,
+  last_rollup: "2026-09-12T03:00:00Z",
+  last_app_store_sync: "2026-09-12T09:04:00Z",
+  ai_cost_usd: 3.5,
+  ai_cost_demo_usd: 0.6,
+  demo_trials: 22,
+  demo_frozen_hits: 2,
+  demo_ai_calls: 19,
+  demo_recipes: 11,
+  recovery_sent: 6,
+  recovery_used: 4,
+  merge_used: 1,
+  tokens_burned: 0,
 };
 
 function raw(over: Partial<RawV3> = {}): RawV3 {
@@ -28,7 +63,12 @@ function raw(over: Partial<RawV3> = {}): RawV3 {
     person({ created_at: "2026-07-05T10:00:00Z", active_m1: false }),
     person({ created_at: "2026-08-28T10:00:00Z" }),
     person({ created_at: "2026-09-02T10:00:00Z", channel: "invite" }),
-    person({ created_at: "2026-09-03T10:00:00Z", recipes_7d: 1, returned_7d: false, first_method: "photo" }),
+    person({
+      created_at: "2026-09-03T10:00:00Z",
+      recipes_7d: 1,
+      returned_7d: false,
+      first_method: "photo",
+    }),
   ];
   return {
     people,
@@ -42,25 +82,104 @@ function raw(over: Partial<RawV3> = {}): RawV3 {
       { week_start: "2026-08-31", source: "photo", recipes: 2 },
       { week_start: "2026-08-03", source: "url", recipes: 4 },
     ],
-    demo: [{ platform: "ios", trials: 20, conversions: 8 }, { platform: "web", trials: 10, conversions: 1 }],
+    demo: [
+      { platform: "ios", trials: 20, conversions: 8 },
+      { platform: "web", trials: 10, conversions: 1 },
+    ],
     health,
     appStore: [
-      { day: "2026-09-01", source_type: "App Store search", source_info: "", dl_first_time: 7, dl_redownload: 0, dl_update: 2, eng_impressions: 100, eng_impressions_uniq: 80, eng_page_views: 10, eng_page_views_uniq: 9, eng_taps: 0 },
-      { day: "2026-09-02", source_type: "App referrer", source_info: "com.openai.chat", dl_first_time: 2, dl_redownload: 0, dl_update: 0, eng_impressions: 0, eng_impressions_uniq: 0, eng_page_views: 3, eng_page_views_uniq: 3, eng_taps: 0 },
-      { day: "2026-08-05", source_type: "App Store search", source_info: "", dl_first_time: 3, dl_redownload: 0, dl_update: 0, eng_impressions: 60, eng_impressions_uniq: 50, eng_page_views: 0, eng_page_views_uniq: 0, eng_taps: 0 },
+      {
+        day: "2026-09-01",
+        source_type: "App Store search",
+        source_info: "",
+        dl_first_time: 7,
+        dl_redownload: 0,
+        dl_update: 2,
+        eng_impressions: 100,
+        eng_impressions_uniq: 80,
+        eng_page_views: 10,
+        eng_page_views_uniq: 9,
+        eng_taps: 0,
+      },
+      {
+        day: "2026-09-02",
+        source_type: "App referrer",
+        source_info: "com.openai.chat",
+        dl_first_time: 2,
+        dl_redownload: 0,
+        dl_update: 0,
+        eng_impressions: 0,
+        eng_impressions_uniq: 0,
+        eng_page_views: 3,
+        eng_page_views_uniq: 3,
+        eng_taps: 0,
+      },
+      {
+        day: "2026-08-05",
+        source_type: "App Store search",
+        source_info: "",
+        dl_first_time: 3,
+        dl_redownload: 0,
+        dl_update: 0,
+        eng_impressions: 60,
+        eng_impressions_uniq: 50,
+        eng_page_views: 0,
+        eng_page_views_uniq: 0,
+        eng_taps: 0,
+      },
     ],
     sharing: { links: 5, links_dated_estimate: true, copies: 2 },
     carnets: [
-      { id: "a", name: "A", created_at: "2026-06-01", origin: "landing", members: 2, guests: 0, recipes: 10, shared_links: 1, last_active_day: "2026-09-10" },
-      { id: "b", name: "B", created_at: "2026-07-01", origin: "demo_conversion", members: 1, guests: 1, recipes: 4, shared_links: 0, last_active_day: null },
-      { id: "c", name: "C", created_at: "2026-08-01", origin: "landing", members: 1, guests: 0, recipes: 1, shared_links: 0, last_active_day: null },
+      {
+        id: "a",
+        name: "A",
+        created_at: "2026-06-01",
+        origin: "landing",
+        members: 2,
+        guests: 0,
+        recipes: 10,
+        shared_links: 1,
+        last_active_day: "2026-09-10",
+      },
+      {
+        id: "b",
+        name: "B",
+        created_at: "2026-07-01",
+        origin: "demo_conversion",
+        members: 1,
+        guests: 1,
+        recipes: 4,
+        shared_links: 0,
+        last_active_day: null,
+      },
+      {
+        id: "c",
+        name: "C",
+        created_at: "2026-08-01",
+        origin: "landing",
+        members: 1,
+        guests: 0,
+        recipes: 1,
+        shared_links: 0,
+        last_active_day: null,
+      },
     ],
     daily: Array.from({ length: 40 }, (_, i) => {
-      const d = new Date("2026-09-11T00:00:00Z"); d.setUTCDate(d.getUTCDate() - i);
+      const d = new Date("2026-09-11T00:00:00Z");
+      d.setUTCDate(d.getUTCDate() - i);
       const day = d.toISOString().slice(0, 10);
       // 7 derniers jours : 2 essais, 1 recette, 3 actifs / jour ; avant : 1, 0, 2.
       const recent = i < 7;
-      return { day, trials: recent ? 2 : 1, trials_ios: recent ? 2 : 1, trials_web: 0, trials_android: 0, new_people: 0, recipes: recent ? 1 : 0, active_people: recent ? 3 : 2 };
+      return {
+        day,
+        trials: recent ? 2 : 1,
+        trials_ios: recent ? 2 : 1,
+        trials_web: 0,
+        trials_android: 0,
+        new_people: 0,
+        recipes: recent ? 1 : 0,
+        active_people: recent ? 3 : 2,
+      };
     }),
     billedUsd: 3.7,
     demoSeedMin: 30,
@@ -79,7 +198,13 @@ describe("assembleV3", () => {
   });
 
   it("North Star = actifs 28 j à la fin de la dernière semaine close, delta vs 4 semaines plus tôt", () => {
-    expect(d.overview.northStar).toMatchObject({ value: 3, engaged: 2, total: 5, delta: 2, fourWeeksAgo: 1 });
+    expect(d.overview.northStar).toMatchObject({
+      value: 3,
+      engaged: 2,
+      total: 5,
+      delta: 2,
+      fourWeeksAgo: 1,
+    });
     expect(d.overview.northStar.series).toHaveLength(12);
     expect(d.overview.northStar.series[11]).toBe(3);
   });
@@ -102,15 +227,28 @@ describe("assembleV3", () => {
 
   it("santé : tout au vert avec des crons récents et le seed complet", () => {
     expect(d.overview.health.ok).toBe(true);
-    const bad = assembleV3(raw({ health: { ...health, last_app_store_sync: "2026-09-09T09:00:00Z", recipes_failed: 2 } }));
+    const bad = assembleV3(
+      raw({
+        health: { ...health, last_app_store_sync: "2026-09-09T09:00:00Z", recipes_failed: 2 },
+      }),
+    );
     expect(bad.overview.health.ok).toBe(false);
     expect(bad.overview.health.crons.ok).toBe(false);
     expect(bad.overview.health.pipeline.ok).toBe(false);
   });
 
   it("acquisition : App Store sur 4 sem., sources nommées, démo par plateforme", () => {
-    expect(d.acquisition.appStore).toMatchObject({ impressions: 100, pageViews: 13, downloads: 9, updates: 2, firstOpenIos: 20 });
-    expect(d.acquisition.appStore.sources).toEqual([{ label: "Recherche App Store", downloads: 7 }, { label: "Depuis une app · ChatGPT", downloads: 2 }]);
+    expect(d.acquisition.appStore).toMatchObject({
+      impressions: 100,
+      pageViews: 13,
+      downloads: 9,
+      updates: 2,
+      firstOpenIos: 20,
+    });
+    expect(d.acquisition.appStore.sources).toEqual([
+      { label: "Recherche App Store", downloads: 7 },
+      { label: "Depuis une app · ChatGPT", downloads: 2 },
+    ]);
     expect(d.acquisition.demo.ios).toMatchObject({ n: 8, total: 20, pct: 40 });
     expect(d.acquisition.weekly).toHaveLength(12);
     expect(d.acquisition.weekly[11]).toMatchObject({ label: "31/08", ios: 1, invite: 1, total: 2 });
@@ -118,7 +256,12 @@ describe("assembleV3", () => {
 
   it("activation par première méthode et rétention (table + courbes)", () => {
     expect(d.activation.byMethod[0]).toMatchObject({ label: "URL" });
-    expect(d.retention.cohorts.map((c) => c.month)).toEqual(["2026-06", "2026-07", "2026-08", "2026-09"]);
+    expect(d.retention.cohorts.map((c) => c.month)).toEqual([
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+    ]);
     expect(d.retention.cohorts[0].m1.r.n).toBe(1);
     expect(d.retention.curves).toEqual([]); // cohortes < 5 personnes
     expect(d.retention.cakeKeys).toEqual(["2026-06", "2026-09"]);
@@ -127,7 +270,16 @@ describe("assembleV3", () => {
   it("engagement : mix des méthodes en %, partage, carnets partagés", () => {
     const last = d.engage.methodMix[11];
     expect(last).toMatchObject({ label: "31/08", url: 75, photo: 25, total: 8 });
-    expect(d.engage.methodMix.every((r) => r.total === 0 || ["url", "photo", "voice", "manual", "shared", "unknown"].reduce((a, k) => a + Number(r[k]), 0) === 100)).toBe(true);
+    expect(
+      d.engage.methodMix.every(
+        (r) =>
+          r.total === 0 ||
+          ["url", "photo", "voice", "manual", "shared", "unknown"].reduce(
+            (a, k) => a + Number(r[k]),
+            0,
+          ) === 100,
+      ),
+    ).toBe(true);
     expect(d.engage.sharing).toMatchObject({ links: 5, copies: 2, estimate: true });
     expect(d.engage.sharedCarnets).toBe(2);
     expect(d.engage.carnetsWithGuests).toBe(1);
@@ -163,7 +315,13 @@ describe("bloc 0 et funnel hebdo", () => {
     const w = d.acquisition.appStore.funnelWeekly;
     expect(w).toHaveLength(12);
     const last = w[11];
-    expect(last).toMatchObject({ label: "31/08", impressions: 100, downloads: 9, carnets: 1, fragile: true });
+    expect(last).toMatchObject({
+      label: "31/08",
+      impressions: 100,
+      downloads: 9,
+      carnets: 1,
+      fragile: true,
+    });
     expect(last.imprToDl).toBe(9);
     expect(last.opens).toBe(9); // 31/08 → 04/09 : 1 / jour, 05 et 06/09 : 2 / jour
     expect(last.dlToOpen).toBe(100);
@@ -175,8 +333,13 @@ describe("bloc 0 et funnel hebdo", () => {
 describe("renderDigest", () => {
   it("rend sujet, texte et HTML à partir du bloc 1", () => {
     const d = assembleV3(raw());
-    const out = renderDigest(d.overview, { weekLabel: "semaine du 31 août au 6 sept. (2026-W36)", statsUrl: "https://mijote.example/admin/stats" });
-    expect(out.subject).toBe("Mijote — semaine du 31 août au 6 sept. (2026-W36) : 3 cuisiniers actifs (+2)");
+    const out = renderDigest(d.overview, {
+      weekLabel: "semaine du 31 août au 6 sept. (2026-W36)",
+      statsUrl: "https://mijote.example/admin/stats",
+    });
+    expect(out.subject).toBe(
+      "Mijote — semaine du 31 août au 6 sept. (2026-W36) : 3 cuisiniers actifs (+2)",
+    );
     expect(out.text).toContain("Cuisiniers actifs (28 j) : 3 (+2 vs 4 semaines plus tôt, 1)");
     expect(out.text).toContain("Nouvelles personnes · 4 sem. : 3");
     expect(out.text).toContain("Santé : tout est au vert");

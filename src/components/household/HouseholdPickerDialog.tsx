@@ -89,7 +89,11 @@ export default function HouseholdPickerDialog({
                   {foyer.disabled ? (
                     <Lock size={16} className="shrink-0 text-muted-foreground" aria-hidden="true" />
                   ) : (
-                    <Check size={18} className="shrink-0 text-accent opacity-0" aria-hidden="true" />
+                    <Check
+                      size={18}
+                      className="shrink-0 text-accent opacity-0"
+                      aria-hidden="true"
+                    />
                   )}
                 </button>
               </li>

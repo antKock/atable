@@ -9,13 +9,19 @@ beforeEach(() => {
 });
 
 function jsonResponse(status: number, body: unknown) {
-  return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
 }
 
 describe("apiRequest", () => {
   it("POST par défaut, corps JSON sérialisé avec content-type", async () => {
     fetchMock.mockResolvedValue(jsonResponse(200, { ok: true }));
-    const data = await apiRequest<{ ok: boolean }>("/api/x", { body: { a: 1 }, fallbackError: "f" });
+    const data = await apiRequest<{ ok: boolean }>("/api/x", {
+      body: { a: 1 },
+      fallbackError: "f",
+    });
     expect(data).toEqual({ ok: true });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("/api/x");

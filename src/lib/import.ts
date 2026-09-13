@@ -151,10 +151,7 @@ function stripStepMarker(line: string): string {
  * Apply `strip` to every non-empty line, dropping blank lines. "// Nom"
  * section markers pass through untouched — they are structure, not list items.
  */
-function normaliseList(
-  text: string | null,
-  strip: (line: string) => string,
-): string | null {
+function normaliseList(text: string | null, strip: (line: string) => string): string | null {
   if (text == null) return text;
   const lines = text
     .split("\n")
@@ -190,8 +187,7 @@ function dedupeLines(text: string | null): string | null {
 function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoUrl"> {
   return {
     title: result.title.trim(),
-    ingredients:
-      dedupeLines(normaliseList(result.ingredients, stripIngredientMarker)) ?? "",
+    ingredients: dedupeLines(normaliseList(result.ingredients, stripIngredientMarker)) ?? "",
     steps: normaliseList(result.steps, stripStepMarker) ?? "",
     // Notes are free text rendered as recorded — no list normalisation.
     notes: result.notes?.trim() ?? "",
@@ -250,7 +246,11 @@ export async function extractRecipeFromImages(
         model: AI_MODELS.vision,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd(AI_MODELS.vision, response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(
+          AI_MODELS.vision,
+          response.usage?.prompt_tokens,
+          response.usage?.completion_tokens,
+        ),
       });
     }
     return toFormData(parsed);
@@ -323,7 +323,11 @@ export async function extractRecipeFromVoice(
         model: AI_MODELS.text,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(
+          AI_MODELS.text,
+          response.usage?.prompt_tokens,
+          response.usage?.completion_tokens,
+        ),
       });
     }
     return toFormData(parsed);
@@ -370,7 +374,11 @@ async function structureRecipeFromText(
         model: AI_MODELS.text,
         inputTokens: response.usage?.prompt_tokens ?? null,
         outputTokens: response.usage?.completion_tokens ?? null,
-        costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
+        costUsd: textCostUsd(
+          AI_MODELS.text,
+          response.usage?.prompt_tokens,
+          response.usage?.completion_tokens,
+        ),
       });
     }
     return toFormData(parsed);
@@ -493,7 +501,12 @@ async function extractRecipeFromInstagram(
   } catch {
     throw new ImportError("Instagram unreachable via Apify", "SITE_UNREACHABLE");
   }
-  await recordApifyCost(meta, "import_instagram", "instagram-reel-scraper", APIFY_PRICING.instagramReel);
+  await recordApifyCost(
+    meta,
+    "import_instagram",
+    "instagram-reel-scraper",
+    APIFY_PRICING.instagramReel,
+  );
 
   const item = items[0];
   const caption = item?.caption?.trim() || "";
@@ -525,7 +538,12 @@ async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedR
   } catch {
     throw new ImportError("Site unreachable via crawler", "SITE_UNREACHABLE");
   }
-  await recordApifyCost(meta, "import_url_crawler", "website-content-crawler", APIFY_PRICING.websiteCrawler);
+  await recordApifyCost(
+    meta,
+    "import_url_crawler",
+    "website-content-crawler",
+    APIFY_PRICING.websiteCrawler,
+  );
 
   const item = items[0];
   const markdown = (item?.markdown || item?.text || "").trim().slice(0, 50000);
@@ -541,10 +559,7 @@ async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedR
 // OpenAI est déjà plafonné à 45 s (lib/openai.ts).
 export const URL_IMPORT_BUDGET_MS = 55_000;
 
-export function extractRecipeFromUrl(
-  url: string,
-  meta?: ImportMeta,
-): Promise<ImportedRecipeData> {
+export function extractRecipeFromUrl(url: string, meta?: ImportMeta): Promise<ImportedRecipeData> {
   return withDeadline(
     extractRecipeFromUrlUnbounded(url, meta),
     URL_IMPORT_BUDGET_MS,

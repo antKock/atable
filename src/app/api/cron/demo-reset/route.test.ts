@@ -231,8 +231,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     expect(recipesCall.ops.some((op) => op.method === "delete")).toBe(true);
     expect(
       recipesCall.ops.some(
-        (op) =>
-          op.method === "eq" && op.args[0] === "is_seed" && op.args[1] === false,
+        (op) => op.method === "eq" && op.args[0] === "is_seed" && op.args[1] === false,
       ),
     ).toBe(true);
   });
@@ -246,9 +245,11 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     expect(res.status).toBe(500);
     expect(monitor.status).toBe("error");
     expect(
-      vi.mocked(Sentry.captureException).mock.calls.some(
-        ([err]) => err instanceof Error && err.message.includes("delete failed: db error"),
-      ),
+      vi
+        .mocked(Sentry.captureException)
+        .mock.calls.some(
+          ([err]) => err instanceof Error && err.message.includes("delete failed: db error"),
+        ),
     ).toBe(true);
   });
 
@@ -267,11 +268,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
   });
 
   it("pas d'alerte quand les 30 seed sont là", async () => {
-    supa.queueResults([
-      { data: null, error: null },
-      { count: 0, error: null },
-      SEED_OK,
-    ]);
+    supa.queueResults([{ data: null, error: null }, { count: 0, error: null }, SEED_OK]);
     await GET(request("Bearer test-cron-secret"));
     expect(alertCalls()).toHaveLength(0);
   });
@@ -287,7 +284,9 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
     ]);
     await GET(request("Bearer test-cron-secret"));
     expect(alertCalls()).toHaveLength(1);
-    expect(alertCalls()[0][0]).toMatchObject({ message: expect.stringContaining("< 30 attendues") });
+    expect(alertCalls()[0][0]).toMatchObject({
+      message: expect.stringContaining("< 30 attendues"),
+    });
     expect(warn).toHaveBeenCalledWith(expect.stringContaining("DEMO_SEED_MIN invalide"));
   });
 
@@ -316,11 +315,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
   });
 
   it("appelle le rollup UNE fois avec le tableau des foyers démo (migration 038)", async () => {
-    supa.queueResults([
-      { data: null, error: null },
-      { count: 0, error: null },
-      SEED_OK,
-    ]);
+    supa.queueResults([{ data: null, error: null }, { count: 0, error: null }, SEED_OK]);
     await GET(request("Bearer test-cron-secret"));
     const rollups = supa.calls.filter((c) => c.table === "rpc:demo_stats_rollup");
     expect(rollups).toHaveLength(1);
@@ -333,11 +328,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
 describe("GET /api/cron/demo-reset — deux foyers démo (Version EN)", () => {
   it("EN absent → un seul foyer traité (un seul comptage seed)", async () => {
     delete process.env.DEMO_HOUSEHOLD_ID_EN;
-    supa.queueResults([
-      { data: null, error: null },
-      { count: 0, error: null },
-      SEED_OK,
-    ]);
+    supa.queueResults([{ data: null, error: null }, { count: 0, error: null }, SEED_OK]);
     const res = await GET(request("Bearer test-cron-secret"));
     expect(await res.json()).toMatchObject({ seedCount: 30 });
     const seedCounts = supa.calls.filter(
@@ -374,13 +365,15 @@ describe("GET /api/cron/demo-reset — deux foyers démo (Version EN)", () => {
     )!;
     expect(
       recipesDelete.ops.some(
-        (op) => op.method === "in" && JSON.stringify(op.args[1]) === JSON.stringify([DEMO_FR, DEMO_EN]),
+        (op) =>
+          op.method === "in" && JSON.stringify(op.args[1]) === JSON.stringify([DEMO_FR, DEMO_EN]),
       ),
     ).toBe(true);
     const tagsDelete = supa.calls.find((c) => c.table === "tags")!;
     expect(
       tagsDelete.ops.some(
-        (op) => op.method === "in" && JSON.stringify(op.args[1]) === JSON.stringify([DEMO_FR, DEMO_EN]),
+        (op) =>
+          op.method === "in" && JSON.stringify(op.args[1]) === JSON.stringify([DEMO_FR, DEMO_EN]),
       ),
     ).toBe(true);
   });

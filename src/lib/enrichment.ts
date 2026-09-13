@@ -68,7 +68,11 @@ async function generateImagePrompt(
       model: AI_MODELS.text,
       inputTokens: response.usage?.prompt_tokens ?? null,
       outputTokens: response.usage?.completion_tokens ?? null,
-      costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
+      costUsd: textCostUsd(
+        AI_MODELS.text,
+        response.usage?.prompt_tokens,
+        response.usage?.completion_tokens,
+      ),
     });
   }
   return parsed.imagePrompt;
@@ -180,16 +184,15 @@ export async function enrichRecipe(
     // 1. Read recipe data
     const { data: recipe, error: fetchError } = await supabase
       .from("recipes")
-      .select("title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, photo_url, generated_image_url, enrichment_status, household_id")
+      .select(
+        "title, ingredients, steps, prep_time, cook_time, cost, complexity, seasons, servings, image_prompt, photo_url, generated_image_url, enrichment_status, household_id",
+      )
       .eq("id", recipeId)
       .single();
 
     if (fetchError || !recipe) {
       console.error("[enrichment] Recipe not found:", recipeId, fetchError);
-      await supabase
-        .from("recipes")
-        .update({ enrichment_status: "failed" })
-        .eq("id", recipeId);
+      await supabase.from("recipes").update({ enrichment_status: "failed" }).eq("id", recipeId);
       return;
     }
 
@@ -218,16 +221,15 @@ export async function enrichRecipe(
     // success, or the create flow falls back to generation if the upload fails.
     const needsImage = !hasImage && !options?.skipImage;
 
-    console.log(`[enrichment] ${recipeId} — needsMetadata=${needsMetadata} needsImage=${needsImage} (tags=${tagCount})`);
+    console.log(
+      `[enrichment] ${recipeId} — needsMetadata=${needsMetadata} needsImage=${needsImage} (tags=${tagCount})`,
+    );
 
     if (!needsMetadata && !needsImage) {
       console.log(`[enrichment] ${recipeId} — skipping, everything filled`);
 
       if (recipe.enrichment_status !== "enriched") {
-        await supabase
-          .from("recipes")
-          .update({ enrichment_status: "enriched" })
-          .eq("id", recipeId);
+        await supabase.from("recipes").update({ enrichment_status: "enriched" }).eq("id", recipeId);
       }
       return;
     }
@@ -276,17 +278,18 @@ export async function enrichRecipe(
             model: AI_MODELS.text,
             inputTokens: response.usage?.prompt_tokens ?? null,
             outputTokens: response.usage?.completion_tokens ?? null,
-            costUsd: textCostUsd(AI_MODELS.text, response.usage?.prompt_tokens, response.usage?.completion_tokens),
+            costUsd: textCostUsd(
+              AI_MODELS.text,
+              response.usage?.prompt_tokens,
+              response.usage?.completion_tokens,
+            ),
           });
           return enrichResult;
         });
       } catch (error) {
         Sentry.captureException(error);
         console.error("[enrichment] Text model failed after retries:", error);
-        await supabase
-          .from("recipes")
-          .update({ enrichment_status: "failed" })
-          .eq("id", recipeId);
+        await supabase.from("recipes").update({ enrichment_status: "failed" }).eq("id", recipeId);
         return;
       }
 
@@ -299,8 +302,7 @@ export async function enrichRecipe(
       if ((!recipe.seasons || recipe.seasons.length === 0) && result.seasons.length > 0)
         updates.seasons = result.seasons;
       if (!recipe.servings && result.servings) updates.servings = result.servings;
-      if (!recipe.image_prompt && result.imagePrompt)
-        updates.image_prompt = result.imagePrompt;
+      if (!recipe.image_prompt && result.imagePrompt) updates.image_prompt = result.imagePrompt;
 
       updates.enrichment_status = "enriched";
 
@@ -327,10 +329,7 @@ export async function enrichRecipe(
       // Image-only path: metadata is already complete, so GPT is skipped —
       // but the status must still flip to "enriched", otherwise the recipe
       // stays "pending" forever and skews the AI-coverage KPI.
-      await supabase
-        .from("recipes")
-        .update({ enrichment_status: "enriched" })
-        .eq("id", recipeId);
+      await supabase.from("recipes").update({ enrichment_status: "enriched" }).eq("id", recipeId);
     }
 
     // 7. Image generation (only if recipe has no photo at all)
@@ -356,20 +355,14 @@ export async function enrichRecipe(
       } catch (error) {
         Sentry.captureException(error);
         console.error("[enrichment] Image generation failed:", error);
-        await supabase
-          .from("recipes")
-          .update({ image_status: "failed" })
-          .eq("id", recipeId);
+        await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
         // Image failure does NOT roll back metadata enrichment
       }
     }
   } catch (error) {
     Sentry.captureException(error);
     console.error("[enrichment] Unexpected error:", error);
-    await supabase
-      .from("recipes")
-      .update({ enrichment_status: "failed" })
-      .eq("id", recipeId);
+    await supabase.from("recipes").update({ enrichment_status: "failed" }).eq("id", recipeId);
   }
 }
 
@@ -387,17 +380,11 @@ export async function regenerateImage(recipeId: string): Promise<void> {
 
     if (error || !recipe?.title) {
       console.error("[regenerateImage] Recipe not found:", recipeId);
-      await supabase
-        .from("recipes")
-        .update({ image_status: "failed" })
-        .eq("id", recipeId);
+      await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
       return;
     }
 
-    await supabase
-      .from("recipes")
-      .update({ image_status: "pending" })
-      .eq("id", recipeId);
+    await supabase.from("recipes").update({ image_status: "pending" }).eq("id", recipeId);
 
     // Recompute the image prompt from the recipe content. Replaying the stored
     // prompt would reproduce the exact same picture (and any mistakes baked into
@@ -408,19 +395,13 @@ export async function regenerateImage(recipeId: string): Promise<void> {
       imagePrompt = await withRetry(() =>
         generateImagePrompt(recipe, { householdId: recipe.household_id, recipeId }),
       );
-      await supabase
-        .from("recipes")
-        .update({ image_prompt: imagePrompt })
-        .eq("id", recipeId);
+      await supabase.from("recipes").update({ image_prompt: imagePrompt }).eq("id", recipeId);
     } catch (err) {
       console.error("[regenerateImage] Prompt recompute failed, reusing stored prompt:", err);
     }
 
     if (!imagePrompt) {
-      await supabase
-        .from("recipes")
-        .update({ image_status: "failed" })
-        .eq("id", recipeId);
+      await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
       return;
     }
 
@@ -436,9 +417,6 @@ export async function regenerateImage(recipeId: string): Promise<void> {
   } catch (error) {
     Sentry.captureException(error);
     console.error("[regenerateImage] Failed:", error);
-    await supabase
-      .from("recipes")
-      .update({ image_status: "failed" })
-      .eq("id", recipeId);
+    await supabase.from("recipes").update({ image_status: "failed" }).eq("id", recipeId);
   }
 }

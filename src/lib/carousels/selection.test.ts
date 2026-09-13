@@ -1,11 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { CarouselBucket } from "./bucketing";
 import type { CarouselDef } from "./catalog";
-import {
-  selectSections,
-  CATEGORY_FLOOR,
-  MAX_RECIPES_PER_CAROUSEL,
-} from "./selection";
+import { selectSections, CATEGORY_FLOOR, MAX_RECIPES_PER_CAROUSEL } from "./selection";
 import { carouselRecipeItem } from "@/test/fixtures";
 
 function recipes(n: number, prefix: string) {

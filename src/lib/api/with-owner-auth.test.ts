@@ -51,11 +51,7 @@ describe("withOwnerAuth", () => {
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
     const res = await withOwnerAuth(handler)(request());
     expect(res.status).toBe(200);
-    expect(handler).toHaveBeenCalledWith(
-      expect.anything(),
-      undefined,
-      ownerContext(),
-    );
+    expect(handler).toHaveBeenCalledWith(expect.anything(), undefined, ownerContext());
   });
 
   it("401 quand la session ne se résout pas", async () => {
@@ -195,17 +191,27 @@ describe("requireMember", () => {
 
 describe("assertNotDemoSeedMutation (incident démo 2026-09, garde fine des routes recette)", () => {
   it("403 sur une recette seed du foyer démo, compteur demo_frozen_hits", async () => {
-    const res = await assertNotDemoSeedMutation(demoOwner, { household_id: "hh-demo", is_seed: true });
+    const res = await assertNotDemoSeedMutation(demoOwner, {
+      household_id: "hh-demo",
+      is_seed: true,
+    });
     expect(res?.status).toBe(403);
     expect(await res!.json()).toEqual({ error: t.demo.frozen });
     expect(trackStat).toHaveBeenCalledWith("demo_frozen_hits");
   });
   it("null pour une recette ajoutée par le visiteur démo (non seed)", async () => {
-    expect(await assertNotDemoSeedMutation(demoOwner, { household_id: "hh-demo", is_seed: false })).toBeNull();
+    expect(
+      await assertNotDemoSeedMutation(demoOwner, { household_id: "hh-demo", is_seed: false }),
+    ).toBeNull();
     expect(trackStat).not.toHaveBeenCalled();
   });
   it("null pour une recette seed hors démo (flag vestigial)", async () => {
-    expect(await assertNotDemoSeedMutation(ownerContext(), { household_id: "household-1", is_seed: true })).toBeNull();
+    expect(
+      await assertNotDemoSeedMutation(ownerContext(), {
+        household_id: "household-1",
+        is_seed: true,
+      }),
+    ).toBeNull();
   });
 });
 

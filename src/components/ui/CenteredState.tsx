@@ -8,8 +8,7 @@ const CTA_CLASS =
 const CTA_STYLE = { background: "var(--btn-gradient)", boxShadow: "var(--btn-shadow)" } as const;
 
 export type CenteredStateCta =
-  | { label: string; href: string }
-  | { label: string; onClick: () => void };
+  { label: string; href: string } | { label: string; onClick: () => void };
 
 type Props = {
   /** Illustration ou icône, déjà dimensionnée. */
@@ -32,7 +31,9 @@ export default function CenteredState({ illustration, title, body, cta, compact 
   return (
     <div className={`mx-auto max-w-xs px-4 text-center ${compact ? "mt-12" : "mt-16"}`}>
       <div className={`flex justify-center ${compact ? "mb-4" : "mb-5"}`}>{illustration}</div>
-      <p className={`text-foreground ${compact ? "display-italic-md" : "display-italic-lg"}`}>{title}</p>
+      <p className={`text-foreground ${compact ? "display-italic-md" : "display-italic-lg"}`}>
+        {title}
+      </p>
       {body && <p className={`mt-2 text-muted-foreground ${compact ? "text-sm" : ""}`}>{body}</p>}
       {cta &&
         ("href" in cta ? (

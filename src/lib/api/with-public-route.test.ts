@@ -10,7 +10,9 @@ const req = (headers: Record<string, string> = {}) =>
 
 describe("withPublicRoute", () => {
   it("passe le dictionnaire au handler et renvoie sa réponse", async () => {
-    const route = withPublicRoute(async (_r, _c, t) => NextResponse.json({ msg: t.api.serverError }));
+    const route = withPublicRoute(async (_r, _c, t) =>
+      NextResponse.json({ msg: t.api.serverError }),
+    );
     const res = await route(req());
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ msg: "Erreur serveur" });

@@ -54,7 +54,11 @@ describe("PUT /api/owner", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ name: "Anthony" });
     const call = findCall(supa, "owners");
-    expect(call?.ops.some((o) => o.method === "update" && (o.args[0] as { name: string }).name === "Anthony")).toBe(true);
+    expect(
+      call?.ops.some(
+        (o) => o.method === "update" && (o.args[0] as { name: string }).name === "Anthony",
+      ),
+    ).toBe(true);
     expect(call?.ops.some((o) => o.method === "eq" && o.args[1] === "owner-1")).toBe(true);
   });
 
@@ -65,7 +69,9 @@ describe("PUT /api/owner", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ name: null });
     const call = findCall(supa, "owners");
-    expect(call?.ops.some((o) => o.method === "update" && (o.args[0] as { name: null }).name === null)).toBe(true);
+    expect(
+      call?.ops.some((o) => o.method === "update" && (o.args[0] as { name: null }).name === null),
+    ).toBe(true);
   });
 
   it("403 gelé pour une session démo (stratégie C), sans écriture DB", async () => {

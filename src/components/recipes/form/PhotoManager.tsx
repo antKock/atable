@@ -121,16 +121,10 @@ export default function PhotoManager({
             <CocotteIllustration size={40} accent="var(--accent)" />
           </div>
           <div className="flex-1">
-            <div className="text-sm font-medium text-foreground">
-              {t.actions.addPhoto}
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {t.photoManager.orGenerated}
-            </div>
+            <div className="text-sm font-medium text-foreground">{t.actions.addPhoto}</div>
+            <div className="text-xs text-muted-foreground">{t.photoManager.orGenerated}</div>
           </div>
-          <div className="flex-none text-2xl font-light text-muted-foreground">
-            +
-          </div>
+          <div className="flex-none text-2xl font-light text-muted-foreground">+</div>
         </button>
       )}
     </div>

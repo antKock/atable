@@ -62,9 +62,7 @@ describe("POST /api/households/join (Fix 1.2)", () => {
       // resolveInviteCode : .or(...).eq(is_demo,false).limit(2) → tableau. Le
       // code saisi = join_code ⇒ rôle 'member'.
       {
-        data: [
-          { id: "household-1", name, join_code: "OLIVE-4821", guest_join_code: "THYME-0001" },
-        ],
+        data: [{ id: "household-1", name, join_code: "OLIVE-4821", guest_join_code: "THYME-0001" }],
         error: null,
       }, // lookup by code (member link)
       { data: { id: "owner-1" }, error: null }, // insert owner

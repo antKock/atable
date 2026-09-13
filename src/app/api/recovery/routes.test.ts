@@ -53,7 +53,9 @@ function req(path: string, body: unknown, raw = false): NextRequest {
 
 beforeEach(() => {
   vi.clearAllMocks();
-  mockHeaders.mockResolvedValue(new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "Mozilla/5.0" }));
+  mockHeaders.mockResolvedValue(
+    new Headers({ "x-forwarded-for": "1.2.3.4", "user-agent": "Mozilla/5.0" }),
+  );
   for (const l of [recoveryIpRateLimit, recoveryEmailRateLimit, recoveryVerifyRateLimit]) {
     vi.mocked(l.limit).mockResolvedValue({ success: true } as never);
   }
@@ -121,8 +123,21 @@ describe("POST /api/recovery/verify", () => {
 
   it.each([
     ["email inconnu", () => vi.mocked(findOwnerByEmail).mockResolvedValue(null)],
-    ["code faux", () => { vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "o-1" }); vi.mocked(verifyLoginCode).mockResolvedValue(false); }],
-    ["owner sans foyer", () => { vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "o-1" }); vi.mocked(verifyLoginCode).mockResolvedValue(true); vi.mocked(createOwnerSession).mockResolvedValue(null); }],
+    [
+      "code faux",
+      () => {
+        vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "o-1" });
+        vi.mocked(verifyLoginCode).mockResolvedValue(false);
+      },
+    ],
+    [
+      "owner sans foyer",
+      () => {
+        vi.mocked(findOwnerByEmail).mockResolvedValue({ id: "o-1" });
+        vi.mocked(verifyLoginCode).mockResolvedValue(true);
+        vi.mocked(createOwnerSession).mockResolvedValue(null);
+      },
+    ],
   ])("%s → 400 avec le même message générique", async (_label, arrange) => {
     arrange();
     const res = await postVerify(req("verify", { email: "a@b.fr", code: "123456" }));
@@ -142,7 +157,10 @@ describe("POST /api/recovery/consume", () => {
   const TOKEN = "AbCdEfGh23456789";
 
   it("purpose recovery : session sur l'owner du token, redirect /home", async () => {
-    vi.mocked(consumeMagicToken).mockResolvedValue({ ownerId: "o-1", purpose: "recovery" } as never);
+    vi.mocked(consumeMagicToken).mockResolvedValue({
+      ownerId: "o-1",
+      purpose: "recovery",
+    } as never);
     vi.mocked(createOwnerSession).mockResolvedValue({ sessionId: "sid-1" } as never);
     const res = await postConsume(req("consume", { token: TOKEN }));
     expect(res.status).toBe(200);
@@ -151,9 +169,16 @@ describe("POST /api/recovery/consume", () => {
   });
 
   it("purpose merge avec une session source réelle : fusion, cookie intact, /household", async () => {
-    vi.mocked(consumeMagicToken).mockResolvedValue({ ownerId: "o-target", purpose: "merge" } as never);
+    vi.mocked(consumeMagicToken).mockResolvedValue({
+      ownerId: "o-target",
+      purpose: "merge",
+    } as never);
     vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue({
-      ownerId: "o-source", ownerName: null, ownerAlias: null, recoveryEmail: null, sessionId: "s",
+      ownerId: "o-source",
+      ownerName: null,
+      ownerAlias: null,
+      recoveryEmail: null,
+      sessionId: "s",
       memberships: [{ householdId: "h", role: "member", isDemo: false }],
     });
     const res = await postConsume(req("consume", { token: TOKEN }));
@@ -165,9 +190,16 @@ describe("POST /api/recovery/consume", () => {
   });
 
   it("purpose merge depuis une session DÉMO : pas de fusion, simple reconnexion à la cible", async () => {
-    vi.mocked(consumeMagicToken).mockResolvedValue({ ownerId: "o-target", purpose: "merge" } as never);
+    vi.mocked(consumeMagicToken).mockResolvedValue({
+      ownerId: "o-target",
+      purpose: "merge",
+    } as never);
     vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue({
-      ownerId: "o-demo", ownerName: null, ownerAlias: null, recoveryEmail: null, sessionId: "s",
+      ownerId: "o-demo",
+      ownerName: null,
+      ownerAlias: null,
+      recoveryEmail: null,
+      sessionId: "s",
       memberships: [{ householdId: "demo", role: "member", isDemo: true }],
     });
     vi.mocked(createOwnerSession).mockResolvedValue({ sessionId: "sid-2" } as never);

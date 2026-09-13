@@ -30,7 +30,10 @@ import {
 
 export type SyncSummary = {
   requestId: string;
-  reports: Record<ReportKind, { reportId: string; instances: number; processed: number; skipped: number; days: string[] }>;
+  reports: Record<
+    ReportKind,
+    { reportId: string; instances: number; processed: number; skipped: number; days: string[] }
+  >;
 };
 
 const REPORTS: { kind: ReportKind; name: string }[] = [
@@ -91,7 +94,8 @@ export async function syncAppStore(opts: {
       const byDay = aggregate(kind, tsv);
       // Instance sans ligne (jour vide côté Apple) : on remet le jour attendu
       // à zéro pour ce rapport — l'absence de données EST la donnée.
-      const days = byDay.size > 0 ? [...byDay.keys()].sort() : [expectedDataDay(inst.processingDate)];
+      const days =
+        byDay.size > 0 ? [...byDay.keys()].sort() : [expectedDataDay(inst.processingDate)];
       let rowCount = 0;
       for (const day of days) {
         const rows = byDay.get(day) ?? [];

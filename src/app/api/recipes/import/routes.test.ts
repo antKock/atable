@@ -37,9 +37,15 @@ const IMPORTED = { title: "Tarte", ingredients: "pommes", steps: "cuire", notes:
 
 beforeEach(() => {
   vi.mocked(enforceImportQuota).mockReset().mockResolvedValue(null);
-  vi.mocked(extractRecipeFromUrl).mockReset().mockResolvedValue(IMPORTED as never);
-  vi.mocked(extractRecipeFromImages).mockReset().mockResolvedValue(IMPORTED as never);
-  vi.mocked(extractRecipeFromVoice).mockReset().mockResolvedValue(IMPORTED as never);
+  vi.mocked(extractRecipeFromUrl)
+    .mockReset()
+    .mockResolvedValue(IMPORTED as never);
+  vi.mocked(extractRecipeFromImages)
+    .mockReset()
+    .mockResolvedValue(IMPORTED as never);
+  vi.mocked(extractRecipeFromVoice)
+    .mockReset()
+    .mockResolvedValue(IMPORTED as never);
   mockHeaders.mockResolvedValue(new Headers({ "x-household-id": "household-1" }));
 });
 
@@ -54,20 +60,27 @@ function jsonReq(path: string, body: unknown): NextRequest {
 function voiceReq(file: File | null): NextRequest {
   const form = new FormData();
   if (file) form.append("audio", file);
-  return new NextRequest("https://test.local/api/recipes/import/voice", { method: "POST", body: form });
+  return new NextRequest("https://test.local/api/recipes/import/voice", {
+    method: "POST",
+    body: form,
+  });
 }
 
 const quotaExhausted = () =>
   vi
     .mocked(enforceImportQuota)
-    .mockResolvedValue(NextResponse.json({ error: "quota", code: "IMPORT_QUOTA" }, { status: 429 }));
+    .mockResolvedValue(
+      NextResponse.json({ error: "quota", code: "IMPORT_QUOTA" }, { status: 429 }),
+    );
 
 describe("POST /api/recipes/import/url", () => {
   it("extrait la recette et consomme le quota du foyer membre", async () => {
     const res = await postUrl(jsonReq("url", { url: "https://example.com/r" }));
     expect(res.status).toBe(200);
     expect(enforceImportQuota).toHaveBeenCalledWith("household-1");
-    expect(extractRecipeFromUrl).toHaveBeenCalledWith("https://example.com/r", { householdId: "household-1" });
+    expect(extractRecipeFromUrl).toHaveBeenCalledWith("https://example.com/r", {
+      householdId: "household-1",
+    });
   });
 
   it("une URL invalide répond 400 { error, code } SANS consommer le quota", async () => {
@@ -204,7 +217,9 @@ describe("POST /api/recipes/import/voice", () => {
   });
 
   it("TRANSCRIPTION_FAILED → 422 avec son code", async () => {
-    vi.mocked(extractRecipeFromVoice).mockRejectedValue(new ImportError("x", "TRANSCRIPTION_FAILED"));
+    vi.mocked(extractRecipeFromVoice).mockRejectedValue(
+      new ImportError("x", "TRANSCRIPTION_FAILED"),
+    );
     const res = await postVoice(voiceReq(audio()));
     expect(res.status).toBe(422);
     expect((await res.json()).code).toBe("TRANSCRIPTION_FAILED");

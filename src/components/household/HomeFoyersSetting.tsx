@@ -1,9 +1,9 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { Check, ChevronRight, SlidersHorizontal } from 'lucide-react'
-import { useT } from '@/lib/i18n/client'
-import { Button } from '@/components/ui/button'
+import { useEffect, useRef, useState } from "react";
+import { Check, ChevronRight, SlidersHorizontal } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -11,20 +11,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  HOME_HIDDEN_FOYERS_COOKIE,
-  HOME_HIDDEN_FOYERS_MAX_AGE,
-} from '@/lib/home-foyers'
+} from "@/components/ui/dialog";
+import { HOME_HIDDEN_FOYERS_COOKIE, HOME_HIDDEN_FOYERS_MAX_AGE } from "@/lib/home-foyers";
 
-type Foyer = { id: string; name: string }
+type Foyer = { id: string; name: string };
 
 type Props = {
   // Tous les foyers de l'owner (≥ 2 — l'entrée n'est rendue qu'en multi-foyer).
-  foyers: Foyer[]
+  foyers: Foyer[];
   // Ids actuellement masqués de l'accueil (lus du cookie côté serveur).
-  initialHiddenIds: string[]
-}
+  initialHiddenIds: string[];
+};
 
 // Réglage « foyers affichés sur l'accueil » (Design B) : une entrée dans le hub
 // qui ouvre un dialog multi-sélection (cases Check par foyer). Réutilise
@@ -32,43 +29,43 @@ type Props = {
 // s'applique immédiatement (cookie device-scoped) ; l'accueil la relit à sa
 // prochaine visite (SWR revalidateOnMount sur /api/carousels).
 export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
-  const t = useT()
-  const [open, setOpen] = useState(false)
+  const t = useT();
+  const [open, setOpen] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(
     () => new Set(initialHiddenIds.filter((id) => foyers.some((f) => f.id === id))),
-  )
+  );
 
-  const shownCount = foyers.length - hidden.size
+  const shownCount = foyers.length - hidden.size;
 
   // Persistance : cookie device-scoped (comme les dismiss de hints). L'écriture
   // vit dans un effet (recommandation du compilateur React pour un effet de
   // bord sur `document`), déclenché à chaque changement de sélection — jamais au
   // montage (le cookie serveur fait déjà foi).
-  const mounted = useRef(false)
+  const mounted = useRef(false);
   useEffect(() => {
     if (!mounted.current) {
-      mounted.current = true
-      return
+      mounted.current = true;
+      return;
     }
-    document.cookie = `${HOME_HIDDEN_FOYERS_COOKIE}=${[...hidden].join(',')}; max-age=${HOME_HIDDEN_FOYERS_MAX_AGE}; path=/`
-  }, [hidden])
+    document.cookie = `${HOME_HIDDEN_FOYERS_COOKIE}=${[...hidden].join(",")}; max-age=${HOME_HIDDEN_FOYERS_MAX_AGE}; path=/`;
+  }, [hidden]);
 
   function toggle(id: string) {
-    const next = new Set(hidden)
+    const next = new Set(hidden);
     if (next.has(id)) {
-      next.delete(id) // ré-affiche
+      next.delete(id); // ré-affiche
     } else {
       // Interdit de masquer le DERNIER foyer affiché (accueil jamais vide).
-      if (foyers.length - next.size <= 1) return
-      next.add(id)
+      if (foyers.length - next.size <= 1) return;
+      next.add(id);
     }
-    setHidden(next)
+    setHidden(next);
   }
 
   const summary =
     hidden.size === 0
       ? t.household.homeFoyers.summaryAll
-      : t.household.homeFoyers.summaryCount(shownCount, foyers.length)
+      : t.household.homeFoyers.summaryCount(shownCount, foyers.length);
 
   return (
     <>
@@ -96,9 +93,9 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
 
           <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface">
             {foyers.map((foyer) => {
-              const shown = !hidden.has(foyer.id)
+              const shown = !hidden.has(foyer.id);
               // Le dernier foyer affiché n'est pas désélectionnable.
-              const locked = shown && shownCount === 1
+              const locked = shown && shownCount === 1;
               return (
                 <li key={foyer.id}>
                   <button
@@ -110,7 +107,7 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
                   >
                     <span
                       className={`min-w-0 flex-1 truncate text-[15px] font-medium ${
-                        shown ? 'text-foreground' : 'text-muted-foreground'
+                        shown ? "text-foreground" : "text-muted-foreground"
                       }`}
                     >
                       {foyer.name}
@@ -118,13 +115,13 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
                     <Check
                       size={18}
                       className={`shrink-0 text-accent transition-opacity ${
-                        shown ? 'opacity-100' : 'opacity-0'
+                        shown ? "opacity-100" : "opacity-0"
                       }`}
                       aria-hidden="true"
                     />
                   </button>
                 </li>
-              )
+              );
             })}
           </ul>
 
@@ -140,5 +137,5 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
         </DialogContent>
       </Dialog>
     </>
-  )
+  );
 }

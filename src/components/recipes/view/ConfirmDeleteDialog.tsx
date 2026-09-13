@@ -67,7 +67,10 @@ export default function ConfirmDeleteDialog({
             variant="ghost"
             size="icon"
             aria-label={t.actions.delete}
-            className={triggerClassName ?? "min-h-11 min-w-[44px] text-muted-foreground hover:text-destructive"}
+            className={
+              triggerClassName ??
+              "min-h-11 min-w-[44px] text-muted-foreground hover:text-destructive"
+            }
           >
             <Trash2
               size={triggerIconSize ?? (triggerClassName ? 16 : 20)}

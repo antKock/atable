@@ -86,17 +86,12 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, redirect: "/" });
     expect(
-      supa.calls.some(
-        (c) =>
-          c.table === "memberships" && c.ops.some((o) => o.method === "delete"),
-      ),
+      supa.calls.some((c) => c.table === "memberships" && c.ops.some((o) => o.method === "delete")),
     ).toBe(true);
     expect(supa.calls.some((c) => c.table === "device_sessions")).toBe(true);
     // Le foyer survit : pas de delete households.
     expect(
-      supa.calls.some(
-        (c) => c.table === "households" && c.ops.some((o) => o.method === "delete"),
-      ),
+      supa.calls.some((c) => c.table === "households" && c.ops.some((o) => o.method === "delete")),
     ).toBe(false);
   });
 
@@ -111,33 +106,22 @@ describe("DELETE /api/households/[id] (Fix 1.4)", () => {
     expect(await res.json()).toEqual({ ok: true, redirect: "/" });
     // Le foyer est détruit, pas un simple retrait de membership.
     expect(
-      supa.calls.some(
-        (c) => c.table === "households" && c.ops.some((o) => o.method === "delete"),
-      ),
+      supa.calls.some((c) => c.table === "households" && c.ops.some((o) => o.method === "delete")),
     ).toBe(true);
     expect(
-      supa.calls.some(
-        (c) => c.table === "memberships" && c.ops.some((o) => o.method === "delete"),
-      ),
+      supa.calls.some((c) => c.table === "memberships" && c.ops.some((o) => o.method === "delete")),
     ).toBe(false);
   });
 
   it("action=delete purges Storage then deletes the household (recipes par cascade)", async () => {
     // Le garde démo lit owner.memberships (pas de SELECT is_demo) : reste le
     // SELECT Storage sur recipes, puis le delete du foyer (cascade 027).
-    supa.queueResults([
-      { data: [], error: null },
-      { error: null },
-    ]);
+    supa.queueResults([{ data: [], error: null }, { error: null }]);
     const res = await DELETE(deleteRequest("delete"), ctx());
     expect(res.status).toBe(200);
     expect(supa.calls.some((c) => c.table === "recipes")).toBe(true);
     expect(
-      supa.calls.some(
-        (c) =>
-          c.table === "households" &&
-          c.ops.some((o) => o.method === "delete"),
-      ),
+      supa.calls.some((c) => c.table === "households" && c.ops.some((o) => o.method === "delete")),
     ).toBe(true);
   });
 

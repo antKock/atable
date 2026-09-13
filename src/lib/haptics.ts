@@ -28,9 +28,7 @@ export const haptics = {
   /** Heavy tap — destructive confirmations (e.g. delete household). */
   heavy: () => run(() => Haptics.impact({ style: ImpactStyle.Heavy })),
   /** Success notification — e.g. a recipe imported successfully. */
-  success: () =>
-    run(() => Haptics.notification({ type: NotificationType.Success })),
+  success: () => run(() => Haptics.notification({ type: NotificationType.Success })),
   /** Warning notification. */
-  warning: () =>
-    run(() => Haptics.notification({ type: NotificationType.Warning })),
+  warning: () => run(() => Haptics.notification({ type: NotificationType.Warning })),
 };

@@ -39,7 +39,8 @@ export default async function EditRecipePage({ params }: Props) {
     <div className="mx-auto max-w-2xl px-4 pb-8 pt-6">
       <div className="mb-8 flex items-center gap-3">
         <BackButton variant="header" href={`/recipes/${id}`} />
-        <h1 className="display"
+        <h1
+          className="display"
           style={{
             fontStyle: "italic",
             fontWeight: 500,

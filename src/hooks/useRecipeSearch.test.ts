@@ -80,9 +80,7 @@ describe("filterRecipes", () => {
   });
 
   it("handles recipes with null ingredients", () => {
-    const withNull: RecipeListItem[] = [
-      { ...recipes[0], ingredients: null },
-    ];
+    const withNull: RecipeListItem[] = [{ ...recipes[0], ingredients: null }];
     expect(filterRecipes(withNull, "thym")).toHaveLength(0);
     expect(filterRecipes(withNull, "poulet")).toHaveLength(1);
   });

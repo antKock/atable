@@ -1,4 +1,4 @@
-import { timingSafeEqual } from 'node:crypto'
+import { timingSafeEqual } from "node:crypto";
 
 /**
  * Garde commune des routes /api/cron/* : vrai si `Authorization: Bearer
@@ -9,7 +9,7 @@ import { timingSafeEqual } from 'node:crypto'
  * secret n'est pas un secret).
  */
 export function isCronAuthorized(authHeader: string | null): boolean {
-  return isBearerAuthorized(authHeader, process.env.CRON_SECRET)
+  return isBearerAuthorized(authHeader, process.env.CRON_SECRET);
 }
 
 /**
@@ -18,9 +18,9 @@ export function isCronAuthorized(authHeader: string | null): boolean {
  * ou vide → toujours faux.
  */
 export function isBearerAuthorized(authHeader: string | null, secret: string | undefined): boolean {
-  if (!secret) return false
-  const expected = Buffer.from(`Bearer ${secret}`)
-  const received = Buffer.from(authHeader ?? '')
-  if (expected.length !== received.length) return false
-  return timingSafeEqual(expected, received)
+  if (!secret) return false;
+  const expected = Buffer.from(`Bearer ${secret}`);
+  const received = Buffer.from(authHeader ?? "");
+  if (expected.length !== received.length) return false;
+  return timingSafeEqual(expected, received);
 }

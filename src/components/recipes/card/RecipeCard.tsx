@@ -59,22 +59,14 @@ export default function RecipeCard({
         isCarousel ? "w-[62vw] flex-none lg:w-65" : "w-full"
       }`}
     >
-      <div
-        className={`relative w-full ${
-          isCarousel ? "aspect-3/2" : "aspect-[3/4]"
-        }`}
-      >
+      <div className={`relative w-full ${isCarousel ? "aspect-3/2" : "aspect-[3/4]"}`}>
         {imageUrl ? (
           <Image
             src={imageUrl}
             alt={t.a11y.recipePhoto(recipe.title)}
             fill
             className="object-cover"
-            sizes={
-              isCarousel
-                ? "(max-width: 1024px) 62vw, 260px"
-                : "(max-width: 768px) 50vw, 33vw"
-            }
+            sizes={isCarousel ? "(max-width: 1024px) 62vw, 260px" : "(max-width: 768px) 50vw, 33vw"}
           />
         ) : recipe.imageStatus === "pending" ? (
           <Skeleton className="absolute inset-0 rounded-none" />
@@ -89,9 +81,7 @@ export default function RecipeCard({
         <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">
           {recipe.title}
         </p>
-        <p className="mt-1 text-xs leading-tight text-muted-foreground">
-          {subtitle}
-        </p>
+        <p className="mt-1 text-xs leading-tight text-muted-foreground">{subtitle}</p>
         {householdName && (
           <p className="mt-1 truncate text-[11px] leading-tight text-muted-foreground/80">
             {householdName}

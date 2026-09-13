@@ -1,31 +1,31 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Copy, Check } from 'lucide-react'
-import { useT } from '@/lib/i18n/client'
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
 
 type Props = {
-  code: string
-}
+  code: string;
+};
 
 export default function CodeDisplay({ code }: Props) {
-  const t = useT()
-  const [copied, setCopied] = useState(false)
+  const t = useT();
+  const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(code)
+      await navigator.clipboard.writeText(code);
     } catch {
       // Fallback
-      const el = document.createElement('textarea')
-      el.value = code
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      const el = document.createElement("textarea");
+      el.value = code;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
     }
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -45,5 +45,5 @@ export default function CodeDisplay({ code }: Props) {
         {copied ? <Check size={18} /> : <Copy size={18} />}
       </button>
     </div>
-  )
+  );
 }

@@ -1,31 +1,31 @@
-import { cache } from 'react'
-import { headers } from 'next/headers'
-import { createServerClient } from '@/lib/supabase/server'
+import { cache } from "react";
+import { headers } from "next/headers";
+import { createServerClient } from "@/lib/supabase/server";
 
 // Résolution d'identité du chantier foyer (#14 + #15) : le sid du JWT est la
 // seule clé — la DB porte l'owner et ses appartenances. Le hid du JWT est
 // vestigial (gardé pour rollback, décommissionné en fin de chantier).
 
-export type MembershipRole = 'member' | 'guest'
+export type MembershipRole = "member" | "guest";
 
 export type OwnerMembership = {
-  householdId: string
-  role: MembershipRole
-  isDemo: boolean
-}
+  householdId: string;
+  role: MembershipRole;
+  isDemo: boolean;
+};
 
 export type OwnerContext = {
-  ownerId: string
+  ownerId: string;
   /** Nom choisi par l'utilisateur. NULL → on affiche l'alias (ci-dessous). */
-  ownerName: string | null
+  ownerName: string | null;
   /** Surnom auto STOCKÉ (statique, migration 031). NULL pour un owner d'avant
    *  le backfill → l'appelant retombe sur aliasForOwner(id). */
-  ownerAlias: string | null
+  ownerAlias: string | null;
   /** Email de secours (#14), déjà normalisé lowercase. NULL → pas posé. */
-  recoveryEmail: string | null
-  sessionId: string
-  memberships: OwnerMembership[]
-}
+  recoveryEmail: string | null;
+  sessionId: string;
+  memberships: OwnerMembership[];
+};
 
 /**
  * Résout une session vers son owner et ses appartenances. `null` si la session
@@ -40,25 +40,27 @@ export type OwnerContext = {
  * doit pas détruire des sessions.
  */
 export async function resolveOwnerContext(sessionId: string): Promise<OwnerContext | null> {
-  const supabase = createServerClient()
+  const supabase = createServerClient();
   const { data, error } = await supabase
-    .from('device_sessions')
-    .select('owner_id, is_revoked, owners(name, alias, recovery_email, memberships(household_id, role, households(is_demo)))')
-    .eq('id', sessionId)
-    .maybeSingle()
+    .from("device_sessions")
+    .select(
+      "owner_id, is_revoked, owners(name, alias, recovery_email, memberships(household_id, role, households(is_demo)))",
+    )
+    .eq("id", sessionId)
+    .maybeSingle();
 
   if (error) {
-    throw new Error(`owner-context: résolution de session impossible (${error.message})`)
+    throw new Error(`owner-context: résolution de session impossible (${error.message})`);
   }
-  if (!data) return null
-  const row = data
-  if (row.is_revoked || !row.owner_id || !row.owners) return null
+  if (!data) return null;
+  const row = data;
+  if (row.is_revoked || !row.owner_id || !row.owners) return null;
 
   const memberships: OwnerMembership[] = (row.owners.memberships ?? []).map((m) => ({
     householdId: m.household_id,
-    role: m.role === 'guest' ? 'guest' : 'member',
+    role: m.role === "guest" ? "guest" : "member",
     isDemo: m.households?.is_demo ?? false,
-  }))
+  }));
 
   return {
     ownerId: row.owner_id,
@@ -67,7 +69,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     recoveryEmail: row.owners.recovery_email ?? null,
     sessionId,
     memberships,
-  }
+  };
 }
 
 /**
@@ -76,10 +78,10 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
  * + page ne paient qu'une seule requête DB par rendu.
  */
 export const getOwnerContext = cache(async (): Promise<OwnerContext | null> => {
-  const sessionId = (await headers()).get('x-session-id')
-  if (!sessionId) return null
-  return resolveOwnerContext(sessionId)
-})
+  const sessionId = (await headers()).get("x-session-id");
+  if (!sessionId) return null;
+  return resolveOwnerContext(sessionId);
+});
 
 /**
  * L'owner est-il en lecture seule PARTOUT (invité de tous ses foyers, aucun
@@ -91,28 +93,28 @@ export const getOwnerContext = cache(async (): Promise<OwnerContext | null> => {
  * routes API (enforcement lecture seule, Lot 3).
  */
 export function isGuestOwner(owner: OwnerContext): boolean {
-  return !owner.memberships.some((m) => m.role === 'member')
+  return !owner.memberships.some((m) => m.role === "member");
 }
 
 /** Ids des foyers où l'owner est MEMBRE (destinations d'écriture / de choix). */
 export function memberHouseholdIds(owner: OwnerContext): string[] {
-  return owner.memberships.filter((m) => m.role === 'member').map((m) => m.householdId)
+  return owner.memberships.filter((m) => m.role === "member").map((m) => m.householdId);
 }
 
 /** Ids de TOUS les foyers de l'owner (union de lecture : biblio, carrousels). */
 export function householdIds(owner: OwnerContext): string[] {
-  return owner.memberships.map((m) => m.householdId)
+  return owner.memberships.map((m) => m.householdId);
 }
 
 /** Rôle de l'owner sur un foyer donné, ou null s'il n'en est pas membre. */
 export function roleForHousehold(owner: OwnerContext, householdId: string): MembershipRole | null {
-  return owner.memberships.find((m) => m.householdId === householdId)?.role ?? null
+  return owner.memberships.find((m) => m.householdId === householdId)?.role ?? null;
 }
 
 // Force du rôle : membre > invité.
-const ROLE_RANK: Record<MembershipRole, number> = { member: 2, guest: 1 }
+const ROLE_RANK: Record<MembershipRole, number> = { member: 2, guest: 1 };
 
-export type RoleMergePlan = { action: 'add' | 'upgrade' | 'noop'; role: MembershipRole }
+export type RoleMergePlan = { action: "add" | "upgrade" | "noop"; role: MembershipRole };
 
 /**
  * Décide de l'effet d'un re-join ADDITIF (Lot 4) sur le rôle de l'owner dans le
@@ -126,7 +128,7 @@ export function planRoleMerge(
   current: MembershipRole | null,
   incoming: MembershipRole,
 ): RoleMergePlan {
-  if (current === null) return { action: 'add', role: incoming }
-  if (ROLE_RANK[incoming] > ROLE_RANK[current]) return { action: 'upgrade', role: incoming }
-  return { action: 'noop', role: current }
+  if (current === null) return { action: "add", role: incoming };
+  if (ROLE_RANK[incoming] > ROLE_RANK[current]) return { action: "upgrade", role: incoming };
+  return { action: "noop", role: current };
 }

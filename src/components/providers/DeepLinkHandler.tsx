@@ -42,9 +42,7 @@ export default function DeepLinkHandler() {
           if (launch?.url) routeTo(launch.url);
         }
         // Warm: link tapped while the app is already running.
-        const handle = await App.addListener("appUrlOpen", ({ url }) =>
-          routeTo(url),
-        );
+        const handle = await App.addListener("appUrlOpen", ({ url }) => routeTo(url));
         remove = () => {
           handle.remove();
         };

@@ -13,7 +13,10 @@ export function addDays(isoDay: string, n: number): string {
 }
 
 export function daysBetween(fromIso: string, toIso: string): number {
-  return Math.round((new Date(toIso + "T00:00:00Z").getTime() - new Date(fromIso + "T00:00:00Z").getTime()) / DAY_MS);
+  return Math.round(
+    (new Date(toIso + "T00:00:00Z").getTime() - new Date(fromIso + "T00:00:00Z").getTime()) /
+      DAY_MS,
+  );
 }
 
 /** Dernier dimanche strictement avant `today` (fin de la dernière semaine ISO close). */
@@ -60,5 +63,9 @@ export function weekStarts(endSunday: string, n: number): string[] {
 }
 
 export function shortDate(isoDay: string): string {
-  return new Date(isoDay + "T00:00:00Z").toLocaleDateString("fr-FR", { day: "numeric", month: "short", timeZone: "UTC" });
+  return new Date(isoDay + "T00:00:00Z").toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    timeZone: "UTC",
+  });
 }

@@ -16,7 +16,10 @@ function owner(name: string | null, memberships: MergeOwner["memberships"]): Mer
 describe("mergePlan — union des memberships", () => {
   it("adopte les foyers de la source absents de la cible", () => {
     const plan = mergePlan(
-      owner(null, [{ householdId: H1, role: "member" }, { householdId: H2, role: "guest" }]),
+      owner(null, [
+        { householdId: H1, role: "member" },
+        { householdId: H2, role: "guest" },
+      ]),
       owner(null, [{ householdId: H3, role: "member" }]),
     );
     expect(plan.adoptHouseholdIds).toEqual([H1, H2]);

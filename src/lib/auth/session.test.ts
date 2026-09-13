@@ -1,85 +1,85 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { signSession, verifySession, setSessionCookie, clearSessionCookie } from './session'
+import { describe, it, expect, beforeEach } from "vitest";
+import { signSession, verifySession, setSessionCookie, clearSessionCookie } from "./session";
 
-const TEST_SECRET = 'test-secret-that-is-at-least-32-chars-long!!'
+const TEST_SECRET = "test-secret-that-is-at-least-32-chars-long!!";
 
 beforeEach(() => {
-  process.env.SESSION_SIGNING_SECRET = TEST_SECRET
-})
+  process.env.SESSION_SIGNING_SECRET = TEST_SECRET;
+});
 
-describe('signSession', () => {
-  it('returns a string token', async () => {
-    const token = await signSession({ sid: 'ss-1' })
-    expect(typeof token).toBe('string')
-    expect(token.length).toBeGreaterThan(0)
-  })
-})
+describe("signSession", () => {
+  it("returns a string token", async () => {
+    const token = await signSession({ sid: "ss-1" });
+    expect(typeof token).toBe("string");
+    expect(token.length).toBeGreaterThan(0);
+  });
+});
 
-describe('verifySession', () => {
-  it('round-trips a valid payload (sid only — hid décommissionné)', async () => {
-    const before = Math.floor(Date.now() / 1000)
-    const token = await signSession({ sid: 'ss-xyz' })
-    const result = await verifySession(token)
-    const after = Math.floor(Date.now() / 1000)
-    expect(result).not.toBeNull()
-    expect(result!.sid).toBe('ss-xyz')
+describe("verifySession", () => {
+  it("round-trips a valid payload (sid only — hid décommissionné)", async () => {
+    const before = Math.floor(Date.now() / 1000);
+    const token = await signSession({ sid: "ss-xyz" });
+    const result = await verifySession(token);
+    const after = Math.floor(Date.now() / 1000);
+    expect(result).not.toBeNull();
+    expect(result!.sid).toBe("ss-xyz");
     // iat is set by signSession via setIssuedAt() — just verify it's a plausible timestamp
-    expect(result!.iat).toBeGreaterThanOrEqual(before)
-    expect(result!.iat).toBeLessThanOrEqual(after + 1)
-  })
+    expect(result!.iat).toBeGreaterThanOrEqual(before);
+    expect(result!.iat).toBeLessThanOrEqual(after + 1);
+  });
 
-  it('returns null for a tampered token', async () => {
-    const token = await signSession({ sid: 'ss-xyz' })
-    const tampered = token.slice(0, -5) + 'XXXXX'
-    const result = await verifySession(tampered)
-    expect(result).toBeNull()
-  })
+  it("returns null for a tampered token", async () => {
+    const token = await signSession({ sid: "ss-xyz" });
+    const tampered = token.slice(0, -5) + "XXXXX";
+    const result = await verifySession(tampered);
+    expect(result).toBeNull();
+  });
 
-  it('returns null for an empty string', async () => {
-    const result = await verifySession('')
-    expect(result).toBeNull()
-  })
+  it("returns null for an empty string", async () => {
+    const result = await verifySession("");
+    expect(result).toBeNull();
+  });
 
-  it('returns null for a garbage string', async () => {
-    const result = await verifySession('not.a.jwt')
-    expect(result).toBeNull()
-  })
-})
+  it("returns null for a garbage string", async () => {
+    const result = await verifySession("not.a.jwt");
+    expect(result).toBeNull();
+  });
+});
 
-describe('setSessionCookie', () => {
-  it('calls response.cookies.set with correct options', async () => {
-    const token = await signSession({ sid: 'ss-1' })
-    const setCalls: object[] = []
-    const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } }
+describe("setSessionCookie", () => {
+  it("calls response.cookies.set with correct options", async () => {
+    const token = await signSession({ sid: "ss-1" });
+    const setCalls: object[] = [];
+    const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } };
 
-    setSessionCookie(mockResponse as never, token)
+    setSessionCookie(mockResponse as never, token);
 
-    expect(setCalls).toHaveLength(1)
-    const opts = setCalls[0] as Record<string, unknown>
-    expect(opts.name).toBe('atable_session')
-    expect(opts.value).toBe(token)
-    expect(opts.httpOnly).toBe(true)
-    expect(opts.secure).toBe(false) // NODE_ENV is 'test', not 'production'
-    expect(opts.sameSite).toBe('lax')
-    expect(opts.maxAge).toBe(60 * 60 * 24 * 180)
-    expect(opts.path).toBe('/')
-  })
-})
+    expect(setCalls).toHaveLength(1);
+    const opts = setCalls[0] as Record<string, unknown>;
+    expect(opts.name).toBe("atable_session");
+    expect(opts.value).toBe(token);
+    expect(opts.httpOnly).toBe(true);
+    expect(opts.secure).toBe(false); // NODE_ENV is 'test', not 'production'
+    expect(opts.sameSite).toBe("lax");
+    expect(opts.maxAge).toBe(60 * 60 * 24 * 180);
+    expect(opts.path).toBe("/");
+  });
+});
 
-describe('clearSessionCookie', () => {
-  it('calls response.cookies.set with maxAge 0 and empty value', () => {
-    const setCalls: object[] = []
-    const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } }
+describe("clearSessionCookie", () => {
+  it("calls response.cookies.set with maxAge 0 and empty value", () => {
+    const setCalls: object[] = [];
+    const mockResponse = { cookies: { set: (opts: object) => setCalls.push(opts) } };
 
-    clearSessionCookie(mockResponse as never)
+    clearSessionCookie(mockResponse as never);
 
-    expect(setCalls).toHaveLength(1)
-    const opts = setCalls[0] as Record<string, unknown>
-    expect(opts.name).toBe('atable_session')
-    expect(opts.value).toBe('')
-    expect(opts.maxAge).toBe(0)
-    expect(opts.httpOnly).toBe(true)
-    expect(opts.secure).toBe(false) // NODE_ENV is 'test', not 'production'
-    expect(opts.sameSite).toBe('lax')
-  })
-})
+    expect(setCalls).toHaveLength(1);
+    const opts = setCalls[0] as Record<string, unknown>;
+    expect(opts.name).toBe("atable_session");
+    expect(opts.value).toBe("");
+    expect(opts.maxAge).toBe(0);
+    expect(opts.httpOnly).toBe(true);
+    expect(opts.secure).toBe(false); // NODE_ENV is 'test', not 'production'
+    expect(opts.sameSite).toBe("lax");
+  });
+});

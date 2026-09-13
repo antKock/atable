@@ -22,15 +22,11 @@ describe("parseSections", () => {
   });
 
   it("wraps unsectioned text in a single untitled section", () => {
-    expect(parseSections("Pommes\nSucre")).toEqual([
-      { title: null, items: ["Pommes", "Sucre"] },
-    ]);
+    expect(parseSections("Pommes\nSucre")).toEqual([{ title: null, items: ["Pommes", "Sucre"] }]);
   });
 
   it("groups lines under their '//' section", () => {
-    expect(
-      parseSections("// Pour la sauce\nBeurre\nFarine\n// Pour le poulet\nPoulet"),
-    ).toEqual([
+    expect(parseSections("// Pour la sauce\nBeurre\nFarine\n// Pour le poulet\nPoulet")).toEqual([
       { title: "Pour la sauce", items: ["Beurre", "Farine"] },
       { title: "Pour le poulet", items: ["Poulet"] },
     ]);
@@ -44,9 +40,7 @@ describe("parseSections", () => {
   });
 
   it("treats a bare '//' as an untitled section break", () => {
-    expect(parseSections("// \nFarine")).toEqual([
-      { title: null, items: ["Farine"] },
-    ]);
+    expect(parseSections("// \nFarine")).toEqual([{ title: null, items: ["Farine"] }]);
   });
 
   it("keeps a trailing empty section", () => {

@@ -32,9 +32,11 @@ type LoadOptions<K extends RecipeColumn, All extends boolean, WithTags extends b
   write?: boolean;
 };
 
-type Loaded<K extends RecipeColumn, All extends boolean, WithTags extends boolean> = (All extends true
-  ? RecipeRow
-  : Pick<RecipeRow, BaseColumn | K>) &
+type Loaded<
+  K extends RecipeColumn,
+  All extends boolean,
+  WithTags extends boolean,
+> = (All extends true ? RecipeRow : Pick<RecipeRow, BaseColumn | K>) &
   (WithTags extends true ? Required<TagJoin> : unknown);
 
 /**

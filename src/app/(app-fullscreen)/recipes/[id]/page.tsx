@@ -75,9 +75,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!result) return {};
   const { recipe } = result;
 
-  const description = recipe.tags.length > 0
-    ? recipe.tags.map((tag) => tag.name).join(", ")
-    : "Une recette sur Mijote";
+  const description =
+    recipe.tags.length > 0
+      ? recipe.tags.map((tag) => tag.name).join(", ")
+      : "Une recette sur Mijote";
 
   return {
     title: recipe.title,

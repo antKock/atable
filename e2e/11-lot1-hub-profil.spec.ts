@@ -11,9 +11,7 @@ import { getHouseholdByJoinCode, insertRecipe } from "./helpers/db";
 // Lot 1 foyer : hub « Toi + Tes carnets », détail de foyer (membres inline),
 // profil (nom + alias auto), démo gelée (stratégie C).
 
-test("hub : le foyer est listé avec rôle membre et compteurs corrects", async ({
-  browser,
-}) => {
+test("hub : le foyer est listé avec rôle membre et compteurs corrects", async ({ browser }) => {
   const a = await newVisitor(browser);
   const name = uniqueName("Foyer Compteurs");
   const code = await createHouseholdViaUI(a.page, name);
@@ -31,17 +29,13 @@ test("hub : le foyer est listé avec rôle membre et compteurs corrects", async 
   const b = await newVisitor(browser);
   await joinViaCode(b.page, code);
   await a.page.reload();
-  await expect(a.page.getByRole("link", { name })).toContainText(
-    "2 personnes · 1 recette",
-  );
+  await expect(a.page.getByRole("link", { name })).toContainText("2 personnes · 1 recette");
 
   await a.context.close();
   await b.context.close();
 });
 
-test("détail : 2 sessions du même foyer se voient dans les membres", async ({
-  browser,
-}) => {
+test("détail : 2 sessions du même foyer se voient dans les membres", async ({ browser }) => {
   const a = await newVisitor(browser);
   const name = uniqueName("Foyer Membres");
   const code = await createHouseholdViaUI(a.page, name);
@@ -57,17 +51,13 @@ test("détail : 2 sessions du même foyer se voient dans les membres", async ({
 
   // L'autre session voit la même liste depuis son propre contexte
   await openHouseholdDetail(b.page);
-  await expect(
-    b.page.getByRole("list", { name: "Membres" }).getByRole("listitem"),
-  ).toHaveCount(2);
+  await expect(b.page.getByRole("list", { name: "Membres" }).getByRole("listitem")).toHaveCount(2);
 
   await a.context.close();
   await b.context.close();
 });
 
-test("profil : poser un nom puis le vider → retour à un alias stable", async ({
-  browser,
-}) => {
+test("profil : poser un nom puis le vider → retour à un alias stable", async ({ browser }) => {
   const { context, page } = await newVisitor(browser);
   await createHouseholdViaUI(page, uniqueName("Foyer Profil"));
 
@@ -102,9 +92,7 @@ test("profil : poser un nom puis le vider → retour à un alias stable", async 
   await context.close();
 });
 
-test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403", async ({
-  browser,
-}) => {
+test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403", async ({ browser }) => {
   const { context, page } = await newVisitor(browser);
   await page.goto("/");
   await page.getByRole("button", { name: "Essayer l'app" }).click();
@@ -124,9 +112,7 @@ test("démo gelée : hub réduit, profil inaccessible, mutation profil → 403",
   await other.page.getByRole("button", { name: "Essayer l'app" }).click();
   await other.page.waitForURL(/\/home/);
   await openHouseholdDetail(page);
-  await expect(
-    page.getByRole("list", { name: "Membres" }).getByRole("listitem"),
-  ).toHaveCount(1);
+  await expect(page.getByRole("list", { name: "Membres" }).getByRole("listitem")).toHaveCount(1);
   await expect(page.getByText("Membre · 1 personne")).toBeVisible();
   await other.context.close();
 

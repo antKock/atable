@@ -40,7 +40,8 @@ registerHooks({
     try {
       return next(spec, context);
     } catch (err) {
-      const relative = spec.startsWith("./") || spec.startsWith("../") || spec.startsWith("file://");
+      const relative =
+        spec.startsWith("./") || spec.startsWith("../") || spec.startsWith("file://");
       if (err?.code === "ERR_MODULE_NOT_FOUND" && relative && !path.extname(spec)) {
         return next(`${spec}.ts`, context);
       }
@@ -94,17 +95,27 @@ const predefinedTags = JSON.parse(await readFile(path.join(FIX, "predefined-tags
 const tagNames = predefinedTags.map((t) => t.name);
 const tagNameSet = new Set(tagNames);
 const recipes = [
-  ...JSON.parse(await readFile(path.join(FIX, "recipes-fr.json"), "utf8")).map((r) => ({ ...r, lang: "fr" })),
-  ...JSON.parse(await readFile(path.join(FIX, "recipes-en.json"), "utf8")).map((r) => ({ ...r, lang: "en" })),
+  ...JSON.parse(await readFile(path.join(FIX, "recipes-fr.json"), "utf8")).map((r) => ({
+    ...r,
+    lang: "fr",
+  })),
+  ...JSON.parse(await readFile(path.join(FIX, "recipes-en.json"), "utf8")).map((r) => ({
+    ...r,
+    lang: "en",
+  })),
 ];
 
 const totalCalls = recipes.length * VARIANTS.length * RUNS;
 const estimated = totalCalls * EST_USD_PER_CALL;
 if (estimated > MAX_USD) {
-  console.error(`Budget dépassé avant de commencer : ${totalCalls} appels ≈ $${estimated.toFixed(3)} > $${MAX_USD}`);
+  console.error(
+    `Budget dépassé avant de commencer : ${totalCalls} appels ≈ $${estimated.toFixed(3)} > $${MAX_USD}`,
+  );
   process.exit(1);
 }
-console.log(`${MODEL} — ${recipes.length} recettes × ${VARIANTS.length} variantes × ${RUNS} runs = ${totalCalls} appels (≈ $${estimated.toFixed(3)}, plafond $${MAX_USD})\n`);
+console.log(
+  `${MODEL} — ${recipes.length} recettes × ${VARIANTS.length} variantes × ${RUNS} runs = ${totalCalls} appels (≈ $${estimated.toFixed(3)}, plafond $${MAX_USD})\n`,
+);
 
 // ---------- Appel OpenAI ----------
 const systemPrompt = buildSystemPrompt(predefinedTags);
@@ -122,7 +133,9 @@ async function postChat(body) {
   if (!res.ok) {
     // Même forme d'erreur que le SDK (status + message) : withEffortFallback
     // de la prod reconnaît le rejet de reasoning_effort et retente sans.
-    throw Object.assign(new Error(json?.error?.message ?? `HTTP ${res.status}`), { status: res.status });
+    throw Object.assign(new Error(json?.error?.message ?? `HTTP ${res.status}`), {
+      status: res.status,
+    });
   }
   return { json, ms: Date.now() - started };
 }
@@ -178,15 +191,18 @@ function pLimit(n) {
     if (active >= n || queue.length === 0) return;
     active++;
     const { fn, resolve, reject } = queue.shift();
-    fn().then(resolve, reject).finally(() => {
-      active--;
+    fn()
+      .then(resolve, reject)
+      .finally(() => {
+        active--;
+        next();
+      });
+  };
+  return (fn) =>
+    new Promise((resolve, reject) => {
+      queue.push({ fn, resolve, reject });
       next();
     });
-  };
-  return (fn) => new Promise((resolve, reject) => {
-    queue.push({ fn, resolve, reject });
-    next();
-  });
 }
 const limit = pLimit(4);
 
@@ -195,35 +211,54 @@ const calls = [];
 for (let run = 1; run <= RUNS; run++) {
   for (const recipe of recipes) {
     for (const variant of VARIANTS) {
-      calls.push(limit(async () => {
-        const label = `${recipe.slug} × ${variant.id} #${run}`;
-        try {
-          const { json, ms } = await callEnrichment(recipe, variant);
-          const usage = json.usage ?? {};
-          const inputTokens = usage.prompt_tokens ?? 0;
-          const outputTokens = usage.completion_tokens ?? 0;
-          const costUsd = (inputTokens * price.input + outputTokens * price.output) / 1e6;
-          spentUsd += costUsd;
-          const output = JSON.parse(json.choices?.[0]?.message?.content ?? "{}");
-          const metrics = measure(recipe, Array.isArray(output.tags) ? output.tags : []);
-          console.log(
-            `${label} — ${ms} ms, $${costUsd.toFixed(5)} — ${metrics.valid}/${metrics.proposed} valides` +
-              (metrics.lost.length ? `, perdus : ${metrics.lost.join(", ")}` : "") +
-              (metrics.removedBySanitize.length ? `, sanitize : ${metrics.removedBySanitize.join(", ")}` : "") +
-              (metrics.falseDiet.length ? `, FAUX RÉGIME : ${metrics.falseDiet.join(", ")}` : ""),
-          );
-          return {
-            label: recipe.slug, lang: recipe.lang, variant: variant.id, run, model: MODEL,
-            effort: usage.completion_tokens_details ? (json.reasoning_effort ?? null) : null,
-            ms, inputTokens, outputTokens,
-            reasoningTokens: usage.completion_tokens_details?.reasoning_tokens ?? 0,
-            costUsd, output, metrics,
-          };
-        } catch (err) {
-          console.log(`${label} — ERREUR ${err.message}`);
-          return { label: recipe.slug, lang: recipe.lang, variant: variant.id, run, model: MODEL, error: err.message };
-        }
-      }));
+      calls.push(
+        limit(async () => {
+          const label = `${recipe.slug} × ${variant.id} #${run}`;
+          try {
+            const { json, ms } = await callEnrichment(recipe, variant);
+            const usage = json.usage ?? {};
+            const inputTokens = usage.prompt_tokens ?? 0;
+            const outputTokens = usage.completion_tokens ?? 0;
+            const costUsd = (inputTokens * price.input + outputTokens * price.output) / 1e6;
+            spentUsd += costUsd;
+            const output = JSON.parse(json.choices?.[0]?.message?.content ?? "{}");
+            const metrics = measure(recipe, Array.isArray(output.tags) ? output.tags : []);
+            console.log(
+              `${label} — ${ms} ms, $${costUsd.toFixed(5)} — ${metrics.valid}/${metrics.proposed} valides` +
+                (metrics.lost.length ? `, perdus : ${metrics.lost.join(", ")}` : "") +
+                (metrics.removedBySanitize.length
+                  ? `, sanitize : ${metrics.removedBySanitize.join(", ")}`
+                  : "") +
+                (metrics.falseDiet.length ? `, FAUX RÉGIME : ${metrics.falseDiet.join(", ")}` : ""),
+            );
+            return {
+              label: recipe.slug,
+              lang: recipe.lang,
+              variant: variant.id,
+              run,
+              model: MODEL,
+              effort: usage.completion_tokens_details ? (json.reasoning_effort ?? null) : null,
+              ms,
+              inputTokens,
+              outputTokens,
+              reasoningTokens: usage.completion_tokens_details?.reasoning_tokens ?? 0,
+              costUsd,
+              output,
+              metrics,
+            };
+          } catch (err) {
+            console.log(`${label} — ERREUR ${err.message}`);
+            return {
+              label: recipe.slug,
+              lang: recipe.lang,
+              variant: variant.id,
+              run,
+              model: MODEL,
+              error: err.message,
+            };
+          }
+        }),
+      );
     }
   }
 }
@@ -257,10 +292,16 @@ await mkdir(OUT, { recursive: true });
 const outFile = path.join(OUT, "enrichment-tags.json");
 await writeFile(
   outFile,
-  JSON.stringify({ date: new Date().toISOString(), model: MODEL, runs: RUNS, summary, calls: results }, null, 2),
+  JSON.stringify(
+    { date: new Date().toISOString(), model: MODEL, runs: RUNS, summary, calls: results },
+    null,
+    2,
+  ),
 );
 
-console.log("\nvariante/langue     appels  proposés  valides  perdus  sanitize  faux régime  final  latence   coût");
+console.log(
+  "\nvariante/langue     appels  proposés  valides  perdus  sanitize  faux régime  final  latence   coût",
+);
 for (const [key, s] of Object.entries(summary)) {
   console.log(
     `${key.padEnd(20)}${String(s.calls).padStart(6)}${s.proposed.toFixed(2).padStart(10)}${s.valid.toFixed(2).padStart(9)}` +
@@ -269,5 +310,7 @@ for (const [key, s] of Object.entries(summary)) {
   );
 }
 const errors = results.filter((r) => r.error).length;
-console.log(`\nDépense totale : $${spentUsd.toFixed(4)}${errors ? ` — ${errors} appel(s) en erreur` : ""}`);
+console.log(
+  `\nDépense totale : $${spentUsd.toFixed(4)}${errors ? ` — ${errors} appel(s) en erreur` : ""}`,
+);
 console.log(`Résultats bruts : ${outFile}`);

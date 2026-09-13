@@ -6,15 +6,14 @@ import { Image as ImageIcon, ChevronRight, Upload, Plus, X } from "lucide-react"
 import * as Sentry from "@sentry/nextjs";
 import { getPlatform } from "@/lib/native";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useT } from "@/lib/i18n/client";
 import ImportCard from "@/components/recipes/import/ImportCard";
-import { isPickerCancellation, pickGalleryImagesAsFiles, takePhotoAsFile } from "@/lib/native/camera";
+import {
+  isPickerCancellation,
+  pickGalleryImagesAsFiles,
+  takePhotoAsFile,
+} from "@/lib/native/camera";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const MAX_FILES = 5;
@@ -83,11 +82,14 @@ export default function ScreenshotImporter({
     if (imageFiles.length === 0) return;
 
     setFileEntries((prev) => {
-      const combined = [...prev, ...imageFiles.map((f) => ({
-        file: f,
-        key: `${f.name}-${f.lastModified}-${f.size}`,
-        previewUrl: URL.createObjectURL(f),
-      }))].slice(0, MAX_FILES);
+      const combined = [
+        ...prev,
+        ...imageFiles.map((f) => ({
+          file: f,
+          key: `${f.name}-${f.lastModified}-${f.size}`,
+          previewUrl: URL.createObjectURL(f),
+        })),
+      ].slice(0, MAX_FILES);
       // F4: Revoke URLs from entries that got sliced off
       const kept = new Set(combined.map((e) => e.previewUrl));
       prev.forEach((e) => {
@@ -256,18 +258,10 @@ export default function ScreenshotImporter({
               <DialogTitle>{t.import.screenshot.sourceTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-2">
-              <Button
-                variant="outline"
-                className="min-h-11"
-                onClick={() => void pickFromCamera()}
-              >
+              <Button variant="outline" className="min-h-11" onClick={() => void pickFromCamera()}>
                 {t.import.screenshot.takePhoto}
               </Button>
-              <Button
-                variant="outline"
-                className="min-h-11"
-                onClick={() => void pickFromGallery()}
-              >
+              <Button variant="outline" className="min-h-11" onClick={() => void pickFromGallery()}>
                 {t.import.screenshot.fromGallery}
               </Button>
               <Button

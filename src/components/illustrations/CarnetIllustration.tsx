@@ -28,11 +28,7 @@ export default function CarnetIllustration({
         <path d="M46 14 Q46 10 49 10 Q52 10 52 14" />
       </g>
       {/* written lines */}
-      <g
-        stroke="rgba(255,255,255,0.40)"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      >
+      <g stroke="rgba(255,255,255,0.40)" strokeWidth="1.5" strokeLinecap="round">
         <line x1="31" y1="28" x2="51" y2="28" />
         <line x1="31" y1="36" x2="51" y2="36" />
         <line x1="31" y1="44" x2="51" y2="44" />

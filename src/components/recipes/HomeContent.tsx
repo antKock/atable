@@ -20,17 +20,13 @@ const ENRICHMENT_POLL_INTERVAL = 4000;
 
 function hasPendingEnrichment(sections?: CarouselSection[]): boolean {
   return !!sections?.some((section) =>
-    section.recipes.some(
-      (r) => r.enrichmentStatus === "pending" || r.imageStatus === "pending",
-    ),
+    section.recipes.some((r) => r.enrichmentStatus === "pending" || r.imageStatus === "pending"),
   );
 }
 
 function CarouselCardSkeleton() {
   return (
-    <div
-      className="card-surface w-[62vw] flex-none lg:w-65"
-    >
+    <div className="card-surface w-[62vw] flex-none lg:w-65">
       <Skeleton className="aspect-3/2 w-full rounded-none" />
       <div className="px-3 py-2.5">
         <Skeleton className="h-4 w-4/5" />
@@ -55,23 +51,23 @@ function CarouselSkeleton() {
 export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) {
   const t = useT();
   const [pollInterval, setPollInterval] = useState(0);
-  const { data: sections, isLoading, error, mutate } = useSWR<CarouselSection[]>(
-    "/api/carousels",
-    swrFetcher,
-    {
-      revalidateOnMount: true,
-      // A plain number (not the function form): SWR re-arms its polling timer
-      // whenever this value flips 0 ↔ 4000, which is exactly when a pending
-      // recipe appears in / disappears from the data.
-      refreshInterval: pollInterval,
-      // Must sit below refreshInterval, or the global 10s dedupingInterval
-      // (SWRProvider) swallows 2 polls out of 3 and the image takes ~12s
-      // instead of ~4s to show up.
-      dedupingInterval: 3000,
-      onSuccess: (data) =>
-        setPollInterval(hasPendingEnrichment(data) ? ENRICHMENT_POLL_INTERVAL : 0),
-    },
-  );
+  const {
+    data: sections,
+    isLoading,
+    error,
+    mutate,
+  } = useSWR<CarouselSection[]>("/api/carousels", swrFetcher, {
+    revalidateOnMount: true,
+    // A plain number (not the function form): SWR re-arms its polling timer
+    // whenever this value flips 0 ↔ 4000, which is exactly when a pending
+    // recipe appears in / disappears from the data.
+    refreshInterval: pollInterval,
+    // Must sit below refreshInterval, or the global 10s dedupingInterval
+    // (SWRProvider) swallows 2 polls out of 3 and the image takes ~12s
+    // instead of ~4s to show up.
+    dedupingInterval: 3000,
+    onSuccess: (data) => setPollInterval(hasPendingEnrichment(data) ? ENRICHMENT_POLL_INTERVAL : 0),
+  });
 
   const hasRecipes = sections && sections.length > 0;
 

@@ -1,37 +1,37 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Copy, Check } from 'lucide-react'
-import { useT } from '@/lib/i18n/client'
-import { haptics } from '@/lib/haptics'
+import { useState } from "react";
+import { Copy, Check } from "lucide-react";
+import { useT } from "@/lib/i18n/client";
+import { haptics } from "@/lib/haptics";
 
 type Props = {
-  joinCode: string
-}
+  joinCode: string;
+};
 
 export default function InviteLinkDisplay({ joinCode }: Props) {
-  const t = useT()
-  const [copied, setCopied] = useState(false)
+  const t = useT();
+  const [copied, setCopied] = useState(false);
 
   const inviteUrl =
-    typeof window !== 'undefined'
+    typeof window !== "undefined"
       ? `${window.location.origin}/join/${joinCode}`
-      : `https://mijote.anthonykocken.fr/join/${joinCode}`
+      : `https://mijote.anthonykocken.fr/join/${joinCode}`;
 
   async function handleCopy() {
     try {
-      await navigator.clipboard.writeText(inviteUrl)
+      await navigator.clipboard.writeText(inviteUrl);
     } catch {
-      const el = document.createElement('textarea')
-      el.value = inviteUrl
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      const el = document.createElement("textarea");
+      el.value = inviteUrl;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
     }
-    setCopied(true)
-    void haptics.light()
-    setTimeout(() => setCopied(false), 2000)
+    setCopied(true);
+    void haptics.light();
+    setTimeout(() => setCopied(false), 2000);
   }
 
   return (
@@ -51,5 +51,5 @@ export default function InviteLinkDisplay({ joinCode }: Props) {
         {copied ? <Check size={18} /> : <Copy size={18} />}
       </button>
     </div>
-  )
+  );
 }

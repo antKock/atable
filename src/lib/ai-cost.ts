@@ -47,13 +47,8 @@ const IMAGE_PRICING: Record<string, number> = {
   "high:1024x1024": 0.167,
 };
 
-
 /** Cost of a token-billed chat/vision call. Unknown models price at 0. */
-export function textCostUsd(
-  model: string,
-  inputTokens = 0,
-  outputTokens = 0,
-): number {
+export function textCostUsd(model: string, inputTokens = 0, outputTokens = 0): number {
   const p = TOKEN_PRICING[model];
   if (!p) return 0;
   return (inputTokens * p.input + outputTokens * p.output) / 1_000_000;

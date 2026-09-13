@@ -54,17 +54,29 @@ describe("recordAiCost", () => {
   it("retente sans recipe_id quand la recette a été supprimée entre-temps (FK 23503)", async () => {
     const insert = vi
       .fn()
-      .mockResolvedValueOnce({ error: { code: "23503", message: "violates foreign key constraint" } })
+      .mockResolvedValueOnce({
+        error: { code: "23503", message: "violates foreign key constraint" },
+      })
       .mockResolvedValueOnce({ error: null });
     vi.mocked(createServerClient).mockReturnValue({
       from: () => ({ insert }),
     } as unknown as ReturnType<typeof createServerClient>);
 
-    await recordAiCost({ householdId: "h1", recipeId: "r-gone", callType: "image", model: "m", costUsd: 0.011 });
+    await recordAiCost({
+      householdId: "h1",
+      recipeId: "r-gone",
+      callType: "image",
+      model: "m",
+      costUsd: 0.011,
+    });
 
     expect(insert).toHaveBeenCalledTimes(2);
     expect(insert.mock.calls[0][0]).toMatchObject({ recipe_id: "r-gone" });
-    expect(insert.mock.calls[1][0]).toMatchObject({ recipe_id: null, household_id: "h1", cost_usd: 0.011 });
+    expect(insert.mock.calls[1][0]).toMatchObject({
+      recipe_id: null,
+      household_id: "h1",
+      cost_usd: 0.011,
+    });
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
@@ -72,24 +84,39 @@ describe("recordAiCost", () => {
   // supprimé pendant l'enrichissement : household_id est NOT NULL et la ligne
   // serait cascadée de toute façon → abandon silencieux, pas de page Sentry.
   it("abandonne sans Sentry quand le foyer a été supprimé entre-temps (FK 23503 persistante)", async () => {
-    const insert = vi.fn().mockResolvedValue({ error: { code: "23503", message: "violates foreign key constraint \"ai_costs_household_id_fkey\"" } });
+    const insert = vi.fn().mockResolvedValue({
+      error: {
+        code: "23503",
+        message: 'violates foreign key constraint "ai_costs_household_id_fkey"',
+      },
+    });
     vi.mocked(createServerClient).mockReturnValue({
       from: () => ({ insert }),
     } as unknown as ReturnType<typeof createServerClient>);
 
-    await recordAiCost({ householdId: "h-gone", recipeId: "r1", callType: "image", model: "m", costUsd: 0.011 });
+    await recordAiCost({
+      householdId: "h-gone",
+      recipeId: "r1",
+      callType: "image",
+      model: "m",
+      costUsd: 0.011,
+    });
 
     expect(insert).toHaveBeenCalledTimes(2);
     expect(Sentry.captureException).not.toHaveBeenCalled();
   });
 
   it("remonte à Sentry les autres erreurs sans jamais throw", async () => {
-    const insert = vi.fn().mockResolvedValue({ error: { code: "42P01", message: "relation missing" } });
+    const insert = vi
+      .fn()
+      .mockResolvedValue({ error: { code: "42P01", message: "relation missing" } });
     vi.mocked(createServerClient).mockReturnValue({
       from: () => ({ insert }),
     } as unknown as ReturnType<typeof createServerClient>);
 
-    await expect(recordAiCost({ householdId: "h1", callType: "ocr", model: "m", costUsd: 0 })).resolves.toBeUndefined();
+    await expect(
+      recordAiCost({ householdId: "h1", callType: "ocr", model: "m", costUsd: 0 }),
+    ).resolves.toBeUndefined();
 
     expect(insert).toHaveBeenCalledTimes(1);
     expect(Sentry.captureException).toHaveBeenCalledOnce();

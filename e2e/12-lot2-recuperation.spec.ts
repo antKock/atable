@@ -121,9 +121,7 @@ test("3. récup par magic-link : naviguer l'URL connecte le nouvel appareil", as
   await c.context.close();
 });
 
-test("4. email inconnu : écran identique, aucune ligne login_tokens", async ({
-  browser,
-}) => {
+test("4. email inconnu : écran identique, aucune ligne login_tokens", async ({ browser }) => {
   const before = await countLoginTokens();
 
   const b = await newVisitor(browser);
@@ -245,9 +243,7 @@ test("7. hints : partage < 3 recettes, puis email ; dismiss persistant ; rien en
   await d.context.close();
 });
 
-test("8. fork onboarding « Ouvrir un carnet » : les deux chemins", async ({
-  browser,
-}) => {
+test("8. fork onboarding « Ouvrir un carnet » : les deux chemins", async ({ browser }) => {
   const { context, page } = await newVisitor(browser);
   await page.goto("/");
   await page.getByRole("button", { name: "Ouvrir un carnet" }).click();

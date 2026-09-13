@@ -85,16 +85,12 @@ describe("RecipeCard", () => {
   });
 
   it("applies carousel-specific width class in carousel variant", () => {
-    const { container } = render(
-      <RecipeCard recipe={baseRecipe} variant="carousel" />
-    );
+    const { container } = render(<RecipeCard recipe={baseRecipe} variant="carousel" />);
     expect(container.querySelector("a")?.className).toContain("w-[62vw]");
   });
 
   it("applies full-width class in grid variant", () => {
-    const { container } = render(
-      <RecipeCard recipe={baseRecipe} variant="grid" />
-    );
+    const { container } = render(<RecipeCard recipe={baseRecipe} variant="grid" />);
     expect(container.querySelector("a")?.className).toContain("w-full");
   });
 });
