@@ -162,6 +162,8 @@ const RULES: EnvRule[] = [
   },
   { name: "EMAIL_FROM", required: false, shape: z.string(), expected: "expéditeur" },
   { name: "BATCH_ENRICH_SECRET", required: false, shape: z.string(), expected: "secret" },
+  // Garde par défaut de /api/admin/* dans le proxy (repli : BATCH_ENRICH_SECRET).
+  { name: "ADMIN_API_SECRET", required: false, shape: z.string(), expected: "secret" },
   { name: "ALLOW_BATCH_RESET", required: false, shape: z.enum(["true", "false"]), expected: "true/false" },
   {
     name: "APIFY_TOKEN",

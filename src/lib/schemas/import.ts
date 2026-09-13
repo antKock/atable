@@ -57,4 +57,18 @@ export const VALID_VOICE_MIME_TYPES = [
   "audio/mpeg",
 ] as const;
 
+/**
+ * Fichier audio de l'import vocal (champ `audio` du multipart) : taille et
+ * type MIME (le paramètre `;codecs=…` est ignoré). Messages localisés.
+ */
+export function buildImportVoiceSchema(t: Dictionary) {
+  return z
+    .instanceof(File, { message: t.api.audioRequired })
+    .refine((f) => f.size <= MAX_VOICE_FILE_SIZE, { message: t.api.audioTooLarge })
+    .refine(
+      (f) => (VALID_VOICE_MIME_TYPES as readonly string[]).includes(f.type.split(";")[0]),
+      { message: t.api.audioFormatUnsupported },
+    );
+}
+
 export type ImportResult = z.infer<typeof ImportResultSchema>;

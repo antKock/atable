@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
 import { createServerClient } from "@/lib/supabase/server";
 import { getPhotoStore } from "@/lib/storage/photos";
-import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
-import { householdIds } from "@/lib/auth/owner-context";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { loadOwnedRecipe } from "@/lib/db/recipes";
+import { revalidateRecipePaths } from "@/lib/api/revalidate";
 import { getT } from "@/lib/i18n/server";
 
 // 4 Mo : le client redimensionne les photos (~150-300 Ko WebP) avant envoi,
@@ -57,22 +57,9 @@ export const POST = withOwnerAuth(
     // La recette doit exister dans un foyer de l'owner ; l'upload est une
     // écriture → MEMBRE requis sur LE foyer de la recette (Lot 4). Le chemin
     // Storage reste rangé par foyer.
-    const { data: existing } = await supabase
-      .from("recipes")
-      .select("id, household_id, is_seed")
-      .eq("id", id)
-      .in("household_id", householdIds(owner))
-      .single();
-
-    if (!existing) {
-      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
-    }
-
-    const forbidden = await requireMember(owner, existing.household_id);
-    if (forbidden) return forbidden;
-    const frozen = await assertNotDemoSeedMutation(owner, existing);
-    if (frozen) return frozen;
-    const householdId = existing.household_id;
+    const loaded = await loadOwnedRecipe(supabase, id, owner, { write: true });
+    if (loaded instanceof NextResponse) return loaded;
+    const householdId = loaded.recipe.household_id;
 
     const path = `${householdId}/${id}/photo.${ext}`;
     const photos = getPhotoStore();
@@ -96,8 +83,7 @@ export const POST = withOwnerAuth(
 
     if (updateError) throw new Error(updateError.message);
 
-    revalidatePath("/");
-    revalidatePath("/recipes/[id]", "page");
+    revalidateRecipePaths();
 
     return NextResponse.json({ url });
   },

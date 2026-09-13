@@ -161,10 +161,10 @@ describe("PUT /api/owner/email", () => {
     expect(supa.calls).toHaveLength(0);
   });
 
-  it("400 sur un format invalide", async () => {
+  it("422 sur un format invalide", async () => {
     vi.mocked(getOwnerContext).mockResolvedValue(owner());
     const res = await PUT(request({ email: "pas-un-email" }));
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
     expect((await res.json()).error).toBe(t.profile.emailInvalid);
     expect(supa.calls).toHaveLength(0);
   });

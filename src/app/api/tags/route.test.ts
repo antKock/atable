@@ -88,7 +88,7 @@ describe("POST /api/tags", () => {
     expect((await res.json()).error).toBe("Nom de tag trop long (50 caractères max)");
   });
 
-  it("un corps non-JSON répond 422 (pas 500)", async () => {
+  it("un corps non-JSON répond 400 (pas 500)", async () => {
     const res = await POST(
       new NextRequest("https://test.local/api/tags", {
         method: "POST",
@@ -96,7 +96,7 @@ describe("POST /api/tags", () => {
         body: "{oops",
       }),
     );
-    expect(res.status).toBe(422);
+    expect(res.status).toBe(400);
   });
 
   it("returns the existing tag instead of duplicating (case-insensitive)", async () => {

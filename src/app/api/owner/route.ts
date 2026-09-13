@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { withOwnerAuth } from '@/lib/api/with-owner-auth'
 import { OwnerNameSchema } from '@/lib/schemas/household'
 import { getT } from '@/lib/i18n/server'
+import { parseJsonBody } from '@/lib/api/body'
 
 export const PUT = withOwnerAuth(
   async (request: NextRequest, _context: unknown, owner) => {
@@ -12,18 +13,15 @@ export const PUT = withOwnerAuth(
     // inaccessible — garde par défaut de withOwnerAuth (owner-level).
 
     // Un corps non-JSON (ou `null`) est une entrée invalide, pas une panne :
-    // sans ce garde il remonterait en 500 + Sentry via le catch du wrapper.
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: t.profile.nameInvalid }, { status: 400 })
-    }
-
-    const parsed = OwnerNameSchema.safeParse((body as { name?: unknown } | null)?.name)
-    if (!parsed.success) {
-      return NextResponse.json({ error: t.profile.nameInvalid }, { status: 400 })
-    }
+    // parseJsonBody répond 400/422 au lieu de laisser remonter un 500.
+    const parsed = await parseJsonBody(request, {
+      t,
+      schema: OwnerNameSchema,
+      pick: (b) => (b as { name?: unknown } | null)?.name,
+      unreadableMessage: (t) => t.profile.nameInvalid,
+      invalidMessage: (t) => t.profile.nameInvalid,
+    })
+    if (parsed instanceof NextResponse) return parsed
 
     // Vide → NULL en DB → l'affichage retombe sur l'alias auto (jamais stocké).
     const name = parsed.data.trim() || null

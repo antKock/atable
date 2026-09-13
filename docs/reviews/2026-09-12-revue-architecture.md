@@ -91,30 +91,31 @@ Valeur haute, risque très faible (compile-time). C'est le filet de tout le rest
 
 Duplications confirmées (fichier:ligne dans l'annexe A). Cibles, chacune avec ses tests :
 
-- [ ] `loadOwnedRecipe(db, id, owner, { write })` dans `src/lib/db/recipes.ts` : absorbe les 7
+- [x] `loadOwnedRecipe(db, id, owner, { write })` dans `src/lib/db/recipes.ts` : absorbe les 7
   copies « recette scopée + 404 » (`recipes/[id]/route.ts:22-31,56-65,176-185`,
   `photo:60-69`, `move:56-65`, `share:29-38`, `status:14-23`) et les 4 copies du triplet
   « 404 → requireMember → assertNotDemoSeedMutation » (ordre divergent dans `move:67-75` :
   **aligner sur 404 → membre → démo**).
-- [ ] `parseJsonBody(request, schema, { status })` : 6 copies du `try { json } catch { 400 }`
+- [x] `parseJsonBody(request, schema, { status })` : 6 copies du `try { json } catch { 400 }`
   + fermer les deux 500 sur JSON invalide (`recipes/route.ts:66`, `tags/route.ts:38`).
   Statuts : 400 illisible, 422 invalide, partout.
-- [ ] `withPublicRoute()` : limite de corps + parse + try/catch Sentry + 500 localisé, pour
+- [x] `withPublicRoute()` : limite de corps + parse + try/catch Sentry + 500 localisé, pour
   les 9 routes publiques (remplace les 6 réimplémentations du wrapper).
-- [ ] `revalidateRecipePaths()` dans `src/lib/` : source unique (`/home`, `/library`,
+- [x] `revalidateRecipePaths()` dans `src/lib/` : source unique (`/home`, `/library`,
   `/recipes/[id]`) ; corrige `photo/route.ts:99` (`/` au lieu de `/home`) et les
   invalidations manquantes de `/library` sur POST et DELETE.
-- [ ] Préambule commun des 3 routes d'import (`getT` → `memberHouseholdIds` →
+- [x] Préambule commun des 3 routes d'import (`getT` → `memberHouseholdIds` →
   `forbiddenResponse` → quota) : option `withOwnerAuth({ requireMemberHousehold, quota })`
   ou helper `resolveImportHousehold(owner)`. Valider l'audio par le schéma zod existant
   (`schemas/import.ts:51-58`) au lieu de `voice/route.ts:30-50`.
-- [ ] `countMembers` (`members/[ownerId]/route.ts:20-31` vs `households/[id]/route.ts:112-117`)
+- [x] `countMembers` (`members/[ownerId]/route.ts:20-31` vs `households/[id]/route.ts:112-117`)
   et la clause `or` des tags (3 copies) → `src/lib/db/`.
-- [ ] `/api/admin/*` est un préfixe public du proxy (`src/proxy.ts:31`) : ajouter une garde
-  par défaut (secret) pour que toute future route admin naisse protégée.
-- [ ] Déplacer `resetDemo()` hors de `cron/demo-reset/route.ts` (248 l.) vers
+- [x] `/api/admin/*` est un préfixe public du proxy (`src/proxy.ts:31`) : ajouter une garde
+  par défaut (secret) pour que toute future route admin naisse protégée. *Fait : Bearer
+  `ADMIN_API_SECRET` (repli `BATCH_ENRICH_SECRET`, déjà posé) vérifié dans le proxy.*
+- [x] Déplacer `resetDemo()` hors de `cron/demo-reset/route.ts` (248 l.) vers
   `src/lib/demo/reset.ts` (testable hors HTTP).
-- [ ] **Tests manquants** : `recipes/[id]/move`, les 3 `import/*` (invité refusé, 429 quota,
+- [x] **Tests manquants** : `recipes/[id]/move`, les 3 `import/*` (invité refusé, 429 quota,
   codes d'erreur, 413), `recovery/{request,verify,consume}`, `owner/email/verify`.
 
 Chiffrage : ~350 lignes retirées des routes, ~150 ajoutées, 22 routes touchées.

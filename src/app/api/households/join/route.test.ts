@@ -116,9 +116,9 @@ describe("POST /api/households/join (Fix 1.2)", () => {
     expect(res.status).not.toBe(303);
   });
 
-  it("rejects an invalid code format with 400", async () => {
+  it("rejects an invalid code format with 422", async () => {
     const res = await POST(request({ code: "not-a-code" }));
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
   });
 
   it("returns 429 when rate-limited", async () => {

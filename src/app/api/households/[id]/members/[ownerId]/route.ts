@@ -4,6 +4,8 @@ import { z } from 'zod'
 import { createServerClient } from '@/lib/supabase/server'
 import { withOwnerAuth, requireMember, forbiddenResponse } from '@/lib/api/with-owner-auth'
 import { getT } from '@/lib/i18n/server'
+import { countMembers } from '@/lib/db/memberships'
+import { parseJsonBody } from '@/lib/api/body'
 
 type RouteContext = { params: Promise<{ id: string; ownerId: string }> }
 
@@ -16,20 +18,6 @@ const RoleSchema = z.object({ role: z.enum(['member', 'guest']) })
 //   - pas d'action sur soi-même (se retirer = « Quitter », route households/[id]) ;
 //   - jamais rétrograder/retirer le DERNIER membre (foyer sans membre = ingérable).
 
-// Nombre de memberships 'member' du foyer — sert au garde « dernier membre ».
-async function countMembers(
-  supabase: ReturnType<typeof createServerClient>,
-  householdId: string,
-): Promise<number> {
-  const { count, error } = await supabase
-    .from('memberships')
-    .select('id', { count: 'exact', head: true })
-    .eq('household_id', householdId)
-    .eq('role', 'member')
-  if (error) throw new Error(error.message)
-  return count ?? 0
-}
-
 // PATCH : changer le rôle d'un membre (membre ⇄ invité).
 export const PATCH = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
@@ -39,16 +27,13 @@ export const PATCH = withOwnerAuth(
     const forbidden = await requireMember(owner, id)
     if (forbidden) return forbidden
 
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: t.household.memberAction.roleError }, { status: 400 })
-    }
-    const parsed = RoleSchema.safeParse(body)
-    if (!parsed.success) {
-      return NextResponse.json({ error: t.household.memberAction.roleError }, { status: 400 })
-    }
+    const parsed = await parseJsonBody(request, {
+      t,
+      schema: RoleSchema,
+      unreadableMessage: (t) => t.household.memberAction.roleError,
+      invalidMessage: (t) => t.household.memberAction.roleError,
+    })
+    if (parsed instanceof NextResponse) return parsed
     const nextRole = parsed.data.role
 
     const supabase = createServerClient()

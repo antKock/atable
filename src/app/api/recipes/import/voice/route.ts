@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { MAX_VOICE_FILE_SIZE, VALID_VOICE_MIME_TYPES } from "@/lib/schemas/import";
+import { MAX_VOICE_FILE_SIZE, buildImportVoiceSchema } from "@/lib/schemas/import";
 import { extractRecipeFromVoice, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
-import { withOwnerAuth, forbiddenResponse } from "@/lib/api/with-owner-auth";
-import { memberHouseholdIds } from "@/lib/auth/owner-context";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { resolveImportHousehold } from "@/lib/api/import-household";
 import { getT } from "@/lib/i18n/server";
 
 // Marge pour l'enveloppe multipart autour du fichier audio (MAX_VOICE_FILE_SIZE).
@@ -12,40 +12,22 @@ const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
   const t = await getT();
-  // Quota/coût IA rattachés au premier foyer membre (l'import précède le choix
-  // du foyer). Invité (lecture seule) refusé.
-  const memberIds = memberHouseholdIds(owner);
-  if (memberIds.length === 0) {
-    return forbiddenResponse(t);
-  }
-  const householdId = memberIds[0];
+  const target = resolveImportHousehold(owner, t);
+  if (target instanceof NextResponse) return target;
+  const { householdId } = target;
 
   try {
     // Valider AVANT de consommer le quota : un fichier invalide ne coûte rien.
+    // Même schéma zod que le reste des imports (schemas/import.ts).
     const formData = await request.formData().catch(() => null);
-    const audio = formData?.get("audio");
-
-    if (!audio || !(audio instanceof File)) {
+    const parsed = buildImportVoiceSchema(t).safeParse(formData?.get("audio"));
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: t.api.audioRequired, code: "INVALID_DATA" },
+        { error: parsed.error.issues[0]?.message ?? t.api.audioRequired, code: "INVALID_DATA" },
         { status: 400 },
       );
     }
-
-    if (audio.size > MAX_VOICE_FILE_SIZE) {
-      return NextResponse.json(
-        { error: t.api.audioTooLarge, code: "INVALID_DATA" },
-        { status: 400 },
-      );
-    }
-
-    const mimeBase = audio.type.split(";")[0];
-    if (!VALID_VOICE_MIME_TYPES.includes(mimeBase as typeof VALID_VOICE_MIME_TYPES[number])) {
-      return NextResponse.json(
-        { error: t.api.audioFormatUnsupported, code: "INVALID_DATA" },
-        { status: 400 },
-      );
-    }
+    const audio = parsed.data;
 
     const quotaResponse = await enforceImportQuota(householdId);
     if (quotaResponse) return quotaResponse;

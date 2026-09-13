@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
 import { generateShareToken } from "@/lib/auth/share-token";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
-import { householdIds } from "@/lib/auth/owner-context";
-import { getLocale, getT } from "@/lib/i18n/server";
+import { loadOwnedRecipe } from "@/lib/db/recipes";
+import { getLocale } from "@/lib/i18n/server";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { buildShareUrl } from "@/lib/share-url";
 
@@ -16,7 +16,6 @@ const MAX_ATTEMPTS = 5;
 // the caller's household owns, and returns the public share URL.
 export const POST = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
-    const t = await getT();
     const { id } = await params;
     const supabase = createServerClient();
 
@@ -26,16 +25,9 @@ export const POST = withOwnerAuth(
     // l'invité ; éditer/supprimer/déplacer restent membres). L'accès est borné
     // par householdIds(owner) ci-dessous ; le mint de share_token est une
     // écriture bénigne (jeton aléatoire, contenu de la recette inchangé).
-    const { data: recipe, error } = await supabase
-      .from("recipes")
-      .select("id, share_token, household_id")
-      .eq("id", id)
-      .in("household_id", householdIds(owner))
-      .single();
-
-    if (error || !recipe) {
-      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
-    }
+    const loaded = await loadOwnedRecipe(supabase, id, owner, { columns: ["share_token"] });
+    if (loaded instanceof NextResponse) return loaded;
+    const { recipe } = loaded;
 
     const householdId = recipe.household_id;
 

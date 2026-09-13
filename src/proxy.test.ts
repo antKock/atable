@@ -170,3 +170,36 @@ describe("proxy — regression guards", () => {
     expect(hasDebugHeaders(anon)).toBe(false);
   });
 });
+
+describe("/api/admin/* — garde par défaut (revue 2026-09-12)", () => {
+  const withAuth = (path: string, auth?: string) => {
+    const req = makeRequest(path);
+    if (auth) req.headers.set("authorization", auth);
+    return req;
+  };
+
+  it("refuse (401) sans en-tête, même sans session requise", async () => {
+    vi.stubEnv("ADMIN_API_SECRET", "admin-secret");
+    const res = await proxy(withAuth("/api/admin/whatever"));
+    expect(res.status).toBe(401);
+  });
+
+  it("laisse passer avec le bon secret", async () => {
+    vi.stubEnv("ADMIN_API_SECRET", "admin-secret");
+    const res = await proxy(withAuth("/api/admin/whatever", "Bearer admin-secret"));
+    expect(res.status).toBe(200);
+  });
+
+  it("repli sur BATCH_ENRICH_SECRET quand ADMIN_API_SECRET est absent", async () => {
+    vi.stubEnv("ADMIN_API_SECRET", "");
+    vi.stubEnv("BATCH_ENRICH_SECRET", "batch-secret");
+    expect((await proxy(withAuth("/api/admin/batch-enrich", "Bearer batch-secret"))).status).toBe(200);
+    expect((await proxy(withAuth("/api/admin/batch-enrich", "Bearer nope"))).status).toBe(401);
+  });
+
+  it("aucun secret configuré → tout refusé (jamais `Bearer undefined`)", async () => {
+    vi.stubEnv("ADMIN_API_SECRET", "");
+    vi.stubEnv("BATCH_ENRICH_SECRET", "");
+    expect((await proxy(withAuth("/api/admin/x", "Bearer undefined"))).status).toBe(401);
+  });
+});

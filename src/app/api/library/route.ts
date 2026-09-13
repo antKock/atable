@@ -3,6 +3,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipeListItem, type RecipeListRow } from "@/lib/supabase/mappers";
 import type { Tables } from "@/lib/db/types";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { visibleTagsOrClause } from "@/lib/db/tags";
 import { householdIds } from "@/lib/auth/owner-context";
 import type { LibraryRecipeItem, Tag } from "@/types/recipe";
 
@@ -52,7 +53,7 @@ export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
     supabase
       .from("tags")
       .select("id, name, category, household_id")
-      .or(`household_id.is.null,household_id.in.(${ids.join(",")})`)
+      .or(visibleTagsOrClause(ids))
       .order("name"),
     supabase.from("households").select("id, name").in("id", ids),
   ]);

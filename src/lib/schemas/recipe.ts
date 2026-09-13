@@ -55,6 +55,9 @@ export function buildRecipeCreateSchema(t: Dictionary) {
   // this hint enrichment would generate — and bill — an AI image that the photo
   // immediately hides. When true, enrichment skips image generation.
   willUploadPhoto: z.boolean().optional(),
+  // Foyer de destination (multi-foyer) ; absent → repli sur l'unique foyer
+  // membre, validé côté route (resolveWriteHousehold).
+  householdId: z.string().uuid().optional(),
   });
 }
 

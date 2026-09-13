@@ -198,9 +198,9 @@ describe("PUT /api/households/[id]", () => {
     expect(await res.json()).toEqual({ id: "household-1", name: "Nouveau nom" });
   });
 
-  it("rejects an empty name with 400", async () => {
+  it("rejects an empty name with 422", async () => {
     const res = await PUT(putRequest({ name: "" }), ctx());
-    expect(res.status).toBe(400);
+    expect(res.status).toBe(422);
   });
 
   it("returns 403 when the id does not match the session household", async () => {
