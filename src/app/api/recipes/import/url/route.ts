@@ -2,20 +2,15 @@ import { NextResponse } from "next/server";
 import { buildImportUrlSchema } from "@/lib/schemas/import";
 import { extractRecipeFromUrl, ImportError } from "@/lib/import";
 import { enforceImportQuota } from "@/lib/import-quota";
-import { withOwnerAuth, forbiddenResponse } from "@/lib/api/with-owner-auth";
-import { memberHouseholdIds } from "@/lib/auth/owner-context";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
+import { resolveImportHousehold } from "@/lib/api/import-household";
 import { getT } from "@/lib/i18n/server";
 
 export const POST = withOwnerAuth(async (request: Request, _ctx, owner) => {
   const t = await getT();
-  // L'import précède le choix du foyer de destination (dialog à l'enregistrement)
-  // : le quota et l'attribution de coût IA se rattachent au premier foyer où
-  // l'owner est MEMBRE (un invité — lecture seule — est refusé, Lot 3).
-  const memberIds = memberHouseholdIds(owner);
-  if (memberIds.length === 0) {
-    return forbiddenResponse(t);
-  }
-  const householdId = memberIds[0];
+  const target = resolveImportHousehold(owner, t);
+  if (target instanceof NextResponse) return target;
+  const { householdId } = target;
 
   try {
     // Valider AVANT de consommer le quota : une URL invalide ne coûte rien.

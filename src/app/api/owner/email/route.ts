@@ -9,6 +9,8 @@ import { recoveryEmailRateLimit, recoveryIpRateLimit } from '@/lib/redis'
 import { createLoginToken } from '@/lib/queries/recovery'
 import { sendRecoveryEmail } from '@/lib/email/send'
 import { getT } from '@/lib/i18n/server'
+import { parseJsonBody } from '@/lib/api/body'
+import { z } from 'zod'
 import { getRequestOrigin } from '@/lib/request-origin'
 
 // Email de secours (#14, maquette 0.3) : saisi au profil, AUCUN envoi à la
@@ -22,13 +24,14 @@ export const PUT = withOwnerAuth(
     // Stratégie C : profil gelé pour les sessions démo — garde par défaut de
     // withOwnerAuth, comme PUT /api/owner.
 
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: t.profile.emailInvalid }, { status: 400 })
-    }
-    const raw = (body as { email?: unknown } | null)?.email
+    const parsedBody = await parseJsonBody(request, {
+      t,
+      schema: z.unknown(),
+      pick: (b) => (b as { email?: unknown } | null)?.email,
+      unreadableMessage: (t) => t.profile.emailInvalid,
+    })
+    if (parsedBody instanceof NextResponse) return parsedBody
+    const raw = parsedBody.data
 
     // Vide → retirer l'email (symétrique du nom : NULL en DB)
     if (typeof raw === 'string' && raw.trim() === '') {
@@ -44,7 +47,7 @@ export const PUT = withOwnerAuth(
 
     const parsed = RecoveryEmailSchema.safeParse(raw)
     if (!parsed.success) {
-      return NextResponse.json({ error: t.profile.emailInvalid }, { status: 400 })
+      return NextResponse.json({ error: t.profile.emailInvalid, code: 'INVALID_DATA' }, { status: 422 })
     }
     const email = parsed.data
     if (email === owner.recoveryEmail) {

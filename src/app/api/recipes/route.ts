@@ -8,6 +8,7 @@ import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth"
 import { householdIds } from "@/lib/auth/owner-context";
 import { enforceRecipeCreateQuota } from "@/lib/import-quota";
 import { getT } from "@/lib/i18n/server";
+import { parseJsonBody } from "@/lib/api/body";
 
 export const maxDuration = 60;
 
@@ -63,12 +64,15 @@ export const GET = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, owner) => {
     const t = await getT();
-    const body = await request.json();
+    // Validation AVANT le quota : un corps invalide ne consomme rien (et un
+    // JSON illisible répond 400, plus 500).
+    const result = await parseJsonBody(request, { t, schema: buildRecipeCreateSchema(t) });
+    if (result instanceof NextResponse) return result;
 
     // Foyer cible explicite (dialog de choix, multi-foyer) OU repli mono-foyer.
     // Validé MEMBRE : un invité (lecture seule) est refusé, et un foyer où
     // l'owner n'est pas membre ne peut pas recevoir de recette.
-    const target = await resolveWriteHousehold(owner, body?.householdId);
+    const target = await resolveWriteHousehold(owner, result.data.householdId);
     if (target instanceof NextResponse) return target;
     const { householdId } = target;
 
@@ -76,15 +80,6 @@ export const POST = withOwnerAuth(
     // import quota doesn't cover — cap it here.
     const quotaResponse = await enforceRecipeCreateQuota(householdId);
     if (quotaResponse) return quotaResponse;
-
-    const result = buildRecipeCreateSchema(t).safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.issues[0].message },
-        { status: 422 }
-      );
-    }
 
     const supabase = createServerClient();
     const { data, error } = await supabase

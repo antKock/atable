@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse, after } from "next/server";
-import { revalidatePath } from "next/cache";
 import * as Sentry from "@sentry/nextjs";
 import { createServerClient } from "@/lib/supabase/server";
 import { mapDbRowToRecipe } from "@/lib/supabase/mappers";
 import { buildRecipeUpdateSchema } from "@/lib/schemas/recipe";
 import { enrichRecipe, regenerateImage } from "@/lib/enrichment";
-import { withOwnerAuth, requireMember, assertNotDemoSeedMutation } from "@/lib/api/with-owner-auth";
-import { householdIds } from "@/lib/auth/owner-context";
+import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { getT } from "@/lib/i18n/server";
 import { purgeRecipePhotos } from "@/lib/storage/photos";
 import type { TablesUpdate } from "@/lib/db/types";
+import { loadOwnedRecipe } from "@/lib/db/recipes";
+import { parseJsonBody } from "@/lib/api/body";
+import { revalidateRecipePaths } from "@/lib/api/revalidate";
 
 export const maxDuration = 60;
 
@@ -17,23 +18,14 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 export const GET = withOwnerAuth(
   async (_request: NextRequest, { params }: RouteContext, owner) => {
-    const t = await getT();
     const { id } = await params;
     const supabase = createServerClient();
     // Lecture : accessible si la recette appartient à l'un des foyers de
     // l'owner (membre OU invité) — plus seulement le foyer du cookie (Lot 4).
-    const { data, error } = await supabase
-      .from("recipes")
-      .select("*, recipe_tags(tag_id, tags(id, name, category))")
-      .eq("id", id)
-      .in("household_id", householdIds(owner))
-      .single();
+    const loaded = await loadOwnedRecipe(supabase, id, owner, { all: true, withTags: true });
+    if (loaded instanceof NextResponse) return loaded;
 
-    if (error || !data) {
-      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
-    }
-
-    return NextResponse.json(mapDbRowToRecipe(data));
+    return NextResponse.json(mapDbRowToRecipe(loaded.recipe));
   },
 );
 
@@ -41,36 +33,20 @@ export const PUT = withOwnerAuth(
   async (request: NextRequest, { params }: RouteContext, owner) => {
     const t = await getT();
     const { id } = await params;
-    const body = await request.json();
-    const result = buildRecipeUpdateSchema(t).safeParse(body);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { error: result.error.issues[0].message },
-        { status: 422 }
-      );
-    }
+    const parsed = await parseJsonBody(request, { schema: buildRecipeUpdateSchema(t), t });
+    if (parsed instanceof NextResponse) return parsed;
+    const result = parsed;
 
     const supabase = createServerClient();
 
-    // La recette doit exister dans un foyer de l'owner ; l'écriture exige d'y
-    // être MEMBRE (invité = lecture seule). On lit household_id pour valider le
-    // rôle sur LE foyer de la recette, pas sur memberships[0] (Lot 4).
-    const { data: existing } = await supabase
-      .from("recipes")
-      .select("id, title, ingredients, steps, household_id, is_seed")
-      .eq("id", id)
-      .in("household_id", householdIds(owner))
-      .single();
-
-    if (!existing) {
-      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
-    }
-
-    const forbidden = await requireMember(owner, existing.household_id);
-    if (forbidden) return forbidden;
-    const frozen = await assertNotDemoSeedMutation(owner, existing);
-    if (frozen) return frozen;
+    // Recette d'un foyer de l'owner + gardes d'écriture (membre du foyer de
+    // LA recette, seed démo intouchable) : loadOwnedRecipe.
+    const loaded = await loadOwnedRecipe(supabase, id, owner, {
+      columns: ["title", "ingredients", "steps"],
+      write: true,
+    });
+    if (loaded instanceof NextResponse) return loaded;
+    const { recipe: existing } = loaded;
 
     const contentChanged =
       existing.title !== result.data.title ||
@@ -150,9 +126,7 @@ export const PUT = withOwnerAuth(
       }
     }
 
-    revalidatePath("/home");
-    revalidatePath("/library");
-    revalidatePath("/recipes/[id]", "page");
+    revalidateRecipePaths();
 
     after(async () => {
       if (result.data.regenerateImage) {
@@ -172,25 +146,15 @@ export const PUT = withOwnerAuth(
 
 export const DELETE = withOwnerAuth(
   async (_request: NextRequest, { params }: RouteContext, owner) => {
-    const t = await getT();
     const { id } = await params;
     const supabase = createServerClient();
 
-    const { data: existing } = await supabase
-      .from("recipes")
-      .select("id, household_id, is_seed, photo_url, generated_image_url")
-      .eq("id", id)
-      .in("household_id", householdIds(owner))
-      .single();
-
-    if (!existing) {
-      return NextResponse.json({ error: t.api.recipeNotFound }, { status: 404 });
-    }
-
-    const forbidden = await requireMember(owner, existing.household_id);
-    if (forbidden) return forbidden;
-    const frozen = await assertNotDemoSeedMutation(owner, existing);
-    if (frozen) return frozen;
+    const loaded = await loadOwnedRecipe(supabase, id, owner, {
+      columns: ["photo_url", "generated_image_url"],
+      write: true,
+    });
+    if (loaded instanceof NextResponse) return loaded;
+    const { recipe: existing } = loaded;
 
     const { error } = await supabase
       .from("recipes")
@@ -210,8 +174,7 @@ export const DELETE = withOwnerAuth(
       Sentry.captureException(purgeError);
     }
 
-    revalidatePath("/home");
-    revalidatePath("/library");
+    revalidateRecipePaths();
 
     return new NextResponse(null, { status: 204 });
   },

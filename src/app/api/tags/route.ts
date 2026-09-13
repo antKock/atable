@@ -8,21 +8,18 @@ import {
 } from "@/lib/api/with-owner-auth";
 import { householdIds, memberHouseholdIds } from "@/lib/auth/owner-context";
 import { getT } from "@/lib/i18n/server";
+import { visibleTagsOrClause } from "@/lib/db/tags";
+import { parseJsonBody } from "@/lib/api/body";
 import type { Dictionary } from "@/lib/i18n/types";
 
 export const GET = withOwnerAuth(async (_request, _ctx, owner) => {
   const supabase = createServerClient();
   // Tags globaux (household_id NULL) + tags custom des foyers de l'owner. Sans
   // foyer, on ne garde que les globaux (pas de clause `in.()` dégénérée).
-  const ids = householdIds(owner);
-  const orClause =
-    ids.length > 0
-      ? `household_id.is.null,household_id.in.(${ids.join(",")})`
-      : `household_id.is.null`;
   const { data, error } = await supabase
     .from("tags")
     .select("id, name, category")
-    .or(orClause)
+    .or(visibleTagsOrClause(householdIds(owner)))
     .order("category", { ascending: true, nullsFirst: false })
     .order("name", { ascending: true });
 
@@ -40,15 +37,8 @@ const buildCreateTagSchema = (t: Dictionary) =>
 
 export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   const t = await getT();
-  const body = await request.json().catch(() => null);
-  const result = buildCreateTagSchema(t).safeParse(body);
-
-  if (!result.success) {
-    return NextResponse.json(
-      { error: result.error.issues[0].message },
-      { status: 422 }
-    );
-  }
+  const result = await parseJsonBody(request, { t, schema: buildCreateTagSchema(t) });
+  if (result instanceof NextResponse) return result;
 
   // Un tag custom se crée dans un foyer où l'owner est MEMBRE. Le tag est saisi
   // dans le formulaire avant le choix du foyer de destination : on le rattache
@@ -64,14 +54,13 @@ export const POST = withOwnerAuth(async (request: NextRequest, _ctx, owner) => {
   // visiteurs suivants — refusé par la garde par défaut de withOwnerAuth.
 
   const supabase = createServerClient();
-  const ids = householdIds(owner);
 
   // Check if tag with same name already exists (predefined or scoped to one of
   // the owner's households)
   const { data: existing } = await supabase
     .from("tags")
     .select("id, name, category")
-    .or(`household_id.is.null,household_id.in.(${ids.join(",")})`)
+    .or(visibleTagsOrClause(householdIds(owner)))
     .ilike("name", result.data.name)
     .limit(1)
     .single();

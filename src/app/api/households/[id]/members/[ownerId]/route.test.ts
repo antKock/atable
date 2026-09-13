@@ -133,9 +133,9 @@ describe('PATCH /api/households/[id]/members/[ownerId]', () => {
     expect(res.status).toBe(404)
   })
 
-  it('rejette un rôle invalide (400)', async () => {
+  it('rejette un rôle invalide (422)', async () => {
     const res = await PATCH(patchReq('admin'), ctx())
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(422)
   })
 })
 

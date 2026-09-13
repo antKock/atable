@@ -8,6 +8,9 @@ import {
 } from '@/lib/auth/session'
 import { redis } from '@/lib/redis'
 import { getRequestOrigin } from '@/lib/request-origin'
+import { isBearerAuthorized } from '@/lib/cron-auth'
+
+const ADMIN_API_PREFIX = '/api/admin/'
 
 // Proxy (convention Next 16, ex-`middleware.ts`) : garde d'authentification de
 // toutes les routes non publiques — vérifie le cookie de session, la révocation
@@ -41,6 +44,17 @@ export async function proxy(request: NextRequest) {
   const userAgent = request.headers.get('user-agent') || ''
   if (BOT_UA_PATTERN.test(userAgent)) {
     return NextResponse.next()
+  }
+
+  // /api/admin/* : préfixe public (pas de session), mais JAMAIS anonyme —
+  // toute route admin naît protégée par le secret d'administration
+  // (`ADMIN_API_SECRET`, repli `BATCH_ENRICH_SECRET` déjà posé en prod), en
+  // plus du contrôle propre à chaque route. Sans secret configuré : tout refusé.
+  if (pathname.startsWith(ADMIN_API_PREFIX)) {
+    const secret = process.env.ADMIN_API_SECRET || process.env.BATCH_ENRICH_SECRET
+    if (!isBearerAuthorized(request.headers.get('authorization'), secret)) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
   }
 
   const isPublic =

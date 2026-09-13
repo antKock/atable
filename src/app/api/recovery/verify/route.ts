@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import * as Sentry from '@sentry/nextjs'
 import { headers } from 'next/headers'
 import { getClientIp } from '@/lib/request-ip'
 import { RecoveryEmailSchema } from '@/lib/schemas/household'
@@ -11,10 +10,12 @@ import {
 } from '@/lib/queries/recovery'
 import { getDeviceName } from '@/lib/auth/device-name'
 import { signSession, setSessionCookie } from '@/lib/auth/session'
-import { getT } from '@/lib/i18n/server'
-import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from '@/lib/body-limit'
+import { withPublicRoute } from '@/lib/api/with-public-route'
+import { parseJsonBody } from '@/lib/api/body'
+import { z } from 'zod'
 
 const CODE_REGEX = /^\d{6}$/
+const VerifyBodySchema = z.object({ email: RecoveryEmailSchema, code: z.string().regex(CODE_REGEX) })
 
 // Repli code 6 chiffres de la récup (#14, §4) — route PUBLIQUE. Le repli
 // existe parce qu'un magic-link ouvert hors du WebView ne pose pas le cookie
@@ -23,58 +24,42 @@ const CODE_REGEX = /^\d{6}$/
 // Message générique unique pour TOUT échec (email inconnu, code faux, token
 // expiré/brûlé) : cette route ne doit pas servir d'oracle d'existence.
 // Pas de fusion ici : simple reconnexion à l'owner (décision n°6).
-export async function POST(request: NextRequest) {
-  const t = await getT()
-  try {
-    // Route publique : corps annoncé au-delà du plafond refusé avant lecture
-    // (Traefik ne plafonne pas en amont ; withOwnerAuth le fait pour les autres).
-    const tooLarge = await rejectOversizedBody(request, DEFAULT_MAX_BODY_BYTES, t)
-    if (tooLarge) return tooLarge
+export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
+  const parsed = await parseJsonBody(request, {
+    t,
+    schema: VerifyBodySchema,
+    unreadableMessage: (t) => t.recovery.codeInvalid,
+    invalidMessage: (t) => t.recovery.codeInvalid,
+  })
+  if (parsed instanceof NextResponse) return parsed
+  const { email: parsedEmail, code } = parsed.data
 
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
-    }
-    const { email: rawEmail, code } = (body ?? {}) as { email?: unknown; code?: unknown }
-
-    const parsedEmail = RecoveryEmailSchema.safeParse(rawEmail)
-    if (!parsedEmail.success || typeof code !== 'string' || !CODE_REGEX.test(code)) {
-      return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
-    }
-
-    const hdrs = await headers()
-    const ip = getClientIp(hdrs)
-    const { success } = await recoveryVerifyRateLimit.limit(ip)
-    if (!success) {
-      return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })
-    }
-
-    const owner = await findOwnerByEmail(parsedEmail.data)
-    if (!owner) {
-      return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
-    }
-
-    const valid = await verifyLoginCode(owner.id, 'recovery', code)
-    if (!valid) {
-      return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
-    }
-
-    const session = await createOwnerSession(owner.id, getDeviceName(hdrs.get('user-agent') ?? ''))
-    if (!session) {
-      // Owner sans plus aucun foyer : rien à récupérer — même message générique.
-      return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
-    }
-
-    const token = await signSession({ sid: session.sessionId })
-    // Cookie sur un 200 JSON (pas un 303) — fiable en WKWebView, comme join.
-    const response = NextResponse.json({ ok: true, redirect: '/home' })
-    setSessionCookie(response, token)
-    return response
-  } catch (err) {
-    Sentry.captureException(err)
-    console.error('[recovery/verify] caught error:', err)
-    return NextResponse.json({ error: t.api.serverError }, { status: 500 })
+  const hdrs = await headers()
+  const ip = getClientIp(hdrs)
+  const { success } = await recoveryVerifyRateLimit.limit(ip)
+  if (!success) {
+    return NextResponse.json({ error: t.recovery.rateLimited }, { status: 429 })
   }
-}
+
+  const owner = await findOwnerByEmail(parsedEmail)
+  if (!owner) {
+    return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
+  }
+
+  const valid = await verifyLoginCode(owner.id, 'recovery', code)
+  if (!valid) {
+    return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
+  }
+
+  const session = await createOwnerSession(owner.id, getDeviceName(hdrs.get('user-agent') ?? ''))
+  if (!session) {
+    // Owner sans plus aucun foyer : rien à récupérer — même message générique.
+    return NextResponse.json({ error: t.recovery.codeInvalid }, { status: 400 })
+  }
+
+  const token = await signSession({ sid: session.sessionId })
+  // Cookie sur un 200 JSON (pas un 303) — fiable en WKWebView, comme join.
+  const response = NextResponse.json({ ok: true, redirect: '/home' })
+  setSessionCookie(response, token)
+  return response
+})

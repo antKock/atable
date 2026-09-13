@@ -6,6 +6,8 @@ import { HouseholdCreateSchema } from '@/lib/schemas/household'
 import { clearSessionCookie } from '@/lib/auth/session'
 import { withOwnerAuth, requireMember, forbiddenResponse } from '@/lib/api/with-owner-auth'
 import { getT } from '@/lib/i18n/server'
+import { countMembers } from '@/lib/db/memberships'
+import { parseJsonBody } from '@/lib/api/body'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -21,17 +23,14 @@ export const PUT = withOwnerAuth(
     // Foyer démo (contenu partagé, incident 2026-06) : le readOnly de l'UI ne
     // protège rien — le rename est refusé par la garde par défaut de withOwnerAuth.
 
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: t.household.renameError }, { status: 400 })
-    }
-
-    const parsed = HouseholdCreateSchema.safeParse((body as { name?: unknown } | null)?.name)
-    if (!parsed.success) {
-      return NextResponse.json({ error: t.household.renameError }, { status: 400 })
-    }
+    const parsed = await parseJsonBody(request, {
+      t,
+      schema: HouseholdCreateSchema,
+      pick: (b) => (b as { name?: unknown } | null)?.name,
+      unreadableMessage: (t) => t.household.renameError,
+      invalidMessage: (t) => t.household.renameError,
+    })
+    if (parsed instanceof NextResponse) return parsed
 
     const supabase = createServerClient()
     const { data, error } = await supabase
@@ -109,15 +108,11 @@ export const DELETE = withOwnerAuth(
       // supprimé par cette voie.
       destroy = false
       if (membership.role === 'member' && !membership.isDemo) {
-        const { count, error } = await supabase
-          .from('memberships')
-          .select('id', { count: 'exact', head: true })
-          .eq('household_id', householdId)
-          .eq('role', 'member')
-        if (error) {
+        try {
+          destroy = (await countMembers(supabase, householdId)) <= 1
+        } catch {
           return NextResponse.json({ error: t.api.leaveFailed }, { status: 500 })
         }
-        destroy = (count ?? 0) <= 1
       }
     }
 

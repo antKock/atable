@@ -11,6 +11,8 @@ import {
   executeMergeOwners,
 } from '@/lib/queries/recovery'
 import { getT } from '@/lib/i18n/server'
+import { parseJsonBody } from '@/lib/api/body'
+import { z } from 'zod'
 
 const CODE_REGEX = /^\d{6}$/
 
@@ -23,18 +25,14 @@ export const POST = withOwnerAuth(
     const t = await getT()
     // Session démo : refusée par la garde par défaut de withOwnerAuth.
 
-    let body: unknown
-    try {
-      body = await request.json()
-    } catch {
-      return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 })
-    }
-    const { email: rawEmail, code } = (body ?? {}) as { email?: unknown; code?: unknown }
-
-    const parsedEmail = RecoveryEmailSchema.safeParse(rawEmail)
-    if (!parsedEmail.success || typeof code !== 'string' || !CODE_REGEX.test(code)) {
-      return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 })
-    }
+    const parsed = await parseJsonBody(request, {
+      t,
+      schema: z.object({ email: RecoveryEmailSchema, code: z.string().regex(CODE_REGEX) }),
+      unreadableMessage: (t) => t.merge.codeInvalid,
+      invalidMessage: (t) => t.merge.codeInvalid,
+    })
+    if (parsed instanceof NextResponse) return parsed
+    const { email: parsedEmail, code } = parsed.data
 
     // Sans plafond ici, un owner (trivial à obtenir) qui connaît l'email d'une
     // victime pourrait bruteforcer le code de fusion et absorber ses foyers —
@@ -49,7 +47,7 @@ export const POST = withOwnerAuth(
 
     // Message générique quel que soit l'échec (cible disparue, code faux,
     // token expiré/brûlé) : rien à apprendre de cette route.
-    const target = await findOwnerByEmail(parsedEmail.data)
+    const target = await findOwnerByEmail(parsedEmail)
     if (!target || target.id === owner.ownerId) {
       return NextResponse.json({ error: t.merge.codeInvalid }, { status: 400 })
     }
