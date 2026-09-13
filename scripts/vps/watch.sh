@@ -140,6 +140,8 @@ daily() {
       if [ -z "$body" ]; then sentry_event error "health-unreachable/$env" "GET /api/admin/health injoignable ($env)" "$env"; continue; fi
       jq -r '.checks | to_entries[] | select(.value.ok == false) | "\(.key)\t\(.value.detail)"' <<<"$body" | while IFS=$'\t' read -r check detail; do
         [ -z "$check" ] && continue
+        # Staging : données de test (pipeline IA, seed démo) → seuls sauvegarde, crons et bord comptent.
+        [ "$env" = staging ] && case "$check" in pipeline|demo) continue ;; esac
         sentry_event error "health/$env/$check" "Santé $env — $check : $detail" "$env" "$(jq -c '.checks' <<<"$body")"
       done
       log "health $env: $(jq -r '.ok' <<<"$body")"
