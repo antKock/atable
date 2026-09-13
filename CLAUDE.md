@@ -52,6 +52,11 @@ de promotion en prod. Cocher les cases du fichier au fil des lots.
 
 ## Repères rapides
 
+- **Toute requête de test vers prod ou staging est une sonde** (backlog #26, `docs/infra/sondes.md`) :
+  ajouter `-H "x-mijote-probe: 1"` à chaque curl, `extraHTTPHeaders: { "x-mijote-probe": "1" }`
+  à chaque contexte Playwright (le harnais E2E le fait par défaut). Sans ce marqueur, la requête
+  compte dans les stats (A/B, personnes, recettes) et pollue les mesures.
+
 - **Hébergement depuis le 2026-09-06 : VPS OVH + Dokploy** (`docs/infra/migration-vps-ovh.md`).
   Push sur `staging`/`main` → GitHub Actions (`checks` bloquant) → image GHCR → Dokploy
   (`staging.mijote…` / `mijote…`) → vérification du SHA via `APP_URL`. **Vercel est retiré
