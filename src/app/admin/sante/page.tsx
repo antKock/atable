@@ -5,6 +5,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { getDashboardV3 } from "@/lib/admin/v3/data";
 import { shortDate } from "@/lib/admin/v3/weeks";
 import { Topbar, SectionHead, Card, BigStats } from "@/components/admin/AdminUi";
+import { acknowledgeFailure } from "./actions";
 import "../stats/dashboard.css";
 
 export const dynamic = "force-dynamic";
@@ -27,11 +28,13 @@ async function loadFailures(): Promise<Failure[]> {
   const { data, error } = await supabase
     .from("recipes")
     .select(
-      "id, title, enrichment_status, image_status, updated_at, households!inner(name, is_demo)",
+      "id, title, enrichment_status, image_status, updated_at, households!inner(name, is_demo, is_probe)",
     )
     .or("enrichment_status.eq.failed,image_status.eq.failed")
+    .is("failure_acknowledged_at", null) // les échecs « traités » ne reviennent pas (049)
     .eq("is_seed", false)
     .eq("households.is_demo", false)
+    .eq("households.is_probe", false)
     .order("updated_at", { ascending: false })
     .limit(30);
   if (error) throw new Error(`enrichment_failures: ${error.message}`);
@@ -137,11 +140,13 @@ export default async function SantePage() {
             </Card>
             <Card
               span={8}
-              title={`Échecs à relancer (${failures.length})`}
-              sub="Toutes périodes, hors démo/test — relancer via scripts batch-enrich"
+              title={`Échecs à traiter (${failures.length})`}
+              sub="Toutes périodes, hors démo/test — relancer via batch-enrich, ou considérer comme traité"
             >
               {failures.length === 0 ? (
-                <div className="note">Aucun échec d&apos;enrichissement — pipeline au vert.</div>
+                <div className="note">
+                  Aucun échec d&apos;enrichissement à traiter — pipeline au vert.
+                </div>
               ) : (
                 <table className="list">
                   <thead>
@@ -150,6 +155,7 @@ export default async function SantePage() {
                       <th>Carnet</th>
                       <th>Échec</th>
                       <th>Dernière activité</th>
+                      <th></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -159,11 +165,23 @@ export default async function SantePage() {
                         <td>{f.household}</td>
                         <td>{f.failedPart}</td>
                         <td>{f.updatedAt}</td>
+                        <td>
+                          <form action={acknowledgeFailure}>
+                            <input type="hidden" name="recipeId" value={f.id} />
+                            <button type="submit" className="ack">
+                              Considérer comme traité
+                            </button>
+                          </form>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               )}
+              <div className="note">
+                « Traité » = l&apos;échec sort du voyant, de cette liste et des alertes,
+                jusqu&apos;au prochain échec de la même recette.
+              </div>
             </Card>
           </div>
         </div>

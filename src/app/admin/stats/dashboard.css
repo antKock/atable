@@ -825,3 +825,19 @@
     width: min(300px, 80vw);
   }
 }
+
+/* Santé : bouton « Considérer comme traité » (049) */
+.mijote-dash button.ack {
+  font: inherit;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--d-line, #ddd);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.mijote-dash button.ack:hover {
+  background: rgba(110, 122, 56, 0.1);
+}

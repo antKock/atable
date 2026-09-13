@@ -496,6 +496,7 @@ export type Database = {
           created_at: string | null
           created_by_device_id: string | null
           enrichment_status: string
+          failure_acknowledged_at: string | null
           generated_image_url: string | null
           household_id: string
           id: string
@@ -526,6 +527,7 @@ export type Database = {
           created_at?: string | null
           created_by_device_id?: string | null
           enrichment_status?: string
+          failure_acknowledged_at?: string | null
           generated_image_url?: string | null
           household_id: string
           id?: string
@@ -556,6 +558,7 @@ export type Database = {
           created_at?: string | null
           created_by_device_id?: string | null
           enrichment_status?: string
+          failure_acknowledged_at?: string | null
           generated_image_url?: string | null
           household_id?: string
           id?: string
