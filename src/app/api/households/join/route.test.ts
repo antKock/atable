@@ -2,49 +2,70 @@ import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 import { NextRequest } from "next/server";
 import { headers } from "next/headers";
 import { POST } from "./route";
-import { createServerClient } from "@/lib/supabase/server";
 import { joinRateLimit, joinCodeRateLimit } from "@/lib/redis";
-import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
+import { resolveInviteCode } from "@/lib/auth/invite-code";
+import { provisionOwnerWithHousehold } from "@/lib/db/onboarding";
+import { insertMembership, updateMembershipRole } from "@/lib/db/households";
+import { resolveSessionOwnerFromCookie } from "@/lib/auth/session-owner";
+import { resolveDemoTrialStart } from "@/lib/queries/demo-conversion";
+import type { OwnerContext } from "@/lib/auth/owner-context";
 
-vi.mock("@/lib/supabase/server");
-// cookies() : additivité du re-join (Lot 4). Par défaut aucun cookie → chemin
-// « device neuf » (owner + session), comme la caractérisation historique.
-vi.mock("next/headers", () => ({
-  headers: vi.fn(),
-  cookies: vi.fn(async () => ({ get: () => undefined })),
-}));
+// Route « rejoindre » sur des mocks de fonctions db/* (lot 5).
+vi.mock("@/lib/supabase/server", () => ({ createServerClient: vi.fn(() => ({})) }));
+vi.mock("next/headers", () => ({ headers: vi.fn() }));
 vi.mock("@/lib/redis", () => ({
-  redis: { get: vi.fn() },
   joinRateLimit: { limit: vi.fn() },
   joinCodeRateLimit: { limit: vi.fn() },
 }));
+vi.mock("@/lib/auth/invite-code", () => ({ resolveInviteCode: vi.fn() }));
+vi.mock("@/lib/db/onboarding", () => ({ provisionOwnerWithHousehold: vi.fn() }));
+vi.mock("@/lib/db/households", () => ({
+  insertMembership: vi.fn(),
+  updateMembershipRole: vi.fn(),
+}));
+vi.mock("@/lib/auth/session-owner", () => ({ resolveSessionOwnerFromCookie: vi.fn() }));
+vi.mock("@/lib/queries/demo-conversion", () => ({ resolveDemoTrialStart: vi.fn() }));
 
 const mockHeaders = headers as unknown as Mock;
-const mockLimit = joinRateLimit.limit as unknown as Mock;
-const mockCodeLimit = joinCodeRateLimit.limit as unknown as Mock;
+const INVITE = { householdId: "hh-1", householdName: "Famille Dupont", role: "member" as const };
 
-let supa: SupabaseMock;
-
-beforeEach(() => {
-  supa = createSupabaseMock();
-  vi.mocked(createServerClient).mockReturnValue(supa.client);
-  mockHeaders.mockResolvedValue(
-    new Headers({ "user-agent": "Mozilla/5.0", "x-forwarded-for": "1.2.3.4" }),
-  );
-  mockLimit.mockResolvedValue({ success: true });
-  mockCodeLimit.mockResolvedValue({ success: true });
+const owner = (overrides: Partial<OwnerContext> = {}): OwnerContext => ({
+  ownerId: "owner-real",
+  ownerName: null,
+  ownerAlias: null,
+  recoveryEmail: null,
+  sessionId: "sid-real",
+  memberships: [{ householdId: "hh-a", role: "member", isDemo: false }],
+  ...overrides,
 });
 
-function request(body: unknown): NextRequest {
+function request(body: unknown, raw = false): NextRequest {
   return new NextRequest("https://test.local/api/households/join", {
     method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify(body),
+    headers: { "content-type": "application/json", "user-agent": "Mozilla/5.0" },
+    body: raw ? (body as string) : JSON.stringify(body),
   });
 }
 
-describe("POST /api/households/join (Fix 1.2)", () => {
-  it("refuse (413) un corps annoncé au-delà du plafond, avant toute lecture", async () => {
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockHeaders.mockResolvedValue(
+    new Headers({ "user-agent": "Mozilla/5.0", "x-forwarded-for": "1.2.3.4" }),
+  );
+  vi.mocked(joinRateLimit.limit).mockResolvedValue({ success: true } as never);
+  vi.mocked(joinCodeRateLimit.limit).mockResolvedValue({ success: true } as never);
+  vi.mocked(resolveInviteCode).mockResolvedValue(INVITE);
+  vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(null);
+  vi.mocked(resolveDemoTrialStart).mockResolvedValue(null);
+  vi.mocked(provisionOwnerWithHousehold).mockResolvedValue({
+    ownerId: "owner-1",
+    householdId: "hh-1",
+    sessionId: "session-1",
+  });
+});
+
+describe("POST /api/households/join", () => {
+  it("413 avant toute lecture", async () => {
     const res = await POST(
       new NextRequest("https://test.local/api/households/join", {
         method: "POST",
@@ -52,116 +73,105 @@ describe("POST /api/households/join (Fix 1.2)", () => {
       }),
     );
     expect(res.status).toBe(413);
-    expect(supa.calls).toHaveLength(0);
+    expect(resolveInviteCode).not.toHaveBeenCalled();
   });
 
-  /** Queue the 4 results a successful join consumes (Lot 3 : résolution du code
-   *  contre join_code OU guest_join_code → tableau, ici un lien MEMBRE). */
-  function queueSuccess(name = "Famille Dupont") {
-    supa.queueResults([
-      // resolveInviteCode : .or(...).eq(is_demo,false).limit(2) → tableau. Le
-      // code saisi = join_code ⇒ rôle 'member'.
-      {
-        data: [{ id: "household-1", name, join_code: "OLIVE-4821", guest_join_code: "THYME-0001" }],
-        error: null,
-      }, // lookup by code (member link)
-      { data: { id: "owner-1" }, error: null }, // insert owner
-      { error: null }, // insert membership
-      { data: { id: "session-1" }, error: null }, // insert device_session
-    ]);
-  }
-
-  it("joins a household and returns 200 JSON with a redirect", async () => {
-    queueSuccess();
+  it("appareil neuf : saga owner neuf sur le foyer EXISTANT (jamais créé), cookie, /home", async () => {
     const res = await POST(request({ code: "OLIVE-4821" }));
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, redirect: "/home" });
-  });
-
-  it("creates owner + membership member, session pointing at the owner (Lot 0)", async () => {
-    queueSuccess();
-    await POST(request({ code: "OLIVE-4821" }));
-    // Id owner généré côté app (alias figé) : lu du payload, pas supposé.
-    const ownerInsert = supa.calls
-      .find((c) => c.table === "owners")!
-      .ops.find((op) => op.method === "insert");
-    const owner = ownerInsert!.args[0] as { id: string; alias: string };
-    expect(owner.id).toBeTruthy();
-    expect(owner.alias).toBeTruthy();
-    const membership = supa.calls.find((c) => c.table === "memberships")!;
-    expect(
-      membership.ops.some(
-        (op) =>
-          op.method === "insert" &&
-          JSON.stringify(op.args[0]) ===
-            JSON.stringify({ owner_id: owner.id, household_id: "household-1", role: "member" }),
-      ),
-    ).toBe(true);
-    const session = supa.calls.find((c) => c.table === "device_sessions")!;
-    const insert = session.ops.find((op) => op.method === "insert");
-    expect((insert?.args[0] as { owner_id?: string }).owner_id).toBe(owner.id);
-  });
-
-  it("sets the atable_session cookie", async () => {
-    queueSuccess("Famille");
-    const res = await POST(request({ code: "OLIVE-4821" }));
+    expect(res.headers.get("location")).toBeNull();
     expect(res.cookies.get("atable_session")?.value).toBeTruthy();
+    const [, input] = vi.mocked(provisionOwnerWithHousehold).mock.calls[0];
+    expect(input.household).toEqual({ kind: "existing", householdId: "hh-1" });
+    expect(input.role).toBe("member");
+    expect(input.deviceName).toBeTruthy();
   });
 
-  it("does NOT issue a 303 redirect (regression guard)", async () => {
-    queueSuccess("Famille");
+  it("lien invité → membership 'guest'", async () => {
+    vi.mocked(resolveInviteCode).mockResolvedValue({ ...INVITE, role: "guest" });
+    await POST(request({ code: "THYME-0002" }));
+    expect(vi.mocked(provisionOwnerWithHousehold).mock.calls[0][1].role).toBe("guest");
+  });
+
+  it("code hors format → 422, JSON illisible → 400, sans lookup", async () => {
+    expect((await POST(request({ code: "nope" }))).status).toBe(422);
+    expect((await POST(request("{oops", true))).status).toBe(400);
+    expect(resolveInviteCode).not.toHaveBeenCalled();
+  });
+
+  it("429 par IP, puis 429 par code (brute-force distribué)", async () => {
+    vi.mocked(joinRateLimit.limit).mockResolvedValueOnce({ success: false } as never);
+    expect((await POST(request({ code: "OLIVE-4821" }))).status).toBe(429);
+    vi.mocked(joinCodeRateLimit.limit).mockResolvedValueOnce({ success: false } as never);
+    expect((await POST(request({ code: "OLIVE-4821" }))).status).toBe(429);
+    expect(resolveInviteCode).not.toHaveBeenCalled();
+  });
+
+  it("404 quand le code ne correspond à aucun foyer", async () => {
+    vi.mocked(resolveInviteCode).mockResolvedValue(null);
+    expect((await POST(request({ code: "OLIVE-4821" }))).status).toBe(404);
+    expect(provisionOwnerWithHousehold).not.toHaveBeenCalled();
+  });
+
+  it("session réelle, nouveau foyer → membership ajouté à l'owner existant (pas de cookie)", async () => {
+    vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(owner());
     const res = await POST(request({ code: "OLIVE-4821" }));
-    expect(res.status).not.toBe(303);
+    expect(await res.json()).toEqual({ ok: true, redirect: "/household", added: true });
+    expect(res.cookies.get("atable_session")).toBeUndefined();
+    expect(insertMembership).toHaveBeenCalledWith(expect.anything(), {
+      ownerId: "owner-real",
+      householdId: "hh-1",
+      role: "member",
+    });
+    expect(provisionOwnerWithHousehold).not.toHaveBeenCalled();
   });
 
-  it("rejects an invalid code format with 422", async () => {
-    const res = await POST(request({ code: "not-a-code" }));
-    expect(res.status).toBe(422);
+  it("session réelle, déjà invité + code membre → upgrade ; déjà membre → noop", async () => {
+    vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(
+      owner({ memberships: [{ householdId: "hh-1", role: "guest", isDemo: false }] }),
+    );
+    expect(await (await POST(request({ code: "OLIVE-4821" }))).json()).toEqual({
+      ok: true,
+      redirect: "/household",
+      upgraded: true,
+    });
+    expect(updateMembershipRole).toHaveBeenCalledWith(expect.anything(), {
+      ownerId: "owner-real",
+      householdId: "hh-1",
+      role: "member",
+    });
+    vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(
+      owner({ memberships: [{ householdId: "hh-1", role: "member", isDemo: false }] }),
+    );
+    expect(await (await POST(request({ code: "OLIVE-4821" }))).json()).toEqual({
+      ok: true,
+      redirect: "/household",
+      alreadyMember: true,
+    });
+    expect(insertMembership).not.toHaveBeenCalled();
   });
 
-  it("returns 429 when rate-limited", async () => {
-    mockLimit.mockResolvedValue({ success: false });
+  it("session DÉMO : sortie de démo = owner neuf avec marqueur de conversion", async () => {
+    vi.mocked(resolveSessionOwnerFromCookie).mockResolvedValue(
+      owner({
+        ownerId: "owner-demo",
+        memberships: [{ householdId: "demo", role: "member", isDemo: true }],
+      }),
+    );
+    vi.mocked(resolveDemoTrialStart).mockResolvedValue("2026-09-01T10:00:00Z");
     const res = await POST(request({ code: "OLIVE-4821" }));
-    expect(res.status).toBe(429);
-  });
-
-  it("returns 429 when the code itself is rate-limited (distributed brute-force)", async () => {
-    mockCodeLimit.mockResolvedValue({ success: false });
-    const res = await POST(request({ code: "OLIVE-4821" }));
-    expect(res.status).toBe(429);
-    expect(mockCodeLimit).toHaveBeenCalledWith("OLIVE-4821");
-  });
-
-  it("returns 404 when the code matches no household", async () => {
-    // Aucun foyer : le SELECT filtré (.limit) renvoie un tableau vide, pas une
-    // erreur — resolveInviteCode → null → 404.
-    supa.queueResult({ data: [], error: null });
-    const res = await POST(request({ code: "OLIVE-4821" }));
-    expect(res.status).toBe(404);
-  });
-
-  it("crée un membership 'guest' quand le code est le lien invité", async () => {
-    // Le code saisi correspond au guest_join_code (pas au join_code) → invité.
-    supa.queueResults([
-      {
-        data: [
-          {
-            id: "household-1",
-            name: "Famille",
-            join_code: "OLIVE-4821",
-            guest_join_code: "THYME-0002",
-          },
-        ],
-        error: null,
-      },
-      { data: { id: "owner-1" }, error: null },
-      { error: null },
-      { data: { id: "session-1" }, error: null },
-    ]);
-    const res = await POST(request({ code: "THYME-0002" }));
     expect(res.status).toBe(200);
-    const membership = supa.calls.find((c) => c.table === "memberships")!;
-    const insert = membership.ops.find((op) => op.method === "insert");
-    expect((insert?.args[0] as { role?: string }).role).toBe("guest");
+    expect(vi.mocked(provisionOwnerWithHousehold).mock.calls[0][1].owner.demoTrialStartedAt).toBe(
+      "2026-09-01T10:00:00Z",
+    );
+    expect(insertMembership).not.toHaveBeenCalled();
+  });
+
+  it("échec de la saga → 500 générique", async () => {
+    vi.mocked(provisionOwnerWithHousehold).mockRejectedValue(new Error("secret db detail"));
+    const res = await POST(request({ code: "OLIVE-4821" }));
+    expect(res.status).toBe(500);
+    expect(await res.json()).toEqual({ error: "Erreur serveur" });
   });
 });

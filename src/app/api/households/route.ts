@@ -12,6 +12,7 @@ import { enforceHouseholdCreateQuota } from "@/lib/import-quota";
 import { aliasForOwner } from "@/lib/alias";
 import { getLocale } from "@/lib/i18n/server";
 import { withPublicRoute } from "@/lib/api/with-public-route";
+import { attachNewHouseholdToOwner, provisionOwnerWithHousehold } from "@/lib/db/onboarding";
 
 export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   // Unauthenticated route, and every new household gets a fresh daily
@@ -59,22 +60,12 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   const existingOwner = await resolveSessionOwnerFromCookie(request);
 
   if (existingOwner && !isDemoOwner(existingOwner)) {
-    const { data: addHousehold, error: addHouseholdError } = await supabase
-      .from("households")
-      .insert({ name, join_code: joinCode, guest_join_code: guestJoinCode, origin: "additif" })
-      .select("id")
-      .single();
-    if (addHouseholdError || !addHousehold) {
-      throw new Error(addHouseholdError?.message ?? "Failed to create household");
-    }
-
-    const { error: addMembershipError } = await supabase
-      .from("memberships")
-      .insert({ owner_id: existingOwner.ownerId, household_id: addHousehold.id, role: "member" });
-    if (addMembershipError) {
-      await supabase.from("households").delete().eq("id", addHousehold.id);
-      throw new Error(addMembershipError.message);
-    }
+    await attachNewHouseholdToOwner(supabase, {
+      ownerId: existingOwner.ownerId,
+      name,
+      joinCode,
+      guestJoinCode,
+    });
 
     // Pas de cookie : la session courante est conservée. Redirection vers la
     // Home (et non le détail/édition du nouveau foyer) : créer un foyer depuis
@@ -86,79 +77,26 @@ export const POST = withPublicRoute(async (request: NextRequest, _ctx, t) => {
   // Marqueur de conversion démo → carnet (dashboard v2, migration 032).
   const demoTrialStartedAt = await resolveDemoTrialStart(supabase, existingOwner);
 
-  // Step 1: Insert owner — the abstract identity the household belongs to
-  // (chantier foyer #14/#15); the device session below just points at it.
-  // On génère l'id côté app pour figer le surnom (alias) dès l'insertion
-  // (migration 031 : surnom statique, jamais re-dérivé).
+  // Owner neuf + foyer neuf + membership membre + session (saga compensée,
+  // cf. lib/db/onboarding.ts). L'id owner est généré côté app pour figer le
+  // surnom (alias) dès l'insertion (031).
   const ownerId = crypto.randomUUID();
-  const { error: ownerError } = await supabase.from("owners").insert({
-    id: ownerId,
-    alias: aliasForOwner(ownerId, await getLocale()),
-    demo_trial_started_at: demoTrialStartedAt,
-  });
-
-  if (ownerError) {
-    throw new Error(ownerError.message ?? "Failed to create owner");
-  }
-
-  // Step 2: Insert household
-  const { data: household, error: householdError } = await supabase
-    .from("households")
-    .insert({
+  const { sessionId: sid } = await provisionOwnerWithHousehold(supabase, {
+    owner: {
+      id: ownerId,
+      alias: aliasForOwner(ownerId, await getLocale()),
+      demoTrialStartedAt,
+    },
+    household: {
+      kind: "create",
       name,
-      join_code: joinCode,
-      guest_join_code: guestJoinCode,
+      joinCode,
+      guestJoinCode,
       origin: demoTrialStartedAt ? "demo_conversion" : "landing",
-    })
-    .select("id")
-    .single();
-
-  if (householdError || !household) {
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(householdError?.message ?? "Failed to create household");
-  }
-  const hid = household.id;
-
-  // Step 3: Insert membership (member = lecture + écriture)
-  const { error: membershipError } = await supabase
-    .from("memberships")
-    .insert({ owner_id: ownerId, household_id: hid, role: "member" });
-
-  if (membershipError) {
-    // Compensating deletes — owner delete cascades memberships/sessions
-    await supabase.from("households").delete().eq("id", hid);
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(membershipError.message);
-  }
-
-  // Step 4: Insert device_session pointing at the owner
-  const { data: session, error: sessionError } = await supabase
-    .from("device_sessions")
-    .insert({ household_id: hid, device_name: deviceName, owner_id: ownerId })
-    .select("id")
-    .single();
-
-  if (sessionError || !session) {
-    await supabase.from("households").delete().eq("id", hid);
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(sessionError?.message ?? "Failed to create session");
-  }
-  const sid = session.id;
-
-  // Step 5: Migrate existing V1 recipes (household_id IS NULL) to this
-  // household. No-op since migration 027 (household_id NOT NULL) — kept for
-  // rollback, decommissioned at the end of the chantier foyer.
-  const { error: migrateError } = await supabase
-    .from("recipes")
-    .update({ household_id: hid })
-    .is("household_id", null);
-
-  if (migrateError) {
-    // Compensating deletes
-    await supabase.from("households").delete().eq("id", hid);
-    await supabase.from("owners").delete().eq("id", ownerId);
-    throw new Error(migrateError.message);
-  }
+    },
+    role: "member",
+    deviceName,
+  });
 
   const token = await signSession({ sid });
 
