@@ -9,7 +9,7 @@ invisible.
 | Où | Quoi | Cadence | Sortie |
 |---|---|---|---|
 | VPS, `/usr/local/bin/mijote-watch tick` (`scripts/vps/watch.sh`) | logs Traefik depuis le dernier passage : réponses **5xx** (issue par hôte/méthode/chemin/statut), lignes **ERR** ; logs des conteneurs app : fail-open Redis, erreurs non capturées | toutes les 5 min | événements **Sentry** (`logger: mijote-watch`, tag `source: vps-watch`) → alerte e-mail ; total 5xx du jour → `POST /api/admin/watch` → `stats_daily.traefik_5xx` (047) |
-| VPS, `mijote-watch daily` | `GET /api/admin/health` de prod et staging (voyants de la section Santé : pipeline, crons, démo, **sauvegarde S3**, **bord Traefik**), disque > 85 %, certificats TLS < 14 j | 06:15 UTC | événements Sentry, un par voyant rouge |
+| VPS, `mijote-watch daily` | `GET /api/admin/health` de prod et staging (voyants de la section Santé : pipeline, crons, démo, **sauvegarde S3**, **bord Traefik** ; sur staging seuls sauvegarde et bord sont relayés, pas de cron posé pour cet env), disque > 85 %, certificats TLS < 14 j | 06:15 UTC | événements Sentry, un par voyant rouge |
 | App, `src/proxy.ts` | Redis injoignable → fail open (révocation ignorée) : `Sentry.captureException`, au plus 1/min par instance | à chaque occurrence | issue `proxy-redis-fail-open` |
 | App, section Santé + digest du lundi | voyants « Sauvegarde » (dernière `mijote-backups` de l'env, max 26 h) et « Bord (Traefik) » (5xx hier + aujourd'hui, max 2) | à la lecture | `/admin/sante`, e-mail du lundi |
 
