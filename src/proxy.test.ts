@@ -33,11 +33,15 @@ function makeRequest(
     ua?: string;
     headers?: Record<string, string>;
     probeCookie?: boolean;
+    method?: string;
   } = {},
 ): NextRequest {
   const headers: Record<string, string> = { ...(opts.headers ?? {}) };
   if (opts.ua) headers["user-agent"] = opts.ua;
-  const req = new NextRequest(`https://atable.test${path}`, { headers });
+  const req = new NextRequest(`https://atable.test${path}`, {
+    headers,
+    method: opts.method ?? "GET",
+  });
   if (opts.cookie) req.cookies.set("atable_session", opts.cookie);
   if (opts.probeCookie) req.cookies.set("mijote_probe", "1");
   return req;
@@ -70,6 +74,40 @@ describe("proxy — bots", () => {
     const res = await proxy(makeRequest("/home", { ua: "WhatsApp/2.23" }));
     expect(res.headers.get("location")).toBeNull();
     expect(verifySession).not.toHaveBeenCalled();
+  });
+});
+
+// Scanners de la faille « server actions » de Next, vus en prod le 2026-09-14 :
+// POST multipart sur `/` sans cookie ni `Next-Action`, UA Chrome falsifié → 500
+// « Failed to find Server Action ». Aucune server action n'est postée sur la
+// landing (la seule du repo vit sur /admin/sante), donc tout POST y est illégitime.
+describe("proxy — landing en lecture seule", () => {
+  it("rejects a POST on the landing with 405 instead of letting Next 500", async () => {
+    const res = await proxy(makeRequest("/", { method: "POST" }));
+    expect(res.status).toBe(405);
+    expect(res.headers.get("allow")).toBe("GET, HEAD");
+  });
+
+  it("rejects the scanner shape even behind a social-crawler user-agent", async () => {
+    const res = await proxy(makeRequest("/", { method: "POST", ua: "WhatsApp/2.23" }));
+    expect(res.status).toBe(405);
+  });
+
+  it("poses no A/B cookie on a rejected POST (le test #25 ne doit pas le compter)", async () => {
+    const res = await proxy(makeRequest("/", { method: "POST" }));
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("still serves HEAD on the landing (health checks)", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const res = await proxy(makeRequest("/", { method: "HEAD" }));
+    expect(res.status).not.toBe(405);
+  });
+
+  it("leaves POSTs on other routes alone", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const res = await proxy(makeRequest("/api/households", { method: "POST" }));
+    expect(res.status).not.toBe(405);
   });
 });
 

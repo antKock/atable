@@ -130,6 +130,12 @@ le poste : `~/.ssh/mijote_vps` (clé publique à déposer à la commande du VPS)
 - **DNS temporaires** (A, TTL 300, créés via `scripts/ovh.mjs`) : `staging-vps.mijote`,
   `prod-vps.mijote`, `dokploy.mijote` → `217.182.206.61`. Les CNAME `mijote` et
   `staging.mijote` pointent toujours vers Vercel.
+  **Retirés de Dokploy le 2026-09-14** (`domain.delete`) : `prod-vps.mijote` et
+  `staging-vps.mijote` ne routent plus (404 Traefik). Ils servaient la même app que les
+  domaines publics, sans marqueur de sonde : un scanner qui les visitait posait un cookie
+  A/B et **comptait dans le test #25**. Les enregistrements DNS subsistent (sans usage) ;
+  aucun réglage n'en dépend — `APP_URL` vaut le domaine public dans les deux environnements
+  GitHub. Pour retester à l'aveugle un jour, recréer le domaine dans Dokploy.
 - **Dokploy** : `https://dokploy.mijote.anthonykocken.fr` (domaine + Let's Encrypt posés via
   `settings.assignDomainServer` ; compte admin créé par Anthony à la première visite ; jeton
   API dans `.env.local` : `DOKPLOY_URL`, `DOKPLOY_TOKEN`). Outil : `scripts/dokploy.mjs

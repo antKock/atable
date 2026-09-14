@@ -71,6 +71,18 @@ function reportRedisFailOpen(err: unknown): void {
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // La landing est entièrement cliente : aucune server action n'y est postée
+  // (la seule du repo vit sur /admin/sante). Les `POST /` observés sont des
+  // scanners de la faille « server actions » de Next — sans cookie ni en-tête
+  // `Next-Action`, UA Chrome falsifié. Laissés passer, ils finissent en 500
+  // « Failed to find Server Action » : bruit Sentry, et le voyant Bord du
+  // veilleur (max 2 réponses 5xx sur 2 jours) vire au rouge pour rien.
+  // Coupé ici, avant toute autre logique : pas de rendu, pas de cookie A/B,
+  // et un 405 que le veilleur ne compte pas.
+  if (pathname === "/" && request.method !== "GET" && request.method !== "HEAD") {
+    return new NextResponse(null, { status: 405, headers: { Allow: "GET, HEAD" } });
+  }
+
   // Let social media crawlers through so they can read OG metadata
   const userAgent = request.headers.get("user-agent") || "";
   if (BOT_UA_PATTERN.test(userAgent)) {
