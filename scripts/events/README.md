@@ -17,6 +17,8 @@ node scripts/events/query.mjs local import-outcomes.sql             # harnais E2
 | `import-outcomes.sql` | Q3 — issues et causes d'échec par méthode d'import |
 | `platforms.sql` | Q7 — iOS / Android / web |
 | `discovery.sql` | Q8 — d'où viennent les consultations, quels filtres servent |
+| `sources.sql` | Q1 / campagnes — d'où viennent les appareils (UTM, navigateur intégré, referrer) et sites d'import en échec |
+| `reconcile.sql` | **Double lecture** — compteurs (`stats_daily`, ping, `recipe_views_daily`, `recipes.source`) vs événements sur 14 j ; un écart = un bug de l'un ou un trou de l'autre |
 
 Règles : identifiants seulement (jamais de contenu dans `props`) ; les cibles `data-track`
 référencées ici sont vérifiées par `src/lib/events/catalog.test.ts`.

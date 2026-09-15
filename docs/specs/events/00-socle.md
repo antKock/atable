@@ -307,11 +307,31 @@ Le *replay pauvre*. Admin (`isAdminOwner`), server components, même style que `
 - Rien d'interactif au-delà : pas de filtres, pas de graphes. Une question qui revient devient une
   vue (§8.1) ou une tuile v3 (§8.3).
 
-### 8.3 Plus tard — rollup vers le dashboard v3
+### 8.3 Lot 3 — le comportement du dashboard depuis `events` (décidé le 2026-09-15, déclencheur mi-octobre)
 
-Quand une question mérite une tuile, le rollup nocturne (`demo_stats_rollup` ou une fonction
-sœur) calcule la série depuis `events` / les vues. **Aucune nouvelle colonne `stats_daily` par
-question** ; `trackStat` reste pour l'existant. Hors périmètre de ce chantier.
+**Cible : l'état depuis les tables, le comportement depuis les événements.** Pas « tout depuis les
+logs » : personnes, carnets, recettes, liens, enrichissement, App Store restent sur les tables
+métier (transactionnel, exhaustif, permanent — un log est best-effort et purgé). En revanche
+actifs, consultations, funnels démo et A/B, méthodes d'import, activation, rétention passent sur
+`events`, et `stats_daily` / `daily_activity` / `recipe_views_daily` / `trackStat` disparaissent.
+Bonus : dashboard et Parcours partagent la source, chaque chiffre devient cliquable jusqu'aux
+personnes.
+
+Règles de la bascule :
+- **Double lecture d'abord** — `scripts/events/queries/reconcile.sql` compare chaque compteur à
+  son équivalent événements sur 14 j ; c'est aussi le premier usage : **un écart = un bug de
+  l'ancienne instrumentation ou un trou de la nouvelle**. Un compteur est supprimé quand sa ligne
+  concorde 4 semaines de suite. Jamais de bascule sèche : la continuité des séries hebdo prime.
+- **Première métrique** : la North Star « a consulté ou ajouté » (prévue mi-octobre) = `v_recipe_views`
+  ∪ `v_recipe_saved`, à la place du ping.
+- **Histoire** : les cohortes depuis mai 2026 restent lues sur `owners` + `daily_activity` tant que
+  les événements ne couvrent pas la fenêtre.
+- **Purge** : monter à 25 mois (volume dérisoire) et **agréger avant de purger** — table
+  `owner_months` (personne × mois × a-consulté / a-ajouté), minuscule et permanente.
+- **Calcul** : matérialisation nocturne (cron `demo-reset`) pour ce que la page lit ; les vues live
+  restent l'outil des questions ad hoc.
+- **Ce qu'on ne fait pas** : réécrire la v3 ; une UI de requêtage ; des tuiles sur vues non
+  matérialisées. **Aucune nouvelle colonne `stats_daily` par question** dès maintenant.
 
 ## 9. Vie privée
 
