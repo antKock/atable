@@ -141,6 +141,15 @@ type `EventProps` indexé par nom (props typées, `tsc` refuse une prop inconnue
 routes `/admin/*` sont exclues. Les routes publiques `(landing)` et `/r/[token]` sont incluses
 (Q1, Q5).
 
+**Origine d'entrée** (ajout du 2026-09-15 soir) : la première `screen.viewed` d'un chargement
+porte `entry` = `{ referrer_host, utm_source, utm_medium, utm_campaign, in_app, click_id }`.
+Ce que le navigateur en dit, et pas plus : le **referrer est vide** depuis les navigateurs intégrés
+(Messenger, Instagram, WhatsApp…) et le shell natif — c'est la signature du User-Agent (`in_app`)
+qui les révèle, et les **UTM que tu poses toi-même dans tes liens** (bio, posts, campagne) qui sont
+la seule source précise. `click_id` = le nom du paramètre (`fbclid`, `gclid`…), jamais sa valeur.
+Vues : `v_entries` (une entrée par appareil, `source` consolidée) et `v_onboarding_funnel` enrichie
+(053) ; requête `scripts/events/queries/sources.sql`.
+
 ### 6.2 Flux B — clics (client, automatique)
 
 | Nom | Props | Quand |
@@ -172,7 +181,10 @@ routes `/admin/*` sont exclues. Les routes publiques `(landing)` et `/r/[token]`
   `method_kind` (= `url` / `photo` / `voice` pour `/api/recipes/import/*`, = `source` pour
   `POST /api/recipes`), `recipe_id` lu dans la réponse d'une création / copie. Une route
   complète son événement par l'en-tête **interne** `x-mijote-event` (`withApiEventExtra`), lu
-  puis retiré de la réponse avant l'envoi — jamais vu par le client.
+  puis retiré de la réponse avant l'envoi — jamais vu par le client. L'import par URL y ajoute
+  **`site`** (hôte du site importé, sans `www.`) quelle que soit l'issue : « où ça échoue »
+  (Q3), lisible dans `v_import_extracted.site` et `sources.sql`. Un hôte est un identifiant,
+  pas du contenu ; l'URL complète, elle, n'est jamais journalisée.
 
 ### 6.4 Explicites (les seuls faits qu'aucun flux ne voit)
 
@@ -335,6 +347,11 @@ avant** (incident 046). Q1 / Q3 / Q6 lisibles deux à trois semaines après la m
 
 ## 12. Journal
 
+- **2026-09-15 (nuit)** — **origine d'entrée + site d'import** (migration 053, `v_entries`,
+  `sources.sql`) après la question d'Anthony « que ne pourra-t-on pas analyser ? » : la source
+  d'acquisition web était le trou principal. Rappel des limites : referrer vide depuis les apps
+  et le shell natif ; source d'installation iOS invisible par personne (agrégat App Analytics
+  seulement) ; pont web → App Store → app non reliable (deux `anon_id`).
 - **2026-09-15 (soir)** — **lots 0 + 1 + 2 livrés sur `staging`** en une passe : migrations 051 +
   052, `catalog.ts` / `client.ts` / `server.ts` / `api-call.ts`, `EventsProvider` (racine, hors
   admin), `POST /api/events`, cookie `mijote_aid` + `x-anon-id` dans le proxy, ~45 `data-track`,

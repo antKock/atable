@@ -1,6 +1,6 @@
 // @vitest-environment happy-dom
 import { describe, it, expect } from "vitest";
-import { clickTarget, screenRoute } from "./client";
+import { clickTarget, entryInfo, screenRoute } from "./client";
 
 describe("screenRoute — motif Next depuis le chemin et useParams()", () => {
   it("remplace les valeurs de params par [clé], identifiants dans params", () => {
@@ -51,5 +51,40 @@ describe("clickTarget — data-track le plus proche, trace de secours, none", ()
     expect(clickTarget(el(`<button data-track="none">x</button>`, "button"))).toBeNull();
     expect(clickTarget(el(`<div><p>texte</p></div>`, "p"))).toBeNull();
     expect(clickTarget(null)).toBeNull();
+  });
+});
+
+describe("entryInfo — origine d'entrée (referrer, UTM, navigateur intégré, click-id)", () => {
+  const base = {
+    referrer: "",
+    search: "",
+    userAgent: "Mozilla/5.0 Safari",
+    origin: "https://mijote.test",
+  };
+
+  it("rien de connu → undefined (shell natif, saisie directe)", () => {
+    expect(entryInfo(base)).toBeUndefined();
+  });
+  it("referrer : hôte seulement, ignoré s'il est l'origine propre", () => {
+    expect(entryInfo({ ...base, referrer: "https://www.google.com/search?q=secret" })).toEqual({
+      referrer_host: "www.google.com",
+    });
+    expect(entryInfo({ ...base, referrer: "https://mijote.test/home" })).toBeUndefined();
+  });
+  it("UTM normalisés, click-id par nom seulement (jamais la valeur)", () => {
+    expect(
+      entryInfo({ ...base, search: "?utm_source=Instagram&utm_medium=bio&fbclid=AbC123&x=1" }),
+    ).toEqual({ utm_source: "instagram", utm_medium: "bio", click_id: "fbclid" });
+  });
+  it("navigateur intégré détecté par le User-Agent, referrer vide", () => {
+    expect(entryInfo({ ...base, userAgent: "Mozilla/5.0 (iPhone) Instagram 300.0.0" })).toEqual({
+      in_app: "instagram",
+    });
+    expect(
+      entryInfo({ ...base, userAgent: "Mozilla/5.0 [FBAN/MessengerForiOS;FB_IAB/MESSENGER]" }),
+    ).toEqual({ in_app: "messenger" });
+    expect(entryInfo({ ...base, userAgent: "Mozilla/5.0 WhatsApp/2.23" })).toEqual({
+      in_app: "whatsapp",
+    });
   });
 });

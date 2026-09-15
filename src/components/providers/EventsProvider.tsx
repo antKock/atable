@@ -5,6 +5,7 @@ import { useParams, usePathname } from "next/navigation";
 import {
   clickTarget,
   currentScreen,
+  entryInfo,
   flush,
   screenRoute,
   setEventsEnabled,
@@ -131,9 +132,19 @@ export default function EventsProvider() {
     }
     currentScreen.route = current.route;
     currentScreen.params = current.params;
+    // Origine d'entrée sur la PREMIÈRE vue d'un chargement (pas de `prev`) :
+    // referrer, UTM, navigateur intégré — d'où vient la personne.
+    const entry = prev
+      ? undefined
+      : entryInfo({
+          referrer: document.referrer,
+          search: window.location.search,
+          userAgent: navigator.userAgent,
+          origin: window.location.origin,
+        });
     screen.current = { ...current, since: Date.now() };
     seen.current = new Set();
-    track("screen.viewed", current);
+    track("screen.viewed", entry ? { ...current, entry } : current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname, paramsKey]);
 

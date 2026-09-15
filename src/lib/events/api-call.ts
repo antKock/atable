@@ -8,7 +8,12 @@ import type { OwnerContext } from "@/lib/auth/owner-context";
  * de la réponse avant l'envoi — jamais vu par le client.
  */
 export const API_EVENT_HEADER = "x-mijote-event";
-export type ApiEventExtra = { method_kind?: string; recipe_id?: string; household_id?: string };
+export type ApiEventExtra = {
+  method_kind?: string;
+  recipe_id?: string;
+  household_id?: string;
+  site?: string;
+};
 
 export function withApiEventExtra<R extends Response>(response: R, extra: ApiEventExtra): R {
   response.headers.set(API_EVENT_HEADER, JSON.stringify(extra));
@@ -25,7 +30,12 @@ function takeExtraHeader(response: Response): ApiEventExtra {
       typeof parsed[k] === "string"
         ? { [k]: (parsed[k] as string).slice(0, EVENT_STRING_MAX) }
         : {};
-    return { ...pick("method_kind"), ...pick("recipe_id"), ...pick("household_id") };
+    return {
+      ...pick("method_kind"),
+      ...pick("recipe_id"),
+      ...pick("household_id"),
+      ...pick("site"),
+    };
   } catch {
     return {};
   }

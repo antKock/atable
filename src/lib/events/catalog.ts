@@ -35,8 +35,26 @@ export function isEventName(value: unknown): value is EventName {
 /** Identifiants uniquement (uuid, token, enum) — jamais de contenu. */
 export type RouteParams = Record<string, string>;
 
+/**
+ * Origine d'entrée (première vue d'écran d'un chargement) : d'où vient la
+ * personne, pour ce que le navigateur en dit. Le referrer est VIDE depuis les
+ * navigateurs intégrés (Messenger, Instagram, WhatsApp…) et le shell natif ;
+ * c'est la signature du User-Agent (`in_app`) et les UTM que TU poses dans
+ * tes liens qui font foi. Hôtes et enums seulement, jamais l'URL complète.
+ */
+export type EntryInfo = {
+  referrer_host?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  /** Navigateur intégré détecté : instagram | facebook | messenger | whatsapp | tiktok | linkedin | x | snapchat */
+  in_app?: string;
+  /** Un identifiant de clic publicitaire est présent : fbclid | gclid | ttclid | msclkid (jamais sa valeur). */
+  click_id?: string;
+};
+
 export type EventProps = {
-  "screen.viewed": { route: string; params?: RouteParams };
+  "screen.viewed": { route: string; params?: RouteParams; entry?: EntryInfo };
   "screen.left": { route: string; params?: RouteParams; duration_ms: number };
   "ui.clicked": { target: string; route: string; params?: RouteParams };
   "api.called": {
@@ -50,6 +68,8 @@ export type EventProps = {
     household_id?: string;
     /** Méthode d'import (url / photo / voice) ou `source` d'une recette créée. */
     method_kind?: string;
+    /** Import par URL : hôte du site importé (`marmiton.fr`) — pour savoir OÙ ça échoue. */
+    site?: string;
   };
   "ui.seen": { target: string; route: string; params?: RouteParams };
   "error.shown": { kind: string; route: string };

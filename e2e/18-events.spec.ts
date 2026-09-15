@@ -148,3 +148,32 @@ test("POST /api/events : lot invalide ignoré, allow-list respectée, jamais d'e
   ).toHaveLength(0);
   await context.close();
 });
+
+test("origine d'entrée : UTM, referrer et navigateur intégré sur la première vue d'écran", async ({
+  browser,
+}) => {
+  const { context, page } = await newVisitor(browser, {
+    probe: false,
+    ua: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Instagram 300.0.0.0",
+  });
+  await page.goto("/?utm_source=Instagram&utm_medium=bio&fbclid=AbC-123", {
+    referer: "https://l.instagram.com/?u=x",
+  });
+  const anonId = await anonIdOf(context);
+  await expect
+    .poll(async () => (await eventsFor(anonId)).filter((e) => e.name === "screen.viewed").length)
+    .toBeGreaterThan(0);
+  const first = (await eventsFor(anonId)).find((e) => e.name === "screen.viewed")!;
+  expect(first.props).toMatchObject({
+    route: "/",
+    entry: {
+      utm_source: "instagram",
+      utm_medium: "bio",
+      click_id: "fbclid",
+      in_app: "instagram",
+      referrer_host: "l.instagram.com",
+    },
+  });
+  expect(JSON.stringify(first.props)).not.toContain("AbC-123");
+  await context.close();
+});

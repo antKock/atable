@@ -5,6 +5,8 @@ import { BUILD_ID } from "@/lib/version";
 import {
   DATA_TRACK_NONE,
   EVENTS_BATCH_MAX,
+  EVENT_STRING_MAX,
+  type EntryInfo,
   type EventName,
   type EventProps,
   type RouteParams,
@@ -110,6 +112,51 @@ export function screenRoute(
     out[key] = joined;
   }
   return Object.keys(out).length > 0 ? { route, params: out } : { route };
+}
+
+const IN_APP_UA: [string, RegExp][] = [
+  ["instagram", /Instagram/i],
+  ["messenger", /FB_IAB\/MESSENGER|Messenger/i],
+  ["facebook", /FBAN|FBAV|FB_IAB/i],
+  ["whatsapp", /WhatsApp/i],
+  ["tiktok", /TikTok|BytedanceWebview|musical_ly/i],
+  ["linkedin", /LinkedInApp/i],
+  ["x", /Twitter/i],
+  ["snapchat", /Snapchat/i],
+];
+const CLICK_IDS = ["fbclid", "gclid", "ttclid", "msclkid"];
+const UTM_KEYS = ["utm_source", "utm_medium", "utm_campaign"] as const;
+
+/**
+ * Origine d'entrée d'un chargement de page : referrer (hôte seulement, hors
+ * origine propre), UTM, navigateur intégré, présence d'un click-id. `undefined`
+ * quand rien n'est connu (shell natif, saisie directe). Pur : testable.
+ */
+export function entryInfo(input: {
+  referrer: string;
+  search: string;
+  userAgent: string;
+  origin: string;
+}): EntryInfo | undefined {
+  const out: EntryInfo = {};
+  if (input.referrer) {
+    try {
+      const url = new URL(input.referrer);
+      if (url.origin !== input.origin) out.referrer_host = url.hostname.slice(0, EVENT_STRING_MAX);
+    } catch {
+      // referrer illisible : ignoré
+    }
+  }
+  const params = new URLSearchParams(input.search);
+  for (const key of UTM_KEYS) {
+    const v = params.get(key)?.trim().toLowerCase();
+    if (v) out[key] = v.slice(0, EVENT_STRING_MAX);
+  }
+  const clickId = CLICK_IDS.find((k) => params.has(k));
+  if (clickId) out.click_id = clickId;
+  const inApp = IN_APP_UA.find(([, re]) => re.test(input.userAgent));
+  if (inApp) out.in_app = inApp[0];
+  return Object.keys(out).length > 0 ? out : undefined;
 }
 
 const CLICKABLE = "button, a, [role=button], input[type=submit]";

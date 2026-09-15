@@ -794,6 +794,23 @@ export type Database = {
           },
         ]
       }
+      v_entries: {
+        Row: {
+          anon_id: string | null
+          click_id: string | null
+          entered_at: string | null
+          in_app: string | null
+          platform: string | null
+          referrer_host: string | null
+          route: string | null
+          source: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          variant: string | null
+        }
+        Relationships: []
+      }
       v_event_sessions: {
         Row: {
           anon_id: string | null
@@ -872,6 +889,7 @@ export type Database = {
           owner_id: string | null
           platform: string | null
           session_no: number | null
+          site: string | null
           status: number | null
         }
         Relationships: [
@@ -929,15 +947,22 @@ export type Database = {
       v_onboarding_funnel: {
         Row: {
           anon_id: string | null
+          click_id: string | null
           cookbook_at: string | null
           first_landing_click: string | null
           first_recipe_at: string | null
+          in_app: string | null
           landing_at: string | null
           n_recipes: number | null
           owner_id: string | null
           path: string | null
           platform: string | null
+          referrer_host: string | null
+          source: string | null
           third_recipe_at: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
           variant: string | null
         }
         Relationships: [
