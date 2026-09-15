@@ -240,6 +240,7 @@ export default function ScreenshotImporter({
             <button
               type="button"
               onClick={handleSubmit}
+              data-track="import.submit"
               className="flex h-10.5 items-center gap-1.5 rounded-xl bg-accent px-5 text-sm font-semibold text-accent-foreground transition-opacity hover:opacity-85"
             >
               {t.import.screenshot.analyze}

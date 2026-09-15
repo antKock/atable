@@ -17,6 +17,18 @@ interface FilterBarProps {
   foyers?: { id: string; name: string }[];
 }
 
+// Identifiants `data-track` (#28) par catégorie de filtre — des slugs stables,
+// jamais les clés affichées (accents, espaces, bilinguisme).
+const TRACK_KEYS: Record<string, string> = {
+  "Type de plat": "dish",
+  Cuisine: "cuisine",
+  Régime: "diet",
+  duration: "duration",
+  cost: "cost",
+  foyer: "foyer",
+};
+const trackFor = (key: string) => `library.filter.${TRACK_KEYS[key] ?? "other"}`;
+
 export default function FilterBar({ tags, filters, onFiltersChange, foyers = [] }: FilterBarProps) {
   const t = useT();
   const showFoyerPill = foyers.length > 1;
@@ -179,6 +191,7 @@ export default function FilterBar({ tags, filters, onFiltersChange, foyers = [] 
         <Popover.Trigger asChild>
           <button
             type="button"
+            data-track={trackFor(key)}
             className={`flex h-8 flex-none items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
               active
                 ? "border border-transparent bg-accent/10 text-accent"
@@ -209,7 +222,10 @@ export default function FilterBar({ tags, filters, onFiltersChange, foyers = [] 
             collisionPadding={12}
             className="z-50 max-w-[calc(100vw-24px)] rounded-lg border border-border bg-popover p-3 text-popover-foreground shadow-lg outline-none"
           >
-            <div className="flex flex-wrap gap-2">{renderPanel(key)}</div>
+            {/* Portail Radix : le panneau n'est pas sous le déclencheur → même identifiant ici. */}
+            <div className="flex flex-wrap gap-2" data-track={trackFor(key)}>
+              {renderPanel(key)}
+            </div>
             <Popover.Arrow width={12} height={6} style={{ fill: "var(--popover)" }} />
           </Popover.Content>
         </Popover.Portal>
@@ -227,6 +243,7 @@ export default function FilterBar({ tags, filters, onFiltersChange, foyers = [] 
           type="button"
           aria-pressed={filters.season}
           onClick={toggleSeason}
+          data-track="library.filter.season"
           className={`flex h-8 flex-none items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition-colors ${
             filters.season
               ? "border border-transparent bg-accent/10 text-accent"

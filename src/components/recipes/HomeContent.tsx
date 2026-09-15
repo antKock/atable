@@ -89,6 +89,7 @@ export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) 
       <div className="px-4 pb-4">
         <Link
           href="/library?search=true"
+          data-track="library.search"
           className="relative flex h-11 w-full items-center rounded-xl border border-input bg-surface pl-10 pr-4 text-base text-muted-foreground"
         >
           <Search
@@ -115,7 +116,12 @@ export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) 
       ) : (
         <div className="flex flex-col gap-6">
           {orderedSections.map(({ key, title, recipes }) => (
-            <RecipeCarousel key={key} title={title} recipes={recipes} />
+            <RecipeCarousel
+              key={key}
+              title={title}
+              recipes={recipes}
+              track={`home.carousel.${key}`}
+            />
           ))}
         </div>
       )}

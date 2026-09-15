@@ -19,6 +19,12 @@ import {
   detectProbe,
 } from "@/lib/probe";
 import {
+  ANON_COOKIE,
+  ANON_COOKIE_MAX_AGE_S,
+  ANON_INTERNAL_HEADER,
+  isUuid,
+} from "@/lib/events/catalog";
+import {
   AB_ONBOARDING_COOKIE,
   AB_ONBOARDING_COOKIE_MAX_AGE_S,
   AB_ONBOARDING_FRESH_HEADER,
@@ -47,9 +53,18 @@ const PUBLIC_PREFIXES = [
   "/api/households/join",
   "/api/demo/",
   "/api/auth/session",
+  "/api/events",
   "/api/cron/",
   "/api/admin/",
+  // Lecture d'un carnet par l'app Bien : Bearer BIEN_API_SECRET vérifié dans la route.
+  "/api/carnets/",
 ];
+
+// Journal des événements (#28) : le lot client est public (la landing n'a pas
+// de session) mais veut l'owner s'il existe → seule route publique qui reçoit
+// `x-session-id` (sans contrôle de révocation : une session révoquée se résout
+// à null en DB, l'événement reste anonyme).
+const EVENTS_ROUTE = "/api/events";
 
 // Bot user-agents used by social platforms to generate link previews
 const BOT_UA_PATTERN =
@@ -101,6 +116,18 @@ export async function proxy(request: NextRequest) {
     queryParam: pathname === "/" ? request.nextUrl.searchParams.get(PROBE_QUERY_PARAM) : null,
   });
   if (probe.probe) requestHeaders.set(PROBE_INTERNAL_HEADER, "1");
+
+  // Identité anonyme des événements produit (#28) : cookie appareil `mijote_aid`
+  // posé à la première requête, quel que soit le point d'entrée (/, /join,
+  // /r/…). Traduit en `x-anon-id` sur la requête interne — seul en-tête lu par
+  // le serveur ; un `x-anon-id` venu du client est retiré. Le shell natif a son
+  // propre cookie jar → un identifiant par installation.
+  requestHeaders.delete(ANON_INTERNAL_HEADER);
+  const anonCookie = request.cookies.get(ANON_COOKIE)?.value;
+  const anonId = isUuid(anonCookie) ? anonCookie : crypto.randomUUID();
+  const anonFresh = anonId !== anonCookie;
+  requestHeaders.set(ANON_INTERNAL_HEADER, anonId);
+
   const withProbeCookie = (response: NextResponse) => {
     if (probe.setCookie) {
       response.cookies.set({
@@ -110,6 +137,17 @@ export async function proxy(request: NextRequest) {
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
         maxAge: PROBE_COOKIE_MAX_AGE_S,
+        path: "/",
+      });
+    }
+    if (anonFresh) {
+      response.cookies.set({
+        name: ANON_COOKIE,
+        value: anonId,
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        maxAge: ANON_COOKIE_MAX_AGE_S,
         path: "/",
       });
     }
@@ -227,6 +265,10 @@ export async function proxy(request: NextRequest) {
     }
 
     return withProbeCookie(response);
+  }
+
+  if (pathname === EVENTS_ROUTE && payload) {
+    requestHeaders.set("x-session-id", payload.sid);
   }
 
   return withProbeCookie(NextResponse.next({ request: { headers: requestHeaders } }));

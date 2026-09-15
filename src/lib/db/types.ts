@@ -276,6 +276,68 @@ export type Database = {
         }
         Relationships: []
       }
+      events: {
+        Row: {
+          anon_id: string
+          app_version: string | null
+          at: string
+          device_id: string | null
+          household_id: string | null
+          id: number
+          is_demo: boolean
+          locale: string | null
+          name: string
+          owner_id: string | null
+          platform: string
+          props: Json
+          received_at: string
+          source: string
+          variant: string | null
+        }
+        Insert: {
+          anon_id: string
+          app_version?: string | null
+          at: string
+          device_id?: string | null
+          household_id?: string | null
+          id?: never
+          is_demo?: boolean
+          locale?: string | null
+          name: string
+          owner_id?: string | null
+          platform?: string
+          props?: Json
+          received_at?: string
+          source: string
+          variant?: string | null
+        }
+        Update: {
+          anon_id?: string
+          app_version?: string | null
+          at?: string
+          device_id?: string | null
+          household_id?: string | null
+          id?: never
+          is_demo?: boolean
+          locale?: string | null
+          name?: string
+          owner_id?: string | null
+          platform?: string
+          props?: Json
+          received_at?: string
+          source?: string
+          variant?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       households: {
         Row: {
           created_at: string
@@ -711,6 +773,321 @@ export type Database = {
       }
     }
     Views: {
+      v_cooking: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          duration_ms: number | null
+          id: number | null
+          owner_id: string | null
+          platform: string | null
+          recipe_id: string | null
+          session_no: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_entries: {
+        Row: {
+          anon_id: string | null
+          click_id: string | null
+          entered_at: string | null
+          in_app: string | null
+          platform: string | null
+          referrer_host: string | null
+          route: string | null
+          source: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          variant: string | null
+        }
+        Relationships: []
+      }
+      v_event_sessions: {
+        Row: {
+          anon_id: string | null
+          app_version: string | null
+          at: string | null
+          device_id: string | null
+          household_id: string | null
+          id: number | null
+          is_demo: boolean | null
+          locale: string | null
+          name: string | null
+          owner_id: string | null
+          platform: string | null
+          props: Json | null
+          received_at: string | null
+          session_no: number | null
+          source: string | null
+          variant: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_household_joins: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          id: number | null
+          owner_id: string | null
+          platform: string | null
+          session_no: number | null
+          variant: string | null
+          via: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_identity: {
+        Row: {
+          anon_id: string | null
+          owner_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_import_extracted: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          duration_ms: number | null
+          error_code: string | null
+          id: number | null
+          is_demo: boolean | null
+          method: string | null
+          ok: boolean | null
+          owner_id: string | null
+          platform: string | null
+          session_no: number | null
+          site: string | null
+          status: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_import_funnel: {
+        Row: {
+          anon_id: string | null
+          first_error_code: string | null
+          first_method: string | null
+          is_demo: boolean | null
+          n_extract_failed: number | null
+          n_extract_ok: number | null
+          n_saved: number | null
+          n_started: number | null
+          outcome: string | null
+          owner_id: string | null
+          platform: string | null
+          session_id: string | null
+          session_no: number | null
+          started_at: string | null
+        }
+        Relationships: []
+      }
+      v_import_started: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          id: number | null
+          is_demo: boolean | null
+          is_sample: boolean | null
+          method: string | null
+          owner_id: string | null
+          platform: string | null
+          session_no: number | null
+          variant: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_onboarding_funnel: {
+        Row: {
+          anon_id: string | null
+          click_id: string | null
+          cookbook_at: string | null
+          first_landing_click: string | null
+          first_recipe_at: string | null
+          in_app: string | null
+          landing_at: string | null
+          n_recipes: number | null
+          owner_id: string | null
+          path: string | null
+          platform: string | null
+          referrer_host: string | null
+          source: string | null
+          third_recipe_at: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          variant: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_recipe_saved: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          id: number | null
+          is_demo: boolean | null
+          owner_id: string | null
+          platform: string | null
+          recipe_id: string | null
+          session_no: number | null
+          source: string | null
+          variant: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_recipe_views: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          duration_ms: number | null
+          from_route: string | null
+          id: number | null
+          is_demo: boolean | null
+          owner_id: string | null
+          platform: string | null
+          recipe_id: string | null
+          session_no: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_screen_views: {
+        Row: {
+          anon_id: string | null
+          at: string | null
+          duration_ms: number | null
+          from_route: string | null
+          id: number | null
+          is_demo: boolean | null
+          owner_id: string | null
+          params: Json | null
+          platform: string | null
+          route: string | null
+          session_no: number | null
+          variant: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_sessions: {
+        Row: {
+          anon_id: string | null
+          app_version: string | null
+          ended_at: string | null
+          first_route: string | null
+          is_demo: boolean | null
+          last_route: string | null
+          locale: string | null
+          n_api_errors: number | null
+          n_events: number | null
+          n_screens: number | null
+          owner_id: string | null
+          platform: string | null
+          session_id: string | null
+          session_no: number | null
+          started_at: string | null
+          variant: string | null
+        }
+        Relationships: []
+      }
+      v_share_loop: {
+        Row: {
+          created_at: string | null
+          id: number | null
+          n_copiers: number | null
+          n_openers: number | null
+          recipe_id: string | null
+          share_token: string | null
+          sharer_anon_id: string | null
+          sharer_owner_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "events_owner_id_fkey"
+            columns: ["sharer_owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v3_recipe_people: {
         Row: {
           created_at: string | null
@@ -878,6 +1255,7 @@ export type Database = {
         Returns: undefined
       }
       owner_is_real: { Args: { p_owner: string }; Returns: boolean }
+      purge_events: { Args: { p_keep_days?: number }; Returns: number }
       purge_recipe_views: { Args: { p_keep_days?: number }; Returns: number }
       stats_daily_increment: { Args: { p_field: string }; Returns: undefined }
       track_recipe_view: { Args: { p_owner: string }; Returns: undefined }

@@ -104,7 +104,7 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
         <div className="mb-8">
           <div className="flex items-center gap-3">
             {!(isFirst && view === "intent") && (
-              <BackButton variant="header" onClick={handleBack} />
+              <BackButton variant="header" onClick={handleBack} track="import.back" />
             )}
             <h1
               className="display"

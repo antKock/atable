@@ -84,20 +84,25 @@ export default function LandingScreen({
     return <RecoverFlow onBack={() => setView("join")} />;
   }
 
+  // `track` : identifiant du journal des événements (#28) — par action, pas par
+  // position, pour comparer les bras A/B sur la même cible.
   const demoAction = {
     label: variant === "b" ? t.landing.seeExample : t.landing.tryApp,
     onClick: handleTryApp,
     loading: demoLoading,
+    track: "landing.demo",
   };
   const createAction = {
     label: variant === "b" ? t.landing.start : t.landing.createHousehold,
     onClick: handleCreate,
     loading: createLoading,
+    track: "landing.start",
   };
   const joinAction = {
     label: variant === "b" ? t.landing.haveCookbook : t.landing.joinHousehold,
     onClick: () => setView("join"),
     loading: false,
+    track: "landing.join",
   };
   const [primary, secondary, tertiary] =
     variant === "b"
@@ -155,6 +160,7 @@ export default function LandingScreen({
         <button
           type="button"
           onClick={primary.onClick}
+          data-track={primary.track}
           disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
         >
@@ -164,6 +170,7 @@ export default function LandingScreen({
         <button
           type="button"
           onClick={secondary.onClick}
+          data-track={secondary.track}
           disabled={busy}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-transparent text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
           style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)" }}
@@ -174,6 +181,7 @@ export default function LandingScreen({
         <button
           type="button"
           onClick={tertiary.onClick}
+          data-track={tertiary.track}
           disabled={busy}
           className="flex w-full items-center justify-center bg-transparent py-[14px] text-[16px] font-medium text-background transition-opacity hover:opacity-80 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
         >

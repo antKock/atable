@@ -39,6 +39,7 @@ export default function SwitchHouseholdScreen() {
         <button
           type="button"
           onClick={() => setView("create")}
+          data-track="household.switch"
           className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
         >
           <Plus size={18} className="shrink-0 text-accent" aria-hidden="true" />
@@ -50,6 +51,7 @@ export default function SwitchHouseholdScreen() {
         <button
           type="button"
           onClick={() => setView("join")}
+          data-track="household.join_code"
           className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
         >
           <KeyRound size={18} className="shrink-0 text-accent" aria-hidden="true" />

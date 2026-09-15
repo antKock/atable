@@ -345,8 +345,20 @@ export const t = {
 
   // Join via invite link
   joinLink: {
-    hero: (name: string) => `Ouvrir « ${name} » ?`,
-    confirm: "Ouvrir",
+    // Écran d'invitation (refonte 2026-09-15) : héros sage de l'accueil +
+    // vignettes du carnet. Le mot « invité » est BANNI de cet écran — il
+    // désigne aussi le rôle lecture seule, et laisserait croire à un accès
+    // restreint là où le code porte souvent le rôle membre.
+    welcome: "Bienvenue dans",
+    confirm: "Ouvrir le carnet",
+    notNow: "Pas maintenant",
+    // Ligne de contexte selon ce que contient le carnet ; 3 recettes et plus →
+    // `household.recipeCount`. Carnet vide : un invité ne peut rien ajouter,
+    // « à remplir ensemble » serait faux pour lui.
+    emptyMember: "Un carnet tout neuf, à remplir ensemble",
+    emptyGuest: "Un carnet tout neuf. Tu le verras se remplir.",
+    oneRecipe: "Une première recette y est déjà",
+    twoRecipes: "Deux recettes pour commencer",
     notFound: "Ce lien ne correspond à aucun carnet",
     backToLanding: "Retour à l'accueil",
     // Code invité (Lot 3) : la confirmation dit que l'accès est en lecture seule

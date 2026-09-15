@@ -87,6 +87,7 @@ export default function LeaveHouseholdDialog({
           variant="ghost"
           type="button"
           onClick={() => setStep("leave")}
+          data-track="household.leave"
           className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           {t.household.leaveHousehold}

@@ -200,7 +200,9 @@ export default function ImportSelector({
         </h2>
       )}
 
-      <div hidden={hide("url")}>
+      {/* `data-track` par méthode (#28) : tout clic dans le panneau vaut
+          « méthode choisie », le bouton d'envoi porte `import.submit`. */}
+      <div hidden={hide("url")} data-track="import.url">
         <UrlImporter
           expanded={expanded === "url"}
           onToggle={() => toggleCard("url")}
@@ -210,7 +212,7 @@ export default function ImportSelector({
         />
       </div>
 
-      <div hidden={hide("screenshot")}>
+      <div hidden={hide("screenshot")} data-track="import.photo">
         <ScreenshotImporter
           expanded={expanded === "screenshot"}
           onToggle={() => toggleCard("screenshot")}
@@ -220,7 +222,7 @@ export default function ImportSelector({
         />
       </div>
 
-      <div hidden={hide("voice")}>
+      <div hidden={hide("voice")} data-track="import.voice">
         <VoiceImporter
           expanded={expanded === "voice"}
           onToggle={() => toggleCard("voice")}
@@ -250,6 +252,7 @@ export default function ImportSelector({
           <button
             type="button"
             onClick={onManual}
+            data-track="import.manual"
             className="flex w-full cursor-pointer items-center gap-4 rounded-[22px] border-[1.5px] border-border bg-surface px-[18px] py-3.5 text-left transition-all hover:border-accent active:scale-[0.985] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
             style={{ boxShadow: "var(--card-shadow-sm)" }}
           >
@@ -269,6 +272,7 @@ export default function ImportSelector({
               <br />
               <button
                 type="button"
+                data-track="import.sample"
                 onClick={() => {
                   setExpanded("url");
                   void submitUrl(sampleUrl);
@@ -293,6 +297,7 @@ export default function ImportSelector({
                   key={c.key}
                   type="button"
                   onClick={() => toggleCard(c.key)}
+                  data-track={c.key === "screenshot" ? "import.photo" : `import.${c.key}`}
                   className="flex h-10 cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface pl-2.5 pr-3.5 text-sm font-medium text-foreground transition-all hover:border-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
                   style={{ boxShadow: "var(--card-shadow-sm)" }}
                 >
@@ -303,6 +308,7 @@ export default function ImportSelector({
             <button
               type="button"
               onClick={onManual}
+              data-track="import.manual"
               className="flex h-10 cursor-pointer items-center gap-2 rounded-full border-[1.5px] border-border bg-surface pl-2.5 pr-3.5 text-sm font-medium text-foreground transition-all hover:border-accent active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
               style={{ boxShadow: "var(--card-shadow-sm)" }}
             >

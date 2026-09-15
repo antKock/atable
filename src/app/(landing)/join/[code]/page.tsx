@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createServerClient } from "@/lib/supabase/server";
 import { resolveInviteCode } from "@/lib/auth/invite-code";
+import { loadJoinPreview } from "@/lib/db/join-preview";
 import { getT } from "@/lib/i18n/server";
 import JoinConfirmation from "@/components/auth/JoinConfirmation";
 
@@ -35,19 +36,33 @@ export default async function JoinPage({ params }: Props) {
     return <ErrorState />;
   }
 
+  // Aperçu du carnet (vignettes + total) : décoratif, donc non bloquant — il
+  // avale ses propres erreurs et rend `null`, l'écran retombe sur la cocotte.
+  const preview = await loadJoinPreview(supabase, invite.householdId);
+
   return (
-    <JoinConfirmation householdName={invite.householdName} joinCode={code} role={invite.role} />
+    <JoinConfirmation
+      householdName={invite.householdName}
+      joinCode={code}
+      role={invite.role}
+      preview={preview}
+    />
   );
 }
 
 async function ErrorState() {
   const t = await getT();
   return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-4 px-6 text-center">
-      <p className="text-base text-foreground">{t.joinLink.notFound}</p>
-      <Link href="/" className="text-sm text-accent underline underline-offset-4 hover:opacity-80">
-        {t.joinLink.backToLanding}
-      </Link>
+    <div className="flex flex-1 flex-col items-center justify-center px-6">
+      <div className="flex w-full max-w-sm flex-col items-center gap-4 text-center">
+        <p className="text-base text-foreground">{t.joinLink.notFound}</p>
+        <Link
+          href="/"
+          className="text-sm text-accent underline underline-offset-4 hover:opacity-80"
+        >
+          {t.joinLink.backToLanding}
+        </Link>
+      </div>
     </div>
   );
 }

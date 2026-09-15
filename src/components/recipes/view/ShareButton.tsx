@@ -68,6 +68,7 @@ export default function ShareButton({
       onClick={handleShare}
       disabled={loading}
       aria-label={t.share.action}
+      data-track="recipe.share"
       className={className}
     >
       <Share size={iconSize} strokeWidth={iconStroke} />

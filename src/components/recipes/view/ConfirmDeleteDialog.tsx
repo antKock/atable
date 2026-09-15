@@ -24,6 +24,8 @@ interface ConfirmDeleteDialogProps {
   triggerIconSize?: number;
   triggerIconStroke?: number;
   triggerLabel?: string;
+  /** Identifiant `data-track` (#28) posé sur le déclencheur. */
+  track?: string;
 }
 
 export default function ConfirmDeleteDialog({
@@ -32,6 +34,7 @@ export default function ConfirmDeleteDialog({
   triggerIconSize,
   triggerIconStroke,
   triggerLabel,
+  track,
 }: ConfirmDeleteDialogProps) {
   const t = useT();
   const router = useRouter();
@@ -55,6 +58,7 @@ export default function ConfirmDeleteDialog({
           <button
             type="button"
             aria-label={triggerLabel}
+            data-track={track}
             className={
               triggerClassName ??
               "text-xs text-muted-foreground underline underline-offset-[3px] decoration-[rgba(107,110,104,0.4)]"
@@ -67,6 +71,7 @@ export default function ConfirmDeleteDialog({
             variant="ghost"
             size="icon"
             aria-label={t.actions.delete}
+            data-track={track}
             className={
               triggerClassName ??
               "min-h-11 min-w-[44px] text-muted-foreground hover:text-destructive"

@@ -48,7 +48,7 @@ export default function PhotoManager({
   }
 
   return (
-    <div>
+    <div data-track="recipe.add_photo">
       <input
         ref={inputRef}
         type="file"

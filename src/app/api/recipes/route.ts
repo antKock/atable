@@ -4,6 +4,7 @@ import { createServerClient } from "@/lib/supabase/server";
 import { buildRecipeCreateSchema } from "@/lib/schemas/recipe";
 import { mapDbRowToRecipe, mapDbRowToRecipeListItem } from "@/lib/supabase/mappers";
 import { enrichRecipe } from "@/lib/enrichment";
+import { withApiEventExtra } from "@/lib/events/api-call";
 import { withOwnerAuth, resolveWriteHousehold } from "@/lib/api/with-owner-auth";
 import { householdIds } from "@/lib/auth/owner-context";
 import { enforceRecipeCreateQuota } from "@/lib/import-quota";
@@ -120,7 +121,11 @@ export const POST = withOwnerAuth(
       await enrichRecipe(data.id, { skipImage: result.data.willUploadPhoto });
     });
 
-    return NextResponse.json(mapDbRowToRecipe(data), { status: 201 });
+    // `api.called` (#28) : la méthode d'ajout (`source`) n'est pas dans la
+    // réponse publique — transmise par l'en-tête interne, retiré avant l'envoi.
+    return withApiEventExtra(NextResponse.json(mapDbRowToRecipe(data), { status: 201 }), {
+      method_kind: result.data.source,
+    });
   },
   // Opt-out garde démo : un visiteur démo ajoute librement ses recettes (jamais
   // seed, purgées par le cron demo-reset).

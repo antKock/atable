@@ -8,6 +8,7 @@ import {
 } from "./with-owner-auth";
 import { getOwnerContext, type OwnerContext } from "@/lib/auth/owner-context";
 import { trackStat } from "@/lib/admin/track-stat";
+import { recordApiCall } from "@/lib/events/api-call";
 import { frFull as t } from "@/lib/i18n/full";
 
 // Seul getOwnerContext est mocké ; les helpers purs (memberHouseholdIds…)
@@ -18,6 +19,8 @@ vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
 });
 // Compteur produit demo_frozen_hits : on vérifie l'émission, pas l'écriture DB.
 vi.mock("@/lib/admin/track-stat", () => ({ trackStat: vi.fn() }));
+// Flux C des événements (#28) : on vérifie l'émission, pas l'écriture.
+vi.mock("@/lib/events/api-call", () => ({ recordApiCall: vi.fn(async () => {}) }));
 
 const mockGetOwnerContext = vi.mocked(getOwnerContext);
 
@@ -44,6 +47,7 @@ const demoOwner = ownerContext({
 beforeEach(() => {
   mockGetOwnerContext.mockResolvedValue(ownerContext());
   vi.mocked(trackStat).mockClear();
+  vi.mocked(recordApiCall).mockClear();
 });
 
 describe("withOwnerAuth", () => {
@@ -255,5 +259,37 @@ describe("resolveWriteHousehold (fallback householdId, Lot 4)", () => {
       memberships: [{ householdId: "C", role: "guest", isDemo: false }],
     });
     expect(((await resolveWriteHousehold(guest, undefined)) as NextResponse).status).toBe(403);
+  });
+});
+
+describe("withOwnerAuth — api.called (#28)", () => {
+  it("émet pour un succès, un 403 démo et un 500 — avec l'owner", async () => {
+    const ok = vi.fn(async () => NextResponse.json({ ok: true }));
+    await withOwnerAuth(ok)(request());
+    expect(recordApiCall).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(recordApiCall).mock.calls[0][0]).toMatchObject({
+      owner: ownerContext(),
+      response: expect.objectContaining({ status: 200 }),
+    });
+
+    mockGetOwnerContext.mockResolvedValue(demoOwner);
+    await withOwnerAuth(ok)(request());
+    expect(vi.mocked(recordApiCall).mock.calls[1][0].response.status).toBe(403);
+
+    mockGetOwnerContext.mockResolvedValue(ownerContext());
+    const boom = vi.fn(async () => {
+      throw new Error("boom");
+    });
+    await withOwnerAuth(boom)(request());
+    expect(vi.mocked(recordApiCall).mock.calls[2][0].response.status).toBe(500);
+  });
+
+  it("n'émet rien sur un 401 (pas de session) ni sur un 413", async () => {
+    mockGetOwnerContext.mockResolvedValue(null);
+    await withOwnerAuth(vi.fn(async () => NextResponse.json({})))(request());
+    await withOwnerAuth(vi.fn(async () => NextResponse.json({})))(
+      request({ "content-length": String(10 * 1024 * 1024) }),
+    );
+    expect(recordApiCall).not.toHaveBeenCalled();
   });
 });

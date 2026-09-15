@@ -68,6 +68,7 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
         <button
           type="button"
           onClick={onCode}
+          data-track="household.join_code"
           className="flex h-[54px] items-center justify-center gap-2 rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
         >
           <KeyRound size={18} aria-hidden="true" />
@@ -76,6 +77,7 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
         <button
           type="button"
           onClick={onRecover}
+          data-track="landing.recover"
           className="flex h-[54px] items-center justify-center gap-2 rounded-[27px] bg-transparent text-[16px] font-medium text-background transition-colors hover:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
           style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)" }}
         >

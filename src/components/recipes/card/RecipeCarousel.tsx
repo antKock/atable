@@ -7,14 +7,16 @@ import type { CarouselRecipeItem } from "@/lib/queries/carousels";
 interface RecipeCarouselProps {
   title: string;
   recipes: CarouselRecipeItem[];
+  /** Identifiant `data-track` (#28) : un clic sur une carte = ce carrousel. */
+  track?: string;
 }
 
-export default function RecipeCarousel({ title, recipes }: RecipeCarouselProps) {
+export default function RecipeCarousel({ title, recipes, track }: RecipeCarouselProps) {
   const t = useT();
   if (recipes.length === 0) return null;
 
   return (
-    <section role="region" aria-label={t.a11y.carousel(title)}>
+    <section role="region" aria-label={t.a11y.carousel(title)} data-track={track}>
       <h2
         className="display mb-3 px-4 text-foreground"
         style={{
