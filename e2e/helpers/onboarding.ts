@@ -9,12 +9,15 @@ import { db, getHouseholdByName } from "./db";
  */
 export async function newVisitor(
   browser: Browser,
-  options: { arm?: AbArm; probe?: boolean } = {},
+  options: { arm?: AbArm; probe?: boolean; ua?: string } = {},
 ): Promise<{ context: BrowserContext; page: Page }> {
   const ip = `10.${rand(254)}.${rand(254)}.${1 + rand(253)}`;
   // Sonde (#26) par défaut : le harnais est un agent, ses requêtes portent
   // `x-mijote-probe` comme en prod. `probe: false` = un vrai visiteur.
+  // `ua` : user-agent du contexte (NATIVE_IOS_UA pour se faire passer pour le
+  // shell Capacitor, seule surface comptée au dénominateur du A/B).
   const context = await browser.newContext({
+    ...(options.ua ? { userAgent: options.ua } : {}),
     extraHTTPHeaders: {
       "x-forwarded-for": ip,
       ...(options.probe === false ? {} : { "x-mijote-probe": "1" }),
@@ -32,6 +35,11 @@ export async function newVisitor(
  * `"none"` = laisser le proxy tirer (spec dédiée au split).
  */
 export type AbArm = "a" | "b" | "none";
+
+/** UA du shell Capacitor iOS (capacitor.config.ts : `appendUserAgent`). */
+export const NATIVE_IOS_UA =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 " +
+  "(KHTML, like Gecko) Mobile/15E148 MijoteNative/1.0";
 
 export async function pinAbArm(context: BrowserContext, arm: AbArm): Promise<void> {
   if (arm === "none") return;

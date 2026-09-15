@@ -602,7 +602,9 @@ export type Database = {
       stats_daily: {
         Row: {
           ab_onboarding_a: number
+          ab_onboarding_a_ios: number
           ab_onboarding_b: number
+          ab_onboarding_b_ios: number
           day: string
           demo_active_devices: number
           demo_ai_calls: number
@@ -623,7 +625,9 @@ export type Database = {
         }
         Insert: {
           ab_onboarding_a?: number
+          ab_onboarding_a_ios?: number
           ab_onboarding_b?: number
+          ab_onboarding_b_ios?: number
           day: string
           demo_active_devices?: number
           demo_ai_calls?: number
@@ -644,7 +648,9 @@ export type Database = {
         }
         Update: {
           ab_onboarding_a?: number
+          ab_onboarding_a_ios?: number
           ab_onboarding_b?: number
+          ab_onboarding_b_ios?: number
           day?: string
           demo_active_devices?: number
           demo_ai_calls?: number
@@ -731,7 +737,9 @@ export type Database = {
         Args: { p_since: string }
         Returns: {
           assigned_a: number
+          assigned_a_ios: number
           assigned_b: number
+          assigned_b_ios: number
           day: string
           first_open_ios: number
         }[]
@@ -816,7 +824,7 @@ export type Database = {
           id: string
           last_active_day: string
           named: boolean
-          onboarding_variant: string | null
+          onboarding_variant: string
           recipes_28d: number
           recipes_7d: number
           recipes_total: number

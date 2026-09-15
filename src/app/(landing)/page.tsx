@@ -19,7 +19,13 @@ export default async function LandingPage() {
   const variant: OnboardingVariant = isOnboardingVariant(header) ? header : "a";
   if (header && hdrs.get(AB_ONBOARDING_FRESH_HEADER) === "1") {
     trackStat(variant === "b" ? "ab_onboarding_b" : "ab_onboarding_a");
-    if (isIosNativeUa(hdrs.get("user-agent") ?? "")) trackStat("landing_first_open_ios");
+    // Shell natif : dénominateur du test (migration 050) — le même tirage compté
+    // à part, parce que le web n'apporte que des scanners et des visites sans
+    // installation. La tuile « 1ʳᵉ ouverture iOS » garde son compteur propre.
+    if (isIosNativeUa(hdrs.get("user-agent") ?? "")) {
+      trackStat(variant === "b" ? "ab_onboarding_b_ios" : "ab_onboarding_a_ios");
+      trackStat("landing_first_open_ios");
+    }
   }
   // Sonde (#26) : témoin discret pour savoir sur quel appareil on est.
   return <LandingScreen variant={variant} probe={isProbeHeaders(hdrs)} />;

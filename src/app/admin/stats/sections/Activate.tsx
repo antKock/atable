@@ -98,15 +98,19 @@ export default function Activate({ act }: { act: DashboardV3["activation"] }) {
           <Card
             span={12}
             title="A/B onboarding · « Commencer » (B) vs démo (A)"
-            sub={`Depuis le ${shortDate(act.ab.since)} · comptes par bras, pas de % tant que N < 50`}
+            sub={`Depuis le ${shortDate(act.ab.since)} · premières ouvertures iOS · comptes par bras, pas de % tant que N < 50`}
             def={
               <>
-                Backlog #25. Affectations = cookies posés au premier rendu de la landing (50/50 par
-                appareil). Carnet = owner réel créé avec ce bras (les arrivées par invitation
-                n&apos;ont pas de bras). Les étapes suivantes ne comptent que les personnes dont la
-                fenêtre est passée (J+7, puis M1 = J+28 → J+55). Critère principal : ≥ 1 recette à
-                J+7. Durée : 8 semaines, revue à 4. On lit des comptes et on tranche en PM — à ≈ 12
-                arrivants par bras et par mois, rien ne sera significatif.
+                Backlog #25. Affectations = bras tiré au premier rendu de la landing (50/50 par
+                appareil), <strong>restreint au shell iOS natif</strong> : sur le web, le compteur
+                se remplit de scanners et de visites qui n&apos;installent jamais, alors que les
+                carnets viennent d&apos;iOS (migration 050). Carnet = owner réel créé avec ce bras
+                (les arrivées par invitation n&apos;ont pas de bras). Chaque étape est comptée dès
+                qu&apos;elle est franchie ; « en cours » = personnes qui peuvent encore la franchir
+                (fenêtre J+7, puis M1 = J+28 → J+55) — tant qu&apos;il en reste, le compte est un
+                plancher. Critère principal : ≥ 1 recette à J+7. Durée : 8 semaines, revue à 4. On
+                lit des comptes et on tranche en PM — à ≈ 12 arrivants par bras et par mois, rien ne
+                sera significatif.
               </>
             }
           >
@@ -115,7 +119,7 @@ export default function Activate({ act }: { act: DashboardV3["activation"] }) {
                 <thead>
                   <tr>
                     <th>Bras</th>
-                    <th>Affectations</th>
+                    <th>Affectations iOS</th>
                     <th>Carnets créés</th>
                     <th>≥ 1 recette J+7</th>
                     <th>Activées J+7</th>
@@ -126,16 +130,28 @@ export default function Activate({ act }: { act: DashboardV3["activation"] }) {
                   {act.ab.arms.map((arm) => (
                     <tr key={arm.arm}>
                       <td>{arm.arm === "b" ? "B · Commencer" : "A · Démo"}</td>
-                      <td>{arm.assigned}</td>
+                      <td>
+                        {arm.assigned}
+                        <span className="n">· {arm.assignedAll} toutes surfaces</span>
+                      </td>
                       <td>{arm.owners}</td>
                       <td>
-                        {arm.firstRecipe7d} / {arm.eligible7}
+                        {arm.firstRecipe.done} / {arm.owners}
+                        {arm.firstRecipe.pending > 0 && (
+                          <span className="n">· {arm.firstRecipe.pending} en cours</span>
+                        )}
                       </td>
                       <td>
-                        {arm.activated7d} / {arm.eligible7}
+                        {arm.activated.done} / {arm.owners}
+                        {arm.activated.pending > 0 && (
+                          <span className="n">· {arm.activated.pending} en cours</span>
+                        )}
                       </td>
                       <td>
-                        {arm.activeM1} / {arm.eligibleM1}
+                        {arm.activeM1.done} / {arm.owners}
+                        {arm.activeM1.pending > 0 && (
+                          <span className="n">· {arm.activeM1.pending} en cours</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -143,8 +159,17 @@ export default function Activate({ act }: { act: DashboardV3["activation"] }) {
               </table>
             </div>
             <div className="note">
-              n / N : N = personnes du bras dont la fenêtre est passée. Test non démarré ou flag
-              éteint = zéros partout.
+              n / N : N = tous les carnets du bras, y compris ceux dont la fenêtre court encore («
+              en cours »). Test non démarré ou flag éteint = zéros partout.
+              {act.ab.before.a + act.ab.before.b > 0 && (
+                <>
+                  {" "}
+                  Avant la fenêtre (affectations iOS non mesurées par bras) : A {
+                    act.ab.before.a
+                  }{" "}
+                  carnet(s) · B {act.ab.before.b}.
+                </>
+              )}
             </div>
           </Card>
         </div>
