@@ -22,7 +22,9 @@ function takeExtraHeader(response: Response): ApiEventExtra {
   try {
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     const pick = (k: keyof ApiEventExtra) =>
-      typeof parsed[k] === "string" ? { [k]: (parsed[k] as string).slice(0, EVENT_STRING_MAX) } : {};
+      typeof parsed[k] === "string"
+        ? { [k]: (parsed[k] as string).slice(0, EVENT_STRING_MAX) }
+        : {};
     return { ...pick("method_kind"), ...pick("recipe_id"), ...pick("household_id") };
   } catch {
     return {};
@@ -85,7 +87,8 @@ const RESPONSE_IDS: Record<
   (body: Record<string, unknown>) => { recipe_id?: string; method_kind?: string }
 > = {
   "POST /api/recipes": (b) => (typeof b.id === "string" ? { recipe_id: b.id } : {}),
-  "POST /api/recipes/copy": (b) => (typeof b.recipeId === "string" ? { recipe_id: b.recipeId } : {}),
+  "POST /api/recipes/copy": (b) =>
+    typeof b.recipeId === "string" ? { recipe_id: b.recipeId } : {},
 };
 
 async function idsFromResponse(
@@ -137,7 +140,10 @@ async function record(input: Parameters<typeof recordApiCall>[0]): Promise<void>
   // trackEvent doit capturer le contexte requête et poser son after() pendant
   // le cycle de la requête, pas dans une continuation qui peut arriver après.
   const error_code = await extractErrorCode(input.response);
-  const fromResponse = { ...(await idsFromResponse(input.request, pathname, input.response)), ...takeExtraHeader(input.response) };
+  const fromResponse = {
+    ...(await idsFromResponse(input.request, pathname, input.response)),
+    ...takeExtraHeader(input.response),
+  };
   await trackEvent(
     "api.called",
     {

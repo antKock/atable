@@ -38,7 +38,9 @@ describe("isTrackedApiPath", () => {
 describe("extractErrorCode", () => {
   it("lit `code` d'un corps JSON en erreur, rien en succès", async () => {
     expect(
-      await extractErrorCode(NextResponse.json({ error: "msg", code: "RATE_LIMIT" }, { status: 429 })),
+      await extractErrorCode(
+        NextResponse.json({ error: "msg", code: "RATE_LIMIT" }, { status: 429 }),
+      ),
     ).toBe("RATE_LIMIT");
     expect(await extractErrorCode(NextResponse.json({ ok: true }))).toBeUndefined();
   });
@@ -47,7 +49,9 @@ describe("extractErrorCode", () => {
       await extractErrorCode(NextResponse.json({ error: "extraction_failed" }, { status: 422 })),
     ).toBe("extraction_failed");
     expect(
-      await extractErrorCode(NextResponse.json({ error: "Lien invalide, réessaie" }, { status: 400 })),
+      await extractErrorCode(
+        NextResponse.json({ error: "Lien invalide, réessaie" }, { status: 400 }),
+      ),
     ).toBeUndefined();
   });
   it("laisse le corps lisible après extraction (clone)", async () => {
@@ -84,7 +88,10 @@ describe("recordApiCall", () => {
       response: NextResponse.json({ ok: true }),
       startedAt: performance.now(),
     });
-    expect(mockTrack.mock.calls[0][1]).toMatchObject({ route: "/api/recipes/[id]/share", recipe_id: id });
+    expect(mockTrack.mock.calls[0][1]).toMatchObject({
+      route: "/api/recipes/[id]/share",
+      recipe_id: id,
+    });
 
     mockTrack.mockClear();
     await recordApiCall({
@@ -112,7 +119,10 @@ describe("withApiEvent", () => {
     const handler = vi.fn(async () => NextResponse.json({ ok: true }));
     const res = await withApiEvent(handler)(req("/api/households/lookup?code=X", "GET"));
     expect(res.status).toBe(200);
-    expect(mockTrack.mock.calls[0][1]).toMatchObject({ route: "/api/households/lookup", method: "GET" });
+    expect(mockTrack.mock.calls[0][1]).toMatchObject({
+      route: "/api/households/lookup",
+      method: "GET",
+    });
     expect(mockTrack.mock.calls[0][2]).toEqual({ owner: undefined });
   });
 });
@@ -122,7 +132,11 @@ describe("en-tête interne x-mijote-event", () => {
     const res = withApiEventExtra(NextResponse.json({ id: "x" }, { status: 201 }), {
       method_kind: "manual",
     });
-    await recordApiCall({ request: req("/api/recipes"), response: res, startedAt: performance.now() });
+    await recordApiCall({
+      request: req("/api/recipes"),
+      response: res,
+      startedAt: performance.now(),
+    });
     expect(mockTrack.mock.calls[0][1]).toMatchObject({ method_kind: "manual" });
     expect(res.headers.get("x-mijote-event")).toBeNull();
   });

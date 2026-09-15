@@ -44,7 +44,12 @@ export default function EventsProvider() {
     const onVisibility = () => {
       const s = screen.current;
       if (document.visibilityState === "hidden") {
-        if (s) track("screen.left", { route: s.route, params: s.params, duration_ms: Date.now() - s.since });
+        if (s)
+          track("screen.left", {
+            route: s.route,
+            params: s.params,
+            duration_ms: Date.now() - s.since,
+          });
         flush(true);
       } else {
         if (s) s.since = Date.now();

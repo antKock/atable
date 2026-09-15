@@ -18,7 +18,9 @@ async function eventsFor(anonId: string) {
   return data ?? [];
 }
 
-async function anonIdOf(context: { cookies: () => Promise<{ name: string; value: string; httpOnly: boolean }[]> }) {
+async function anonIdOf(context: {
+  cookies: () => Promise<{ name: string; value: string; httpOnly: boolean }[]>;
+}) {
   const cookie = (await context.cookies()).find((c) => c.name === "mijote_aid");
   expect(cookie, "cookie appareil mijote_aid attendu dès la landing").toBeTruthy();
   expect(cookie!.httpOnly).toBe(true);
@@ -54,14 +56,18 @@ test("un vrai visiteur : landing → carnet → recette, écrans / clics / API j
   const names = events.map((e) => e.name);
 
   // Flux A — écrans, avec le MOTIF de route (jamais l'id dans route).
-  const screens = events.filter((e) => e.name === "screen.viewed").map((e) => (e.props as { route: string }).route);
+  const screens = events
+    .filter((e) => e.name === "screen.viewed")
+    .map((e) => (e.props as { route: string }).route);
   expect(screens).toContain("/");
   expect(screens).toContain("/recipes/new");
   expect(screens).toContain("/recipes/[id]");
   expect(screens.some((r) => /[0-9a-f]{8}-/.test(r))).toBe(false);
 
   // Flux B — clics avec identifiant contractuel.
-  const clicks = events.filter((e) => e.name === "ui.clicked").map((e) => (e.props as { target: string }).target);
+  const clicks = events
+    .filter((e) => e.name === "ui.clicked")
+    .map((e) => (e.props as { target: string }).target);
   expect(clicks).toContain("landing.start");
   expect(clicks).toContain("nav.new");
   expect(clicks).toContain("import.manual");
@@ -135,6 +141,10 @@ test("POST /api/events : lot invalide ignoré, allow-list respectée, jamais d'e
     .toBe(1);
   const all = await eventsFor(anonId);
   expect(all.some((e) => e.name === "recipe.viewed")).toBe(false);
-  expect(all.filter((e) => e.name === "ui.clicked" && (e.props as { target: string }).target.length > 200)).toHaveLength(0);
+  expect(
+    all.filter(
+      (e) => e.name === "ui.clicked" && (e.props as { target: string }).target.length > 200,
+    ),
+  ).toHaveLength(0);
   await context.close();
 });

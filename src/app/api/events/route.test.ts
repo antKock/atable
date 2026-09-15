@@ -52,7 +52,9 @@ beforeEach(() => {
   supa = createSupabaseMock();
   vi.mocked(createServerClient).mockReturnValue(supa.client);
   mockHeaders.mockResolvedValue(new Headers({ "x-anon-id": ANON }));
-  mockCookies.mockResolvedValue({ get: (name: string) => (name === "mijote_ab_onboarding" ? { value: "b" } : undefined) });
+  mockCookies.mockResolvedValue({
+    get: (name: string) => (name === "mijote_ab_onboarding" ? { value: "b" } : undefined),
+  });
   mockOwner.mockResolvedValue(null);
 });
 
@@ -87,7 +89,9 @@ describe("POST /api/events", () => {
   });
 
   it("rattache l'owner, sa session et son foyer quand la session existe", async () => {
-    mockOwner.mockResolvedValue(owner({ memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }] }));
+    mockOwner.mockResolvedValue(
+      owner({ memberships: [{ householdId: "hh-demo", role: "member", isDemo: true }] }),
+    );
     await POST(post({ events: [{ name: "app.opened", props: {}, at: Date.now() }] }));
     expect(insertedRows()[0]).toMatchObject({
       owner_id: "owner-1",

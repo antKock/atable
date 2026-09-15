@@ -69,10 +69,17 @@ export default async function ParcoursDetailPage({
                       {s.events.map((e) => {
                         const d = describeEvent(e);
                         return (
-                          <tr key={e.id ?? ""} className={e.source === "server" ? undefined : "muted"}>
+                          <tr
+                            key={e.id ?? ""}
+                            className={e.source === "server" ? undefined : "muted"}
+                          >
                             <td style={{ whiteSpace: "nowrap" }}>{fmtTime(e.at)}</td>
-                            <td>{d.tone ? <span className={`pill ${d.tone}`}>{d.what}</span> : d.what}</td>
-                            <td style={{ fontFamily: "var(--font-dm-mono), monospace", fontSize: 12 }}>
+                            <td>
+                              {d.tone ? <span className={`pill ${d.tone}`}>{d.what}</span> : d.what}
+                            </td>
+                            <td
+                              style={{ fontFamily: "var(--font-dm-mono), monospace", fontSize: 12 }}
+                            >
                               {d.detail}
                             </td>
                           </tr>

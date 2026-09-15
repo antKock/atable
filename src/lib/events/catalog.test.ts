@@ -103,8 +103,11 @@ function targetsReferencedInSql(): Map<string, string> {
   const out = new Map<string, string>();
   for (const file of files) {
     const text = readFileSync(file, "utf8");
-    for (const m of text.matchAll(/props->>'target'\s*(?:=|IN)\s*\(?\s*((?:'[a-z0-9_.-]+'\s*,?\s*)+)\)?/g)) {
-      for (const t of m[1].matchAll(/'([a-z0-9_.-]+)'/g)) out.set(t[1], file.replace(ROOT + "/", ""));
+    for (const m of text.matchAll(
+      /props->>'target'\s*(?:=|IN)\s*\(?\s*((?:'[a-z0-9_.-]+'\s*,?\s*)+)\)?/g,
+    )) {
+      for (const t of m[1].matchAll(/'([a-z0-9_.-]+)'/g))
+        out.set(t[1], file.replace(ROOT + "/", ""));
     }
     for (const m of text.matchAll(/props->>'target'\s+LIKE\s+'([a-z0-9_.-]+)%'/g)) {
       out.set(m[1] + "*", file.replace(ROOT + "/", ""));

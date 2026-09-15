@@ -35,7 +35,10 @@ const sql = `BEGIN READ ONLY;\n${body}\n;ROLLBACK;`;
 
 let r;
 if (env === "local") {
-  r = spawnSync(LOCAL_PSQL, [LOCAL_URL, "-X", "-q", "-v", "ON_ERROR_STOP=1"], { input: sql, encoding: "utf8" });
+  r = spawnSync(LOCAL_PSQL, [LOCAL_URL, "-X", "-q", "-v", "ON_ERROR_STOP=1"], {
+    input: sql,
+    encoding: "utf8",
+  });
 } else {
   const inner = `sudo docker exec -i $(sudo docker ps -q -f name=${DATABASES[env]} | head -1) psql -X -q -v ON_ERROR_STOP=1 -U mijote -d mijote`;
   r = spawnSync("ssh", [SSH_HOST, inner], { input: sql, encoding: "utf8" });

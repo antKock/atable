@@ -24,7 +24,10 @@ async function displayNames(ownerIds: string[]): Promise<Map<string, string>> {
   const ids = [...new Set(ownerIds.filter(Boolean))];
   const out = new Map<string, string>();
   if (ids.length === 0) return out;
-  const { data } = await createServerClient().from("owners").select("id, name, alias").in("id", ids);
+  const { data } = await createServerClient()
+    .from("owners")
+    .select("id, name, alias")
+    .in("id", ids);
   for (const o of data ?? []) out.set(o.id, o.name ?? o.alias ?? aliasForOwner(o.id));
   return out;
 }
@@ -110,7 +113,11 @@ const fmtMs = (v: string | undefined) => {
 };
 
 /** Une ligne lisible par événement : `{ what, detail, tone }`. */
-export function describeEvent(e: EventRow): { what: string; detail: string; tone: "ok" | "warn" | "bad" | "" } {
+export function describeEvent(e: EventRow): {
+  what: string;
+  detail: string;
+  tone: "ok" | "warn" | "bad" | "";
+} {
   const p = e.props;
   const route = str(p, "route") ?? "";
   switch (e.name) {
@@ -133,7 +140,11 @@ export function describeEvent(e: EventRow): { what: string; detail: string; tone
         str(p, "method_kind"),
         str(p, "recipe_id")?.slice(0, 8),
       ].filter(Boolean);
-      return { what: "api", detail: bits.join(" · "), tone: status >= 500 ? "bad" : status >= 400 ? "warn" : "ok" };
+      return {
+        what: "api",
+        detail: bits.join(" · "),
+        tone: status >= 500 ? "bad" : status >= 400 ? "warn" : "ok",
+      };
     }
     case "error.shown":
       return { what: "erreur", detail: `${str(p, "kind") ?? ""} · ${route}`, tone: "bad" };

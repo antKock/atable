@@ -116,7 +116,12 @@ export default function HomeContent({ isGuest = false }: { isGuest?: boolean }) 
       ) : (
         <div className="flex flex-col gap-6">
           {orderedSections.map(({ key, title, recipes }) => (
-            <RecipeCarousel key={key} title={title} recipes={recipes} track={`home.carousel.${key}`} />
+            <RecipeCarousel
+              key={key}
+              title={title}
+              recipes={recipes}
+              track={`home.carousel.${key}`}
+            />
           ))}
         </div>
       )}
