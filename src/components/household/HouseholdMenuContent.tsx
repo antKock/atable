@@ -50,6 +50,7 @@ export default async function HouseholdMenuContent({
           <div className="rounded-xl border border-border bg-surface">
             <Link
               href="/household/profile"
+              data-track="household.profile"
               className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
             >
               <ShieldCheck size={18} className="shrink-0 text-accent" aria-hidden="true" />

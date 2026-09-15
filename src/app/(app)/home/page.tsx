@@ -34,6 +34,7 @@ export default async function HomePage() {
         <Link
           href="/household"
           aria-label={t.household.menuButton}
+          data-track="nav.household"
           className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <Settings size={20} />

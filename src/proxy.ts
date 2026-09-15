@@ -113,7 +113,11 @@ export async function proxy(request: NextRequest) {
   const probe = detectProbe({
     cookie: request.cookies.get(PROBE_COOKIE)?.value,
     header: request.headers.get(PROBE_REQUEST_HEADER),
-    queryParam: pathname === "/" ? request.nextUrl.searchParams.get(PROBE_QUERY_PARAM) : null,
+    // `?probe=1` sur toute page (pas seulement la landing) : le shell iOS ne
+    // peut pas taper d'URL, mais un lien universel (/join/…?probe=1) l'ouvre.
+    queryParam: pathname.startsWith("/api/")
+      ? null
+      : request.nextUrl.searchParams.get(PROBE_QUERY_PARAM),
   });
   if (probe.probe) requestHeaders.set(PROBE_INTERNAL_HEADER, "1");
 

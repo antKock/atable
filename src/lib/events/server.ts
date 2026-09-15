@@ -15,8 +15,9 @@ import { ANON_INTERNAL_HEADER, isUuid, type EventName, type EventProps } from ".
  * part dans `after()` hors du chemin de réponse, tout est best-effort — jamais
  * d'erreur remontée, no-op hors contexte requête (tests unitaires).
  *
- * Jamais écrit : sonde (#26), owner admin, requête sans `x-anon-id` (le proxy
- * n'est pas passé — client hors proxy, on n'invente pas d'identité).
+ * Jamais écrit : sonde (#26 — en-tête, OU owner marqué `is_probe` : le shell
+ * natif d'Anthony n'a pas le cookie, son owner admin est marqué), owner admin,
+ * requête sans `x-anon-id` (le proxy n'est pas passé — on n'invente pas d'identité).
  */
 
 export type EventRow = Database["public"]["Tables"]["events"]["Insert"];
@@ -43,7 +44,7 @@ export async function resolveEventContext(
   if (isProbeHeaders(h)) return null;
   const anonId = h.get(ANON_INTERNAL_HEADER);
   if (!isUuid(anonId)) return null;
-  if (owner && isAdminOwner(owner)) return null;
+  if (owner && (owner.isProbe || isAdminOwner(owner))) return null;
 
   const cookieStore = await cookies();
   const variantRaw = cookieStore.get(AB_ONBOARDING_COOKIE)?.value;

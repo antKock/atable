@@ -98,6 +98,7 @@ export const DATA_TRACK_IDS = [
   "landing.demo",
   "landing.join",
   "landing.recover",
+  "landing.recover_submit", // envoi du code de récupération
   // Import (/recipes/new)
   "import.url",
   "import.photo",
@@ -131,6 +132,9 @@ export const DATA_TRACK_IDS = [
   "household.join_code",
   "household.switch", // « créer un autre carnet »
   "household.leave",
+  "household.profile",
+  "household.logout",
+  "household.logout_confirm",
   "household.email_add", // enregistrement du profil (nom + e-mail de secours)
   // Hints (+ data-seen sur le conteneur : impression `ui.seen`)
   "hint.*",

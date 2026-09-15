@@ -277,6 +277,7 @@ export default function RecoverFlow({ onBack }: Props) {
 
         <button
           type="submit"
+          data-track="landing.recover_submit"
           disabled={!email.trim() || sending}
           className="w-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
           style={{
