@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
-import { generateShareToken } from "@/lib/auth/share-token";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { loadOwnedRecipe } from "@/lib/db/recipes";
+import { ensureShareToken } from "@/lib/db/share-token";
 import { getLocale } from "@/lib/i18n/server";
 import { getRequestOrigin } from "@/lib/request-origin";
 import { buildShareUrl } from "@/lib/share-url";
 
 type RouteContext = { params: Promise<{ id: string }> };
-
-const MAX_ATTEMPTS = 5;
 
 // POST /api/recipes/[id]/share
 // Idempotently mints (or returns the existing) capability token for a recipe
@@ -31,46 +29,7 @@ export const POST = withOwnerAuth(
 
     const householdId = recipe.household_id;
 
-    let token = recipe.share_token;
-
-    if (!token) {
-      // Mint a token, retrying on the (extremely unlikely) unique-index collision.
-      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-        const candidate = generateShareToken();
-        const { data: updated, error: updateError } = await supabase
-          .from("recipes")
-          .update({ share_token: candidate, share_token_created_at: new Date().toISOString() })
-          .eq("id", id)
-          .eq("household_id", householdId)
-          .is("share_token", null)
-          .select("share_token")
-          .maybeSingle();
-
-        if (!updateError && updated?.share_token) {
-          token = updated.share_token;
-          break;
-        }
-
-        if (updateError && !updateError.message.includes("duplicate")) {
-          throw updateError;
-        }
-
-        // Lost a race (token set concurrently) — re-read and use it.
-        const { data: fresh } = await supabase
-          .from("recipes")
-          .select("share_token")
-          .eq("id", id)
-          .single();
-        if (fresh?.share_token) {
-          token = fresh.share_token;
-          break;
-        }
-      }
-    }
-
-    if (!token) {
-      throw new Error("Failed to mint share token");
-    }
+    const token = await ensureShareToken(supabase, id, householdId, recipe.share_token);
 
     // La langue de l'appareil émetteur voyage dans l'URL (`?l=en`, hors fr)
     // pour que l'aperçu du lien sorte dans sa langue — cf. share-url.ts.

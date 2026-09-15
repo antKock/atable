@@ -56,6 +56,8 @@ const PUBLIC_PREFIXES = [
   "/api/events",
   "/api/cron/",
   "/api/admin/",
+  // Lecture d'un carnet par l'app Bien : Bearer BIEN_API_SECRET vérifié dans la route.
+  "/api/carnets/",
 ];
 
 // Journal des événements (#28) : le lot client est public (la landing n'a pas
