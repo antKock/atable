@@ -384,66 +384,97 @@ describe("bloc 0 et funnel hebdo", () => {
 
 describe("A/B onboarding (#25)", () => {
   // Après l'époque du compteur (14/09) : « ouvertures iOS » = compteur du proxy,
-  // plus les essais démo. Fenêtre du test = depuis abOnboardingStart.
+  // plus les essais démo. Fenêtre du test = depuis abOnboardingStart (16/09),
+  // dénominateur = affectations du shell iOS seules (migration 050).
   const NOW_AB = new Date("2026-09-26T08:00:00Z");
   const people = [
-    person({ created_at: "2026-09-14T10:00:00Z", onboarding_variant: "b", recipes_7d: 1 }),
+    person({ created_at: "2026-09-16T10:00:00Z", onboarding_variant: "b", recipes_7d: 1 }),
     person({
-      created_at: "2026-09-15T10:00:00Z",
+      created_at: "2026-09-17T10:00:00Z",
       onboarding_variant: "b",
       first_recipe_at: null,
       recipes_7d: 0,
     }),
-    person({ created_at: "2026-09-14T10:00:00Z", onboarding_variant: "a", recipes_7d: 3 }),
+    person({ created_at: "2026-09-16T10:00:00Z", onboarding_variant: "a", recipes_7d: 3 }),
     // Invitation : pas de bras, jamais comptée
-    person({ created_at: "2026-09-14T10:00:00Z", onboarding_variant: null, channel: "invite" }),
-    // Trop récente pour J+7 : comptée en carnet, pas dans N
-    person({ created_at: "2026-09-24T10:00:00Z", onboarding_variant: "b" }),
+    person({ created_at: "2026-09-16T10:00:00Z", onboarding_variant: null, channel: "invite" }),
+    // Fenêtre J+7 encore ouverte, rien de franchi : comptée en carnet et « en cours »
+    person({
+      created_at: "2026-09-24T10:00:00Z",
+      onboarding_variant: "b",
+      first_recipe_at: null,
+      recipes_7d: 0,
+    }),
+    // Avant la fenêtre : hors cohorte, comptée à part
+    person({ created_at: "2026-09-15T10:00:00Z", onboarding_variant: "a" }),
   ];
   const dAb = assembleV3(
     raw({
       now: NOW_AB,
       people,
       abOnboarding: [
-        { day: "2026-09-14", assigned_a: 3, assigned_b: 4, first_open_ios: 5 },
-        { day: "2026-09-20", assigned_a: 2, assigned_b: 1, first_open_ios: 2 },
+        // Avant la fenêtre : compte pour la tuile iOS, pas pour le test.
+        {
+          day: "2026-09-14",
+          assigned_a: 3,
+          assigned_b: 4,
+          assigned_a_ios: 1,
+          assigned_b_ios: 1,
+          first_open_ios: 5,
+        },
+        {
+          day: "2026-09-16",
+          assigned_a: 6,
+          assigned_b: 5,
+          assigned_a_ios: 2,
+          assigned_b_ios: 3,
+          first_open_ios: 5,
+        },
+        {
+          day: "2026-09-20",
+          assigned_a: 2,
+          assigned_b: 1,
+          assigned_a_ios: 1,
+          assigned_b_ios: 0,
+          first_open_ios: 2,
+        },
       ],
     }),
   );
 
-  it("chaîne par bras : affectations, carnets, n/N à J+7 et M1", () => {
-    expect(dAb.activation.ab.since).toBe("2026-09-14");
+  it("chaîne par bras : dénominateur iOS, étapes franchies et fenêtres en cours", () => {
+    expect(dAb.activation.ab.since).toBe("2026-09-16");
     expect(dAb.activation.ab.arms).toEqual([
       {
         arm: "a",
-        assigned: 5,
+        assigned: 3, // iOS seul : 2 (16/09) + 1 (20/09) ; le 14/09 est hors fenêtre
+        assignedAll: 8,
         owners: 1,
-        eligible7: 1,
-        firstRecipe7d: 1,
-        activated7d: 1, // 3 recettes + retour (fixture)
-        eligibleM1: 0,
-        activeM1: 0,
+        firstRecipe: { done: 1, pending: 0 },
+        activated: { done: 1, pending: 0 }, // 3 recettes + retour (fixture)
+        activeM1: { done: 0, pending: 1 }, // M1 pas encore atteinte
       },
       {
         arm: "b",
-        assigned: 5,
+        assigned: 3,
+        assignedAll: 6,
         owners: 3,
-        eligible7: 2,
-        firstRecipe7d: 1,
-        activated7d: 0,
-        eligibleM1: 0,
-        activeM1: 0,
+        firstRecipe: { done: 1, pending: 1 },
+        activated: { done: 0, pending: 1 },
+        activeM1: { done: 0, pending: 3 },
       },
     ]);
+    // Arrivées d'avant la fenêtre : comptes seuls, sans dénominateur.
+    expect(dAb.activation.ab.before).toEqual({ a: 1, b: 0 });
   });
 
   it("1ʳᵉ ouverture iOS : compteur du proxy après l'époque, essais démo avant", () => {
     // 28 j se terminant le 26/09 : 30/08 → 12/09 en essais démo (fixture : 05→11/09 = 2/j,
-    // 30/08→04/09 = 1/j, 12/09 absent), puis le compteur (5 + 2).
-    expect(dAb.acquisition.appStore.firstOpenIos).toBe(7 * 2 + 6 * 1 + 7);
+    // 30/08→04/09 = 1/j, 12/09 absent), puis le compteur (5 + 5 + 2).
+    expect(dAb.acquisition.appStore.firstOpenIos).toBe(7 * 2 + 6 * 1 + 12);
     const w = dAb.acquisition.appStore.funnelWeekly;
-    // semaine 14/09 → 20/09 : compteur 5 (14/09) + 2 (20/09)
-    expect(w[w.length - 1]).toMatchObject({ label: "14/09", opens: 7 });
+    // semaine 14/09 → 20/09 : compteur 5 (14/09) + 5 (16/09) + 2 (20/09)
+    expect(w[w.length - 1]).toMatchObject({ label: "14/09", opens: 12 });
   });
 });
 

@@ -167,52 +167,83 @@ export function activationFunnel(people: Person[], w: Window, today: string): Ac
 }
 
 // ---------------------------------------------------------------------------
-// A/B onboarding (#25) — chaîne par bras, en comptes (n/N), fenêtre = depuis le
-// début du test. Dénominateur = affectations (stats_daily) ; les étapes
-// suivantes sont jugées sur les personnes réelles du bras, et seulement sur
-// celles dont la fenêtre est passée (J+7, M1).
+// A/B onboarding (#25) — chaîne par bras, en comptes, fenêtre = depuis le début
+// du test. Dénominateur = affectations du SHELL iOS NATIF (stats_daily,
+// migration 050) : le web n'apporte que des scanners et des visites qui
+// n'installent pas, alors que les carnets viennent d'iOS.
+//
+// Chaque étape est comptée dès qu'elle est franchie (`done`), sans attendre la
+// fin de la fenêtre : une personne arrivée hier qui a déjà sa recette compte.
+// `pending` = celles qui peuvent encore la franchir (fenêtre en cours) — tant
+// qu'il en reste, `done` est un plancher, pas un taux définitif.
 // ---------------------------------------------------------------------------
 
 export type AbArm = "a" | "b";
 
+export type AbStep = {
+  /** Personnes du bras ayant DÉJÀ franchi l'étape (fenêtre passée ou non). */
+  done: number;
+  /** Personnes qui ne l'ont pas franchie mais dont la fenêtre court encore. */
+  pending: number;
+};
+
 export type AbArmFunnel = {
   arm: AbArm;
-  /** Cookies posés (dénominateur). */
+  /** Affectations du shell iOS natif (dénominateur du test). */
   assigned: number;
+  /** Affectations toutes surfaces, information seule (web = scanners + curieux). */
+  assignedAll: number;
   /** Owners réels créés avec ce bras (hors invitation : ils n'ont pas de bras). */
   owners: number;
-  /** Dont jugeables à J+7. */
-  eligible7: number;
-  firstRecipe7d: number;
-  activated7d: number;
-  /** Dont fenêtre M1 passée. */
-  eligibleM1: number;
-  activeM1: number;
+  /** ≥ 1 recette dans les 7 jours suivant l'arrivée. */
+  firstRecipe: AbStep;
+  /** ≥ 3 recettes ET un retour après J+1, dans les 7 jours. */
+  activated: AbStep;
+  /** Au moins un jour actif en M1 (J+28 → J+55). */
+  activeM1: AbStep;
 };
+
+/** Owners d'un bras arrivés AVANT la fenêtre : comptes seuls, dénominateur non mesuré. */
+export function abBeforeWindow(people: Person[], since: string): Record<AbArm, number> {
+  const count = (arm: AbArm) =>
+    people.filter((p) => p.onboarding_variant === arm && d0(p) < since && p.channel !== "invite")
+      .length;
+  return { a: count("a"), b: count("b") };
+}
 
 export function abOnboardingFunnel(
   people: Person[],
   assigned: Record<AbArm, number>,
+  assignedAll: Record<AbArm, number>,
   since: string,
   today: string,
 ): AbArmFunnel[] {
+  const hasFirstRecipe = (p: Person) =>
+    p.first_recipe_at != null && daysBetween(d0(p), p.first_recipe_at.slice(0, 10)) <= 7;
+
+  const step = (
+    cohort: Person[],
+    done: (p: Person) => boolean,
+    windowClosed: (p: Person) => boolean,
+  ): AbStep => ({
+    done: cohort.filter(done).length,
+    pending: cohort.filter((p) => !done(p) && !windowClosed(p)).length,
+  });
+
   return (["a", "b"] as const).map((arm) => {
     const cohort = people.filter(
       (p) => p.onboarding_variant === arm && d0(p) >= since && p.channel !== "invite",
     );
-    const at7 = cohort.filter((p) => eligibleAt7(p, today));
-    const atM1 = cohort.filter((p) => eligibleM(p, 1, today));
+    const past7 = (p: Person) => eligibleAt7(p, today);
+    const pastM1 = (p: Person) => eligibleM(p, 1, today);
     return {
       arm,
       assigned: assigned[arm],
+      assignedAll: assignedAll[arm],
       owners: cohort.length,
-      eligible7: at7.length,
-      firstRecipe7d: at7.filter(
-        (p) => p.first_recipe_at != null && daysBetween(d0(p), p.first_recipe_at.slice(0, 10)) <= 7,
-      ).length,
-      activated7d: at7.filter(isActivated).length,
-      eligibleM1: atM1.length,
-      activeM1: atM1.filter((p) => p.active_m1).length,
+      firstRecipe: step(cohort, hasFirstRecipe, past7),
+      activated: step(cohort, isActivated, past7),
+      activeM1: step(cohort, (p) => p.active_m1, pastM1),
     };
   });
 }

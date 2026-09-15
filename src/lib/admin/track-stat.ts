@@ -23,8 +23,13 @@ export type StatsDailyField =
   | "tokens_burned"
   // A/B onboarding (#25, migration 046) : affectations par bras à la pose du
   // cookie, premières ouvertures de la landing depuis le shell iOS.
+  // `_ios` (migration 050) = les mêmes affectations restreintes au shell natif,
+  // seul dénominateur du test : le web est fait de scanners et de visites qui
+  // n'installent pas.
   | "ab_onboarding_a"
   | "ab_onboarding_b"
+  | "ab_onboarding_a_ios"
+  | "ab_onboarding_b_ios"
   | "landing_first_open_ios";
 
 export function trackStat(field: StatsDailyField): void {

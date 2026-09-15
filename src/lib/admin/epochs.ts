@@ -39,8 +39,13 @@ export const METRIC_EPOCHS = {
 export const PRODUCT_EVENTS = {
   /** iOS 1.3 en ligne : fiche App Store refondue (titre « Livre de recettes », visuels, EN). */
   appStoreListingV2: "2026-09-06",
-  /** A/B onboarding (#25) : début du split 50/50 « Commencer » vs démo en prod
-   *  (flag allumé le 2026-09-13, jour 1 pollué par les tests et remis à zéro → fenêtre depuis le 14). Fenêtre de lecture du
-   *  test (section Activer), 8 semaines, revue à 4. */
-  abOnboardingStart: "2026-09-14",
+  /** A/B onboarding (#25) : début de la fenêtre de lecture du test (section
+   *  Activer), 8 semaines, revue à 4.
+   *  Flag allumé le 2026-09-13 (jour 1 pollué par les tests). Recalée au
+   *  2026-09-16 : le dénominateur est passé aux affectations du shell iOS
+   *  (migration 050), comptées seulement à partir de sa mise en prod — avant,
+   *  on ne sait pas les répartir par bras. Les arrivées des 13-15/09 restent
+   *  affichées en comptes « hors fenêtre ».
+   *  ⚠ à recaler sur le lendemain de la promotion si elle glisse. */
+  abOnboardingStart: "2026-09-16",
 } as const;

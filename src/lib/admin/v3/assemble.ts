@@ -17,6 +17,7 @@ import {
   type Channel,
   CHANNEL_LABELS,
   METHOD_LABELS,
+  abBeforeWindow,
   abOnboardingFunnel,
   activationByFirstMethod,
   activationFunnel,
@@ -76,6 +77,9 @@ export type AbDailyRow = {
   day: string;
   assigned_a: number;
   assigned_b: number;
+  /** Affectations du shell iOS natif (migration 050) : dénominateur du test. */
+  assigned_a_ios: number;
+  assigned_b_ios: number;
   first_open_ios: number;
 };
 
@@ -579,17 +583,23 @@ export function assembleV3(raw: RawV3) {
         : -1,
   };
 
-  // A/B onboarding (#25) : chaîne par bras depuis le début du test.
+  // A/B onboarding (#25) : chaîne par bras depuis le début du test. Dénominateur
+  // = affectations du shell iOS natif (migration 050) ; le total toutes surfaces
+  // reste affiché en information.
   const abSince = PRODUCT_EVENTS.abOnboardingStart;
-  const abAssigned = raw.abOnboarding
-    .filter((r) => r.day.slice(0, 10) >= abSince)
-    .reduce((acc, r) => ({ a: acc.a + num(r.assigned_a), b: acc.b + num(r.assigned_b) }), {
-      a: 0,
-      b: 0,
-    });
+  const abDays = raw.abOnboarding.filter((r) => r.day.slice(0, 10) >= abSince);
+  const abAssigned = abDays.reduce(
+    (acc, r) => ({ a: acc.a + num(r.assigned_a_ios), b: acc.b + num(r.assigned_b_ios) }),
+    { a: 0, b: 0 },
+  );
+  const abAssignedAll = abDays.reduce(
+    (acc, r) => ({ a: acc.a + num(r.assigned_a), b: acc.b + num(r.assigned_b) }),
+    { a: 0, b: 0 },
+  );
   const ab = {
     since: abSince,
-    arms: abOnboardingFunnel(people, abAssigned, abSince, today),
+    arms: abOnboardingFunnel(people, abAssigned, abAssignedAll, abSince, today),
+    before: abBeforeWindow(people, abSince),
   };
   const activation = {
     funnel: actFunnelSinceJune,

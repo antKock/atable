@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { newVisitor, uniqueName } from "./helpers/onboarding";
+import { NATIVE_IOS_UA, newVisitor, uniqueName } from "./helpers/onboarding";
 import { db } from "./helpers/db";
 
 // A/B onboarding (backlog #25). Flag actif dans le harnais (e2e/helpers/env.ts).
@@ -34,6 +34,18 @@ async function assignedToday(): Promise<number> {
     .eq("day", new Date().toISOString().slice(0, 10))
     .maybeSingle();
   return ((data?.ab_onboarding_a as number) ?? 0) + ((data?.ab_onboarding_b as number) ?? 0);
+}
+
+/** Dénominateur du test (migration 050) : affectations du shell iOS natif. */
+async function assignedIosToday(): Promise<number> {
+  const { data } = await db()
+    .from("stats_daily")
+    .select("ab_onboarding_a_ios, ab_onboarding_b_ios")
+    .eq("day", new Date().toISOString().slice(0, 10))
+    .maybeSingle();
+  return (
+    ((data?.ab_onboarding_a_ios as number) ?? 0) + ((data?.ab_onboarding_b_ios as number) ?? 0)
+  );
 }
 
 test("A/B : premier rendu sans cookie → bras tiré, cookie 1 an, affectation comptée", async ({
@@ -142,6 +154,29 @@ test("A/B bras A : landing inchangée, bras persisté sur l'owner créé", async
   await page.waitForURL(/\/home/);
   expect(await currentOwnerVariant(page)).toBe("a");
   await context.close();
+});
+
+test("Dénominateur (050) : seul le shell iOS natif alimente les compteurs _ios", async ({
+  browser,
+}) => {
+  const beforeAll = await assignedToday();
+  const beforeIos = await assignedIosToday();
+
+  // Shell natif : compté des deux côtés.
+  const native = await newVisitor(browser, { arm: "none", probe: false, ua: NATIVE_IOS_UA });
+  await native.page.goto("/");
+  await expect(native.page.getByRole("heading", { name: "Mijote" })).toBeVisible();
+  await expect.poll(assignedIosToday, { timeout: 10_000 }).toBe(beforeIos + 1);
+  expect(await assignedToday()).toBe(beforeAll + 1);
+  await native.context.close();
+
+  // Navigateur web (scanners, visites sans installation) : total seul.
+  const web = await newVisitor(browser, { arm: "none", probe: false });
+  await web.page.goto("/");
+  await expect(web.page.getByRole("heading", { name: "Mijote" })).toBeVisible();
+  await expect.poll(assignedToday, { timeout: 10_000 }).toBe(beforeAll + 2);
+  expect(await assignedIosToday()).toBe(beforeIos + 1);
+  await web.context.close();
 });
 
 test("Sonde (#26) : bras attribué mais rien de compté, owner et foyer marqués is_probe", async ({
