@@ -344,8 +344,13 @@ export const en: Dictionary = {
 
   // Join via invite link
   joinLink: {
-    hero: (name: string) => `Open “${name}”?`,
-    confirm: "Open",
+    welcome: "Welcome to",
+    confirm: "Open the cookbook",
+    notNow: "Not now",
+    emptyMember: "A brand-new cookbook, ready to fill together",
+    emptyGuest: "A brand-new cookbook. You'll watch it fill up.",
+    oneRecipe: "One recipe is already inside",
+    twoRecipes: "Two recipes to start with",
     notFound: "This link doesn't match any cookbook",
     backToLanding: "Back to home",
     guestNote: "Read-only, live",
