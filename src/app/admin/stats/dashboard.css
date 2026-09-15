@@ -262,6 +262,12 @@
   font-size: 10.5px;
   color: var(--d-faint);
 }
+/* Journée en cours : lue sous les barres, jamais confondue avec le chiffre des 7 jours. */
+.mijote-dash .hot .h .today {
+  font-size: 10.5px;
+  color: var(--d-muted);
+  margin-top: 2px;
+}
 .mijote-dash .mini-tip {
   position: absolute;
   z-index: 6;

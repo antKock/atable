@@ -5,7 +5,12 @@
 // arrondies et cohortes en layer cake.
 
 import { addDays } from "@/lib/admin/v3/weeks";
-import type { HotIndicator, WeeklyActiveRow, WeeklyRecipesRow } from "@/lib/admin/v3/assemble";
+import type {
+  HotBar,
+  HotIndicator,
+  WeeklyActiveRow,
+  WeeklyRecipesRow,
+} from "@/lib/admin/v3/assemble";
 
 export const num = (v: unknown) => Number(v) || 0;
 
@@ -116,39 +121,65 @@ export function weeklyRecipesSeries(
 
 /**
  * Indicateur « chaud » d'un compte quotidien : total (ou moyenne) des 7 jours
- * finissant à `end`, repère = médiane des 3 fenêtres de 7 jours précédentes,
- * 14 barres avec, pour chaque jour, la médiane du même jour de semaine sur 4
- * semaines.
+ * de la fenêtre, repère = médiane des 3 fenêtres de 7 jours précédentes, 14
+ * barres de jours clos + la barre du jour en cours (partielle), avec pour
+ * chaque jour la médiane du même jour de semaine sur 4 semaines.
+ *
+ * `lastKnownDay` dit jusqu'où la source a livré — Apple livre ses instances
+ * avec 2-3 jours de retard. Au-delà la donnée est *absente*, pas nulle : barre
+ * grise, et la fenêtre de 7 jours se recale sur ce dernier jour livré pour que
+ * la valeur reste comparable au repère. `null` = aucune donnée du tout.
  */
 export function hotIndicator(
   id: string,
   label: string,
   get: (day: string) => number,
   end: string,
-  opts: { avg?: boolean; unit?: string; hint?: string } = {},
+  opts: {
+    avg?: boolean;
+    unit?: string;
+    hint?: string;
+    /** Dernier jour livré par la source (défaut : `today` s'il est fourni, sinon `end`). */
+    lastKnownDay?: string | null;
+    /** Jour en cours : 15ᵉ barre, données partielles, hors valeur et hors repère. */
+    today?: string;
+  } = {},
 ): HotIndicator {
+  const lastKnown = opts.lastKnownDay === undefined ? (opts.today ?? end) : opts.lastKnownDay;
+  // Fenêtre : 7 jours clos finissant au dernier jour livré (jamais après J-1).
+  const windowEnd = lastKnown == null ? null : lastKnown < end ? lastKnown : end;
   const win = (e: string) => {
     const vals = dayList(7, e).map(get);
     const tot = vals.reduce((a, b) => a + b, 0);
     return opts.avg ? +(tot / 7).toFixed(1) : tot;
   };
-  const value = win(end);
-  const ref = +median([
-    win(addDays(end, -7)),
-    win(addDays(end, -14)),
-    win(addDays(end, -21)),
-  ]).toFixed(1);
-  const barDays = dayList(14, end);
-  const barRefs = barDays.map((d) => median([7, 14, 21, 28].map((k) => get(addDays(d, -k)))));
+  const value = windowEnd == null ? null : win(windowEnd);
+  const ref =
+    windowEnd == null
+      ? null
+      : +median([
+          win(addDays(windowEnd, -7)),
+          win(addDays(windowEnd, -14)),
+          win(addDays(windowEnd, -21)),
+        ]).toFixed(1);
+  const hotWin = windowEnd == null ? null : { from: addDays(windowEnd, -6), to: windowEnd };
+  const bar = (day: string, partial: boolean): HotBar => ({
+    day,
+    value: lastKnown != null && day <= lastKnown ? get(day) : null,
+    ref: median([7, 14, 21, 28].map((k) => get(addDays(day, -k)))),
+    partial,
+    inWindow: hotWin != null && day >= hotWin.from && day <= hotWin.to,
+  });
+  const bars = dayList(14, end).map((d) => bar(d, false));
+  if (opts.today && opts.today > end) bars.push(bar(opts.today, true));
   return {
     id,
     label,
     value,
     ref,
-    trend: value > ref ? "up" : value < ref ? "down" : "flat",
-    bars: barDays.map(get),
-    barDays,
-    barRefs,
+    trend: value == null || ref == null ? null : value > ref ? "up" : value < ref ? "down" : "flat",
+    bars,
+    window: hotWin,
     unit: opts.unit,
     hint: opts.hint,
   };

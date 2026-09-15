@@ -22,6 +22,7 @@ import {
   type TooltipValueType,
 } from "recharts";
 import { useState } from "react";
+import type { HotBar } from "@/lib/admin/v3/assemble";
 import { PALETTE as P, FONT, MONO, axisProps, gridProps, cohortColor } from "@/lib/admin/palette";
 
 // Recharts 3 est typé : ligne de données = enregistrement clé → valeur.
@@ -394,29 +395,28 @@ export function Dist({
   );
 }
 
-/** Mini-barres (14 jours) pour le bloc « 7 derniers jours ». La couleur de
- *  chaque barre dit si le jour est au-dessus (olive), égal (sable) ou en
- *  dessous (terracotta) de la médiane du MÊME jour de semaine sur les 4
- *  semaines précédentes — un dimanche bas n'est pas forcément anormal. La
- *  semaine précédente est atténuée. Info-bulle React immédiate. */
+/** Mini-barres du bloc « 7 derniers jours » : 14 jours clos + le jour en cours.
+ *  La couleur de chaque barre close dit si le jour est au-dessus (olive), égal
+ *  (sable) ou en dessous (terracotta) de la médiane du MÊME jour de semaine sur
+ *  les 4 semaines précédentes — un dimanche bas n'est pas forcément anormal.
+ *  Deux cas ne sont jamais colorés par comparaison : le jour en cours (hachuré,
+ *  données partielles) et les jours que la source n'a pas encore livrés (gris
+ *  au ras de la ligne — absence, pas un zéro). Les jours hors fenêtre sont
+ *  atténués. Info-bulle React immédiate. */
 export function MiniBars({
-  values,
-  days,
-  refs,
+  bars,
   label,
   unit,
   height = 34,
 }: {
-  values: number[];
-  days: string[];
-  refs: number[];
+  bars: HotBar[];
   label: string;
   unit?: string;
   height?: number;
 }) {
   const [hover, setHover] = useState<number | null>(null);
-  const max = Math.max(1, ...values);
-  const n = values.length;
+  const max = Math.max(1, ...bars.map((b) => b.value ?? 0));
+  const n = bars.length;
   const fmtDay = (iso: string) =>
     new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", {
       weekday: "long",
@@ -427,24 +427,32 @@ export function MiniBars({
   const weekday = (iso: string) =>
     new Date(iso + "T00:00:00Z").toLocaleDateString("fr-FR", { weekday: "long", timeZone: "UTC" });
   const fmt = (v: number) => String(v).replace(".", ",");
-  const status = (i: number) =>
-    values[i] > refs[i] ? "above" : values[i] < refs[i] ? "below" : "equal";
-  const color = (st: "above" | "below" | "equal") =>
-    st === "above" ? P.olive : st === "below" ? P.terracotta : "#C9C2B2";
-  const wording = (st: "above" | "below" | "equal") =>
+  const status = (b: HotBar) =>
+    b.value == null || b.partial
+      ? "neutral"
+      : b.value > b.ref
+        ? "above"
+        : b.value < b.ref
+          ? "below"
+          : "equal";
+  const color = (st: string) =>
+    st === "above" ? P.olive : st === "below" ? P.terracotta : st === "equal" ? P.sand : P.absent;
+  const wording = (st: string) =>
     st === "above" ? "au-dessus de" : st === "below" ? "en dessous de" : "égal à";
+  // Jour en cours : hachures olive, pour qu'il ne se lise jamais comme un jour clos.
+  const PARTIAL_FILL = `repeating-linear-gradient(135deg, ${P.oliveSoft} 0 3px, rgba(168,180,144,0.28) 3px 6px)`;
   // Ancrage : à gauche sur le premier tiers, à droite sur le dernier, centré sinon — jamais coupé par le bord de la tuile.
   const anchor = (i: number) =>
     i < n / 3 ? "translateX(0)" : i > (2 * n) / 3 ? "translateX(-100%)" : "translateX(-50%)";
   return (
     <div style={{ position: "relative" }} onMouseLeave={() => setHover(null)}>
       <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height }} aria-hidden="true">
-        {values.map((v, i) => {
-          const st = status(i);
+        {bars.map((b, i) => {
+          const st = status(b);
           const active = hover === i;
           return (
             <div
-              key={i}
+              key={b.day}
               onMouseEnter={() => setHover(i)}
               onClick={() => setHover(i)}
               style={{
@@ -453,15 +461,25 @@ export function MiniBars({
                 display: "flex",
                 alignItems: "flex-end",
                 cursor: "default",
+                // Le jour en cours est détaché des 14 jours clos.
+                marginLeft: b.partial ? 4 : undefined,
               }}
             >
               <div
                 style={{
                   width: "100%",
-                  height: `${Math.max(6, (v / max) * 100)}%`,
-                  background: color(st),
+                  // Donnée absente : même talon qu'un vrai zéro, mais gris — la
+                  // couleur seule dit « pas de chiffre » plutôt que « zéro ».
+                  height: `${b.value == null ? 6 : Math.max(6, (b.value / max) * 100)}%`,
+                  background: b.partial && b.value != null ? PARTIAL_FILL : color(st),
                   borderRadius: 2,
-                  opacity: active ? 1 : i >= n - 7 ? 0.95 : 0.45,
+                  opacity: active
+                    ? 1
+                    : b.value == null
+                      ? 0.7
+                      : b.inWindow || b.partial
+                        ? 0.95
+                        : 0.45,
                   outline: active ? `2px solid ${P.ink}` : "none",
                   outlineOffset: 1,
                   transition: "opacity 80ms",
@@ -471,7 +489,7 @@ export function MiniBars({
           );
         })}
       </div>
-      {hover != null && days[hover] && (
+      {hover != null && bars[hover] && (
         <div
           role="tooltip"
           className="mini-tip"
@@ -499,31 +517,51 @@ export function MiniBars({
               color: P.muted,
             }}
           >
-            {fmtDay(days[hover])}
+            {fmtDay(bars[hover].day)}
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 3 }}>
-            <span
-              style={{
-                fontFamily: MONO,
-                fontSize: 18,
-                fontWeight: 500,
-                color: color(status(hover)) === "#C9C2B2" ? P.ink : color(status(hover)),
-              }}
-            >
-              {fmt(values[hover])}
-              {unit ? ` ${unit}` : ""}
-            </span>
-            <span style={{ fontFamily: FONT, fontSize: 12, color: P.muted }}>
-              {label.charAt(0).toLowerCase() + label.slice(1)}
-            </span>
-          </div>
-          <div style={{ fontFamily: FONT, fontSize: 11, color: P.muted, marginTop: 3 }}>
-            <b style={{ color: P.ink, fontWeight: 600 }}>{wording(status(hover))}</b> la médiane des
-            4 derniers {weekday(days[hover])}s :{" "}
-            <span style={{ fontFamily: MONO }}>{fmt(refs[hover])}</span>
-          </div>
+          {bars[hover].value == null ? (
+            <div style={{ fontFamily: FONT, fontSize: 12, color: P.ink, marginTop: 4 }}>
+              Pas encore de données pour ce jour &mdash; ce n&apos;est pas un zéro.
+            </div>
+          ) : (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 3 }}>
+                <span
+                  style={{
+                    fontFamily: MONO,
+                    fontSize: 18,
+                    fontWeight: 500,
+                    color: status(bars[hover]) === "neutral" ? P.ink : color(status(bars[hover])),
+                  }}
+                >
+                  {fmt(bars[hover].value as number)}
+                  {unit ? ` ${unit}` : ""}
+                </span>
+                <span style={{ fontFamily: FONT, fontSize: 12, color: P.muted }}>
+                  {label.charAt(0).toLowerCase() + label.slice(1)}
+                </span>
+              </div>
+              {bars[hover].partial ? (
+                <div style={{ fontFamily: FONT, fontSize: 11, color: P.muted, marginTop: 3 }}>
+                  Journée <b style={{ color: P.ink, fontWeight: 600 }}>en cours</b> : comptage
+                  partiel, pas encore comparable (médiane des 4 derniers {weekday(bars[hover].day)}s
+                  pleins : <span style={{ fontFamily: MONO }}>{fmt(bars[hover].ref)}</span>).
+                </div>
+              ) : (
+                <div style={{ fontFamily: FONT, fontSize: 11, color: P.muted, marginTop: 3 }}>
+                  <b style={{ color: P.ink, fontWeight: 600 }}>{wording(status(bars[hover]))}</b> la
+                  médiane des 4 derniers {weekday(bars[hover].day)}s :{" "}
+                  <span style={{ fontFamily: MONO }}>{fmt(bars[hover].ref)}</span>
+                </div>
+              )}
+            </>
+          )}
           <div style={{ fontFamily: FONT, fontSize: 10.5, color: P.faint, marginTop: 2 }}>
-            {hover >= n - 7 ? "7 derniers jours" : "semaine précédente"}
+            {bars[hover].partial
+              ? "aujourd'hui"
+              : bars[hover].inWindow
+                ? "dans les 7 jours comptés"
+                : "hors fenêtre"}
           </div>
         </div>
       )}

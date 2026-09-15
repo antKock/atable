@@ -109,11 +109,14 @@ describe("hotIndicator", () => {
     expect(h.value).toBe(140);
     expect(h.ref).toBe(70);
     expect(h.trend).toBe("up");
-    expect(h.barDays).toHaveLength(14);
-    expect(h.barDays.at(-1)).toBe(end);
-    expect(h.bars.slice(-7)).toEqual([20, 20, 20, 20, 20, 20, 20]);
+    expect(h.window).toEqual({ from: "2026-09-06", to: end });
+    expect(h.bars).toHaveLength(14);
+    expect(h.bars.at(-1)?.day).toBe(end);
+    expect(h.bars.slice(-7).map((b) => b.value)).toEqual([20, 20, 20, 20, 20, 20, 20]);
+    expect(h.bars.slice(-7).every((b) => b.inWindow)).toBe(true);
+    expect(h.bars[0].inWindow).toBe(false);
     // Repère de barre = médiane du même jour de semaine sur les 4 semaines précédentes.
-    expect(h.barRefs.at(-1)).toBe(10);
+    expect(h.bars.at(-1)?.ref).toBe(10);
   });
 
   it("mode moyenne (7 jours) et tendance plate", () => {
@@ -122,5 +125,44 @@ describe("hotIndicator", () => {
     expect(h.ref).toBe(3);
     expect(h.trend).toBe("flat");
     expect(h.unit).toBe("/j");
+  });
+
+  it("jour en cours : 15ᵉ barre partielle, hors valeur et hors fenêtre", () => {
+    const h = hotIndicator("x", "X", get, end, { today: "2026-09-13" });
+    expect(h.value).toBe(140); // la journée en cours ne gonfle pas le total
+    expect(h.window).toEqual({ from: "2026-09-06", to: end });
+    expect(h.bars).toHaveLength(15);
+    expect(h.bars.at(-1)).toMatchObject({
+      day: "2026-09-13",
+      value: 20,
+      partial: true,
+      inWindow: false,
+    });
+  });
+
+  it("source en retard : barres absentes (null) et fenêtre recalée sur le dernier jour livré", () => {
+    const h = hotIndicator("dl", "DL", get, end, {
+      today: "2026-09-13",
+      lastKnownDay: "2026-09-09",
+    });
+    expect(h.window).toEqual({ from: "2026-09-03", to: "2026-09-09" });
+    expect(h.value).toBe(110); // 4 jours à 20 + 3 à 10 — 7 jours pleins, comparables
+    expect(h.ref).toBe(70);
+    expect(h.trend).toBe("up");
+    expect(h.bars.filter((b) => b.value == null).map((b) => b.day)).toEqual([
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-12",
+      "2026-09-13",
+    ]);
+  });
+
+  it("aucune donnée : valeur nulle, toutes les barres grises", () => {
+    const h = hotIndicator("dl", "DL", get, end, { today: "2026-09-13", lastKnownDay: null });
+    expect(h.value).toBeNull();
+    expect(h.ref).toBeNull();
+    expect(h.trend).toBeNull();
+    expect(h.window).toBeNull();
+    expect(h.bars.every((b) => b.value === null && !b.inWindow)).toBe(true);
   });
 });
