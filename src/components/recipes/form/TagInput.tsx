@@ -199,7 +199,7 @@ export default function TagInput({ selectedTags, onAdd, onRemove }: TagInputProp
   const activeDescendant = activeIndex >= 0 ? `tag-option-${activeIndex}` : undefined;
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative" data-track="recipe.add_tag">
       {/* Selected tags */}
       {selectedTags.length > 0 && (
         <div className="mb-2 flex flex-wrap gap-1.5">

@@ -81,6 +81,7 @@ export default function VoiceImporter({
           {/* Stop button */}
           <button
             type="button"
+            data-track="import.submit"
             onClick={() => {
               onStopRequested();
               voice.stop();

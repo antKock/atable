@@ -165,6 +165,7 @@ export default function ShareRecipeActions({
         type="button"
         size="lg"
         disabled={isFriend && status === "adding"}
+        data-track="share.copy_to_mine"
         onClick={isFriend ? handleAddToHousehold : () => setFlow("create")}
         className="h-[50px] w-full min-h-11 rounded-xl"
       >

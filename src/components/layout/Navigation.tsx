@@ -11,10 +11,12 @@ const NAV_ITEMS: {
   labelKey: "home" | "add" | "library";
   icon: typeof Home;
   isAdd?: boolean;
+  /** Identifiant du journal des événements (#28). */
+  track: string;
 }[] = [
-  { href: "/home", labelKey: "home", icon: Home },
-  { href: "/recipes/new", labelKey: "add", icon: Plus, isAdd: true },
-  { href: "/library", labelKey: "library", icon: BookOpen },
+  { href: "/home", labelKey: "home", icon: Home, track: "nav.home" },
+  { href: "/recipes/new", labelKey: "add", icon: Plus, isAdd: true, track: "nav.new" },
+  { href: "/library", labelKey: "library", icon: BookOpen, track: "nav.library" },
 ];
 
 function useKeyboardOpen(): boolean {
@@ -71,13 +73,14 @@ export default function Navigation({ isGuest = false }: { isGuest?: boolean }) {
         }}
       >
         <ul className="flex h-full items-center justify-around px-3">
-          {items.map(({ href, label, icon: Icon, isAdd }) => {
+          {items.map(({ href, label, icon: Icon, isAdd, track }) => {
             const isActive = pathname === href;
             return (
               <li key={href} className="flex flex-1 justify-center">
                 <Link
                   href={href}
                   aria-label={label}
+                  data-track={track}
                   aria-current={isActive ? "page" : undefined}
                   className="flex h-11 w-11 items-center justify-center transition-colors"
                 >

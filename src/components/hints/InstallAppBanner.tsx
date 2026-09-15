@@ -65,21 +65,28 @@ export default function InstallAppBanner({ code }: Props) {
           <button
             type="button"
             onClick={handleInstall}
+            data-track="hint.install.act"
             className="min-h-8 shrink-0 px-1 text-[12.5px] font-semibold text-accent transition-opacity hover:opacity-80"
           >
             {t.hints.install.cta}
           </button>
         }
         onDismiss={dismiss}
+        track="hint.install"
       />
     );
   }
 
   return (
-    <div className="relative rounded-[14px] bg-accent/10 px-4 py-3">
+    <div
+      className="relative rounded-[14px] bg-accent/10 px-4 py-3"
+      data-track="hint.install_code"
+      data-seen=""
+    >
       <button
         type="button"
         onClick={dismiss}
+        data-track="hint.install_code.dismiss"
         aria-label={t.installBanner.dismiss}
         className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent/20"
       >
@@ -91,6 +98,7 @@ export default function InstallAppBanner({ code }: Props) {
       <button
         type="button"
         onClick={copyCode}
+        data-track="hint.install_code.act"
         aria-label={t.installBanner.copyCode}
         className="mt-2 inline-flex items-center gap-1.5 rounded-lg border border-accent/30 bg-background px-2.5 py-1 font-mono text-sm font-medium text-foreground transition-colors hover:bg-accent/10"
       >

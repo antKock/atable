@@ -6,8 +6,11 @@ import { JoinCodeSchema } from "@/lib/schemas/household";
 import { resolveInviteCode } from "@/lib/auth/invite-code";
 import { joinRateLimit, joinCodeRateLimit } from "@/lib/redis";
 import { getT } from "@/lib/i18n/server";
+import { withApiEvent } from "@/lib/events/api-call";
 
-export async function GET(request: NextRequest) {
+// `api.called` (#28) : la recherche d'un code de carnet précède la création de
+// session — anonyme, rattachée par anon_id.
+export const GET = withApiEvent(async (request: NextRequest) => {
   const t = await getT();
   const code = request.nextUrl.searchParams.get("code") ?? "";
 
@@ -44,4 +47,4 @@ export async function GET(request: NextRequest) {
     householdName: invite.householdName,
     role: invite.role,
   });
-}
+});

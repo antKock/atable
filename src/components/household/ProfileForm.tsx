@@ -155,7 +155,12 @@ export default function ProfileForm({ initialName, alias, initialEmail }: Props)
           {t.profile.emailHint}
         </p>
 
-        <Button type="submit" disabled={saving} className="mt-6 min-h-11 w-full">
+        <Button
+          type="submit"
+          disabled={saving}
+          data-track="household.email_add"
+          className="mt-6 min-h-11 w-full"
+        >
           {saving ? "…" : t.actions.save}
         </Button>
       </form>

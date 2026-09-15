@@ -199,6 +199,14 @@ export async function resetDemo(demoHouseholdIds: string[]): Promise<ResetSummar
     );
   }
 
+  // Step 6 (#28) : purge du journal des événements de plus de 13 mois.
+  const { error: eventsError } = await supabase.rpc("purge_events", { p_keep_days: 400 });
+  if (eventsError) {
+    Sentry.captureException(
+      new Error(`[cron/demo-reset] events purge failed: ${eventsError.message}`),
+    );
+  }
+
   return {
     reset: true,
     deleted: deleted ?? 0,

@@ -7,6 +7,7 @@ import { LocalePreviewSwitch, LocaleProvider } from "@/lib/i18n/client";
 import SWRProvider from "@/components/providers/SWRProvider";
 import VersionWatcher from "@/components/providers/VersionWatcher";
 import DeepLinkHandler from "@/components/providers/DeepLinkHandler";
+import EventsProvider from "@/components/providers/EventsProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -87,6 +88,7 @@ export default async function RootLayout({
           {previewEnabled && <LocalePreviewSwitch />}
           <VersionWatcher />
           <DeepLinkHandler />
+          <EventsProvider />
           <SWRProvider>{children}</SWRProvider>
         </LocaleProvider>
       </body>

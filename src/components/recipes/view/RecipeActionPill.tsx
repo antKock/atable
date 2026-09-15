@@ -93,6 +93,7 @@ export default function RecipeActionPill({
             <Link
               href={`/recipes/${recipeId}/edit`}
               aria-label={t.actions.edit}
+              data-track="recipe.edit"
               className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Pencil size={14} strokeWidth={1.75} />
@@ -103,6 +104,7 @@ export default function RecipeActionPill({
                 <button
                   type="button"
                   aria-label={t.actions.move}
+                  data-track="recipe.move"
                   onClick={() => setMoveOpen(true)}
                   className="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
@@ -111,8 +113,10 @@ export default function RecipeActionPill({
               </>
             )}
             <div className="h-4 w-px bg-border" />
+            {/* `track` = le déclencheur ; la suppression effective = api.called. */}
             <ConfirmDeleteDialog
               recipeId={recipeId}
+              track="recipe.delete"
               triggerClassName="flex h-7 w-7 items-center justify-center rounded-full text-foreground hover:bg-secondary hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               triggerIconSize={14}
               triggerIconStroke={1.75}

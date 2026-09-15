@@ -59,6 +59,7 @@ export default function UrlImporter({
         <button
           type="button"
           onClick={handleSubmit}
+          data-track="import.submit"
           className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground transition-opacity hover:opacity-85"
         >
           <ChevronRight size={20} />

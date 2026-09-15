@@ -76,11 +76,14 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
   return (
     <div
       className={`relative rounded-[14px] bg-accent/10 py-3.5 pl-3.5 ${isDemo ? "pr-3.5" : "pr-10"}`}
+      data-track={`hint.${variant}`}
+      data-seen=""
     >
       {!isDemo && (
         <button
           type="button"
           onClick={dismiss}
+          data-track={`hint.${variant}.dismiss`}
           aria-label={t.hints.dismiss}
           className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent/20"
         >
@@ -95,12 +98,18 @@ export default function HintCard({ variant, title, body, cta, href, dismissToast
           <p className="text-[13.5px] font-semibold text-foreground">{title}</p>
           <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{body}</p>
           {isDemo ? (
-            <button type="button" onClick={convert} disabled={creating} className={ctaClasses}>
+            <button
+              type="button"
+              onClick={convert}
+              disabled={creating}
+              data-track={`hint.${variant}.act`}
+              className={ctaClasses}
+            >
               {creating ? "…" : cta}
               <ArrowRight size={13} strokeWidth={2.2} aria-hidden="true" />
             </button>
           ) : (
-            <Link href={href!} className={ctaClasses}>
+            <Link href={href!} data-track={`hint.${variant}.act`} className={ctaClasses}>
               {cta}
               <ArrowRight size={13} strokeWidth={2.2} aria-hidden="true" />
             </Link>

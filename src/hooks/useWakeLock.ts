@@ -1,10 +1,16 @@
 import { useEffect, useRef } from "react";
 
-export function useWakeLock() {
+export function useWakeLock(options: { onAcquired?: () => void } = {}) {
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
+  const onAcquired = useRef(options.onAcquired);
+
+  useEffect(() => {
+    onAcquired.current = options.onAcquired;
+  });
 
   useEffect(() => {
     let cancelled = false;
+    let acquiredOnce = false;
 
     async function requestWakeLock() {
       try {
@@ -15,6 +21,12 @@ export function useWakeLock() {
             return;
           }
           wakeLockRef.current = sentinel;
+          // Première acquisition seulement (les ré-acquisitions au retour au
+          // premier plan sont la même session de cuisine).
+          if (!acquiredOnce) {
+            acquiredOnce = true;
+            onAcquired.current?.();
+          }
         }
       } catch {
         // Silent fallback — NFR-R4: Wake Lock API failure produces no visible error

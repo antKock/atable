@@ -22,6 +22,8 @@ type Props = Target & {
   variant?: Variant;
   label?: string;
   className?: string;
+  /** Identifiant `data-track` du journal des événements (#28). */
+  track?: string;
 };
 
 const VARIANTS: Record<
@@ -60,6 +62,7 @@ export default function BackButton({
   className,
   href,
   onClick,
+  track,
 }: Props) {
   const t = useT();
   const v = VARIANTS[variant];
@@ -67,13 +70,20 @@ export default function BackButton({
   const aria = label ?? t.a11y.backButton;
   if (href !== undefined) {
     return (
-      <Link href={href} aria-label={aria} className={cls} style={v.style}>
+      <Link href={href} aria-label={aria} className={cls} style={v.style} data-track={track}>
         {v.icon}
       </Link>
     );
   }
   return (
-    <button type="button" onClick={onClick} aria-label={aria} className={cls} style={v.style}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={aria}
+      className={cls}
+      style={v.style}
+      data-track={track}
+    >
       {v.icon}
     </button>
   );

@@ -99,6 +99,7 @@ export default async function ExplorerPage({
                     <th className="num">Vues 28 j</th>
                     <th>Dernière activité</th>
                     <th>E-mail</th>
+                    <th>Parcours</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -124,6 +125,9 @@ export default async function ExplorerPage({
                       <td className="num">{p.views_28d}</td>
                       <td>{p.last_active_day ? shortDate(p.last_active_day) : "—"}</td>
                       <td>{p.has_email ? "✓" : ""}</td>
+                      <td>
+                        <a href={`/admin/parcours?owner=${p.id}`}>voir</a>
+                      </td>
                     </tr>
                   ))}
                 </tbody>

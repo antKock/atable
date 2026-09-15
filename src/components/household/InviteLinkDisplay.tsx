@@ -45,6 +45,7 @@ export default function InviteLinkDisplay({ joinCode }: Props) {
       <button
         type="button"
         onClick={handleCopy}
+        data-track="household.invite_link"
         aria-label={copied ? t.household.copied : t.household.copy}
         className="flex min-h-11 min-w-[44px] shrink-0 items-center justify-center rounded-lg text-accent transition-colors hover:bg-accent/10"
       >

@@ -146,7 +146,7 @@ export default async function RecipeDetailPage({ params }: Props) {
   const heroOverlay = (
     <>
       {/* Back button — clean white circle */}
-      <BackButton variant="circle" href="/home" />
+      <BackButton variant="circle" href="/home" track="recipe.back" />
 
       {/* Pill d'actions (client). Un INVITÉ n'a que « Partager » (le reste —
           éditer/supprimer/déplacer — reste réservé aux membres via canManage).
@@ -163,7 +163,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   return (
     <>
-      <WakeLockActivator />
+      <WakeLockActivator recipeId={id} />
       <EnrichmentPollingWrapper
         recipeId={id}
         enrichmentStatus={recipe.enrichmentStatus}

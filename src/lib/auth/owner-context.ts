@@ -24,6 +24,8 @@ export type OwnerContext = {
   /** Email de secours (#14), déjà normalisé lowercase. NULL → pas posé. */
   recoveryEmail: string | null;
   sessionId: string;
+  /** Plateforme de la session (rafraîchie par le ping) — contexte des événements (#28). */
+  platform?: string;
   memberships: OwnerMembership[];
 };
 
@@ -44,7 +46,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const { data, error } = await supabase
     .from("device_sessions")
     .select(
-      "owner_id, is_revoked, owners(name, alias, recovery_email, memberships(household_id, role, households(is_demo)))",
+      "owner_id, is_revoked, platform, owners(name, alias, recovery_email, memberships(household_id, role, households(is_demo)))",
     )
     .eq("id", sessionId)
     .maybeSingle();
@@ -68,6 +70,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     ownerAlias: row.owners.alias ?? null,
     recoveryEmail: row.owners.recovery_email ?? null,
     sessionId,
+    platform: row.platform,
     memberships,
   };
 }

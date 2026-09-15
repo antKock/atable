@@ -290,3 +290,46 @@ describe("proxy — sondes (#26)", () => {
     }
   });
 });
+
+describe("proxy — identité anonyme des événements (#28)", () => {
+  const ANON = "1b4e28ba-2fa1-11d2-883f-0016d3cca427";
+
+  it("pose le cookie mijote_aid à la première requête et l'injecte en x-anon-id", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const res = await proxy(makeRequest("/join/ABCD"));
+    const cookie = res.cookies.get("mijote_aid")?.value;
+    expect(cookie).toMatch(/^[0-9a-f-]{36}$/);
+    expect(forwardedHeader(res, "x-anon-id")).toBe(cookie);
+  });
+
+  it("réutilise le cookie existant sans le reposer ; un x-anon-id client est écrasé", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const req = makeRequest("/support", { headers: { "x-anon-id": "spoof" } });
+    req.cookies.set("mijote_aid", ANON);
+    const res = await proxy(req);
+    expect(res.cookies.get("mijote_aid")).toBeUndefined();
+    expect(forwardedHeader(res, "x-anon-id")).toBe(ANON);
+  });
+
+  it("remplace un cookie mal formé", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const req = makeRequest("/support");
+    req.cookies.set("mijote_aid", "garbage");
+    const res = await proxy(req);
+    expect(res.cookies.get("mijote_aid")?.value).toMatch(/^[0-9a-f-]{36}$/);
+  });
+
+  it("/api/events est public, et reçoit x-session-id quand un jeton est valide", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const anon = await proxy(makeRequest("/api/events", { method: "POST" }));
+    expect(anon.status).toBe(200);
+    expect(forwardedHeader(anon, "x-session-id")).toBeNull();
+
+    vi.mocked(verifySession).mockResolvedValue(PAYLOAD);
+    const withSession = await proxy(makeRequest("/api/events", { method: "POST", cookie: "tok" }));
+    expect(withSession.status).toBe(200);
+    expect(forwardedHeader(withSession, "x-session-id")).toBe(PAYLOAD.sid);
+    // Pas de contrôle de révocation Redis sur cette route.
+    expect(redis.get).not.toHaveBeenCalled();
+  });
+});

@@ -172,6 +172,7 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
       {canManage && (
         <Link
           href={`/household/${household.id}/invite`}
+          data-track="household.invite"
           className="mb-6 flex min-h-12 items-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-[15px] font-medium text-accent transition-colors hover:bg-accent/5"
         >
           <UserPlus size={18} strokeWidth={2} aria-hidden="true" />

@@ -5,6 +5,7 @@ import { getOwnerContext, memberHouseholdIds, type OwnerContext } from "@/lib/au
 import { getT } from "@/lib/i18n/server";
 import type { FullDictionary } from "@/lib/i18n/types";
 import { DEFAULT_MAX_BODY_BYTES, rejectOversizedBody } from "@/lib/body-limit";
+import { recordApiCall } from "@/lib/events/api-call";
 
 export type WithOwnerAuthOptions = {
   /**
@@ -77,6 +78,16 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
   // `context` optionnel dans la signature retournée : les tests appellent les
   // handlers sans params avec un seul argument ; Next passe toujours les deux.
   return async (request: Req, context?: C): Promise<Res | NextResponse> => {
+    // Flux C des événements produit (#28) : chaque appel d'une route owner émet
+    // `api.called` (motif, statut, durée, code d'erreur) — succès, refus
+    // applicatifs (403 démo, 413…) et 500 compris. Un 401 (session inconnue)
+    // n'est pas tracé : rien à rattacher, et c'est surtout du scanner.
+    const startedAt = performance.now();
+    let owner: OwnerContext | null = null;
+    const respond = async (res: Res | NextResponse) => {
+      if (owner) await recordApiCall({ request, response: res, startedAt, owner });
+      return res;
+    };
     try {
       // Avant la session : un simple contrôle d'en-tête, pas d'accès DB.
       const tooLarge = await rejectOversizedBody(request, maxBodyBytes);
@@ -85,20 +96,20 @@ export function withOwnerAuth<Req extends Request, C, Res extends Response>(
       // Dans le try : une erreur de résolution (DB indisponible) doit donner
       // un 500 capturé, PAS un 401 — un 401 déclencherait la purge du cookie
       // côté client alors que la session est probablement valide.
-      const owner = await getOwnerContext();
+      owner = await getOwnerContext();
       if (!owner) {
         const t = await getT();
         return NextResponse.json({ error: t.api.unauthorized }, { status: 401 });
       }
       if (!allowDemoMutation && !READ_METHODS.has(request.method) && isDemoOwner(owner)) {
-        return await demoFrozenResponse();
+        return await respond(await demoFrozenResponse());
       }
-      return await handler(request, context as C, owner);
+      return await respond(await handler(request, context as C, owner));
     } catch (err) {
       Sentry.captureException(err);
       console.error(`[api] ${request.method} ${new URL(request.url).pathname}:`, err);
       const t = await getT();
-      return NextResponse.json({ error: t.api.serverError }, { status: 500 });
+      return await respond(NextResponse.json({ error: t.api.serverError }, { status: 500 }));
     }
   };
 }

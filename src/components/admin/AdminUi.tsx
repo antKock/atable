@@ -1,3 +1,4 @@
+import Link from "next/link";
 // Briques serveur du dashboard v3 (pas de "use client") : barre, cartes,
 // tunnels, définitions dépliables, grands chiffres. Partagées par
 // /admin/stats, /admin/explorer et /admin/sante.
@@ -9,7 +10,7 @@ export function Topbar({
   current,
   dataDate,
 }: {
-  current: "stats" | "explorer" | "sante";
+  current: "stats" | "explorer" | "sante" | "parcours";
   dataDate: string;
 }) {
   return (
@@ -31,6 +32,9 @@ export function Topbar({
         <a href="/admin/sante" className={current === "sante" ? "active" : undefined}>
           Santé
         </a>
+        <Link href="/admin/parcours" className={current === "parcours" ? "active" : undefined}>
+          Parcours
+        </Link>
       </div>
     </div>
   );
