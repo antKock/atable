@@ -182,7 +182,9 @@ const OUT_OF_SCOPE = ["src/app/admin/", "src/components/admin/"];
  */
 function clickableTags(text: string): { tag: string; attrs: string; line: number }[] {
   const out: { tag: string; attrs: string; line: number }[] = [];
-  const re = /<(button|Button|Link|a)\b/g;
+  // Tout élément : les non-cliquables sont filtrés après lecture des attributs
+  // (`role="button"` les rend cliquables ; un `onClick` dessus est une erreur).
+  const re = /<([A-Za-z][A-Za-z0-9.]*)\b/g;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     let i = m.index + m[0].length;
@@ -196,18 +198,45 @@ function clickableTags(text: string): { tag: string; attrs: string; line: number
     }
     const attrs = text.slice(m.index + m[0].length, i);
     // `<Link>` cité dans un commentaire (`// … rend un <Link>`) : pas du JSX.
-    if (
-      attrs.trim() === "" ||
-      /^\s*\/\//m.test(text.slice(text.lastIndexOf("\n", m.index) + 1, m.index))
-    )
-      continue;
-    if (m[1] === "a" && !/\bhref=/.test(attrs)) continue;
-    out.push({ tag: m[1], attrs, line: text.slice(0, m.index).split("\n").length });
+    if (/^\s*\/\//m.test(text.slice(text.lastIndexOf("\n", m.index) + 1, m.index))) continue;
+    const tag = m[1];
+    const line = text.slice(0, m.index).split("\n").length;
+    const clickable =
+      tag === "button" ||
+      tag === "Button" ||
+      tag === "Link" ||
+      (tag === "a" && /\bhref=/.test(attrs)) ||
+      /\brole=["']button["']/.test(attrs);
+    if (clickable) {
+      out.push({ tag, attrs, line });
+    } else if (/\bonClick=/.test(attrs) && /^(div|span|li|p|img|section|h[1-6]|td|tr)$/.test(tag)) {
+      // Cliquable de fait, invisible au journal (le listener ne voit que
+      // button / a / role=button) et inaccessible : refusé.
+      out.push({ tag: `${tag} onClick (utiliser <button> ou role="button")`, attrs: "", line });
+    }
   }
   return out;
 }
 
 describe("catalog — règle : tout cliquable est nommé", () => {
+  it("le scanner voit role=button, ignore les commentaires, refuse onClick sur un div", () => {
+    const sample = [
+      "// rend un <Link> ou un <button>",
+      '<button data-track="x.y">ok</button>',
+      '<div role="button" onClick={() => go()}>sans nom</div>',
+      "<span onClick={() => go()}>interdit</span>",
+      '<Link href="/x">sans nom</Link>',
+      "<a>pas un lien</a>",
+    ].join("\n");
+    const found = clickableTags(sample).map((t) => `${t.line}:${t.tag}`);
+    expect(found).toEqual([
+      "2:button",
+      "3:div",
+      '4:span onClick (utiliser <button> ou role="button")',
+      "5:Link",
+    ]);
+  });
+
   it("aucun bouton ni lien sans data-track hors héritage déclaré", () => {
     const missing: string[] = [];
     for (const file of walk(join(ROOT, "src"))) {
