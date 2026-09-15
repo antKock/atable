@@ -147,3 +147,94 @@ describe("catalog — anti-dérive (data-track ↔ code ↔ vues SQL)", () => {
     expect(orphans, "cibles orphelines").toEqual([]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// La règle (décision du 2026-09-15 après les premières lectures prod) : tout
+// élément cliquable porte un `data-track` (ou une prop `track`), sauf s'il
+// hérite d'un conteneur nommé — auquel cas son fichier est déclaré ci-dessous
+// avec le conteneur dont il hérite. Un nouveau bouton sans nom fait échouer la
+// CI : la trace de secours `?button` est pour l'imprévu réel, pas pour l'oubli.
+// ---------------------------------------------------------------------------
+
+/** Fichiers dont les cliquables sans nom héritent d'un conteneur `data-track`. */
+const INHERITS: Record<string, string> = {
+  "src/components/recipes/FilterBar.tsx": "library.filter.* (options du panneau)",
+  "src/components/recipes/form/PhotoManager.tsx": "recipe.add_photo (bouton d'ajout)",
+  "src/components/recipes/import/ImportCard.tsx":
+    "import.url / import.photo / import.voice (tuile)",
+  "src/components/recipes/import/ImportSelector.tsx":
+    "import.* (puces « ou plutôt », data-track calculé)",
+  "src/components/recipes/import/UrlImporter.tsx": "import.url",
+  "src/components/recipes/import/ScreenshotImporter.tsx": "import.photo",
+  "src/components/recipes/import/VoiceImporter.tsx": "import.voice",
+  "src/app/(landing)/support/content-fr.tsx": "support.links",
+  "src/app/(landing)/support/content-en.tsx": "support.links",
+  "src/app/(landing)/legal/confidentialite/content-fr.tsx": "legal.links",
+  "src/app/(landing)/legal/confidentialite/content-en.tsx": "legal.links",
+};
+
+/** Hors périmètre du journal : admin (provider désactivé). */
+const OUT_OF_SCOPE = ["src/app/admin/", "src/components/admin/"];
+
+/**
+ * Balises ouvrantes cliquables (`button`, `Button`, `Link`, `a href`) avec leurs
+ * attributs, en respectant les accolades (`onClick={() => …}` contient un `>`).
+ */
+function clickableTags(text: string): { tag: string; attrs: string; line: number }[] {
+  const out: { tag: string; attrs: string; line: number }[] = [];
+  const re = /<(button|Button|Link|a)\b/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text))) {
+    let i = m.index + m[0].length;
+    let depth = 0;
+    while (i < text.length) {
+      const c = text[i];
+      if (c === "{") depth++;
+      else if (c === "}") depth--;
+      else if (c === ">" && depth === 0 && text[i - 1] !== "=") break;
+      i++;
+    }
+    const attrs = text.slice(m.index + m[0].length, i);
+    // `<Link>` cité dans un commentaire (`// … rend un <Link>`) : pas du JSX.
+    if (
+      attrs.trim() === "" ||
+      /^\s*\/\//m.test(text.slice(text.lastIndexOf("\n", m.index) + 1, m.index))
+    )
+      continue;
+    if (m[1] === "a" && !/\bhref=/.test(attrs)) continue;
+    out.push({ tag: m[1], attrs, line: text.slice(0, m.index).split("\n").length });
+  }
+  return out;
+}
+
+describe("catalog — règle : tout cliquable est nommé", () => {
+  it("aucun bouton ni lien sans data-track hors héritage déclaré", () => {
+    const missing: string[] = [];
+    for (const file of walk(join(ROOT, "src"))) {
+      if (!file.endsWith(".tsx")) continue;
+      const rel = file.replace(ROOT + "/", "");
+      if (OUT_OF_SCOPE.some((p) => rel.startsWith(p)) || rel in INHERITS) continue;
+      const text = readFileSync(file, "utf8");
+      for (const t of clickableTags(text)) {
+        if (/data-track=|\btrack=/.test(t.attrs)) continue;
+        missing.push(`${rel}:${t.line} <${t.tag}>`);
+      }
+    }
+    expect(
+      missing,
+      'cliquables sans nom — poser data-track="domaine.cible" (au catalogue), data-track="none", ou déclarer l\'héritage dans INHERITS',
+    ).toEqual([]);
+  });
+
+  it("les fichiers déclarés en héritage existent encore", () => {
+    const gone = Object.keys(INHERITS).filter((rel) => {
+      try {
+        statSync(join(ROOT, rel));
+        return false;
+      } catch {
+        return true;
+      }
+    });
+    expect(gone).toEqual([]);
+  });
+});

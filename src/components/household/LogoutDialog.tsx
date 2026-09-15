@@ -61,6 +61,7 @@ export default function LogoutDialog({ hasRecoveryEmail }: Props) {
           <DialogFooter>
             <Button
               variant="outline"
+              data-track="household.logout_cancel"
               onClick={() => setOpen(false)}
               disabled={submitting}
               className="min-h-11"

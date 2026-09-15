@@ -16,6 +16,8 @@ type Props = {
   title: string;
   body?: ReactNode;
   cta?: CenteredStateCta;
+  /** Identifiant `data-track` (#28) du CTA. */
+  track?: string;
   /** Variante resserrée (aucun résultat de recherche) : marge et titre réduits. */
   compact?: boolean;
 };
@@ -27,7 +29,14 @@ type Props = {
  * Composant serveur-compatible (aucun hook) : `title` et `body` arrivent
  * déjà traduits.
  */
-export default function CenteredState({ illustration, title, body, cta, compact = false }: Props) {
+export default function CenteredState({
+  illustration,
+  title,
+  body,
+  cta,
+  compact = false,
+  track = "state.cta",
+}: Props) {
   return (
     <div className={`mx-auto max-w-xs px-4 text-center ${compact ? "mt-12" : "mt-16"}`}>
       <div className={`flex justify-center ${compact ? "mb-4" : "mb-5"}`}>{illustration}</div>
@@ -37,11 +46,17 @@ export default function CenteredState({ illustration, title, body, cta, compact 
       {body && <p className={`mt-2 text-muted-foreground ${compact ? "text-sm" : ""}`}>{body}</p>}
       {cta &&
         ("href" in cta ? (
-          <Link href={cta.href} className={CTA_CLASS} style={CTA_STYLE}>
+          <Link href={cta.href} className={CTA_CLASS} style={CTA_STYLE} data-track={track}>
             {cta.label}
           </Link>
         ) : (
-          <button type="button" onClick={cta.onClick} className={CTA_CLASS} style={CTA_STYLE}>
+          <button
+            type="button"
+            onClick={cta.onClick}
+            className={CTA_CLASS}
+            style={CTA_STYLE}
+            data-track={track}
+          >
             {cta.label}
           </button>
         ))}

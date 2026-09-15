@@ -61,6 +61,7 @@ export default function HouseholdPickerDialog({
               <li key={foyer.id}>
                 <button
                   type="button"
+                  data-track="recipe.move_pick"
                   disabled={inert}
                   onClick={() => !foyer.disabled && onSelect(foyer.id)}
                   className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50 disabled:cursor-default disabled:hover:bg-transparent"

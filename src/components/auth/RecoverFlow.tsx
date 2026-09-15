@@ -182,6 +182,7 @@ export default function RecoverFlow({ onBack }: Props) {
 
           <button
             type="button"
+            data-track="recover.resend"
             onClick={resend}
             disabled={resendLeft > 0 || sending}
             className="mb-8 mt-4 min-h-11 text-sm font-medium text-muted-foreground transition-opacity hover:opacity-80 disabled:opacity-50"

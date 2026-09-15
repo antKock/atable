@@ -53,6 +53,7 @@ export default function GlobalError({
         <p>{t.feedback.loadError}</p>
         <button
           onClick={reset}
+          data-track="error.retry"
           style={{
             background: "none",
             border: "none",

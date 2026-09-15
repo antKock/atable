@@ -96,6 +96,7 @@ export default function MemberActionDialog({ householdId, member, onClose }: Pro
             <Button
               variant="ghost"
               type="button"
+              data-track="household.member_role"
               disabled={isSubmitting}
               onClick={() => changeRole(isGuest ? "member" : "guest")}
               className="min-h-11 justify-start gap-3 px-3"
@@ -112,6 +113,7 @@ export default function MemberActionDialog({ householdId, member, onClose }: Pro
             <Button
               variant="ghost"
               type="button"
+              data-track="household.member_remove"
               disabled={isSubmitting}
               onClick={remove}
               className="min-h-11 justify-start gap-3 px-3 text-destructive hover:bg-destructive/10 hover:text-destructive"

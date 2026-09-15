@@ -16,7 +16,7 @@ export default function RecipeCarousel({ title, recipes, track }: RecipeCarousel
   if (recipes.length === 0) return null;
 
   return (
-    <section role="region" aria-label={t.a11y.carousel(title)} data-track={track}>
+    <section role="region" aria-label={t.a11y.carousel(title)}>
       <h2
         className="display mb-3 px-4 text-foreground"
         style={{
@@ -29,7 +29,7 @@ export default function RecipeCarousel({ title, recipes, track }: RecipeCarousel
       </h2>
       <div className="flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {recipes.map((recipe) => (
-          <RecipeCard key={recipe.id} recipe={recipe} variant="carousel" />
+          <RecipeCard key={recipe.id} recipe={recipe} variant="carousel" track={track} />
         ))}
       </div>
     </section>

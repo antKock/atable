@@ -169,6 +169,7 @@ export default function LibraryContent({
           />
           {isSearching && (
             <button
+              data-track="library.search_clear"
               onClick={() => setQuery("")}
               aria-label={t.search.clearAriaLabel}
               className="absolute right-3 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:text-foreground"
@@ -193,6 +194,7 @@ export default function LibraryContent({
           <EmptyLibraryState isGuest={isGuest} />
         ) : (
           <CenteredState
+            track="library.empty_cta"
             compact
             illustration={
               <span style={{ opacity: 0.6 }}>
@@ -207,6 +209,7 @@ export default function LibraryContent({
         <div className="grid grid-cols-2 gap-3 px-4 lg:grid-cols-3 xl:grid-cols-4">
           {displayedRecipes.map((recipe) => (
             <RecipeCard
+              track="library.open"
               key={recipe.id}
               recipe={recipe}
               variant="grid"

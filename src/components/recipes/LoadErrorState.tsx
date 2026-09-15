@@ -25,6 +25,7 @@ export default function LoadErrorState({ onRetry }: { onRetry: () => void }) {
       title={t.loadError.title}
       body={t.loadError.body}
       cta={{ label: t.loadError.retry, onClick: onRetry }}
+      track="error.retry"
     />
   );
 }

@@ -111,6 +111,7 @@ export default function InstallAppBanner({ code }: Props) {
       </button>
       <button
         type="button"
+        data-track="hint.install_code.store"
         onClick={openStore}
         className="mt-3 block text-xs font-medium text-accent transition-opacity hover:opacity-80"
       >

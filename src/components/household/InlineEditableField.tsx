@@ -65,6 +65,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
         {!readOnly && (
           <button
             type="button"
+            data-track="household.rename"
             onClick={enterEdit}
             aria-label={t.household.rename}
             className="flex min-h-11 min-w-[44px] items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
@@ -90,6 +91,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
         />
         <button
           type="button"
+          data-track="household.rename_save"
           onClick={handleSave}
           disabled={isSaving}
           aria-label={t.actions.save}
@@ -103,6 +105,7 @@ export default function InlineEditableField({ value, onSave, readOnly = false }:
         </button>
         <button
           type="button"
+          data-track="household.rename_cancel"
           onClick={cancel}
           disabled={isSaving}
           aria-label={t.actions.cancel}

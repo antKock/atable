@@ -37,6 +37,7 @@ export default function ChipSelector({
         return (
           <button
             key={opt.value}
+            data-track="recipe.form_chip"
             type="button"
             aria-pressed={isSelected}
             onClick={() => handleToggle(opt.value)}

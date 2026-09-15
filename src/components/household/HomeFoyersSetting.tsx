@@ -71,6 +71,7 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
     <>
       <button
         type="button"
+        data-track="household.home_foyers"
         onClick={() => setOpen(true)}
         className="flex min-h-14 w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50"
       >
@@ -100,6 +101,7 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
                 <li key={foyer.id}>
                   <button
                     type="button"
+                    data-track="household.home_foyer_toggle"
                     aria-pressed={shown}
                     disabled={locked}
                     onClick={() => toggle(foyer.id)}
@@ -130,7 +132,12 @@ export default function HomeFoyersSetting({ foyers, initialHiddenIds }: Props) {
           )}
 
           <DialogFooter>
-            <Button type="button" onClick={() => setOpen(false)} className="min-h-11 w-full">
+            <Button
+              type="button"
+              data-track="household.home_foyers_done"
+              onClick={() => setOpen(false)}
+              className="min-h-11 w-full"
+            >
               {t.household.homeFoyers.done}
             </Button>
           </DialogFooter>

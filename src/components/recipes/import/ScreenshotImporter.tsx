@@ -186,6 +186,7 @@ export default function ScreenshotImporter({
       {fileEntries.length === 0 ? (
         <button
           type="button"
+          data-track="import.photo_add"
           className="w-full cursor-pointer rounded-[14px] border-2 border-dashed border-border bg-background p-6 text-center transition-all hover:border-accent hover:bg-[rgba(110,122,56,0.12)]"
           onClick={() => handleAddClick(fileInputRef)}
         >
@@ -214,6 +215,7 @@ export default function ScreenshotImporter({
                 />
                 <button
                   type="button"
+                  data-track="import.photo_remove_file"
                   onClick={() => removeFile(entry.key)}
                   className="absolute right-0.75 top-0.75 flex h-5.5 w-5.5 items-center justify-center rounded-full bg-black/55 text-white transition-colors hover:bg-black/75"
                 >
@@ -224,6 +226,7 @@ export default function ScreenshotImporter({
             {fileEntries.length < MAX_FILES && (
               <button
                 type="button"
+                data-track="import.photo_add"
                 onClick={() => handleAddClick(addMoreInputRef)}
                 className="flex h-18 w-18 shrink-0 items-center justify-center rounded-[10px] border-2 border-dashed border-border text-muted-foreground transition-all hover:border-accent hover:text-accent"
               >
@@ -259,15 +262,26 @@ export default function ScreenshotImporter({
               <DialogTitle>{t.import.screenshot.sourceTitle}</DialogTitle>
             </DialogHeader>
             <div className="flex flex-col gap-2">
-              <Button variant="outline" className="min-h-11" onClick={() => void pickFromCamera()}>
+              <Button
+                variant="outline"
+                className="min-h-11"
+                data-track="import.photo_camera"
+                onClick={() => void pickFromCamera()}
+              >
                 {t.import.screenshot.takePhoto}
               </Button>
-              <Button variant="outline" className="min-h-11" onClick={() => void pickFromGallery()}>
+              <Button
+                variant="outline"
+                className="min-h-11"
+                data-track="import.photo_gallery"
+                onClick={() => void pickFromGallery()}
+              >
                 {t.import.screenshot.fromGallery}
               </Button>
               <Button
                 variant="ghost"
                 className="min-h-11"
+                data-track="import.photo_cancel"
                 onClick={() => setSourceDialogOpen(false)}
               >
                 {t.import.screenshot.cancel}

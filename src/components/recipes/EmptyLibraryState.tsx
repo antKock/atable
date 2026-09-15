@@ -10,6 +10,7 @@ export default function EmptyLibraryState({ isGuest }: { isGuest: boolean }) {
   const t = useT();
   return (
     <CenteredState
+      track="library.empty_cta"
       illustration={<CarnetIllustration size={72} accent="var(--accent)" />}
       title={t.empty.libraryTitle}
       body={t.empty.libraryBody}

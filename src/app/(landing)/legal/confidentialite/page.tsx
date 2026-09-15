@@ -10,5 +10,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function PrivacyPolicyPage() {
-  return (await getLocale()) === "en" ? <PrivacyEn /> : <PrivacyFr />;
+  // `legal.links` (#28) : ancres et liens de la page héritent.
+  return (
+    <div data-track="legal.links">
+      {(await getLocale()) === "en" ? <PrivacyEn /> : <PrivacyFr />}
+    </div>
+  );
 }

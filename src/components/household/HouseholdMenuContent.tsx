@@ -81,6 +81,7 @@ export default async function HouseholdMenuContent({
             <Link
               key={household.id}
               href={`/household/${household.id}`}
+              data-track="household.open"
               className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
             >
               <span className="min-w-0 flex-1">
@@ -110,6 +111,7 @@ export default async function HouseholdMenuContent({
           {!isDemo && (
             <Link
               href="/household/switch"
+              data-track="household.switch_screen"
               className="flex min-h-14 items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50"
             >
               <Plus size={18} className="shrink-0 text-accent" aria-hidden="true" />

@@ -18,6 +18,7 @@ export default function JoinForkScreen({ onCode, onRecover, onBack }: Props) {
     <div className="bg-sage-radial fixed inset-0 flex flex-col text-background">
       <button
         type="button"
+        data-track="nav.back"
         onClick={onBack}
         aria-label={t.a11y.backButton}
         className="fixed left-2 z-10 flex h-10 w-10 items-center justify-center text-background"

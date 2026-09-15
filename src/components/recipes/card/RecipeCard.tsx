@@ -9,6 +9,8 @@ import { getRecipePlaceholderGradient } from "@/lib/recipe-placeholder";
 import { parseDurationMax } from "@/lib/filters";
 
 interface RecipeCardProps {
+  /** Identifiant `data-track` (#28) : d'où la recette est ouverte. */
+  track?: string;
   recipe: {
     id: string;
     title: string;
@@ -39,6 +41,7 @@ function formatDuration(
 }
 
 export default function RecipeCard({
+  track = "recipe.open",
   recipe,
   variant = "carousel",
   householdName = null,
@@ -54,6 +57,7 @@ export default function RecipeCard({
   return (
     <Link
       href={`/recipes/${recipe.id}`}
+      data-track={track}
       aria-label={recipe.title}
       className={`group card-surface block transition-transform active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
         isCarousel ? "w-[62vw] flex-none lg:w-65" : "w-full"

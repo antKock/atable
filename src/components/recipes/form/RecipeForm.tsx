@@ -174,6 +174,7 @@ function ServingsStepper({
       <div className="flex items-center overflow-hidden rounded-[10px] border border-input bg-surface">
         <button
           type="button"
+          data-track="recipe.form_servings"
           aria-label={t.form.servingsDecrease}
           disabled={value !== null && value <= SERVINGS_MIN}
           onClick={() => step(-1)}
@@ -196,6 +197,7 @@ function ServingsStepper({
         />
         <button
           type="button"
+          data-track="recipe.form_servings"
           aria-label={t.form.servingsIncrease}
           disabled={value !== null && value >= SERVINGS_MAX}
           onClick={() => step(1)}
