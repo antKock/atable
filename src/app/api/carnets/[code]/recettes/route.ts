@@ -30,7 +30,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
 
   const supabase = createServerClient();
   const carnet = await resolveInviteCode(supabase, parsed.data);
-  if (!carnet || carnet.role !== "member") return NextResponse.json({ error: "Carnet inconnu" }, { status: 404 });
+  if (!carnet || carnet.role !== "member")
+    return NextResponse.json({ error: "Carnet inconnu" }, { status: 404 });
 
   const { data, error } = await supabase
     .from("recipes")
@@ -58,5 +59,8 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       majLe: r.updated_at,
     });
   }
-  return NextResponse.json({ carnet: { id: carnet.householdId, nom: carnet.householdName }, recettes });
+  return NextResponse.json({
+    carnet: { id: carnet.householdId, nom: carnet.householdName },
+    recettes,
+  });
 }

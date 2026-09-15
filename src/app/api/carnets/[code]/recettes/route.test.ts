@@ -7,7 +7,10 @@ import { createSupabaseMock, type SupabaseMock } from "@/test/supabase-mock";
 vi.mock("@/lib/supabase/server");
 
 let supa: SupabaseMock;
-const savedEnv = { BIEN_API_SECRET: process.env.BIEN_API_SECRET, APP_ORIGIN: process.env.APP_ORIGIN };
+const savedEnv = {
+  BIEN_API_SECRET: process.env.BIEN_API_SECRET,
+  APP_ORIGIN: process.env.APP_ORIGIN,
+};
 
 beforeEach(() => {
   supa = createSupabaseMock();
@@ -58,7 +61,12 @@ describe("GET /api/carnets/[code]/recettes", () => {
 
   it("renvoie les recettes du carnet avec leur lien public, en frappant le jeton manquant", async () => {
     supa.queueResults([
-      { data: [{ id: HOUSEHOLD, name: "Bien", join_code: "YUZU-2250", guest_join_code: "KIWI-1111" }], error: null },
+      {
+        data: [
+          { id: HOUSEHOLD, name: "Bien", join_code: "YUZU-2250", guest_join_code: "KIWI-1111" },
+        ],
+        error: null,
+      },
       {
         data: [
           {
@@ -107,7 +115,10 @@ describe("GET /api/carnets/[code]/recettes", () => {
       image: "https://photos/r1.webp",
       lien: "https://mijote.test/r/abc12345",
     });
-    expect(body.recettes[1]).toMatchObject({ image: "https://photos/r2-ia.webp", lien: "https://mijote.test/r/nouveau12" });
+    expect(body.recettes[1]).toMatchObject({
+      image: "https://photos/r2-ia.webp",
+      lien: "https://mijote.test/r/nouveau12",
+    });
     // Le mint est borné au foyer et ne touche qu'une recette sans jeton.
     const mint = supa.calls.find((c) => c.ops.some((o) => o.method === "update"));
     expect(mint?.ops.map((o) => o.method)).toEqual(["update", "eq", "eq", "is", "select"]);
