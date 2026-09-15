@@ -58,6 +58,7 @@ async function ErrorState() {
         <p className="text-base text-foreground">{t.joinLink.notFound}</p>
         <Link
           href="/"
+          data-track="join.home"
           className="text-sm text-accent underline underline-offset-4 hover:opacity-80"
         >
           {t.joinLink.backToLanding}

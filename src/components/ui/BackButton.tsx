@@ -70,7 +70,13 @@ export default function BackButton({
   const aria = label ?? t.a11y.backButton;
   if (href !== undefined) {
     return (
-      <Link href={href} aria-label={aria} className={cls} style={v.style} data-track={track}>
+      <Link
+        href={href}
+        aria-label={aria}
+        className={cls}
+        style={v.style}
+        data-track={track ?? "nav.back"}
+      >
         {v.icon}
       </Link>
     );
@@ -82,7 +88,7 @@ export default function BackButton({
       aria-label={aria}
       className={cls}
       style={v.style}
-      data-track={track}
+      data-track={track ?? "nav.back"}
     >
       {v.icon}
     </button>

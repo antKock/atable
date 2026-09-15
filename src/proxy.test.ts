@@ -333,3 +333,17 @@ describe("proxy — identité anonyme des événements (#28)", () => {
     expect(redis.get).not.toHaveBeenCalled();
   });
 });
+
+describe("proxy — ?probe=1 sur toute page (shell iOS via lien universel)", () => {
+  it("pose le cookie sonde depuis /join/… et /r/…, jamais depuis une route API", async () => {
+    vi.mocked(verifySession).mockResolvedValue(null);
+    const join = await proxy(makeRequest("/join/ABCD-1234?probe=1"));
+    expect(join.cookies.get("mijote_probe")?.value).toBe("1");
+    expect(forwardedHeader(join, "x-probe")).toBe("1");
+    const api = await proxy(
+      makeRequest("/api/households/lookup?code=X&probe=1", { method: "GET" }),
+    );
+    expect(api.cookies.get("mijote_probe")).toBeUndefined();
+    expect(forwardedHeader(api, "x-probe")).toBeNull();
+  });
+});

@@ -54,6 +54,7 @@ export default function RecoverConsume({ token }: Props) {
       </p>
       <Link
         href="/"
+        data-track="recover.home"
         className="mt-1 text-sm text-accent underline underline-offset-4 hover:opacity-80"
       >
         {t.recovery.backToLanding}

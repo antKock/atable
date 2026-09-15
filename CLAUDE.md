@@ -57,6 +57,21 @@ de promotion en prod. Cocher les cases du fichier au fil des lots.
   à chaque contexte Playwright (le harnais E2E le fait par défaut). Sans ce marqueur, la requête
   compte dans les stats (A/B, personnes, recettes) et pollue les mesures.
 
+- **Journal des événements produit (#28, `docs/specs/events/00-socle.md`)** — règles, vérifiées par
+  `src/lib/events/catalog.test.ts` (CI) :
+  - **tout élément cliquable est nommé** : `button` / `Button` / `Link` / `a href` / `role="button"`
+    porte un `data-track="domaine.cible"` du catalogue `src/lib/events/catalog.ts` (ou une prop
+    `track` sur les composants génériques) ; un nouvel identifiant s'ajoute au catalogue, jamais
+    en texte libre, et **ne se renomme jamais** (les vues SQL s'y réfèrent) ; un `onClick` sur un
+    `div`/`span` est refusé (invisible au journal, et inaccessible) ;
+  - **jamais de contenu dans `props`** (titre, URL, texte saisi, e-mail) — identifiants seulement ;
+  - **un « moment » est une vue SQL** (`v_import_funnel`…, migration), jamais un nouvel événement
+    émis ni une colonne `stats_daily` : les faits bruts (écrans, clics, appels API) suffisent ;
+  - côté serveur `await trackEvent(...)` pendant la requête (Next interdit `cookies()` dans
+    `after()`) ; côté client `track()` de `src/lib/events/client.ts` — rien d'autre ;
+  - lire : `node scripts/events/query.mjs prod|staging|local <fichier.sql|requête>` (lecture seule,
+    requêtes dans `scripts/events/queries/`), page `/admin/parcours` ; sondes et admin jamais écrits.
+
 - **Hébergement depuis le 2026-09-06 : VPS OVH + Dokploy** (`docs/infra/migration-vps-ovh.md`).
   Push sur `staging`/`main` → GitHub Actions (`checks` bloquant) → image GHCR → Dokploy
   (`staging.mijote…` / `mijote…`) → vérification du SHA via `APP_URL`. **Vercel est retiré

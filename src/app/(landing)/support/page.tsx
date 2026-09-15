@@ -10,5 +10,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function SupportPage() {
-  return (await getLocale()) === "en" ? <SupportEn /> : <SupportFr />;
+  // `support.links` (#28) : tout lien de la page (contact, confidentialité…) hérite.
+  return (
+    <div data-track="support.links">
+      {(await getLocale()) === "en" ? <SupportEn /> : <SupportFr />}
+    </div>
+  );
 }

@@ -30,10 +30,12 @@ function sessionRow(overrides: Record<string, unknown> = {}) {
   return {
     owner_id: "owner-1",
     is_revoked: false,
+    platform: "ios",
     owners: {
       name: null,
       alias: null,
       recovery_email: null,
+      is_probe: false,
       memberships: [
         { household_id: "household-1", role: "member", households: { is_demo: false } },
       ],
@@ -52,6 +54,9 @@ describe("resolveOwnerContext", () => {
       ownerAlias: null,
       recoveryEmail: null,
       sessionId: "session-1",
+      // Contexte des événements (#28) : plateforme de la session, owner sonde.
+      platform: "ios",
+      isProbe: false,
       memberships: [{ householdId: "household-1", role: "member", isDemo: false }],
     });
   });

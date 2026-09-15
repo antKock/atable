@@ -95,6 +95,7 @@ export default function HouseholdDetailContent({ household, viewerRole, members 
         <li key={member.ownerId}>
           <button
             type="button"
+            data-track="household.member"
             onClick={() =>
               setSelectedMember({
                 ownerId: member.ownerId,

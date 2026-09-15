@@ -140,6 +140,7 @@ export default function JoinConfirmation({
         {/* Mêmes pilules que l'accueil : crème pleine en primaire, contour à 55 % en secondaire. */}
         <button
           type="button"
+          data-track="join.confirm"
           onClick={handleJoin}
           disabled={loading}
           className="flex h-[54px] items-center justify-center rounded-[27px] bg-background text-[17px] font-semibold tracking-[-0.005em] text-foreground transition-opacity hover:opacity-90 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
@@ -149,6 +150,7 @@ export default function JoinConfirmation({
 
         <Link
           href="/"
+          data-track="join.home"
           className="flex h-[54px] items-center justify-center rounded-[27px] text-[17px] font-semibold tracking-[-0.005em] text-background transition-colors hover:bg-background/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-background/70"
           style={{ boxShadow: "inset 0 0 0 1.5px rgba(245, 241, 232, 0.55)" }}
         >

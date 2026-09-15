@@ -53,3 +53,14 @@ SELECT metric, counter, events, events - counter AS diff,
             ELSE 'ÉCART' END AS verdict
 FROM cmp
 ORDER BY metric;
+
+-- Témoin de la règle « tout cliquable est nommé » : cibles de secours (`?tag#id`)
+-- émises sur 14 j. Attendu : aucune ligne. Une ligne = un élément que le code ne
+-- déclare pas (composant tiers, élément dynamique) → à nommer.
+\echo --- cibles sans nom (attendu : 0 ligne)
+SELECT props->>'target' AS target, props->>'route' AS route, count(*) AS clicks, max(at) AS last_seen
+FROM events
+WHERE name = 'ui.clicked' AND props->>'target' LIKE '?%'
+  AND at::date BETWEEN current_date - 14 AND current_date - 1
+GROUP BY 1, 2
+ORDER BY clicks DESC;

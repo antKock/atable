@@ -148,6 +148,7 @@ export default function ShareRecipeActions({
         </div>
         <Link
           href="/home"
+          data-track="share.go_home"
           className="mt-2 flex items-center justify-center gap-1.5 py-1 text-[13.5px] font-medium text-primary"
         >
           {t.share.viewMyHousehold}

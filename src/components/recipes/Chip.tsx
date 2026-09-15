@@ -17,6 +17,7 @@ export default function Chip({ label, editable = false, onRemove }: ChipProps) {
       {editable && onRemove && (
         <button
           type="button"
+          data-track="recipe.remove_tag"
           onClick={onRemove}
           aria-label={`Retirer ${label}`}
           className="relative -mr-1 inline-flex h-4 w-4 items-center justify-center opacity-60 transition-opacity hover:opacity-100 before:absolute before:-inset-3 before:content-['']"

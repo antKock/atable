@@ -42,22 +42,32 @@ export default function EventsProvider() {
       track("ui.clicked", { target, ...screenRef() });
     };
 
-    const onVisibility = () => {
+    // iOS tire `visibilitychange: hidden` PUIS `pagehide` : une seule sortie
+    // d'écran par mise en arrière-plan (`left`), réarmée à la reprise.
+    let left = false;
+    const leave = () => {
       const s = screen.current;
+      if (s && !left) {
+        left = true;
+        track("screen.left", {
+          route: s.route,
+          params: s.params,
+          duration_ms: Date.now() - s.since,
+        });
+      }
+      flush(true);
+    };
+    const onVisibility = () => {
       if (document.visibilityState === "hidden") {
-        if (s)
-          track("screen.left", {
-            route: s.route,
-            params: s.params,
-            duration_ms: Date.now() - s.since,
-          });
-        flush(true);
+        leave();
       } else {
+        const s = screen.current;
         if (s) s.since = Date.now();
+        left = false;
         track("app.resumed", {});
       }
     };
-    const onPageHide = () => flush(true);
+    const onPageHide = leave;
 
     // Impressions : une fois par écran et par identifiant, quand la moitié de
     // l'élément est visible. Les éléments apparaissent après le rendu (données

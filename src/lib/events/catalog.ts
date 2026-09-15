@@ -93,12 +93,32 @@ export const DATA_TRACK_NONE = "none";
  * enums existants — jamais du texte libre.
  */
 export const DATA_TRACK_IDS = [
-  // Landing
+  // Navigation et états génériques
+  "nav.home",
+  "nav.new",
+  "nav.library",
+  "nav.household",
+  "nav.back", // BackButton sans identifiant dédié
+  "state.cta", // CenteredState sans identifiant dédié
+  "dialog.close",
+  "error.retry",
+  "error.home",
+  // Landing / onboarding
   "landing.start",
   "landing.demo",
   "landing.join",
   "landing.recover",
-  // Import (/recipes/new)
+  "landing.recover_submit",
+  "recover.resend",
+  "recover.home",
+  "join.confirm", // écran d'invitation : « rejoindre »
+  "join.home",
+  "household.join_code",
+  "household.join_submit",
+  "household.join_cancel",
+  "household.create_submit",
+  "household.create_cancel",
+  // Import (/recipes/new) — conteneur par méthode, actions internes nommées
   "import.url",
   "import.photo",
   "import.voice",
@@ -106,38 +126,76 @@ export const DATA_TRACK_IDS = [
   "import.submit",
   "import.sample", // « essaie celle-ci » (première recette, URL d'exemple)
   "import.back",
+  "import.photo_add",
+  "import.photo_remove_file",
+  "import.photo_camera", // dialogue source (portail Radix)
+  "import.photo_gallery",
+  "import.photo_cancel",
+  "import.voice_start",
   // Formulaire recette
   "recipe.save",
-  "recipe.add_photo",
-  "recipe.add_tag",
+  "recipe.add_photo", // conteneur PhotoManager (l'ajout hérite)
+  "recipe.photo_replace",
+  "recipe.photo_remove",
+  "recipe.photo_regenerate",
+  "recipe.add_tag", // conteneur TagInput
+  "recipe.remove_tag",
+  "recipe.form_servings",
+  "recipe.form_chip", // saison / coût / complexité
   // Vue recette
+  "recipe.open", // carte (bibliothèque : library.open ; carrousels : home.carousel.<key>)
   "recipe.edit",
   "recipe.delete",
+  "recipe.delete_cancel",
+  "recipe.delete_confirm",
   "recipe.share",
   "recipe.move",
+  "recipe.move_pick",
   "recipe.back",
-  // Accueil / bibliothèque / navigation
+  // Accueil / bibliothèque
   "home.carousel.*",
+  "library.open",
   "library.search",
-  "library.filter.*",
-  "nav.home",
-  "nav.library",
-  "nav.household",
-  "nav.new",
+  "library.search_clear",
+  "library.filter.*", // pilule ET panneau (portail) — les options héritent
+  "library.empty_cta",
   // Foyer
+  "household.open",
+  "household.profile",
   "household.invite",
   "household.invite_link", // copie du lien d'invitation
   "household.invite_code", // copie du code
-  "household.join_code",
+  "household.member",
+  "household.member_role",
+  "household.member_remove",
+  "household.rename",
+  "household.rename_save",
+  "household.rename_cancel",
+  "household.home_foyers",
+  "household.home_foyer_toggle",
+  "household.home_foyers_done",
+  "household.switch_screen",
   "household.switch", // « créer un autre carnet »
   "household.leave",
+  "household.leave_cancel",
+  "household.leave_confirm",
+  "household.delete",
+  "household.logout",
+  "household.logout_confirm",
+  "household.logout_cancel",
   "household.email_add", // enregistrement du profil (nom + e-mail de secours)
+  "household.email_resend",
   // Hints (+ data-seen sur le conteneur : impression `ui.seen`)
   "hint.*",
   "hint.*.act",
   "hint.*.dismiss",
+  "hint.install_code.store",
   // Partage public /r/[token]
   "share.copy_to_mine",
+  "share.go_home",
+  // Pages publiques : tout lien hérite du conteneur
+  "support.links",
+  "legal.links",
 ] as const;
 
 /** Un identifiant posé correspond-il au catalogue (préfixes `*` compris) ? */

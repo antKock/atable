@@ -20,7 +20,11 @@ export default function Error({
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
       <p className="text-muted-foreground">{t.feedback.loadError}</p>
-      <button onClick={reset} className="text-sm text-accent underline underline-offset-4">
+      <button
+        onClick={reset}
+        data-track="error.retry"
+        className="text-sm text-accent underline underline-offset-4"
+      >
         {t.retry}
       </button>
     </div>

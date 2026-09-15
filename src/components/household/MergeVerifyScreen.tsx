@@ -125,6 +125,7 @@ export default function MergeVerifyScreen({ email, onCancel }: Props) {
 
         <button
           type="button"
+          data-track="household.email_resend"
           onClick={resend}
           disabled={resendLeft > 0 || resending}
           className="mt-4 min-h-11 text-sm font-medium text-muted-foreground transition-opacity hover:opacity-80 disabled:opacity-50"

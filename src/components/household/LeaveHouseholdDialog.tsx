@@ -97,6 +97,7 @@ export default function LeaveHouseholdDialog({
         <Button
           variant="ghost"
           type="button"
+          data-track="household.delete"
           onClick={() => setStep("delete-1")}
           className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
@@ -114,6 +115,7 @@ export default function LeaveHouseholdDialog({
             <DialogFooter>
               <Button
                 variant="outline"
+                data-track="household.leave_cancel"
                 onClick={close}
                 disabled={isSubmitting}
                 className="min-h-11"
@@ -122,6 +124,7 @@ export default function LeaveHouseholdDialog({
               </Button>
               <Button
                 variant="destructive"
+                data-track="household.leave_confirm"
                 onClick={current.onConfirm}
                 disabled={isSubmitting}
                 className="min-h-11"

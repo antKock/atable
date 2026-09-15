@@ -92,6 +92,7 @@ export default function ConfirmDeleteDialog({
         <DialogFooter>
           <Button
             variant="outline"
+            data-track="recipe.delete_cancel"
             onClick={() => setOpen(false)}
             disabled={isDeleting}
             className="min-h-11"
@@ -100,6 +101,7 @@ export default function ConfirmDeleteDialog({
           </Button>
           <Button
             variant="destructive"
+            data-track="recipe.delete_confirm"
             onClick={handleDelete}
             disabled={isDeleting}
             className="min-h-11"

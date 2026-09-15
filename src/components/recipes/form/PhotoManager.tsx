@@ -74,6 +74,7 @@ export default function PhotoManager({
             {showRegenerate && (
               <button
                 type="button"
+                data-track="recipe.photo_regenerate"
                 onClick={onRegenerate}
                 aria-label={t.photoManager.regenerateAriaLabel}
                 className={`flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
@@ -90,6 +91,7 @@ export default function PhotoManager({
             )}
             <button
               type="button"
+              data-track="recipe.photo_replace"
               onClick={() => inputRef.current?.click()}
               aria-label={t.photoManager.replaceAriaLabel}
               className="flex min-h-[40px] flex-1 items-center justify-center rounded-lg border border-border bg-surface px-3 py-2 text-xs font-medium text-foreground hover:bg-secondary"
@@ -98,6 +100,7 @@ export default function PhotoManager({
             </button>
             <button
               type="button"
+              data-track="recipe.photo_remove"
               onClick={onRemove}
               aria-label={t.photoManager.removeAriaLabel}
               className="flex min-h-[40px] w-10 items-center justify-center rounded-lg border border-border bg-surface text-muted-foreground hover:text-destructive"

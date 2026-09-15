@@ -109,6 +109,13 @@ describe("POST /api/events", () => {
     expect(supa.calls).toHaveLength(0);
   });
 
+  it("owner marqué sonde (is_probe, ex. le shell iOS d'Anthony sans cookie) : rien n'est écrit", async () => {
+    mockOwner.mockResolvedValue(owner({ isProbe: true }));
+    const res = await POST(post({ events: [{ name: "app.opened", props: {}, at: Date.now() }] }));
+    expect(res.status).toBe(204);
+    expect(supa.calls).toHaveLength(0);
+  });
+
   it("sans x-anon-id (hors proxy) : rien n'est écrit", async () => {
     mockHeaders.mockResolvedValue(new Headers());
     await POST(post({ events: [{ name: "app.opened", props: {}, at: Date.now() }] }));

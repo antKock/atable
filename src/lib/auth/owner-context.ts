@@ -26,6 +26,8 @@ export type OwnerContext = {
   sessionId: string;
   /** Plateforme de la session (rafraîchie par le ping) — contexte des événements (#28). */
   platform?: string;
+  /** Owner marqué sonde (#26, migration 048) : ses actions ne sont jamais journalisées. */
+  isProbe?: boolean;
   memberships: OwnerMembership[];
 };
 
@@ -46,7 +48,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const { data, error } = await supabase
     .from("device_sessions")
     .select(
-      "owner_id, is_revoked, platform, owners(name, alias, recovery_email, memberships(household_id, role, households(is_demo)))",
+      "owner_id, is_revoked, platform, owners(name, alias, recovery_email, is_probe, memberships(household_id, role, households(is_demo)))",
     )
     .eq("id", sessionId)
     .maybeSingle();
@@ -71,6 +73,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     recoveryEmail: row.owners.recovery_email ?? null,
     sessionId,
     platform: row.platform,
+    isProbe: row.owners.is_probe ?? false,
     memberships,
   };
 }

@@ -72,6 +72,8 @@ test("un vrai visiteur : landing → carnet → recette, écrans / clics / API j
   expect(clicks).toContain("nav.new");
   expect(clicks).toContain("import.manual");
   expect(clicks).toContain("recipe.save");
+  // Règle « tout cliquable est nommé » : aucune trace de secours sur ce parcours.
+  expect(clicks.filter((c) => c.startsWith("?"))).toEqual([]);
 
   // Flux C — appels API : création du carnet (anonyme, avant la session) puis
   // création de la recette (rattachée à l'owner, avec source et recipe_id).

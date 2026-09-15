@@ -8,6 +8,7 @@ qui teste la prod. Marquée explicitement, elle n'écrit **aucune** mesure.
 | Qui | Comment | Durée |
 |---|---|---|
 | Un appareil (téléphone, navigateur) | ouvrir `https://mijote.anthonykocken.fr/?probe=1` (idem staging) → cookie `mijote_probe=1` ; la landing affiche « Sonde · hors stats » | 1 an |
+| **Le shell iOS / Android** (pas de barre d'adresse, cookie jar propre) | depuis Notes ou Messages, **taper un lien universel avec `?probe=1`**, ex. `https://mijote.anthonykocken.fr/join/PROBE-0000?probe=1` : il s'ouvre dans l'app, le proxy pose le cookie dans le jar du shell (depuis le 2026-09-15, `?probe=1` est accepté sur toute page, pas seulement la landing). En plus, **un owner marqué `is_probe`** (l'owner admin d'Anthony l'est) n'écrit jamais dans le journal des événements (#28), cookie ou pas | 1 an |
 | Un script, un agent | en-tête `x-mijote-probe: 1` sur chaque requête (le harnais E2E le pose par défaut, `newVisitor(browser, { probe: false })` pour un vrai visiteur) | par requête |
 
 Le proxy (`src/proxy.ts`) traduit les deux en `x-probe: 1` sur la requête interne ; un `x-probe`

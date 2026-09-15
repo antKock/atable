@@ -70,6 +70,7 @@ export default function CreateHouseholdForm({
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-page-gradient">
       <button
         type="button"
+        data-track="nav.back"
         onClick={onCancel}
         aria-label={t.a11y.backButton}
         className="fixed left-2 z-10 flex h-10 w-10 items-center justify-center text-foreground"
@@ -185,6 +186,7 @@ export default function CreateHouseholdForm({
 
         <button
           type="submit"
+          data-track="household.create_submit"
           disabled={(askName && !name.trim()) || submitting}
           className="w-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
           style={{
@@ -201,6 +203,7 @@ export default function CreateHouseholdForm({
 
         <button
           type="button"
+          data-track="household.create_cancel"
           onClick={secondary ? secondary.onClick : onCancel}
           disabled={submitting}
           className="w-full bg-transparent text-foreground disabled:opacity-50"

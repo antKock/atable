@@ -102,6 +102,7 @@ export default function VoiceImporter({
         <div className="flex flex-col items-center gap-3 py-4">
           <button
             type="button"
+            data-track="import.voice_start"
             onClick={async () => {
               try {
                 await voice.start();

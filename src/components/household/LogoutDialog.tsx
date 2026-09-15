@@ -43,6 +43,7 @@ export default function LogoutDialog({ hasRecoveryEmail }: Props) {
           variant="ghost"
           type="button"
           onClick={() => setOpen(true)}
+          data-track="household.logout"
           className="min-h-11 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive"
         >
           {t.profile.logout}
@@ -60,6 +61,7 @@ export default function LogoutDialog({ hasRecoveryEmail }: Props) {
           <DialogFooter>
             <Button
               variant="outline"
+              data-track="household.logout_cancel"
               onClick={() => setOpen(false)}
               disabled={submitting}
               className="min-h-11"
@@ -69,6 +71,7 @@ export default function LogoutDialog({ hasRecoveryEmail }: Props) {
             <Button
               variant="destructive"
               onClick={logout}
+              data-track="household.logout_confirm"
               disabled={submitting}
               className="min-h-11"
             >

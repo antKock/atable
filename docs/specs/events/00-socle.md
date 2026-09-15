@@ -217,9 +217,18 @@ qui existe.
 | Hints | conteneur `hint.<share\|email\|demo\|install\|install_code>` + `data-seen` (impression), `hint.<name>.act`, `hint.<name>.dismiss` |
 | Partage public `/r/[token]` | `share.copy_to_mine` |
 
-Les composants qui ne relaient pas leurs props (`BackButton`, `RecipeCarousel`,
-`ConfirmDeleteDialog`, `MiniStrip`) ont reçu une prop `track`. Les portails Radix (dialogs,
-popovers) ne sont pas sous leur déclencheur : le panneau porte le même identifiant.
+Les composants qui ne relaient pas leurs props (`BackButton`, `RecipeCard`, `RecipeCarousel`,
+`CenteredState`, `ConfirmDeleteDialog`, `MiniStrip`) ont reçu une prop `track` (avec un défaut :
+`nav.back`, `recipe.open`, `state.cta`). Les portails Radix (dialogs, popovers) ne sont pas sous
+leur déclencheur : leurs boutons sont nommés un à un.
+
+**Règle (2026-09-15, après les premières lectures prod) : tout élément cliquable est nommé.**
+`catalog.test.ts` scanne `src/` : un `button` / `Button` / `Link` / `a href` sans `data-track`
+(ni prop `track`) fait échouer la CI, sauf dans un fichier déclaré dans `INHERITS` avec le
+conteneur dont ses cliquables héritent (options de filtres, panneaux d'import, pages légales).
+La trace de secours `?button` reste pour l'imprévu réel (éléments dynamiques), jamais pour
+l'oubli. Attribution des cartes : `home.carousel.<key>` depuis un carrousel, `library.open`
+depuis la bibliothèque (la carte prend l'identifiant de son contexte, `closest()` oblige).
 
 ## 7. Émission
 
@@ -367,6 +376,10 @@ avant** (incident 046). Q1 / Q3 / Q6 lisibles deux à trois semaines après la m
 
 ## 12. Journal
 
+- **2026-09-16 (00 h 30)** — **tout cliquable nommé** (111 identifiants, règle en CI) après les
+  premières lignes prod (tests d'Anthony : quatre `?a` / `?button` sur son parcours). Et : owner
+  `is_probe` muet dans le journal (son shell iOS n'a pas le cookie sonde), `?probe=1` accepté sur
+  toute page (lien universel pour marquer le shell), garde contre le double `screen.left` iOS.
 - **2026-09-15 (nuit)** — **origine d'entrée + site d'import** (migration 053, `v_entries`,
   `sources.sql`) après la question d'Anthony « que ne pourra-t-on pas analyser ? » : la source
   d'acquisition web était le trou principal. Rappel des limites : referrer vide depuis les apps
