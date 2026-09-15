@@ -323,22 +323,45 @@ describe("assembleV3", () => {
 
 describe("bloc 0 et funnel hebdo", () => {
   const d = assembleV3(raw());
-  it("7 derniers jours : valeur J-7 → J-1, repère = médiane des 3 semaines d'avant, 14 barres", () => {
+  it("7 derniers jours : valeur J-7 → J-1, repère = médiane des 3 semaines d'avant, 14 barres closes + le jour en cours", () => {
     expect(d.overview.hotWindow).toEqual({ from: "2026-09-05", to: "2026-09-11" });
+    expect(d.overview.hotToday).toBe("2026-09-12");
     const by = Object.fromEntries(d.overview.hot.map((h) => [h.id, h]));
     expect(by.trials).toMatchObject({ value: 14, ref: 7, trend: "up" });
     expect(by.recipes).toMatchObject({ value: 7, ref: 0, trend: "up" });
     expect(by.active).toMatchObject({ value: 3, ref: 2, trend: "up" });
-    expect(by.downloads.value).toBe(0); // 01/09 et 02/09 sont hors des 7 derniers jours…
-    expect(by.downloads.bars).toHaveLength(14);
-    expect(by.downloads.barDays[0]).toBe("2026-08-29");
-    expect(by.downloads.barDays[13]).toBe("2026-09-11");
+    expect(by.trials.window).toEqual({ from: "2026-09-05", to: "2026-09-11" });
+    // 14 jours clos (29/08 → 11/09) + la journée en cours, marquée partielle.
+    expect(by.trials.bars).toHaveLength(15);
+    expect(by.trials.bars[0].day).toBe("2026-08-29");
+    expect(by.trials.bars[13].day).toBe("2026-09-11");
+    expect(by.trials.bars[14]).toMatchObject({ day: "2026-09-12", partial: true, inWindow: false });
     // Médiane du même jour de semaine sur 4 semaines : essais = 1 avant les 7 derniers jours (2 ensuite)
-    expect(by.trials.barRefs[13]).toBe(1); // 11/09 : 04/09 (2), 28/08, 21/08, 14/08 (1) → médiane 1
-    expect(by.trials.barRefs[0]).toBe(1);
-    expect(by.trials.barRefs).toHaveLength(14);
-    expect(by.downloads.bars.reduce((a, b) => a + b, 0)).toBe(9); // …mais dans les 14 barres
+    expect(by.trials.bars[13].ref).toBe(1); // 11/09 : 04/09 (2), 28/08, 21/08, 14/08 (1) → médiane 1
+    expect(by.trials.bars[0].ref).toBe(1);
     expect(by.new.value).toBe(0); // new_people de la série quotidienne (0 ici)
+  });
+
+  it("App Store en retard : fenêtre recalée au dernier jour livré, jours suivants absents (pas zéro)", () => {
+    const by = Object.fromEntries(d.overview.hot.map((h) => [h.id, h]));
+    // Apple s'arrête au 02/09 : la fenêtre finit là, sinon 5 jours vides tireraient le total à 0.
+    expect(by.downloads.window).toEqual({ from: "2026-08-27", to: "2026-09-02" });
+    expect(by.downloads).toMatchObject({ value: 9, ref: 0, trend: "up" });
+    expect(by.downloads.hint).toBe("7 jours arrêtés au 2 sept. — dernier jour livré par Apple");
+    // Les jours non livrés valent null (barre grise), pas 0.
+    expect(by.downloads.bars.filter((b) => b.value === null).map((b) => b.day)).toEqual([
+      "2026-09-03",
+      "2026-09-04",
+      "2026-09-05",
+      "2026-09-06",
+      "2026-09-07",
+      "2026-09-08",
+      "2026-09-09",
+      "2026-09-10",
+      "2026-09-11",
+      "2026-09-12",
+    ]);
+    expect(by.downloads.bars.reduce((a, b) => a + (b.value ?? 0), 0)).toBe(9);
   });
   it("funnel App Store par semaine : comptes et taux, grisé sous 20 téléchargements", () => {
     const w = d.acquisition.appStore.funnelWeekly;

@@ -144,20 +144,30 @@ export type KpiTile = {
   spark?: number[];
 };
 
+export type HotBar = {
+  day: string;
+  /** null = la source n'a pas encore livré ce jour (Apple) → barre grise, pas un zéro. */
+  value: number | null;
+  /** Médiane du MÊME jour de semaine sur les 4 semaines précédentes (dimanche bas = normal ou pas ?). */
+  ref: number;
+  /** Jour en cours : données partielles, ni colorées par comparaison ni comptées dans la valeur. */
+  partial: boolean;
+  /** Fait partie des 7 jours de la valeur affichée. */
+  inWindow: boolean;
+};
+
 export type HotIndicator = {
   id: string;
   label: string;
-  /** Valeur des 7 derniers jours clos (J-7 → J-1). */
-  value: number;
-  /** Médiane des 3 semaines précédentes (J-28 → J-8), même unité. */
-  ref: number;
-  trend: "up" | "down" | "flat";
-  /** 14 dernières valeurs quotidiennes (J-14 → J-1), leurs jours ISO, et pour
-   *  chaque jour la médiane du MÊME jour de semaine sur les 4 semaines
-   *  précédentes (dimanche bas = normal ou pas ?). */
-  bars: number[];
-  barDays: string[];
-  barRefs: number[];
+  /** Total (ou moyenne) des 7 jours clos de `window` ; null = aucune donnée. */
+  value: number | null;
+  /** Médiane des 3 fenêtres de 7 jours précédentes, même unité. */
+  ref: number | null;
+  trend: "up" | "down" | "flat" | null;
+  /** 14 jours clos finissant à J-1, plus le jour en cours (`partial`). */
+  bars: HotBar[];
+  /** Fenêtre de la valeur : J-7 → J-1, recalée sur le dernier jour livré. */
+  window: { from: string; to: string } | null;
   unit?: string;
   hint?: string;
 };
@@ -354,15 +364,23 @@ export function assembleV3(raw: RawV3) {
   const dlByDay = new Map<string, number>();
   for (const r of raw.appStore)
     dlByDay.set(r.day, (dlByDay.get(r.day) ?? 0) + num(r.dl_first_time));
+  // Le jour en cours est ajouté en barre partielle (hors valeur et hors repère) :
+  // la journée se voit se remplir sans fausser la comparaison au repère.
   const hotOf = (
     id: string,
     label: string,
     get: (day: string) => number,
-    opts: { avg?: boolean; unit?: string; hint?: string } = {},
-  ): HotIndicator => hotIndicator(id, label, get, yesterday, opts);
+    opts: { avg?: boolean; unit?: string; hint?: string; lastKnownDay?: string | null } = {},
+  ): HotIndicator => hotIndicator(id, label, get, yesterday, { ...opts, today });
   const hot: HotIndicator[] = [
     hotOf("downloads", "Téléchargements App Store", (d) => dlByDay.get(d) ?? 0, {
-      hint: appStoreLastDay ? `Apple jusqu'au ${shortDate(appStoreLastDay)}` : undefined,
+      // Apple livre ses instances avec 2-3 jours de retard : au-delà, donnée absente.
+      lastKnownDay: appStoreLastDay,
+      hint: appStoreLastDay
+        ? appStoreLastDay < yesterday
+          ? `7 jours arrêtés au ${shortDate(appStoreLastDay)} — dernier jour livré par Apple`
+          : `Apple jusqu'au ${shortDate(appStoreLastDay)}`
+        : "aucune donnée Apple",
     }),
     hotOf("trials", "Essais démo", (d) => num(dailyByDay.get(d)?.trials)),
     hotOf("new", "Nouvelles personnes", (d) => num(dailyByDay.get(d)?.new_people)),
@@ -505,7 +523,9 @@ export function assembleV3(raw: RawV3) {
   const overview = {
     dataDate: today,
     hot,
+    /** Fenêtre de référence du bloc 0 (7 jours clos) ; `hotToday` = la barre en cours. */
     hotWindow: { from: addDays(yesterday, -6), to: yesterday },
+    hotToday: today,
     weekLabel: `semaine du ${shortDate(starts12[WEEKS - 1])}`,
     northStar: {
       value: activeNow,

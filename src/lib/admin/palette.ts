@@ -14,6 +14,11 @@ export const PALETTE = {
   muted: "#6B6E68",
   faint: "#9A968C",
   grid: "#E5DED6",
+  /** Jour égal à sa médiane (mini-barres). */
+  sand: "#C9C2B2",
+  /** Donnée absente : la source n'a pas livré ce jour — jamais un zéro.
+   *  Volontairement plus clair et plus froid que `sand` (le zéro « égal à sa médiane »). */
+  absent: "#CFCCC6",
   surface: "#FBF8F1",
   paper: "#F1ECDF",
   border: "#E8E0CC",
