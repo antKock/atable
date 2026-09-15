@@ -240,7 +240,13 @@ function Tile({
       style={{ boxShadow: TILE_SHADOW, ...style }}
     >
       {recipe.imageUrl ? (
-        <Image src={recipe.imageUrl} alt={alt(recipe.title)} fill className="object-cover" sizes="160px" />
+        <Image
+          src={recipe.imageUrl}
+          alt={alt(recipe.title)}
+          fill
+          className="object-cover"
+          sizes="160px"
+        />
       ) : (
         // Illustration pas encore générée (~20 s après l'ajout) : le dégradé
         // déterministe des cartes recette, avec le titre — sinon la vignette

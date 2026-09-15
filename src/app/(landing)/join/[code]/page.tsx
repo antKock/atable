@@ -56,7 +56,10 @@ async function ErrorState() {
     <div className="flex flex-1 flex-col items-center justify-center px-6">
       <div className="flex w-full max-w-sm flex-col items-center gap-4 text-center">
         <p className="text-base text-foreground">{t.joinLink.notFound}</p>
-        <Link href="/" className="text-sm text-accent underline underline-offset-4 hover:opacity-80">
+        <Link
+          href="/"
+          className="text-sm text-accent underline underline-offset-4 hover:opacity-80"
+        >
           {t.joinLink.backToLanding}
         </Link>
       </div>
