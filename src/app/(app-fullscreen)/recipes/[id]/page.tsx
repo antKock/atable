@@ -163,7 +163,7 @@ export default async function RecipeDetailPage({ params }: Props) {
 
   return (
     <>
-      <WakeLockActivator recipeId={id} />
+      <WakeLockActivator />
       <EnrichmentPollingWrapper
         recipeId={id}
         enrichmentStatus={recipe.enrichmentStatus}

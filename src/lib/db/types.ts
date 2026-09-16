@@ -778,7 +778,9 @@ export type Database = {
           anon_id: string | null
           at: string | null
           duration_ms: number | null
+          from_route: string | null
           id: number | null
+          is_demo: boolean | null
           owner_id: string | null
           platform: string | null
           recipe_id: string | null

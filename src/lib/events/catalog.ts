@@ -18,10 +18,11 @@ export const EVENT_NAMES = [
   "ui.clicked",
   // Flux C — appels API (serveur, automatique) : withOwnerAuth + routes publiques.
   "api.called",
-  // Explicites — ce qu'aucun flux ne voit.
+  // Explicites — ce qu'aucun flux ne voit. (`recipe.cooking_started` retiré le
+  // 2026-09-16 : le wake lock s'obtient à chaque ouverture de fiche, il doublait
+  // screen.viewed ; « on cuisine » = durée de la fiche, vue v_cooking.)
   "ui.seen", // impression, opt-in `data-seen` (hints, CTA)
   "error.shown", // erreur affichée sans appel API derrière
-  "recipe.cooking_started", // wake lock obtenu
   "app.opened",
   "app.resumed",
 ] as const;
@@ -73,7 +74,6 @@ export type EventProps = {
   };
   "ui.seen": { target: string; route: string; params?: RouteParams };
   "error.shown": { kind: string; route: string };
-  "recipe.cooking_started": { recipe_id: string };
   "app.opened": Record<string, never>;
   "app.resumed": Record<string, never>;
 };

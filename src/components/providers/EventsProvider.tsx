@@ -34,6 +34,10 @@ export default function EventsProvider() {
   // Ouverture/reprise, clics, impressions, sortie de page : posés une fois.
   useEffect(() => {
     if (pathname.startsWith("/admin")) return;
+    // Cet effet précède l'effet écrans : activer ici, sinon `app.opened` est
+    // perdu (vu en prod le 2026-09-16 : 0 ouverture pour 150 reprises — le
+    // Strict Mode de dev rejouait les effets et masquait le défaut).
+    setEventsEnabled(true);
     track("app.opened", {});
 
     const onClick = (e: MouseEvent) => {

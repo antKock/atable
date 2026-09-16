@@ -33,6 +33,16 @@ describe("isTrackedApiPath", () => {
     expect(isTrackedApiPath("/api/recipes")).toBe(true);
     expect(isTrackedApiPath("/api/households/join")).toBe(true);
   });
+  it("exclut les lectures automatiques (polling de statut, tags, bibliothèque, liste) — pas les écritures", () => {
+    const id = "1b4e28ba-2fa1-11d2-883f-0016d3cca427";
+    expect(isTrackedApiPath(`/api/recipes/${id}/status`, "GET")).toBe(false);
+    expect(isTrackedApiPath("/api/tags", "GET")).toBe(false);
+    expect(isTrackedApiPath("/api/library", "GET")).toBe(false);
+    expect(isTrackedApiPath("/api/recipes", "GET")).toBe(false);
+    expect(isTrackedApiPath("/api/recipes", "POST")).toBe(true);
+    expect(isTrackedApiPath("/api/tags", "POST")).toBe(true);
+    expect(isTrackedApiPath("/api/households/lookup", "GET")).toBe(true);
+  });
 });
 
 describe("extractErrorCode", () => {
