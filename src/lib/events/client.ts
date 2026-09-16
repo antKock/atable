@@ -154,8 +154,13 @@ export function entryInfo(input: {
   }
   const clickId = CLICK_IDS.find((k) => params.has(k));
   if (clickId) out.click_id = clickId;
-  const inApp = IN_APP_UA.find(([, re]) => re.test(input.userAgent));
-  if (inApp) out.in_app = inApp[0];
+  // Share Extension iOS : WKWebView chargé avec `?ext=1` (src/lib/share-extension.ts),
+  // même cookie jar que l'app mais `getPlatform()` dit `web` — la marquer ici.
+  if (params.get("ext") === "1") out.in_app = "share-extension";
+  else {
+    const inApp = IN_APP_UA.find(([, re]) => re.test(input.userAgent));
+    if (inApp) out.in_app = inApp[0];
+  }
   return Object.keys(out).length > 0 ? out : undefined;
 }
 

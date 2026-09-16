@@ -99,6 +99,12 @@ test("un vrai visiteur : landing → carnet → recette, écrans / clics / API j
   expect(saved!.is_demo).toBe(false);
   expect(JSON.stringify(events)).not.toContain("Recette journal");
 
+  // Impression du bouton « Enregistrer » (data-seen) : on sait s'il a été VU.
+  const seen = events
+    .filter((e) => e.name === "ui.seen")
+    .map((e) => (e.props as { target: string }).target);
+  expect(seen).toContain("recipe.save");
+
   // Ouverture de l'app et sortie d'écran avec durée.
   expect(names).toContain("app.opened");
   const left = events.find((e) => e.name === "screen.left");

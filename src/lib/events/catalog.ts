@@ -48,7 +48,7 @@ export type EntryInfo = {
   utm_source?: string;
   utm_medium?: string;
   utm_campaign?: string;
-  /** Navigateur intégré détecté : instagram | facebook | messenger | whatsapp | tiktok | linkedin | x | snapchat */
+  /** Navigateur intégré : instagram | facebook | messenger | whatsapp | tiktok | linkedin | x | snapchat | share-extension (iOS, `?ext=1`) */
   in_app?: string;
   /** Un identifiant de clic publicitaire est présent : fbclid | gclid | ttclid | msclkid (jamais sa valeur). */
   click_id?: string;
