@@ -445,6 +445,7 @@ export default function RecipeForm({
           type="submit"
           size="lg"
           data-track="recipe.save"
+          data-seen=""
           disabled={!canSave || form.isSaving}
           className="h-[50px] w-full min-h-11 rounded-xl"
         >

@@ -76,6 +76,13 @@ describe("entryInfo — origine d'entrée (referrer, UTM, navigateur intégré, 
       entryInfo({ ...base, search: "?utm_source=Instagram&utm_medium=bio&fbclid=AbC123&x=1" }),
     ).toEqual({ utm_source: "instagram", utm_medium: "bio", click_id: "fbclid" });
   });
+  it("Share Extension iOS : `?ext=1` prime sur le User-Agent", () => {
+    expect(
+      entryInfo({ ...base, search: "?ext=1", userAgent: "Mozilla/5.0 (iPhone) Instagram" }),
+    ).toEqual({
+      in_app: "share-extension",
+    });
+  });
   it("navigateur intégré détecté par le User-Agent, referrer vide", () => {
     expect(entryInfo({ ...base, userAgent: "Mozilla/5.0 (iPhone) Instagram 300.0.0" })).toEqual({
       in_app: "instagram",

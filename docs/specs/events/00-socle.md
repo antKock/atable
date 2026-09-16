@@ -377,6 +377,10 @@ avant** (incident 046). Q1 / Q3 / Q6 lisibles deux à trois semaines après la m
 
 ## 12. Journal
 
+- **2026-09-16 (16 h)** — deux réglages issus des premières lectures (« go » d'Anthony, données
+  voulues pour la relecture d'octobre) : `entry.in_app = "share-extension"` quand la page est chargée
+  avec `?ext=1` (l'archétype « import par partage » devient mesurable) ; `data-seen` sur « Enregistrer »
+  du formulaire (« l'ont-ils vu avant de faire retour ? »). **Relecture ≈ 2026-10-06.**
 - **2026-09-16 (15 h)** — **premières lectures prod** (2 664 événements, 19 appareils, 17 personnes
   en 15 h) : parcours lisibles, funnel d'import déjà exploitable, zéro anomalie structurelle. Trois
   corrections (migration **055**) : **`app.opened` jamais émis en prod** (activation du journal après
