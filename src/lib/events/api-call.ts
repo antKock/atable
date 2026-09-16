@@ -68,8 +68,21 @@ const IMPORT_METHODS: Record<string, string> = {
   "/api/recipes/import/voice": "voice",
 };
 
-export function isTrackedApiPath(pathname: string): boolean {
-  return pathname.startsWith("/api/") && !EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p));
+// Lectures automatiques sans intention (vu en prod le 2026-09-16 : le polling
+// d'enrichissement pesait 158 lignes sur 442 appels) : le polling de statut,
+// les tags et la bibliothèque chargés avec un écran, la liste de recettes.
+const EXCLUDED_READS = [
+  /^\/api\/recipes\/[^/]+\/status$/,
+  /^\/api\/tags$/,
+  /^\/api\/library$/,
+  /^\/api\/recipes$/,
+];
+
+export function isTrackedApiPath(pathname: string, method = "POST"): boolean {
+  if (!pathname.startsWith("/api/") || EXCLUDED_PREFIXES.some((p) => pathname.startsWith(p)))
+    return false;
+  if (method === "GET" && EXCLUDED_READS.some((re) => re.test(pathname))) return false;
+  return true;
 }
 
 /** `code` (ou `error` s'il ressemble à un slug) du corps JSON d'une réponse en erreur. */
@@ -141,7 +154,7 @@ export async function recordApiCall(input: {
 
 async function record(input: Parameters<typeof recordApiCall>[0]): Promise<void> {
   const pathname = new URL(input.request.url).pathname;
-  if (!isTrackedApiPath(pathname)) return;
+  if (!isTrackedApiPath(pathname, input.request.method)) return;
   const route = apiRoutePattern(pathname);
   const status = input.response.status;
   const duration_ms = Math.max(0, Math.round(performance.now() - input.startedAt));

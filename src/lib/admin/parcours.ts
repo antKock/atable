@@ -148,8 +148,8 @@ export function describeEvent(e: EventRow): {
     }
     case "error.shown":
       return { what: "erreur", detail: `${str(p, "kind") ?? ""} · ${route}`, tone: "bad" };
-    case "recipe.cooking_started":
-      return { what: "cuisine", detail: str(p, "recipe_id")?.slice(0, 8) ?? "", tone: "ok" };
+    case "recipe.cooking_started": // lignes historiques (émis jusqu'au 2026-09-16)
+      return { what: "cuisine", detail: str(p, "recipe_id")?.slice(0, 8) ?? "", tone: "" };
     case "app.opened":
       return { what: "ouvre", detail: "", tone: "" };
     case "app.resumed":

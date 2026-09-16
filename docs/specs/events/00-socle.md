@@ -171,7 +171,9 @@ Vues : `v_entries` (une entrée par appareil, `source` consolidée) et `v_onboar
   publiques : `/api/households/join`, `/api/households/lookup`, `/api/demo/session`,
   `/api/recovery/*`, `/api/auth/session`.
 - Exclus : `/api/activity/ping` (déjà `app.opened`), `/api/events`, `/api/version`, `/api/admin/*`,
-  `/api/cron/*`, `/aasa`, `/assetlinks`, `/api/carousels` (lecture répétitive sans intention).
+  `/api/cron/*`, `/aasa`, `/assetlinks`, `/api/carousels`, et les lectures automatiques en GET
+  (`/api/recipes/[id]/status` — polling —, `/api/tags`, `/api/library`, `/api/recipes`) : des
+  chargements d'écran, pas des intentions ; les écritures sur ces routes restent tracées.
 - **`error_code`** : quand `status ≥ 400`, le champ **`code`** du corps JSON (contrat d'erreur
   existant des routes : `INVALID_DATA`, `SITE_BLOCKED`, `TIMEOUT`, `RATE_LIMIT`, `EXTRACTION_FAILED`,
   `TRANSCRIPTION_FAILED`, quotas…) — repli sur `error` s'il est un slug, jamais un message localisé.
@@ -192,7 +194,6 @@ Vues : `v_entries` (une entrée par appareil, `source` consolidée) et `v_onboar
 |---|---|---|---|
 | `ui.seen` | client | `{ target, route, params }` | `IntersectionObserver` sur `[data-track][data-seen]` — **opt-in** par l'attribut `data-seen`, une fois par vue d'écran (hints, CTA d'onboarding, bannière install) |
 | `error.shown` | client | `{ kind, route }` | une erreur affichée sans appel API derrière (`LoadErrorState`, toasts) ; `kind` = enum court |
-| `recipe.cooking_started` | client | `{ recipe_id }` | `useWakeLock` obtient le sentinel |
 | `app.opened` / `app.resumed` | client | `{}` | là où part le ping (`DeviceTokenProvider`) et au `resume` Capacitor |
 
 Rien d'autre. Toute tentation d'ajouter un événement explicite doit d'abord répondre : « un flux
@@ -292,7 +293,7 @@ ad hoc sur `events`. Douzaine initiale :
 | `v_onboarding_funnel` | par `anon_id` : `landing.viewed` (bras) → carnet créé (`POST /api/households` / `/api/demo/session` / join) → 1ʳᵉ recette → 3 recettes | **Q1**, Q6 |
 | `v_share_loop` | lien créé (`POST /api/recipes/[id]/share`) → ouverture `/r/[token]` par un **autre** `anon_id` → `share.copy_to_mine` / carnet créé | Q5 |
 | `v_household_joins` | `POST /api/households/join` + `via` | Q5 |
-| `v_cooking` | `recipe.cooking_started` + durée de l'écran + `recipe.servings_*` | Q4 |
+| `v_cooking` | fiche de recette restée ouverte ≥ 2 min (055 ; l'événement wake lock partait à chaque ouverture) | Q4 |
 
 Requêtes non matérialisées en vue (trop ad hoc), livrées dans **`scripts/events/queries/*.sql`** :
 « dernier écran avant disparition » (Q2), « intenses vs évaporés : que font-ils de différent
@@ -376,6 +377,14 @@ avant** (incident 046). Q1 / Q3 / Q6 lisibles deux à trois semaines après la m
 
 ## 12. Journal
 
+- **2026-09-16 (15 h)** — **premières lectures prod** (2 664 événements, 19 appareils, 17 personnes
+  en 15 h) : parcours lisibles, funnel d'import déjà exploitable, zéro anomalie structurelle. Trois
+  corrections (migration **055**) : **`app.opened` jamais émis en prod** (activation du journal après
+  l'émission ; le Strict Mode de dev masquait le défaut — c'est la ligne « ping vs app.opened » de
+  `reconcile.sql` qui l'aurait montré) ; **lectures automatiques exclues du flux C** (polling
+  `/status` = 158 lignes sur 442, tags, bibliothèque, liste) ; **`recipe.cooking_started` retiré**
+  (le wake lock part à chaque ouverture de fiche, 113 pour 115 vues — « on cuisine » = fiche ouverte
+  ≥ 2 min, `v_cooking` redéfinie sur la durée) ; `v_sessions.platform` = majoritaire hors `unknown`.
 - **2026-09-16 (00 h 30)** — **tout cliquable nommé** (111 identifiants, règle en CI) après les
   premières lignes prod (tests d'Anthony : quatre `?a` / `?button` sur son parcours). Et : owner
   `is_probe` muet dans le journal (son shell iOS n'a pas le cookie sonde), `?probe=1` accepté sur
