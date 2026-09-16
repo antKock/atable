@@ -384,20 +384,20 @@ describe("bloc 0 et funnel hebdo", () => {
 
 describe("A/B onboarding (#25)", () => {
   // Après l'époque du compteur (14/09) : « ouvertures iOS » = compteur du proxy,
-  // plus les essais démo. Fenêtre du test = depuis abOnboardingStart (16/09),
+  // plus les essais démo. Fenêtre du test = depuis abOnboardingStart (17/09),
   // dénominateur = affectations du shell iOS seules (migration 050).
   const NOW_AB = new Date("2026-09-26T08:00:00Z");
   const people = [
-    person({ created_at: "2026-09-16T10:00:00Z", onboarding_variant: "b", recipes_7d: 1 }),
+    person({ created_at: "2026-09-17T10:00:00Z", onboarding_variant: "b", recipes_7d: 1 }),
     person({
       created_at: "2026-09-17T10:00:00Z",
       onboarding_variant: "b",
       first_recipe_at: null,
       recipes_7d: 0,
     }),
-    person({ created_at: "2026-09-16T10:00:00Z", onboarding_variant: "a", recipes_7d: 3 }),
+    person({ created_at: "2026-09-17T10:00:00Z", onboarding_variant: "a", recipes_7d: 3 }),
     // Invitation : pas de bras, jamais comptée
-    person({ created_at: "2026-09-16T10:00:00Z", onboarding_variant: null, channel: "invite" }),
+    person({ created_at: "2026-09-17T10:00:00Z", onboarding_variant: null, channel: "invite" }),
     // Fenêtre J+7 encore ouverte, rien de franchi : comptée en carnet et « en cours »
     person({
       created_at: "2026-09-24T10:00:00Z",
@@ -423,7 +423,7 @@ describe("A/B onboarding (#25)", () => {
           first_open_ios: 5,
         },
         {
-          day: "2026-09-16",
+          day: "2026-09-17",
           assigned_a: 6,
           assigned_b: 5,
           assigned_a_ios: 2,
@@ -443,7 +443,7 @@ describe("A/B onboarding (#25)", () => {
   );
 
   it("chaîne par bras : dénominateur iOS, étapes franchies et fenêtres en cours", () => {
-    expect(dAb.activation.ab.since).toBe("2026-09-16");
+    expect(dAb.activation.ab.since).toBe("2026-09-17");
     expect(dAb.activation.ab.arms).toEqual([
       {
         arm: "a",

@@ -46,6 +46,10 @@ export const PRODUCT_EVENTS = {
    *  (migration 050), comptées seulement à partir de sa mise en prod — avant,
    *  on ne sait pas les répartir par bras. Les arrivées des 13-15/09 restent
    *  affichées en comptes « hors fenêtre ».
+   *  Recalée au 2026-09-17 : le bras B change de contenu (« Commencer » →
+   *  carnet vide au lieu de l'écran d'import, décision du 16/09 sur les
+   *  premières lectures du journal #28) — les arrivées B du 16 relèvent de
+   *  l'ancien B et sortent de la fenêtre.
    *  ⚠ à recaler sur le lendemain de la promotion si elle glisse. */
-  abOnboardingStart: "2026-09-16",
+  abOnboardingStart: "2026-09-17",
 } as const;
