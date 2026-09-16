@@ -24,13 +24,29 @@ import { latestBackupAt } from "@/lib/ops/backups";
 
 const WEEKS = 12;
 
+/** Durée d'une des 13 lectures de `loadRawV3` (mesure, cf. /api/admin/health). */
+export type LoadTiming = { name: string; ms: number };
+
+function timer(timings: LoadTiming[]) {
+  return <T>(name: string, p: PromiseLike<T>): Promise<T> => {
+    const t0 = performance.now();
+    return Promise.resolve(p).finally(() => {
+      timings.push({ name, ms: Math.round(performance.now() - t0) });
+    });
+  };
+}
+
 function demoSeedMin(): number {
   const n = Number(process.env.DEMO_SEED_MIN);
   return Number.isFinite(n) && n > 0 ? n : 30;
 }
 
-export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
+export async function loadRawV3(
+  now: Date = new Date(),
+): Promise<RawV3 & { timings: LoadTiming[] }> {
   const supabase = createServerClient();
+  const timings: LoadTiming[] = [];
+  const timed = timer(timings);
   // Nom de fonction contraint par le schéma généré ; les arguments sont
   // validés par appel (`Database["public"]["Functions"][fn]["Args"]`).
   const rpc = <
@@ -40,10 +56,13 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     fn: Fn,
     params?: Database["public"]["Functions"][Fn]["Args"],
   ) =>
-    supabase.rpc(fn, params as never).then(({ data, error }) => {
-      if (error) throw new Error(`${fn}: ${error.message}`);
-      return (data ?? []) as T;
-    });
+    timed(
+      fn,
+      supabase.rpc(fn, params as never).then(({ data, error }) => {
+        if (error) throw new Error(`${fn}: ${error.message}`);
+        return (data ?? []) as T;
+      }),
+    );
 
   // App Store : 12 semaines closes + 4 de comparaison.
   const appStoreFrom = addDays(lastSunday(now), -(WEEKS + 4) * 7);
@@ -73,31 +92,40 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     // 12 semaines closes + la semaine en cours (funnel App Store hebdo), et 14 + 28 jours
     // pour les médianes par jour de semaine du bloc « 7 derniers jours ».
     rpc<DailyRow[]>("analytics_v3_daily", { p_days: (WEEKS + 2) * 7 }),
-    supabase
-      .from("app_store_daily")
-      .select(
-        "day, source_type, source_info, dl_first_time, dl_redownload, dl_update, eng_impressions, eng_impressions_uniq, eng_page_views, eng_page_views_uniq, eng_taps",
-      )
-      .gte("day", appStoreFrom)
-      .then(({ data, error }) => {
-        if (error) throw new Error(`app_store_daily: ${error.message}`);
-        return (data ?? []) as AppStoreDailyRow[];
-      }),
+    timed(
+      "app_store_daily",
+      supabase
+        .from("app_store_daily")
+        .select(
+          "day, source_type, source_info, dl_first_time, dl_redownload, dl_update, eng_impressions, eng_impressions_uniq, eng_page_views, eng_page_views_uniq, eng_taps",
+        )
+        .gte("day", appStoreFrom)
+        .then(({ data, error }) => {
+          if (error) throw new Error(`app_store_daily: ${error.message}`);
+          return (data ?? []) as AppStoreDailyRow[];
+        }),
+    ),
     // A/B onboarding (046) : affectations par bras + premières ouvertures iOS,
     // même fenêtre que l'App Store (funnel hebdo).
     rpc<AbDailyRow[]>("analytics_v3_ab_onboarding", { p_since: appStoreFrom }),
-    getBilledOpenAiSpend(28),
+    timed("openai_billing", getBilledOpenAiSpend(28)),
     // Veilleur ops (#27) : dernière sauvegarde S3 (best-effort) et 5xx Traefik
     // des 2 derniers jours (écrits par POST /api/admin/watch).
-    latestBackupAt().then((d) => (d ? d.toISOString() : null)),
-    supabase
-      .from("stats_daily")
-      .select("day, traefik_5xx")
-      .gte("day", addDays(iso(now), -1))
-      .then(({ data, error }) => {
-        if (error) throw new Error(`stats_daily: ${error.message}`);
-        return (data ?? []) as { day: string; traefik_5xx: number }[];
-      }),
+    timed(
+      "s3_backups",
+      latestBackupAt().then((d) => (d ? d.toISOString() : null)),
+    ),
+    timed(
+      "stats_daily",
+      supabase
+        .from("stats_daily")
+        .select("day, traefik_5xx")
+        .gte("day", addDays(iso(now), -1))
+        .then(({ data, error }) => {
+          if (error) throw new Error(`stats_daily: ${error.message}`);
+          return (data ?? []) as { day: string; traefik_5xx: number }[];
+        }),
+    ),
   ]);
 
   const health = healthRows[0];
@@ -119,12 +147,15 @@ export async function loadRawV3(now: Date = new Date()): Promise<RawV3> {
     edgeErrors,
     demoSeedMin: demoSeedMin(),
     now,
+    timings: timings.sort((a, b) => b.ms - a.ms),
   };
 }
 
 export async function getDashboardV3(now: Date = new Date()) {
+  const t0 = performance.now();
   const raw = await loadRawV3(now);
-  return { data: assembleV3(raw), raw };
+  const totalMs = Math.round(performance.now() - t0);
+  return { data: assembleV3(raw), raw, timings: raw.timings, totalMs };
 }
 
 export { iso };

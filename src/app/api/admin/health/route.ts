@@ -13,7 +13,7 @@ export const maxDuration = 60;
 export async function GET(request: NextRequest) {
   const denied = rejectUnlessAdmin(request);
   if (denied) return denied;
-  const { data } = await getDashboardV3();
+  const { data, timings, totalMs } = await getDashboardV3();
   const h = data.overview.health;
   return NextResponse.json({
     ok: h.ok,
@@ -25,5 +25,8 @@ export async function GET(request: NextRequest) {
       backup: h.backup,
       edge: h.edge,
     },
+    // Mesure : durée de chaque lecture de loadRawV3 (13 en parallèle, la plus
+    // lente d'abord) et durée totale — pour cibler l'optimisation du dashboard.
+    timings: { totalMs, reads: timings },
   });
 }
