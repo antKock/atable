@@ -78,7 +78,7 @@ test("A/B : premier rendu sans cookie → bras tiré, cookie 1 an, affectation c
   await context.close();
 });
 
-test("A/B bras B : « Commencer » → carnet en un tap → « Ta première recette » → recette créée", async ({
+test("A/B bras B : « Commencer » → carnet en un tap → carnet vide → import à un tap → recette créée", async ({
   browser,
 }) => {
   const { context, page } = await newVisitor(browser, { arm: "b" });
@@ -89,15 +89,26 @@ test("A/B bras B : « Commencer » → carnet en un tap → « Ta première rece
   await expect(page.getByRole("button", { name: "Essayer l'app" })).toHaveCount(0);
 
   await page.getByRole("button", { name: "Commencer" }).click();
-  await page.waitForURL(/\/recipes\/new\?first=1$/);
-  await expect(page.getByRole("heading", { name: "Ta première recette" })).toBeVisible();
-  await expect(page.getByText("Mijote la met au propre")).toBeVisible();
-  // Pas de retour sur le choix de méthode (rien derrière)
-  await expect(page.getByRole("button", { name: "Retour" })).toHaveCount(0);
-  await expect(page.getByText("Écrire moi-même")).toBeVisible();
+  // Décision du 2026-09-16 (#25 × #28) : atterrissage sur le carnet VIDE, pas
+  // sur l'écran d'import — la navigation, le foyer et l'invitation sont visibles,
+  // l'import reste à un tap pour qui en a l'intention.
+  await page.waitForURL(/\/home$/);
+  await expect(page.getByRole("link", { name: "Ajouter une recette" })).toBeVisible();
 
   // Le bras est persisté sur l'owner réel
   expect(await currentOwnerVariant(page)).toBe("b");
+
+  // Un tap → le sélecteur d'import, avec retour possible.
+  await page.getByRole("link", { name: "Ajouter une recette" }).click();
+  await page.waitForURL(/\/recipes\/new$/);
+  await expect(page.getByText("Écrire moi-même")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Retour" })).toBeVisible();
+
+  // Le mode « première recette » (first=1) reste accessible par URL.
+  await page.goto("/recipes/new?first=1");
+  await expect(page.getByRole("heading", { name: "Ta première recette" })).toBeVisible();
+  await expect(page.getByText("Mijote la met au propre")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Retour" })).toHaveCount(0);
 
   // Pied « Pas de recette sous la main ? / Essaie avec celle-ci » : lance
   // l'import URL de la recette d'exemple FR (le résultat dépend du réseau et

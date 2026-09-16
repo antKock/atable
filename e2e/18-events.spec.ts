@@ -43,6 +43,9 @@ test("un vrai visiteur : landing → carnet → recette, écrans / clics / API j
   await page.locator("#title").fill("Recette journal");
   await page.locator("#ingredients").fill("1 kg de pommes de terre");
   await page.locator("#steps").fill("Éplucher.");
+  // L'impression (`ui.seen`) passe par un MutationObserver à 300 ms puis un
+  // IntersectionObserver : un humain laisse ce temps, Playwright non.
+  await page.waitForTimeout(800);
   await page.getByRole("button", { name: "Enregistrer" }).click();
   await page.waitForURL(/\/recipes\/[0-9a-f-]{36}$/);
   // Laisser le lot client partir (5 s max) puis changer d'écran (vidage à la sortie).

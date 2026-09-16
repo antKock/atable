@@ -39,9 +39,14 @@ export default function LandingScreen({
     setDemoError(null);
     try {
       const { redirect } = await createHouseholdQuick(t.household.createError);
-      // Bras B : le carnet neuf n'a rien à montrer, on atterrit sur l'écran
-      // « ta première recette » (mode first=1 de /recipes/new).
-      window.location.href = variant === "b" ? "/recipes/new?first=1" : redirect;
+      // Bras B (#25, décision du 2026-09-16) : on atterrit sur le carnet VIDE,
+      // comme en A — pas sur l'écran d'import. Les premières lectures du journal
+      // (#28) : 4 arrivants B sur 6 importaient, voyaient le formulaire et
+      // faisaient « retour » — venus regarder, pas ajouter. L'état vide garde
+      // un seul bouton vers l'import, pour ne pas surcharger l'arrivée ; qui a
+      // l'intention d'ajouter le tape. (Le mode first=1 de /recipes/new reste
+      // accessible par URL, plus relié ici.)
+      window.location.href = redirect;
     } catch (err) {
       setDemoError(err instanceof Error ? err.message : t.household.createError);
       setCreateLoading(false);
