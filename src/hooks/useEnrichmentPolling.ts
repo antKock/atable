@@ -43,6 +43,10 @@ export function useEnrichmentPolling(
         cleanup();
         return;
       }
+      // App en arrière-plan : iOS coupe les requêtes en vol, et un refresh RSC
+      // interrompu en plein flux atterrit sur l'écran d'erreur (Sentry
+      // « TypeError: Load failed », 2026-09-16). On attend le retour au premier plan.
+      if (document.visibilityState !== "visible") return;
 
       try {
         const res = await fetch(`/api/recipes/${recipeId}/status`);

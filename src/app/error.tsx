@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
+import { startTransition, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import * as Sentry from "@sentry/nextjs";
 import { useT } from "@/lib/i18n/client";
 
@@ -12,6 +13,7 @@ export default function Error({
   reset: () => void;
 }) {
   const t = useT();
+  const router = useRouter();
   useEffect(() => {
     Sentry.captureException(error);
     console.error(error);
@@ -21,7 +23,14 @@ export default function Error({
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 p-8 text-center">
       <p className="text-muted-foreground">{t.feedback.loadError}</p>
       <button
-        onClick={reset}
+        // reset() seul rejoue le même rendu, donc la même requête RSC déjà en échec
+        // (coupure réseau, app passée en arrière-plan) : on la relance d'abord.
+        onClick={() =>
+          startTransition(() => {
+            router.refresh();
+            reset();
+          })
+        }
         data-track="error.retry"
         className="text-sm text-accent underline underline-offset-4"
       >
