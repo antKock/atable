@@ -83,8 +83,10 @@ tick() {
     done
   fi
 
-  # --- lignes ERR de Traefik (ACME, backend, middleware…), hors 5xx déjà comptés
+  # --- lignes ERR de Traefik (ACME, backend, middleware…), hors 5xx déjà comptés et hors
+  # « peeking client hello » (connexion TLS abandonnée avant la poignée de main : scanners)
   local errs; errs=$(docker logs --since "$cursor" --until "$now" "$traefik" 2>&1 | grep -a 'ERR' | grep -av '^{' \
+    | grep -av 'peeking client hello' \
     | sed -E 's/\x1b\[[0-9;]*m//g; s/^[0-9T:.Z-]+ +//' | sed -E 's/(routerName|middlewareName|entryPointName)=[^ ]+//g' | sort | uniq -c | sort -rn | head -10)
   if [ -n "$errs" ]; then
     while read -r n msg; do
