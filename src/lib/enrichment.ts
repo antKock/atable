@@ -84,7 +84,7 @@ const IMAGE_QUALITY = "low";
 const IMAGE_SIZE = "1024x1024";
 
 /**
- * Appel gpt-image-1 SEUL : facture le coût (`ai_costs`) et renvoie les octets
+ * Appel au modèle image SEUL : facture le coût (`ai_costs`) et renvoie les octets
  * WebP. Séparé de l'upload pour que le retry de l'upload ne relance jamais la
  * génération (double facturation constatée à la revue du 2026-09-12).
  */
@@ -116,9 +116,9 @@ async function generateImageBytes(
   });
 
   const imageData = imageResponse.data?.[0];
-  if (!imageData) throw new Error("No image data returned from gpt-image-1");
+  if (!imageData) throw new Error(`No image data returned from ${AI_MODELS.image}`);
 
-  // gpt-image-1 returns base64 by default
+  // gpt-image-* returns base64 by default
   const tempUrl = imageData.url;
   const b64 = imageData.b64_json;
 
@@ -348,7 +348,7 @@ export async function enrichRecipe(
         console.log(`[enrichment] ${recipeId} — recette supprimée entre-temps, image ignorée`);
         return;
       }
-      console.log(`[enrichment] ${recipeId} — calling DALL-E`);
+      console.log(`[enrichment] ${recipeId} — calling image model`);
       try {
         const imageUrl = await generateAndUploadImage(recipeId, imagePrompt, recipe.household_id);
         await supabase
