@@ -79,6 +79,8 @@ export type EventProps = {
     ig_fallback?: string;
     /** Import Instagram : durée de lecture de la légende seule (ms), hors structuration. */
     ig_read_ms?: number;
+    /** Envoi d'import gardé 30 jours (import_samples.id) — un identifiant, jamais le contenu. */
+    sample_id?: string;
   };
   "ui.seen": { target: string; route: string; params?: RouteParams };
   "error.shown": { kind: string; route: string };
@@ -140,6 +142,7 @@ export const DATA_TRACK_IDS = [
   "import.photo_gallery",
   "import.photo_cancel",
   "import.voice_start",
+  "import.pool_optout", // « Ne pas les garder » (conservation 30 jours des envois)
   // Formulaire recette
   "recipe.save",
   "recipe.add_photo", // conteneur PhotoManager (l'ajout hérite)
@@ -193,6 +196,7 @@ export const DATA_TRACK_IDS = [
   "household.logout_cancel",
   "household.email_add", // enregistrement du profil (nom + e-mail de secours)
   "household.email_resend",
+  "household.import_pool_toggle", // profil : « Aider à améliorer les imports »
   // Hints (+ data-seen sur le conteneur : impression `ui.seen`)
   "hint.*",
   "hint.*.act",

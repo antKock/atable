@@ -4,6 +4,7 @@
 // ids démo et le moniteur Sentry.
 
 import * as Sentry from "@sentry/nextjs";
+import { purgeExpiredImportSamples } from "@/lib/import-pool/samples";
 import { createServerClient } from "@/lib/supabase/server";
 
 const DEFAULT_DEMO_SEED_MIN = 30;
@@ -34,6 +35,8 @@ export type ResetSummary = {
   purgedTags: number;
   purgedOwners: number;
   purgedTokens: number;
+  /** Envois d'import gardés 30 jours supprimés (expirés, orphelins, refus). */
+  purgedImportSamples?: number;
 };
 
 export async function resetDemo(demoHouseholdIds: string[]): Promise<ResetSummary> {
@@ -207,6 +210,16 @@ export async function resetDemo(demoHouseholdIds: string[]): Promise<ResetSummar
     );
   }
 
+  // Step 7 : envois d'import gardés 30 jours (src/lib/import-pool) — expirés,
+  // orphelins (owner supprimé) et restes d'un refus. Fichiers du bucket privé
+  // compris. Best-effort, comme les purges ci-dessus.
+  let purgedImportSamples = 0;
+  try {
+    purgedImportSamples = await purgeExpiredImportSamples();
+  } catch (err) {
+    Sentry.captureException(err, { tags: { feature: "import-pool" } });
+  }
+
   return {
     reset: true,
     deleted: deleted ?? 0,
@@ -215,5 +228,6 @@ export async function resetDemo(demoHouseholdIds: string[]): Promise<ResetSummar
     purgedTags,
     purgedOwners,
     purgedTokens,
+    purgedImportSamples,
   };
 }

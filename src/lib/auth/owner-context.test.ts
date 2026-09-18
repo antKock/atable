@@ -57,6 +57,7 @@ describe("resolveOwnerContext", () => {
       // Contexte des événements (#28) : plateforme de la session, owner sonde.
       platform: "ios",
       isProbe: false,
+      importPoolOptOut: false,
       memberships: [{ householdId: "household-1", role: "member", isDemo: false }],
     });
   });

@@ -4,6 +4,7 @@ import {
   extractRecipeFromUrl,
   ImportError,
   URL_IMPORT_BUDGET_MS,
+  type ImportTrace,
   type InstagramReadReport,
 } from "@/lib/import";
 import { isInstagramUrl } from "@/lib/instagram";
@@ -12,6 +13,7 @@ import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { resolveImportHousehold } from "@/lib/api/import-household";
 import { withApiEventExtra, type ApiEventExtra } from "@/lib/events/api-call";
 import { getT } from "@/lib/i18n/server";
+import { keepImportSample } from "@/lib/import-pool/samples";
 
 /** Hôte du site importé, sans `www.` — pour le journal (#28) : savoir OÙ l'import échoue. */
 function siteOf(url: unknown): string | undefined {
@@ -44,7 +46,8 @@ export const POST = withOwnerAuth(
     // `api.called` porte le site quelle que soit l'issue (succès, 4xx, 5xx), et
     // pour Instagram la voie de lecture de la légende (catégories, jamais l'URL).
     let ig: InstagramReadReport | undefined;
-    const response = await handle(body, t, householdId, (r) => (ig = r));
+    const trace: ImportTrace = {};
+    const response = await handle(body, t, householdId, (r) => (ig = r), trace);
     // Budget d'import dépassé pendant la lecture (Apify lent) : la voie n'a pas
     // eu le temps de se rapporter, l'échec compte quand même.
     if (!ig && response.status === 504 && site && isInstagramUrl(`https://${site}`)) {
@@ -54,7 +57,19 @@ export const POST = withOwnerAuth(
       ...(site ? { site } : {}),
       ...(ig ? igExtra(ig) : {}),
     };
-    return Object.keys(extra).length ? withApiEventExtra(response, extra) : response;
+    const withExtra = Object.keys(extra).length ? withApiEventExtra(response, extra) : response;
+    // Envoi gardé 30 jours (sauf refus) : l'adresse, et le texte passé au modèle
+    // (page.txt) — docs/specs/ocr-appareil/01-conservation-imports.md.
+    const url = (body as { url?: unknown } | null)?.url;
+    return keepImportSample({
+      owner,
+      householdId,
+      method: "url",
+      response: withExtra,
+      trace,
+      url: typeof url === "string" ? url.slice(0, 2048) : undefined,
+      files: async () => [],
+    });
   },
   {
     // Opt-out garde démo : extraction IA sans écriture (le visiteur démo importe
@@ -68,6 +83,7 @@ async function handle(
   t: Awaited<ReturnType<typeof getT>>,
   householdId: string,
   onInstagramRead: (report: InstagramReadReport) => void,
+  trace: ImportTrace,
 ): Promise<NextResponse> {
   try {
     const parsed = buildImportUrlSchema(t).safeParse(body);
@@ -88,6 +104,7 @@ async function handle(
     const formData = await extractRecipeFromUrl(parsed.data.url, {
       householdId,
       onInstagramRead,
+      trace,
     });
     return NextResponse.json(formData);
   } catch (error) {

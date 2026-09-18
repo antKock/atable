@@ -62,6 +62,8 @@ interface CreateProps {
   /** Foyers membres de l'owner. À l'enregistrement, si >1 → dialog de choix du
    *  foyer avant le POST ; sinon POST direct (mono-foyer, aucun dialog). */
   memberFoyers?: MemberFoyer[];
+  /** Envoi d'import gardé 30 jours dont vient la recette (src/lib/import-pool). */
+  importSampleId?: string;
 }
 
 interface EditProps {
@@ -87,6 +89,7 @@ interface EditProps {
   stickySubmit?: boolean;
   shareExtension?: never;
   memberFoyers?: never;
+  importSampleId?: never;
 }
 
 type RecipeFormProps = CreateProps | EditProps;
@@ -218,13 +221,16 @@ export default function RecipeForm({
   stickySubmit,
   shareExtension,
   memberFoyers = [],
+  importSampleId,
 }: RecipeFormProps) {
   const t = useT();
   const isEdit = mode === "edit";
 
   const [form, dispatch] = useReducer(formReducer, { initialData, isEdit }, initFormState);
   const { save } = useRecipeSave(
-    isEdit ? { mode: "edit", recipeId } : { mode: "create", source, shareExtension },
+    isEdit
+      ? { mode: "edit", recipeId }
+      : { mode: "create", source, shareExtension, importSampleId },
   );
   // Dialog de choix de foyer à l'enregistrement (multi-foyer, Lot 4).
   const [pickerOpen, setPickerOpen] = useState(false);

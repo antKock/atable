@@ -138,6 +138,17 @@ describe("withApiEvent", () => {
 });
 
 describe("en-tête interne x-mijote-event", () => {
+  it("plusieurs couches d'une route complètent le même événement (fusion)", async () => {
+    const res = withApiEventExtra(NextResponse.json({}), { site: "example.com" });
+    withApiEventExtra(res, { sample_id: "s-1" });
+    await recordApiCall({
+      request: req("/api/recipes/import/url"),
+      response: res,
+      startedAt: performance.now(),
+    });
+    expect(mockTrack.mock.calls[0][1]).toMatchObject({ site: "example.com", sample_id: "s-1" });
+  });
+
   it("complète l'événement et est retiré de la réponse avant l'envoi", async () => {
     const res = withApiEventExtra(NextResponse.json({ id: "x" }, { status: 201 }), {
       method_kind: "manual",

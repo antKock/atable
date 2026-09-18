@@ -6,13 +6,21 @@ import BackButton from "@/components/ui/BackButton";
 import { useLocale, useT } from "@/lib/i18n/client";
 import { FIRST_RECIPE_SAMPLE_URL } from "@/lib/ab-onboarding";
 import ImportSelector from "@/components/recipes/import/ImportSelector";
+import ImportPoolNotice from "@/components/recipes/import/ImportPoolNotice";
 import RecipeForm, { type MemberFoyer } from "@/components/recipes/form/RecipeForm";
 import type { ImportedRecipeData } from "@/lib/import";
 import type { RecipeSource } from "@/lib/schemas/recipe";
 
 type View = "intent" | "form";
 
-export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: MemberFoyer[] }) {
+export default function NewRecipeFlow({
+  memberFoyers = [],
+  importPool = { enabled: false, optedOut: false },
+}: {
+  memberFoyers?: MemberFoyer[];
+  /** Conservation 30 jours des envois d'import (src/lib/import-pool). */
+  importPool?: { enabled: boolean; optedOut: boolean };
+}) {
   const t = useT();
   const locale = useLocale();
   const router = useRouter();
@@ -23,6 +31,9 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
   const view: View = searchParams.get("view") === "form" ? "form" : "intent";
   const [importedData, setImportedData] = useState<ImportedRecipeData | null>(null);
   const [source, setSource] = useState<RecipeSource>("manual");
+  // Envoi d'import gardé 30 jours (réponse de l'import) : relié à la recette
+  // à l'enregistrement, jamais affiché.
+  const [importSampleId, setImportSampleId] = useState<string | undefined>(undefined);
   // Whether WE pushed the ?view=form entry. False when the URL was loaded
   // directly (fresh tab): there is nothing under it to pop back to.
   const pushedForm = useRef(false);
@@ -54,6 +65,7 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
     return q ? `/recipes/new?${q}` : "/recipes/new";
   })();
   const formUrl = `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}view=form`;
+  const showPoolNotice = importPool.enabled && !importPool.optedOut;
 
   // Strip the import params from the URL so a refresh doesn't re-trigger the
   // import. Doesn't affect autoImportUrl (already captured above). Keep ext=1 so
@@ -73,14 +85,20 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
     window.history.pushState(null, "", formUrl);
   }
 
-  function handleImportComplete(data: ImportedRecipeData, importSource: RecipeSource) {
-    setImportedData(data);
+  function handleImportComplete(
+    data: ImportedRecipeData & { sampleId?: string },
+    importSource: RecipeSource,
+  ) {
+    const { sampleId, ...recipe } = data;
+    setImportedData(recipe);
+    setImportSampleId(sampleId);
     setSource(importSource);
     openForm();
   }
 
   function handleManual() {
     setImportedData(null);
+    setImportSampleId(undefined);
     setSource("manual");
     openForm();
   }
@@ -143,16 +161,25 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
           onManual={handleManual}
           autoImportUrl={autoImportUrl}
           sampleUrl={isFirst ? FIRST_RECIPE_SAMPLE_URL[locale] : null}
+          showPoolNotice={showPoolNotice}
         />
       ) : (
-        <RecipeForm
-          mode="create"
-          initialData={importedData}
-          source={source}
-          stickySubmit
-          shareExtension={isExt}
-          memberFoyers={memberFoyers}
-        />
+        <>
+          {/* Import lancé automatiquement (extension de partage, lien profond) :
+              l'écran d'import n'a jamais été affiché — la mention l'est ici. */}
+          {autoImportUrl && importSampleId && showPoolNotice && (
+            <ImportPoolNotice className="mb-5" />
+          )}
+          <RecipeForm
+            mode="create"
+            initialData={importedData}
+            source={source}
+            stickySubmit
+            shareExtension={isExt}
+            memberFoyers={memberFoyers}
+            importSampleId={importSampleId}
+          />
+        </>
       )}
     </div>
   );

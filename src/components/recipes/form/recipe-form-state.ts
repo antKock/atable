@@ -167,6 +167,7 @@ export type RecipePayload = {
   source?: RecipeSource;
   householdId?: string;
   willUploadPhoto?: true;
+  importSampleId?: string;
 };
 
 /**
@@ -180,7 +181,13 @@ export type RecipePayload = {
  */
 export function buildRecipePayload(
   form: FormState,
-  ctx: { isEdit: boolean; source?: RecipeSource; chosenHouseholdId?: string },
+  ctx: {
+    isEdit: boolean;
+    source?: RecipeSource;
+    chosenHouseholdId?: string;
+    /** Envoi d'import gardé dont vient la recette (src/lib/import-pool). */
+    importSampleId?: string;
+  },
 ): RecipePayload {
   const payload: RecipePayload = {
     title: form.title.trim(),
@@ -202,6 +209,7 @@ export function buildRecipePayload(
     payload.source = ctx.source ?? "manual";
     if (ctx.chosenHouseholdId) payload.householdId = ctx.chosenHouseholdId;
     if (form.photoFile) payload.willUploadPhoto = true;
+    if (ctx.importSampleId) payload.importSampleId = ctx.importSampleId;
   }
   return payload;
 }

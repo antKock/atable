@@ -124,6 +124,12 @@ const RULES: EnvRule[] = [
   // cookie posé. Allumé = tirage 50/50 par appareil au premier rendu de la landing.
   { name: "AB_ONBOARDING_ENABLED", required: false, shape: onOffFlag, expected: "1/true/0/false" },
 
+  // Conservation 30 jours des envois d'import (docs/specs/ocr-appareil/01-conservation-imports.md) :
+  // éteint = rien n'est gardé, aucune mention affichée. Bucket PRIVÉ dédié, mêmes
+  // endpoint et identifiants que les photos (checkImportPool ci-dessous).
+  { name: "IMPORT_POOL_ENABLED", required: false, shape: onOffFlag, expected: "1/true/0/false" },
+  { name: "IMPORT_POOL_BUCKET", required: false, shape: z.string(), expected: "nom de bucket" },
+
   // Auto-hébergement : APP_ORIGIN coupe court aux en-têtes forgeables.
   {
     name: "APP_ORIGIN",
@@ -326,6 +332,24 @@ export function checkEnv(env: Env): EnvIssue[] {
       ["S3_ENDPOINT", "S3_PUBLIC_URL", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
       "absente alors que S3_BUCKET est posé : upload de photo impossible",
     );
+  }
+
+  // Envois d'import gardés : le pilote S3 réutilise endpoint et identifiants des
+  // photos. Allumé sans bucket dédié en production = repli Supabase Storage,
+  // absent du VPS : rien ne serait gardé (en silence, l'import n'échoue pas).
+  if (has("IMPORT_POOL_BUCKET")) {
+    requireAll(
+      ["S3_ENDPOINT", "S3_ACCESS_KEY_ID", "S3_SECRET_ACCESS_KEY"],
+      "absente alors que IMPORT_POOL_BUCKET est posé : envois d'import non gardés",
+    );
+  }
+  const poolOn = ["1", "true"].includes((env.IMPORT_POOL_ENABLED ?? "").trim().toLowerCase());
+  if (poolOn && !has("IMPORT_POOL_BUCKET") && env.NODE_ENV === "production") {
+    issues.push({
+      variable: "IMPORT_POOL_BUCKET",
+      level: "warn",
+      reason: "absente alors que IMPORT_POOL_ENABLED est allumé : envois d'import non gardés",
+    });
   }
   return issues;
 }

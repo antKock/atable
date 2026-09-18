@@ -6,6 +6,7 @@ import { Camera, Link2, Mic, PenLine, type LucideIcon } from "lucide-react";
 import { useT } from "@/lib/i18n/client";
 import { haptics } from "@/lib/haptics";
 import { resizeImageToBase64 } from "@/lib/image-resize";
+import ImportPoolNotice from "@/components/recipes/import/ImportPoolNotice";
 import { useVoiceSupported } from "@/hooks/useVoiceRecorder";
 import ScreenshotImporter from "@/components/recipes/import/ScreenshotImporter";
 import VoiceImporter from "@/components/recipes/import/VoiceImporter";
@@ -30,6 +31,9 @@ interface ImportSelectorProps {
   // Écran « Ta première recette » (bras B du A/B onboarding #25) : recette
   // d'exemple proposée en pied, importée par le chemin URL normal.
   sampleUrl?: string | null;
+  // Conservation 30 jours des envois : mention + refus, visible avant tout envoi
+  // (src/lib/import-pool, faux si le flag est éteint ou si la personne a refusé).
+  showPoolNotice?: boolean;
 }
 
 // Orchestrates the three import modes. Shared state (one request at a time,
@@ -40,6 +44,7 @@ export default function ImportSelector({
   onManual,
   autoImportUrl,
   sampleUrl,
+  showPoolNotice = false,
 }: ImportSelectorProps) {
   const t = useT();
   const voiceSupported = useVoiceSupported();
@@ -318,6 +323,8 @@ export default function ImportSelector({
           </div>
         </div>
       )}
+
+      {showPoolNotice && <ImportPoolNotice className="mt-5" />}
     </div>
   );
 }

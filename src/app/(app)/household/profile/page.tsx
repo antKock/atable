@@ -5,6 +5,8 @@ import { aliasForOwner } from "@/lib/alias";
 import { getLocale } from "@/lib/i18n/server";
 import ProfileForm from "@/components/household/ProfileForm";
 import LogoutDialog from "@/components/household/LogoutDialog";
+import ImportPoolSetting from "@/components/household/ImportPoolSetting";
+import { importPoolState } from "@/lib/import-pool/samples";
 
 export default async function ProfilePage() {
   const owner = await getOwnerContext();
@@ -13,6 +15,9 @@ export default async function ProfilePage() {
 
   // Stratégie C : pas de profil démo — l'écran n'existe pas pour ces sessions.
   if (isDemoOwner(owner)) notFound();
+  // Réglage visible dès que la conservation est en service pour cette personne
+  // (y compris après un refus : c'est là qu'on change d'avis).
+  const pool = importPoolState(owner);
 
   return (
     <>
@@ -21,6 +26,7 @@ export default async function ProfilePage() {
         alias={owner.ownerAlias ?? aliasForOwner(owner.ownerId, locale)}
         initialEmail={owner.recoveryEmail ?? ""}
       />
+      {pool.enabled && <ImportPoolSetting initialOptedOut={pool.optedOut} />}
       <LogoutDialog hasRecoveryEmail={owner.recoveryEmail !== null} />
     </>
   );

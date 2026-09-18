@@ -10,6 +10,8 @@ import { householdIds } from "@/lib/auth/owner-context";
 import { enforceRecipeCreateQuota } from "@/lib/import-quota";
 import { getT } from "@/lib/i18n/server";
 import { parseJsonBody } from "@/lib/api/body";
+import * as Sentry from "@sentry/nextjs";
+import { linkImportSampleToRecipe } from "@/lib/import-pool/samples";
 
 export const maxDuration = 60;
 
@@ -120,6 +122,16 @@ export const POST = withOwnerAuth(
     after(async () => {
       await enrichRecipe(data.id, { skipImage: result.data.willUploadPhoto });
     });
+    const importSampleId = result.data.importSampleId;
+    if (importSampleId) {
+      after(async () => {
+        try {
+          await linkImportSampleToRecipe(importSampleId, owner.ownerId, data.id);
+        } catch (err) {
+          Sentry.captureException(err, { tags: { feature: "import-pool" } });
+        }
+      });
+    }
 
     // `api.called` (#28) : la méthode d'ajout (`source`) n'est pas dans la
     // réponse publique — transmise par l'en-tête interne, retiré avant l'envoi.

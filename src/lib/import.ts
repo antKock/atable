@@ -40,6 +40,24 @@ export type ImportMeta = {
   householdId: string;
   /** Import Instagram : voie de lecture utilisée, pour le journal (#28). */
   onInstagramRead?: (report: InstagramReadReport) => void;
+  /** Conservation des envois (src/lib/import-pool) : rempli au fil de l'import, succès comme échec. */
+  trace?: ImportTrace;
+};
+
+/**
+ * Ce qu'un import a réellement passé au modèle, gardé 30 jours avec l'envoi
+ * pour reproduire une erreur (docs/specs/ocr-appareil/01-conservation-imports.md).
+ * Jamais renvoyé au client ni journalisé.
+ */
+export type ImportTrace = {
+  /** Texte structuré par le modèle texte (page nettoyée, légende, rendu du crawler). */
+  text?: string;
+  /** Voie de structuration (`import_url`, `import_instagram`, `import_url_crawler`…). */
+  path?: AiCallType;
+  /** Dictée : transcription brute. */
+  transcript?: string;
+  /** Modèle(s) utilisé(s), pour rejouer à l'identique. */
+  model?: string;
 };
 
 /**
@@ -309,6 +327,10 @@ export async function extractRecipeFromVoice(
     return result as unknown as string;
   });
 
+  if (meta?.trace) {
+    meta.trace.transcript = transcription ?? "";
+    meta.trace.model = `${AI_MODELS.transcription} + ${AI_MODELS.text}`;
+  }
   if (!transcription || transcription.trim().length === 0) {
     throw new ImportError("Empty transcription", "TRANSCRIPTION_FAILED");
   }
@@ -363,6 +385,7 @@ async function runExtraction(opts: {
   useEffortFallback?: boolean;
   jsonSchema?: typeof IMPORT_JSON_SCHEMA | typeof OCR_JSON_SCHEMA;
 }): Promise<{ recipe: ImportedRecipeData; raw: Record<string, unknown> }> {
+  if (opts.meta?.trace) opts.meta.trace.model ??= opts.model;
   return withRetry(async () => {
     const call = (extra: object) =>
       openai.chat.completions.create({
@@ -407,6 +430,10 @@ function structureRecipeFromText(
   text: string,
   opts: { callType: AiCallType; meta?: ImportMeta },
 ): Promise<ImportedRecipeData> {
+  if (opts.meta?.trace) {
+    opts.meta.trace.text = text;
+    opts.meta.trace.path = opts.callType;
+  }
   return runExtraction({
     model: AI_MODELS.text,
     useEffortFallback: true,

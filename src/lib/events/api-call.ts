@@ -20,10 +20,22 @@ export type ApiEventExtra = {
   ig_fallback?: string;
   /** Import Instagram : durée de la lecture de la légende seule, en ms. */
   ig_read_ms?: number;
+  /** Envoi d'import gardé 30 jours (import_samples.id) : relie une erreur à ses données d'origine. */
+  sample_id?: string;
 };
 
+/** Pose (ou complète : plusieurs couches d'une route peuvent y contribuer) le complément. */
 export function withApiEventExtra<R extends Response>(response: R, extra: ApiEventExtra): R {
-  response.headers.set(API_EVENT_HEADER, JSON.stringify(extra));
+  let current: ApiEventExtra = {};
+  const raw = response.headers.get(API_EVENT_HEADER);
+  if (raw) {
+    try {
+      current = JSON.parse(raw) as ApiEventExtra;
+    } catch {
+      current = {};
+    }
+  }
+  response.headers.set(API_EVENT_HEADER, JSON.stringify({ ...current, ...extra }));
   return response;
 }
 
@@ -50,6 +62,7 @@ function takeExtraHeader(response: Response): ApiEventExtra {
       ...pick("ig_path"),
       ...pick("ig_fallback"),
       ...pickInt("ig_read_ms"),
+      ...pick("sample_id"),
     };
   } catch {
     return {};

@@ -20,6 +20,8 @@ export type RecipeSaveContext =
       /** Dans le WebView de la Share Extension iOS : on ferme la feuille au
        *  lieu de naviguer (le WebView est démonté juste après). */
       shareExtension?: boolean;
+      /** Envoi d'import gardé dont vient la recette (relié à l'enregistrement). */
+      importSampleId?: string;
     };
 
 /**
@@ -49,6 +51,7 @@ export function useRecipeSave(ctx: RecipeSaveContext) {
         isEdit,
         source: ctx.mode === "create" ? ctx.source : undefined,
         chosenHouseholdId,
+        importSampleId: ctx.mode === "create" ? ctx.importSampleId : undefined,
       });
 
       if (ctx.mode === "edit") {

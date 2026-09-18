@@ -118,6 +118,7 @@ describe("GET /api/cron/demo-reset (Fix 1.5)", () => {
       purgedTags: 2,
       purgedOwners: 0,
       purgedTokens: 0,
+      purgedImportSamples: 0,
     });
     expect(monitor.status).toBe("ok");
   });

@@ -28,6 +28,8 @@ export type OwnerContext = {
   platform?: string;
   /** Owner marqué sonde (#26, migration 048) : ses actions ne sont jamais journalisées. */
   isProbe?: boolean;
+  /** A refusé la conservation de ses envois d'import (056, src/lib/import-pool). */
+  importPoolOptOut?: boolean;
   memberships: OwnerMembership[];
 };
 
@@ -48,7 +50,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
   const { data, error } = await supabase
     .from("device_sessions")
     .select(
-      "owner_id, is_revoked, platform, owners(name, alias, recovery_email, is_probe, memberships(household_id, role, households(is_demo)))",
+      "owner_id, is_revoked, platform, owners(name, alias, recovery_email, is_probe, import_pool_opt_out, memberships(household_id, role, households(is_demo)))",
     )
     .eq("id", sessionId)
     .maybeSingle();
@@ -74,6 +76,7 @@ export async function resolveOwnerContext(sessionId: string): Promise<OwnerConte
     sessionId,
     platform: row.platform,
     isProbe: row.owners.is_probe ?? false,
+    importPoolOptOut: row.owners.import_pool_opt_out ?? false,
     memberships,
   };
 }

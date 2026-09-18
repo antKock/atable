@@ -129,6 +129,8 @@ export type RawV3 = {
   instagramReads: { ig_path: string | null }[];
   /** Crédit Apify du mois (plan gratuit) ; null = non configuré ou API muette. */
   apifyUsage: { usedUsd: number; limitUsd: number; cycleEnd: string | null } | null;
+  /** Envois d'import gardés 30 jours (056) : nombre et plus ancien — la purge nocturne tourne-t-elle ? */
+  importPool?: { count: number; oldestAt: string | null };
 };
 
 const WEEKS = 12;
@@ -208,10 +210,14 @@ export type Health = {
   instagram: HealthLight;
   /** Crédit Apify du mois (plan gratuit, 5 $) : rouge au-delà de 80 %. */
   apify: HealthLight;
+  /** Envois d'import gardés : rouge si le plus ancien dépasse 30 jours + une nuit (purge en panne). */
+  importPool: HealthLight;
 };
 
 /** Seuils du veilleur (#27), partagés avec /api/admin/health. */
 export const BACKUP_MAX_AGE_H = 26;
+/** Conservation promise : 30 jours ; la purge est nocturne → une nuit de marge. */
+export const IMPORT_POOL_MAX_AGE_H = 31 * 24;
 export const EDGE_5XX_MAX_24H = 2;
 /** Instagram : rouge si > 30 % des lectures passent au secours, dès 5 lectures sur 24 h. */
 export const IG_FALLBACK_MAX_RATE = 0.3;
@@ -350,8 +356,12 @@ export function assembleV3(raw: RawV3) {
     ? raw.apifyUsage.usedUsd / raw.apifyUsage.limitUsd
     : null;
   const apifyOk = apifyRatio == null || apifyRatio <= APIFY_USAGE_ALERT_RATIO;
+  // Conservation 30 jours des envois d'import : la promesse de la politique de
+  // confidentialité tient tant que rien n'est plus vieux que 31 jours.
+  const poolOldestH = hoursSince(raw.importPool?.oldestAt ?? null, raw.now);
+  const poolOk = poolOldestH == null || poolOldestH <= IMPORT_POOL_MAX_AGE_H;
   const health: Health = {
-    ok: pipelineOk && cronsOk && demoOk && backupOk && edgeOk && igOk && apifyOk,
+    ok: pipelineOk && cronsOk && demoOk && backupOk && edgeOk && igOk && apifyOk && poolOk,
     pipeline: {
       ok: pipelineOk,
       detail: `${Math.round(enrichedRate * 100)} % enrichies sur 4 sem. · ${num(h.recipes_failed)} en échec · ${num(h.recipes_pending_stale)} bloquée${num(h.recipes_pending_stale) > 1 ? "s" : ""}`,
@@ -387,6 +397,13 @@ export function assembleV3(raw: RawV3) {
         raw.apifyUsage == null
           ? "crédit illisible (APIFY_TOKEN absent ou API Apify muette)"
           : `${raw.apifyUsage.usedUsd.toFixed(2)} $ sur ${raw.apifyUsage.limitUsd} $ ce mois-ci (${Math.round((apifyRatio ?? 0) * 100)} %, max ${Math.round(APIFY_USAGE_ALERT_RATIO * 100)} %)${raw.apifyUsage.cycleEnd ? `, cycle jusqu'au ${raw.apifyUsage.cycleEnd.slice(0, 10)}` : ""}`,
+    },
+    importPool: {
+      ok: poolOk,
+      detail:
+        poolOldestH == null
+          ? "aucun envoi gardé"
+          : `${raw.importPool?.count ?? 0} envoi${(raw.importPool?.count ?? 0) > 1 ? "s" : ""} gardé${(raw.importPool?.count ?? 0) > 1 ? "s" : ""} · le plus ancien a ${Math.floor(poolOldestH / 24)} j (max ${IMPORT_POOL_MAX_AGE_H / 24})`,
     },
   };
   const costPerActive = activeNow ? num(h.ai_cost_usd) / activeNow : 0;

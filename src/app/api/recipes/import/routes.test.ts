@@ -83,6 +83,7 @@ describe("POST /api/recipes/import/url", () => {
     expect(extractRecipeFromUrl).toHaveBeenCalledWith("https://example.com/r", {
       householdId: "household-1",
       onInstagramRead: expect.any(Function),
+      trace: expect.any(Object),
     });
   });
 

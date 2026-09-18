@@ -54,6 +54,9 @@ export function buildRecipeCreateSchema(t: FullDictionary) {
     // Foyer de destination (multi-foyer) ; absent → repli sur l'unique foyer
     // membre, validé côté route (resolveWriteHousehold).
     householdId: z.string().uuid().optional(),
+    // Envoi d'import gardé 30 jours dont vient cette recette (src/lib/import-pool) :
+    // la recette enregistrée, corrigée par la personne, sert de vérité terrain.
+    importSampleId: z.string().uuid().optional(),
   });
 }
 

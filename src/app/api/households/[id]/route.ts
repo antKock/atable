@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
+import * as Sentry from "@sentry/nextjs";
 import type { NextRequest } from "next/server";
 import { createServerClient } from "@/lib/supabase/server";
+import { deleteHouseholdImportSamples } from "@/lib/import-pool/samples";
 import { purgeRecipePhotos } from "@/lib/storage/photos";
 import { HouseholdCreateSchema } from "@/lib/schemas/household";
 import { clearSessionCookie } from "@/lib/auth/session";
@@ -137,6 +139,12 @@ export const DELETE = withOwnerAuth(
         .select("photo_url, generated_image_url")
         .eq("household_id", householdId);
       await purgeRecipePhotos(recipesToDelete ?? []);
+      // Envois d'import gardés 30 jours pour ce carnet (src/lib/import-pool) :
+      // hors base, la suppression du foyer ne les atteint pas. Best-effort — un
+      // reste orphelin est ramassé par la purge nocturne.
+      await deleteHouseholdImportSamples(householdId).catch((err) =>
+        Sentry.captureException(err, { tags: { feature: "import-pool" } }),
+      );
       // Delete household — since migration 027 the CASCADE reaches recipes,
       // memberships and device_sessions (owner rows of other devices remain:
       // an owner is an identity, not an access).

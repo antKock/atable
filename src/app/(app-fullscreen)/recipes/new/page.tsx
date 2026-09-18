@@ -3,6 +3,7 @@ import NewRecipeFlow from "@/components/recipes/form/NewRecipeFlow";
 import { createServerClient } from "@/lib/supabase/server";
 import { getOwnerContext, isGuestOwner, memberHouseholdIds } from "@/lib/auth/owner-context";
 import type { MemberFoyer } from "@/components/recipes/form/RecipeForm";
+import { importPoolState } from "@/lib/import-pool/samples";
 
 // NewRecipeFlow reads search params (?import=url&url=… from the share sheet)
 // via useSearchParams, which requires the route to render dynamically.
@@ -40,5 +41,5 @@ export default async function NewRecipePage() {
     memberFoyers = memberIds.filter((id) => byId.has(id)).map((id) => ({ id, ...byId.get(id)! }));
   }
 
-  return <NewRecipeFlow memberFoyers={memberFoyers} />;
+  return <NewRecipeFlow memberFoyers={memberFoyers} importPool={importPoolState(owner)} />;
 }

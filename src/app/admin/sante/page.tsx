@@ -126,6 +126,12 @@ export default async function SantePage() {
               detail={o.health.apify.detail}
               span={6}
             />
+            <Light
+              ok={o.health.importPool.ok}
+              label="Envois d'import gardés (30 j)"
+              detail={o.health.importPool.detail}
+              span={6}
+            />
           </div>
         </div>
 

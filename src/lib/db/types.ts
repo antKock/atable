@@ -371,6 +371,92 @@ export type Database = {
         }
         Relationships: []
       }
+      import_samples: {
+        Row: {
+          created_at: string
+          error_code: string | null
+          expires_at: string
+          extracted: Json | null
+          files: string[]
+          household_id: string | null
+          id: string
+          image_kind: string | null
+          method: string
+          model: string | null
+          owner_id: string | null
+          path: string | null
+          recipe_id: string | null
+          status: number
+          transcript: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          error_code?: string | null
+          expires_at?: string
+          extracted?: Json | null
+          files?: string[]
+          household_id?: string | null
+          id: string
+          image_kind?: string | null
+          method: string
+          model?: string | null
+          owner_id?: string | null
+          path?: string | null
+          recipe_id?: string | null
+          status: number
+          transcript?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          error_code?: string | null
+          expires_at?: string
+          extracted?: Json | null
+          files?: string[]
+          household_id?: string | null
+          id?: string
+          image_kind?: string | null
+          method?: string
+          model?: string | null
+          owner_id?: string | null
+          path?: string | null
+          recipe_id?: string | null
+          status?: number
+          transcript?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_samples_household_id_fkey"
+            columns: ["household_id"]
+            isOneToOne: false
+            referencedRelation: "households"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_samples_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "owners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_samples_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "recipes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_samples_recipe_id_fkey"
+            columns: ["recipe_id"]
+            isOneToOne: false
+            referencedRelation: "v3_recipe_people"
+            referencedColumns: ["recipe_id"]
+          },
+        ]
+      }
       login_tokens: {
         Row: {
           attempts: number
@@ -460,6 +546,7 @@ export type Database = {
           created_at: string
           demo_trial_started_at: string | null
           id: string
+          import_pool_opt_out: boolean
           is_probe: boolean
           name: string | null
           onboarding_variant: string | null
@@ -470,6 +557,7 @@ export type Database = {
           created_at?: string
           demo_trial_started_at?: string | null
           id?: string
+          import_pool_opt_out?: boolean
           is_probe?: boolean
           name?: string | null
           onboarding_variant?: string | null
@@ -480,6 +568,7 @@ export type Database = {
           created_at?: string
           demo_trial_started_at?: string | null
           id?: string
+          import_pool_opt_out?: boolean
           is_probe?: boolean
           name?: string | null
           onboarding_variant?: string | null

@@ -6,6 +6,7 @@ import { enrichRecipe } from "@/lib/enrichment";
 import { createServerClient } from "@/lib/supabase/server";
 import { createSupabaseMock, findCall, calledWith, type SupabaseMock } from "@/test/supabase-mock";
 import { recipeDbRow } from "@/test/fixtures";
+import { linkImportSampleToRecipe } from "@/lib/import-pool/samples";
 
 vi.mock("@/lib/supabase/server");
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
@@ -27,6 +28,7 @@ vi.mock("@/lib/enrichment", () => ({
 vi.mock("@/lib/import-quota", () => ({
   enforceRecipeCreateQuota: vi.fn().mockResolvedValue(null),
 }));
+vi.mock("@/lib/import-pool/samples", () => ({ linkImportSampleToRecipe: vi.fn() }));
 
 const mockHeaders = headers as unknown as Mock;
 
@@ -79,6 +81,24 @@ describe("POST /api/recipes", () => {
     const res = await POST(postRequest({ title: "Tarte" }));
     expect(res.status).toBe(201);
     expect((await res.json()).id).toBe("recipe-1");
+  });
+
+  it("relie l'envoi d'import gardé à la recette créée (après la réponse, même owner)", async () => {
+    const SAMPLE = "3f2b8c1e-6d4a-4b7e-9c2f-1a2b3c4d5e6f";
+    vi.mocked(after).mockClear();
+    supa.queueResult({ data: recipeDbRow(), error: null });
+    const res = await POST(
+      postRequest({ title: "Tarte", source: "photo", importSampleId: SAMPLE }),
+    );
+    expect(res.status).toBe(201);
+    // Deux after() : l'enrichissement, puis le rattachement.
+    const tasks = vi.mocked(after).mock.calls.map(([fn]) => fn as () => Promise<void>);
+    expect(tasks).toHaveLength(2);
+    await tasks[1]();
+    expect(linkImportSampleToRecipe).toHaveBeenCalledWith(SAMPLE, "owner-test", "recipe-1");
+    // Jamais écrit sur la recette elle-même.
+    const insert = findCall(supa, "recipes")?.ops.find((o) => o.method === "insert");
+    expect(insert?.args[0]).not.toHaveProperty("importSampleId");
   });
 
   it("rejects an empty title with 422", async () => {

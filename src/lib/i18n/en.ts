@@ -256,6 +256,13 @@ export const en: Dictionary = {
     title: "New recipe",
     firstTitle: "Your first recipe",
     firstLead: "Paste a link, snap a photo or dictate: Mijote tidies it up.",
+    pool: {
+      notice:
+        "What you send to import a recipe is kept for 30 days so we can fix and improve imports.",
+      optOut: "Don't keep them",
+      done: "Got it: we won't keep what you send. You can change this in your profile.",
+      error: "Couldn't save your choice. Try again.",
+    },
     firstNoRecipe: "No recipe at hand?",
     firstTryThis: "Try this one",
     question: "Where's your recipe from?",
@@ -509,6 +516,9 @@ export const en: Dictionary = {
     logoutConfirmBodyNoEmail:
       "This device will be logged out. Without a recovery email you may lose access to your cookbooks — consider adding one first.",
     logoutAction: "Log out",
+    importPoolLabel: "Help improve imports",
+    importPoolHint:
+      "Photos, dictations and links you send to import a recipe are kept for 30 days, then deleted. They're only used to fix errors and improve imports, and are never shared. Turning this off also deletes the ones already kept.",
   },
 
   // Owner merge (#14 §5)

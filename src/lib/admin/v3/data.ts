@@ -84,6 +84,7 @@ export async function loadRawV3(
     edgeErrors,
     instagramReads,
     apifyUsage,
+    importPool,
   ] = await Promise.all([
     rpc<Person[]>("analytics_v3_people"),
     rpc<WeeklyActiveRow[]>("analytics_v3_weekly_active", { p_weeks: WEEKS + 4 }),
@@ -145,6 +146,19 @@ export async function loadRawV3(
         }),
     ),
     timed("apify_usage", getApifyUsage()),
+    // Envois d'import gardés 30 jours (056) : la purge nocturne tient-elle la promesse ?
+    timed(
+      "import_samples",
+      supabase
+        .from("import_samples")
+        .select("created_at", { count: "exact" })
+        .order("created_at", { ascending: true })
+        .limit(1)
+        .then(({ data, count, error }) => {
+          if (error) throw new Error(`import_samples: ${error.message}`);
+          return { count: count ?? 0, oldestAt: data?.[0]?.created_at ?? null };
+        }),
+    ),
   ]);
 
   const health = healthRows[0];
@@ -166,6 +180,7 @@ export async function loadRawV3(
     edgeErrors,
     instagramReads,
     apifyUsage,
+    importPool,
     demoSeedMin: demoSeedMin(),
     now,
     timings: timings.sort((a, b) => b.ms - a.ms),

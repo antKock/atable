@@ -254,6 +254,14 @@ export const t = {
     // Mode « première recette » (/recipes/new?first=1, bras B du #25).
     firstTitle: "Ta première recette",
     firstLead: "Colle un lien, prends une photo ou dicte : Mijote la met au propre.",
+    // Conservation 30 jours des envois (docs/specs/ocr-appareil/01-conservation-imports.md)
+    pool: {
+      notice:
+        "Ce que tu envoies pour importer une recette est gardé 30 jours pour corriger et améliorer les imports.",
+      optOut: "Ne pas les garder",
+      done: "C'est noté : on ne gardera pas tes envois. Tu peux changer d'avis dans ton profil.",
+      error: "Impossible d'enregistrer ton choix. Réessaie.",
+    },
     firstNoRecipe: "Pas de recette sous la main ?",
     firstTryThis: "Essaie avec celle-ci",
     // Spec #24 : la question en titre, verbe en premier sur chaque méthode,
@@ -537,6 +545,10 @@ export const t = {
     logoutConfirmBodyNoEmail:
       "Cet appareil sera déconnecté. Sans email de secours, tu risques de perdre l'accès à tes carnets — pense à en ajouter un avant.",
     logoutAction: "Se déconnecter",
+    // Conservation des envois d'import (refus possible)
+    importPoolLabel: "Aider à améliorer les imports",
+    importPoolHint:
+      "Les photos, dictées et liens que tu envoies pour importer une recette sont gardés 30 jours, puis supprimés. Ils servent uniquement à corriger les erreurs et à améliorer les imports, et ne sont jamais partagés. Désactiver supprime aussi ceux déjà gardés.",
   },
 
   // Fusion d'owners (#14, §5) — déclenchée depuis le profil quand l'email est
