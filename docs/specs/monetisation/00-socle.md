@@ -67,15 +67,16 @@ ce que Mijote coûte et ce que les utilisateurs ont apporté.
 9. Vocabulaire : **« soutenir », « contribuer »**, jamais « don ». Juridiquement, ce qui est
    vendu dans l'app est du chiffre d'affaires, pas un don (pas de reçu fiscal possible).
 
-## Décisions ouvertes
+## Décisions ouvertes (état au 2026-09-18)
 
-| # | Question | Qui | Quand |
-|---|---|---|---|
-| D1 | ~~Entité qui encaisse~~ **Tranché le 2026-09-18 : scénario A (individuel)**. Reste : adresse perso affichée sur la fiche UE, acceptée ou domiciliation ? | Anthony | avant le lot 2 |
-| D2 | À qui appartiennent les crédits : à l'owner qui achète (proposé) ou au foyer ? | Anthony, sur proposition | avant le lot 2 |
-| D3 | Styles proposés (combien, lesquels). Bench à faire dans `scripts/bench/`. | Anthony | avant le lot 3 |
-| D4 | Photo d'origine des imports URL au lieu d'une illustration (droits d'auteur) | Anthony | indépendant |
-| D5 | Réinstallation = nouvel owner = 50 nouvelles illustrations offertes. Accepté en v1 ? Parade possible : Apple DeviceCheck (2 bits par appareil, conservés à la réinstallation). | Anthony | avant le lot 1 |
+| # | Question | Décision |
+|---|---|---|
+| D1 | Entité qui encaisse | **Compte Apple individuel** (scénario A). |
+| D1-bis | Adresse affichée sur la fiche UE (DSA) | **Adresse personnelle acceptée**, pas de domiciliation. |
+| D2 | À qui appartiennent les crédits | **À l'owner (la personne)**. Pour ne pas perdre des crédits achetés : **proposer fortement** l'e-mail de secours au premier achat, sans l'imposer (la règle Apple 5.1.1 interdit d'exiger des données personnelles non indispensables ; un achat bloqué derrière un e-mail risque le refus en revue). Filet : historique StoreKit des consommables (iOS 18+). Les crédits gratuits d'un appareil perdu sans e-mail sont perdus : acceptable. |
+| D3 | Styles | 3 ou 4 styles cohérents avec une app de recettes. **Choix au moment du lot 3**, sur échantillons. |
+| D4 | Photo d'origine des imports URL | **Hors chantier** : future fonction « utiliser l'image de la page », à mettre au backlog séparément. |
+| D5 | Réinstallation ou nouveau profil = 50 illustrations de plus | **Accepté à court terme.** Si abus observé : Apple DeviceCheck. |
 
 ## Entité qui encaisse (D1)
 
@@ -247,14 +248,14 @@ Sources :
 
 | # | Contenu | Dépend de | Statut |
 |---|---|---|---|
-| 1 | **Stock gratuit + couverture typographique** : `credit_ledger`, attribution de 50 crédits à tous les owners, consommation à la génération, couverture sans IA quand le solde est nul, affichage du solde. Utile même sans paiement : plafonne déjà les gros consommateurs. | D2, D5 | à faire |
-| 2 | **Packs en achat intégré** : produits App Store Connect, plugin, vérification serveur, notifications de remboursement, écran d'achat. | D1 + préalables Apple | à faire |
+| 0 | **Démarches Apple (Anthony, en parallèle)** : contrat payant, IBAN perso, W-8BEN, Small Business Program, statut DSA. | — | à faire |
+| 1 | **Stock gratuit + couverture typographique** : `credit_ledger`, attribution de 50 crédits à tous les owners, consommation à la génération, couverture sans IA quand le solde est nul, affichage du solde. Utile même sans paiement : plafonne déjà les gros consommateurs. | — | à faire |
+| 2 | **Packs en achat intégré** : produits App Store Connect, plugin, vérification serveur, notifications de remboursement, écran d'achat, proposition d'e-mail de secours au premier achat. | lots 0 et 1 | à faire |
 | 3 | **Styles de génération** débloqués par tout achat. | D3, lot 2 | à faire |
 | 4 | **Page « Ce que coûte Mijote »** + pourboire. | lot 2 | à faire |
 | 5 | Mesure : vues SQL (stock épuisé → achat, taux de conversion, couverture du mois). | lot 2 | à faire |
 
-**Le lot 1 ne dépend pas de D1** : il peut démarrer dès que D2 et D5 sont tranchées, en
-parallèle des démarches Apple.
+**Le lot 1 est prêt à démarrer** ; il avance en parallèle des démarches Apple (lot 0).
 
 ## Risques et points d'attention
 
