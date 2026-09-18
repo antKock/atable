@@ -71,6 +71,8 @@ export type EventProps = {
     method_kind?: string;
     /** Import par URL : hôte du site importé (`marmiton.fr`) — pour savoir OÙ ça échoue. */
     site?: string;
+    /** Import photo réussi : nature des images selon gpt-4o (screenshot | printed_photo | handwritten | other). */
+    image_kind?: string;
   };
   "ui.seen": { target: string; route: string; params?: RouteParams };
   "error.shown": { kind: string; route: string };

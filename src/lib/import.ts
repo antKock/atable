@@ -9,8 +9,8 @@ import {
   APIFY_PRICING,
   INCLUDE_INSTAGRAM_TRANSCRIPT,
 } from "@/lib/apify";
-import { ImportResultSchema } from "@/lib/schemas/import";
-import type { ImportResult } from "@/lib/schemas/import";
+import { ImportResultSchema, IMAGE_KINDS } from "@/lib/schemas/import";
+import type { ImportResult, ImageKind } from "@/lib/schemas/import";
 import {
   VALID_SEASONS,
   VALID_PREP_TIMES,
@@ -115,6 +115,31 @@ const IMPORT_JSON_SCHEMA = {
   },
 } as const;
 
+// OCR : même schéma + `kind`, la nature des images (chantier « OCR sur
+// l'appareil », 2026-09-18) — mesure la part captures / photos de livre /
+// manuscrits pour décider du secours gpt-4o. Placé en dernier pour ne pas
+// orienter l'extraction ; ~3 tokens de sortie en plus, aucun appel en plus.
+const OCR_JSON_SCHEMA = {
+  ...IMPORT_JSON_SCHEMA,
+  name: "recipe_import_ocr",
+  schema: {
+    ...IMPORT_JSON_SCHEMA.schema,
+    properties: {
+      ...IMPORT_JSON_SCHEMA.schema.properties,
+      kind: { type: "string", enum: [...IMAGE_KINDS] },
+    },
+    required: [...IMPORT_JSON_SCHEMA.schema.required, "kind"],
+  },
+} as const;
+
+const OCR_USER_PROMPT = `Extrais la recette de cette/ces image(s).
+
+Indique aussi dans kind la nature de l'image (la plus représentative s'il y en a plusieurs) :
+- screenshot : capture d'écran d'un téléphone ou d'un ordinateur (site, application, réseau social, message)
+- printed_photo : photo d'un texte imprimé (livre, magazine, fiche, emballage)
+- handwritten : photo d'une recette écrite à la main
+- other : tout autre cas`;
+
 // ---------- List-marker normalisation ----------
 
 // Leading bullet glyphs (and their trailing whitespace) at the start of a line.
@@ -202,10 +227,15 @@ function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoU
 
 // ---------- Screenshot OCR ----------
 
+/**
+ * `imageKind` : nature des images selon le modèle (journal #28, jamais montrée
+ * au client) ; `undefined` si la réponse n'en porte pas de valide — une
+ * catégorie manquante ne fait jamais échouer un import.
+ */
 export async function extractRecipeFromImages(
   base64Images: string[],
   meta?: ImportMeta,
-): Promise<ImportedRecipeData> {
+): Promise<{ recipe: ImportedRecipeData; imageKind?: ImageKind }> {
   console.log(`[import/screenshot] OCR extraction — ${base64Images.length} image(s)`);
   const imageContent = base64Images.map((img) => ({
     type: "image_url" as const,
@@ -213,24 +243,24 @@ export async function extractRecipeFromImages(
       url: img.startsWith("data:") ? img : `data:image/jpeg;base64,${img}`,
     },
   }));
-  return runExtraction({
+  const { recipe, raw } = await runExtraction({
     model: AI_MODELS.vision,
+    jsonSchema: OCR_JSON_SCHEMA,
     callType: "ocr",
     meta,
     messages: [
       { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
       {
         role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Extrais la recette de cette/ces image(s) :",
-          },
-          ...imageContent,
-        ],
+        content: [{ type: "text", text: OCR_USER_PROMPT }, ...imageContent],
       },
     ],
   });
+  const kind = raw.kind;
+  const imageKind = (IMAGE_KINDS as readonly unknown[]).includes(kind)
+    ? (kind as ImageKind)
+    : undefined;
+  return { recipe, imageKind };
 }
 
 // ---------- Voice transcription ----------
@@ -270,7 +300,7 @@ export async function extractRecipeFromVoice(
   }
 
   // Step 2: Structure transcription into recipe JSON
-  return runExtraction({
+  const { recipe } = await runExtraction({
     model: AI_MODELS.text,
     useEffortFallback: true,
     callType: "import_voice",
@@ -283,6 +313,7 @@ export async function extractRecipeFromVoice(
       },
     ],
   });
+  return recipe;
 }
 
 // ---------- Shared text → recipe structuring ----------
@@ -295,7 +326,8 @@ type ExtractionMessages = Parameters<typeof openai.chat.completions.create>[0]["
  * retry sur erreur transitoire, validation zod, coût enregistré sur la voie
  * (`callType`) quand un foyer est connu. `useEffortFallback` : modèle texte
  * gpt-5.x (reasoning_effort « none », retenté sans le paramètre si l'API le
- * refuse — cf. ai-models.ts).
+ * refuse — cf. ai-models.ts). `raw` = le JSON brut, pour les champs que
+ * `jsonSchema` ajoute au schéma commun (`kind` de l'OCR).
  */
 async function runExtraction(opts: {
   model: string;
@@ -303,20 +335,25 @@ async function runExtraction(opts: {
   callType: AiCallType;
   meta?: ImportMeta;
   useEffortFallback?: boolean;
-}): Promise<ImportedRecipeData> {
+  jsonSchema?: typeof IMPORT_JSON_SCHEMA | typeof OCR_JSON_SCHEMA;
+}): Promise<{ recipe: ImportedRecipeData; raw: Record<string, unknown> }> {
   return withRetry(async () => {
     const call = (extra: object) =>
       openai.chat.completions.create({
         model: opts.model,
         ...extra,
-        response_format: { type: "json_schema", json_schema: IMPORT_JSON_SCHEMA },
+        response_format: {
+          type: "json_schema",
+          json_schema: opts.jsonSchema ?? IMPORT_JSON_SCHEMA,
+        },
         messages: opts.messages,
       });
     const response = opts.useEffortFallback ? await withEffortFallback(call) : await call({});
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
-    const parsed = ImportResultSchema.parse(JSON.parse(content));
+    const raw = JSON.parse(content) as Record<string, unknown>;
+    const parsed = ImportResultSchema.parse(raw);
     if (opts.meta) {
       await recordAiCost({
         householdId: opts.meta.householdId,
@@ -331,7 +368,7 @@ async function runExtraction(opts: {
         ),
       });
     }
-    return toFormData(parsed);
+    return { recipe: toFormData(parsed), raw };
   });
 }
 
@@ -353,7 +390,7 @@ function structureRecipeFromText(
       { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
       { role: "user", content: `Extrais la recette depuis ce contenu :\n\n${text}` },
     ],
-  });
+  }).then((r) => r.recipe);
 }
 
 /** Record the flat-estimate cost of one Apify scrape (separate from the GPT row). */

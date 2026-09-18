@@ -13,6 +13,7 @@ export type ApiEventExtra = {
   recipe_id?: string;
   household_id?: string;
   site?: string;
+  image_kind?: string;
 };
 
 export function withApiEventExtra<R extends Response>(response: R, extra: ApiEventExtra): R {
@@ -35,6 +36,7 @@ function takeExtraHeader(response: Response): ApiEventExtra {
       ...pick("recipe_id"),
       ...pick("household_id"),
       ...pick("site"),
+      ...pick("image_kind"),
     };
   } catch {
     return {};

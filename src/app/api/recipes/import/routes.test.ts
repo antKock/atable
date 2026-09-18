@@ -42,7 +42,7 @@ beforeEach(() => {
     .mockResolvedValue(IMPORTED as never);
   vi.mocked(extractRecipeFromImages)
     .mockReset()
-    .mockResolvedValue(IMPORTED as never);
+    .mockResolvedValue({ recipe: IMPORTED, imageKind: "screenshot" } as never);
   vi.mocked(extractRecipeFromVoice)
     .mockReset()
     .mockResolvedValue(IMPORTED as never);
@@ -155,6 +155,9 @@ describe("POST /api/recipes/import/screenshot", () => {
     const res = await postScreenshot(jsonReq("screenshot", { images: [IMG] }));
     expect(res.status).toBe(200);
     expect(enforceImportQuota).toHaveBeenCalledWith("household-1");
+    // La nature des images part au journal, jamais au client.
+    expect(await res.json()).toEqual(IMPORTED);
+    expect(res.headers.get("x-mijote-event")).toBeNull();
   });
 
   it("un corps invalide répond 400 INVALID_DATA sans consommer le quota", async () => {

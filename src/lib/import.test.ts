@@ -41,7 +41,7 @@ afterEach(() => {
 describe("extractRecipeFromImages", () => {
   it("extracts a recipe from an image", async () => {
     mockChat.mockResolvedValue(chatCompletion(importResult()));
-    const result = await extractRecipeFromImages(["base64data"]);
+    const { recipe: result } = await extractRecipeFromImages(["base64data"]);
     expect(result.title).toBe("Tarte aux pommes");
     expect(result.prepTime).toBe("20-30 min");
     expect(result.seasons).toEqual(["automne"]);
@@ -65,6 +65,40 @@ describe("extractRecipeFromImages", () => {
       .map((p: { image_url: { url: string } }) => p.image_url.url);
     expect(urls[0]).toBe("data:image/jpeg;base64,rawbytes");
     expect(urls[1]).toBe("data:image/png;base64,already");
+  });
+
+  it("demande la nature des images (`kind`) et la renvoie à part de la recette", async () => {
+    mockChat.mockResolvedValue(chatCompletion({ ...importResult(), kind: "handwritten" }));
+    const { recipe, imageKind } = await extractRecipeFromImages(["x"]);
+    expect(imageKind).toBe("handwritten");
+    expect(recipe).not.toHaveProperty("kind");
+    const schema = mockChat.mock.calls[0][0].response_format.json_schema.schema;
+    expect(schema.required).toContain("kind");
+    expect(schema.properties.kind.enum).toEqual([
+      "screenshot",
+      "printed_photo",
+      "handwritten",
+      "other",
+    ]);
+  });
+
+  it("une nature absente ou inconnue ne fait pas échouer l'import", async () => {
+    mockChat.mockResolvedValue(chatCompletion({ ...importResult(), kind: "polaroid" }));
+    const { recipe, imageKind } = await extractRecipeFromImages(["x"]);
+    expect(imageKind).toBeUndefined();
+    expect(recipe.title).toBe("Tarte aux pommes");
+  });
+
+  it("les voies texte gardent le schéma sans `kind`", async () => {
+    vi.mocked(fetch).mockResolvedValue(
+      new Response(`<h1>Tarte</h1><p>${"pommes, farine, sucre, beurre. ".repeat(10)}</p>`, {
+        status: 200,
+      }),
+    );
+    mockChat.mockResolvedValue(chatCompletion(importResult()));
+    await extractRecipeFromUrl("https://example.com/r");
+    const schema = mockChat.mock.calls[0][0].response_format.json_schema.schema;
+    expect(schema.properties).not.toHaveProperty("kind");
   });
 
   it("throws when OpenAI returns empty content", async () => {
@@ -91,7 +125,7 @@ describe("list-marker normalisation", () => {
     mockChat.mockResolvedValue(
       chatCompletion(importResult({ ingredients: "- Pommes\n• Pâte brisée\n* Sucre" })),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("Pommes\nPâte brisée\nSucre");
   });
 
@@ -103,7 +137,7 @@ describe("list-marker normalisation", () => {
         }),
       ),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.steps).toBe("Éplucher les pommes\nGarnir la pâte\nEnfourner");
   });
 
@@ -111,7 +145,7 @@ describe("list-marker normalisation", () => {
     mockChat.mockResolvedValue(
       chatCompletion(importResult({ ingredients: "200 g de farine\n2 oeufs\n- 1 pincée de sel" })),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("200 g de farine\n2 oeufs\n1 pincée de sel");
   });
 
@@ -119,7 +153,7 @@ describe("list-marker normalisation", () => {
     mockChat.mockResolvedValue(
       chatCompletion(importResult({ ingredients: "- Pommes\n\n- Sucre\n" })),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("Pommes\nSucre");
   });
 
@@ -132,7 +166,7 @@ describe("list-marker normalisation", () => {
         }),
       ),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("// Pour la pâte\nFarine\n// Pour la garniture\nPommes");
     expect(result.steps).toBe("// Pour la pâte\nPétrir\n// Pour la garniture\nÉplucher");
   });
@@ -146,7 +180,7 @@ describe("ingredient deduplication", () => {
     mockChat.mockResolvedValue(
       chatCompletion(importResult({ ingredients: "Sel\n200 g de farine\nsel\n200 g  de farine" })),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("Sel\n200 g de farine");
   });
 
@@ -154,7 +188,7 @@ describe("ingredient deduplication", () => {
     mockChat.mockResolvedValue(
       chatCompletion(importResult({ ingredients: "200 g de farine\nFarine" })),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("200 g de farine\nFarine");
   });
 
@@ -167,7 +201,7 @@ describe("ingredient deduplication", () => {
         }),
       ),
     );
-    const result = await extractRecipeFromImages(["x"]);
+    const { recipe: result } = await extractRecipeFromImages(["x"]);
     expect(result.ingredients).toBe("// Pâte\nFarine\n// Pâte\nOeufs");
     expect(result.steps).toBe("Mélanger\nMélanger");
   });

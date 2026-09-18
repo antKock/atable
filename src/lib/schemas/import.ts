@@ -48,6 +48,14 @@ export const ImportResultSchema = z.object({
   servings: servingsGuessField,
 });
 
+/**
+ * Nature des images d'un import photo, estimée par le modèle vision dans le même
+ * appel (chantier « OCR sur l'appareil ») : mesure la répartition réelle des cas
+ * pour pondérer le banc Apple Vision. Une catégorie, jamais de contenu.
+ */
+export const IMAGE_KINDS = ["screenshot", "printed_photo", "handwritten", "other"] as const;
+export type ImageKind = (typeof IMAGE_KINDS)[number];
+
 export const MAX_VOICE_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export const VALID_VOICE_MIME_TYPES = [
