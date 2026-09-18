@@ -27,6 +27,7 @@ function igExtra(r: InstagramReadReport): ApiEventExtra {
   return {
     ig_path: r.path,
     ...(r.fallback ? { ig_fallback: r.fallback } : {}),
+    ...(r.device ? { ig_device: r.device } : {}),
     ig_read_ms: r.readMs,
   };
 }
@@ -44,7 +45,7 @@ export const POST = withOwnerAuth(
     // `api.called` porte le site quelle que soit l'issue (succès, 4xx, 5xx), et
     // pour Instagram la voie de lecture de la légende (catégories, jamais l'URL).
     let ig: InstagramReadReport | undefined;
-    const response = await handle(body, t, householdId, (r) => (ig = r));
+    const response = await handle(body, t, householdId, owner.ownerId, (r) => (ig = r));
     // Budget d'import dépassé pendant la lecture (Apify lent) : la voie n'a pas
     // eu le temps de se rapporter, l'échec compte quand même.
     if (!ig && response.status === 504 && site && isInstagramUrl(`https://${site}`)) {
@@ -67,6 +68,7 @@ async function handle(
   body: unknown,
   t: Awaited<ReturnType<typeof getT>>,
   householdId: string,
+  ownerId: string,
   onInstagramRead: (report: InstagramReadReport) => void,
 ): Promise<NextResponse> {
   try {
@@ -88,6 +90,9 @@ async function handle(
     const formData = await extractRecipeFromUrl(parsed.data.url, {
       householdId,
       onInstagramRead,
+      ...(parsed.data.igref
+        ? { instagramDevice: { ref: parsed.data.igref, ownerId } }
+        : {}),
     });
     return NextResponse.json(formData);
   } catch (error) {

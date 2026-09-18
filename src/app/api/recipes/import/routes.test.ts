@@ -135,6 +135,21 @@ describe("POST /api/recipes/import/url", () => {
     });
   });
 
+  it("extension iOS : igref relayé à l'import avec l'owner de la session", async () => {
+    const igref = "0f8fad5b-d9cb-469f-a165-70867728950e";
+    await postUrl(jsonReq("url", { url: "https://www.instagram.com/reel/DCJe4hFIGzC/", igref }));
+    expect(vi.mocked(extractRecipeFromUrl).mock.calls[0][1]).toMatchObject({
+      instagramDevice: { ref: igref, ownerId: "owner-test" },
+    });
+  });
+
+  it("igref invalide → 400 INVALID_DATA", async () => {
+    const res = await postUrl(
+      jsonReq("url", { url: "https://www.instagram.com/p/X1234/", igref: "x" }),
+    );
+    expect(res.status).toBe(400);
+  });
+
   it("site hors Instagram : aucune prop ig_*", async () => {
     await postUrl(jsonReq("url", { url: "https://www.marmiton.org/recettes/x.aspx" }));
     const props = vi.mocked(trackEvent).mock.calls.at(-1)?.[1] as Record<string, unknown>;

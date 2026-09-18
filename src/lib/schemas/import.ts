@@ -29,6 +29,9 @@ export function buildImportUrlSchema(t: FullDictionary) {
       .string()
       .url(t.validation.urlInvalid)
       .refine((u) => u.startsWith("https://"), t.validation.httpsOnly),
+    // Référence de la page Instagram lue par l'extension iOS (étape 2 du
+    // chantier « Instagram sans Apify ») ; absente pour tout autre import.
+    igref: z.string().uuid().optional(),
   });
 }
 

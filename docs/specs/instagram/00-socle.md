@@ -68,7 +68,11 @@ L'extension de partage iOS en profite **sans nouvelle version** : elle charge
 `/recipes/new?import=url&url=…&ext=1`, dont la page appelle la même route
 `/api/recipes/import/url` (`ImportSelector.tsx`).
 
-## 2. Étape 2 — lecture depuis le téléphone dans l'extension (conception)
+## 2. Étape 2 — lecture depuis le téléphone dans l'extension (codée le 2026-09-18)
+
+> Go d'Anthony le 2026-09-18. Serveur sur staging (inactif tant qu'aucun build n'envoie
+> `igref`) ; Swift compilé, **à embarquer dans le build de l'OCR Apple Vision** et à tester
+> sur un iPhone réel (TestFlight) avant soumission.
 
 ### 2.1 Vérification préalable : ce qu'Instagram met dans le partage
 
@@ -84,16 +88,23 @@ Extension (Swift)                        Serveur
 URL partagée ─┬─► charge /recipes/new?import=url&url=…&ext=1&igref=R   (tout de suite, écran inchangé)
               │
               └─► (en parallèle) si lien Instagram :
-                  URLSession éphémère GET instagram.com/p/{code}/embed/captioned/  (4 s max, 1,5 Mo max)
-                  POST /api/instagram/page  (cookie de session App Group,
-                       en-tête x-mijote-igref: R, corps = HTML brut)  ──►  extraction serveur
-                                                                           (extractEmbedCaption, même code qu'à l'étape 1)
+                  URLSession éphémère GET <URL partagée telle quelle>  (4 s, 3 Mo max)
+                  POST /api/instagram/page?ref=R&url=<URL finale>  (cookie de session App Group,
+                       corps = HTML compressé deflate brut, ≈ 170 Ko)  ──►  extraction serveur
+                                                                           (extractOgCaption puis extractEmbedCaption,
+                                                                            même code qu'à l'étape 1)
                                                                            → Redis ig:device:R = {ownerId, code, caption}, TTL 5 min
 Page /recipes/new ── POST /api/recipes/import/url {url, igref: R} ──►  chaîne :
                                                                        cache → téléphone (attend ig:device:R ≤ 3 s)
                                                                        → lecture par le VPS → Apify → erreur
 ```
 
+- **L'extension lit l'URL partagée telle quelle** (la page du reel : les liens courts
+  `/share/` sont suivis par URLSession, et `og:description` porte la légende même pour un
+  carrousel, alors que la page embed n'en a pas). Elle ne construit aucune URL Instagram.
+  Le HTML (≈ 760 Ko) est compressé avec `NSData.compressed(using: .zlib)`, soit du deflate
+  brut RFC 1951, ≈ 170 Ko à envoyer ; le serveur le décompresse (`inflateRawSync`, plafond de
+  3 Mo contre les bombes de décompression). L'identifiant du reel est lu dans l'`og:url` de la page.
 - **L'extension télécharge sans analyser** : aucune logique de format côté Swift. Si
   Instagram change sa page, on corrige `src/lib/instagram.ts` et on pousse, sans passer par
   l'App Store.

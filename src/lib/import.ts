@@ -30,6 +30,7 @@ import {
   type DirectResult,
 } from "@/lib/instagram";
 import { getCachedCaption, setCachedCaption } from "@/lib/instagram-cache";
+import { awaitDeviceCaption, type DeviceMiss } from "@/lib/instagram-device";
 import type { RecipeFormData } from "@/types/recipe";
 
 export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
@@ -41,15 +42,23 @@ export type ImportMeta = {
   householdId: string;
   /** Import Instagram : voie de lecture utilisée, pour le journal (#28). */
   onInstagramRead?: (report: InstagramReadReport) => void;
+  /**
+   * Import lancé par l'extension de partage iOS qui lit aussi la page sur le
+   * téléphone (étape 2) : référence du dépôt (`igref`) et personne qui importe.
+   */
+  instagramDevice?: { ref: string; ownerId: string };
 };
 
 /**
- * Voie qui a fourni la légende Instagram. `cache` = déjà lue dans les 24 h
- * (aucune lecture réseau) ; `failed` = aucune voie n'a abouti.
+ * Voie qui a fourni la légende Instagram. `device` = page lue par le téléphone
+ * (extension de partage) ; `cache` = déjà lue dans les 24 h (aucune lecture
+ * réseau) ; `failed` = aucune voie n'a abouti.
  */
-export type InstagramPath = "direct_embed" | "direct_og" | "apify" | "cache" | "failed";
+export type InstagramPath = "device" | "direct_embed" | "direct_og" | "apify" | "cache" | "failed";
 export type InstagramReadReport = {
   path: InstagramPath;
+  /** Page lue par le téléphone attendue mais inutilisée : absent | unparsable | mismatch | error. */
+  device?: string;
   /** Pourquoi la lecture directe a été abandonnée (`no_caption/login_wall`…) — enum, jamais de contenu. */
   fallback?: string;
   /** Durée de la lecture de la légende seule (hors structuration par le modèle). */
@@ -573,7 +582,8 @@ export function resetInstagramAlertThrottle(): void {
 
 /**
  * Instagram post/reel → légende. Chaîne (chantier « Instagram sans Apify »,
- * 2026-09-18) : cache 24 h → lecture directe des pages publiques (embed, puis
+ * 2026-09-18) : cache 24 h → page lue par le téléphone (extension iOS, si
+ * `meta.instagramDevice`) → lecture directe par le VPS (embed, puis
  * og:description du reel) → Apify en secours → erreur actuelle. Les codes
  * d'erreur restent ceux d'avant : SITE_UNREACHABLE (aucune voie), EXTRACTION_FAILED
  * (publication sans texte). La voie utilisée est rapportée via
@@ -581,34 +591,57 @@ export function resetInstagramAlertThrottle(): void {
  */
 async function readInstagramCaption(url: string, meta: ImportMeta | undefined): Promise<string> {
   const t0 = performance.now();
+  let deviceMiss: DeviceMiss | undefined;
   const report = (path: InstagramPath, fallback?: string) => {
     const r: InstagramReadReport = {
       path,
       ...(fallback ? { fallback } : {}),
+      ...(deviceMiss ? { device: deviceMiss } : {}),
       readMs: Math.round(performance.now() - t0),
     };
     console.info(
-      `[import/instagram] path=${r.path} read_ms=${r.readMs}${r.fallback ? ` fallback=${r.fallback}` : ""}`,
+      `[import/instagram] path=${r.path} read_ms=${r.readMs}${r.fallback ? ` fallback=${r.fallback}` : ""}${r.device ? ` device=${r.device}` : ""}`,
     );
     meta?.onInstagramRead?.(r);
   };
+  const fromCache = async (c: string) => {
+    const cached = await getCachedCaption(c);
+    if (cached) report("cache");
+    return cached?.caption ?? null;
+  };
 
   const target = parseInstagramUrl(url);
-  const code =
-    target?.kind === "post"
-      ? target.code
-      : target?.kind === "share"
-        ? await resolveShareLink(target.path)
-        : null;
+  let code = target?.kind === "post" ? target.code : null;
+  if (code) {
+    const cached = await fromCache(code);
+    if (cached) return cached;
+  }
 
+  // 1. Page lue par le téléphone (extension iOS, étape 2) — avant toute requête
+  //    du VPS, y compris la résolution d'un lien court. Jamais mise en cache
+  //    partagé (anti-empoisonnement, cf. instagram-device.ts).
+  const device = meta?.instagramDevice;
+  if (device && target) {
+    const got = await awaitDeviceCaption({ ref: device.ref, ownerId: device.ownerId, code });
+    if (got.ok) {
+      report("device");
+      return got.caption;
+    }
+    deviceMiss = got.miss;
+  }
+
+  if (!code && target?.kind === "share") {
+    code = await resolveShareLink(target.path);
+    if (code) {
+      const cached = await fromCache(code);
+      if (cached) return cached;
+    }
+  }
+
+  // 2. Lecture directe par le VPS.
   let fallback = target ? "share_unresolved" : "unsupported_url";
   let short: Extract<DirectResult, { ok: false }>["short"];
   if (code) {
-    const cached = await getCachedCaption(code);
-    if (cached) {
-      report("cache");
-      return cached.caption;
-    }
     const direct = await readInstagramDirect(code);
     noteDirectRead(
       direct.ok

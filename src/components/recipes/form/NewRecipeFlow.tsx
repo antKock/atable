@@ -34,6 +34,13 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
     searchParams.get("import") === "url" ? searchParams.get("url") : null,
   );
 
+  // Référence de la page Instagram que l'extension de partage lit en parallèle
+  // sur le téléphone (&igref=…, étape 2 du chantier « Instagram sans Apify ») :
+  // relayée telle quelle à l'import, qui l'attend quelques secondes.
+  const [autoImportRef] = useState<string | null>(() =>
+    searchParams.get("import") === "url" ? searchParams.get("igref") : null,
+  );
+
   // Running inside the iOS Share Extension's WebView (?ext=1): the native sheet
   // provides its own header, so we hide the app chrome and dismiss-on-save.
   const [isExt] = useState(() => searchParams.get("ext") === "1");
@@ -142,6 +149,7 @@ export default function NewRecipeFlow({ memberFoyers = [] }: { memberFoyers?: Me
           onImportComplete={handleImportComplete}
           onManual={handleManual}
           autoImportUrl={autoImportUrl}
+          autoImportRef={autoImportRef}
           sampleUrl={isFirst ? FIRST_RECIPE_SAMPLE_URL[locale] : null}
         />
       ) : (

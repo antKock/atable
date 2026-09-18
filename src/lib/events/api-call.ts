@@ -20,6 +20,8 @@ export type ApiEventExtra = {
   ig_fallback?: string;
   /** Import Instagram : durée de la lecture de la légende seule, en ms. */
   ig_read_ms?: number;
+  /** Instagram lu par le téléphone : issue du dépôt (ok | unparsable | duplicate) ou raison de non-usage à l'import (absent | unparsable | mismatch | error). */
+  ig_device?: string;
 };
 
 export function withApiEventExtra<R extends Response>(response: R, extra: ApiEventExtra): R {
@@ -49,6 +51,7 @@ function takeExtraHeader(response: Response): ApiEventExtra {
       ...pick("image_kind"),
       ...pick("ig_path"),
       ...pick("ig_fallback"),
+      ...pick("ig_device"),
       ...pickInt("ig_read_ms"),
     };
   } catch {

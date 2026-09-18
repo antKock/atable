@@ -89,3 +89,11 @@ export const recoveryVerifyRateLimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(30, "1 h"),
   prefix: "rl:recverif:",
 });
+
+// Instagram lu par le téléphone (extension iOS, étape 2) : dépôt d'une page
+// publique par partage. 30/h par owner, très au-dessus d'un usage réel.
+export const instagramPageRateLimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(30, "1 h"),
+  prefix: "rl:igpage:",
+});

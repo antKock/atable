@@ -141,9 +141,18 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
             URLQueryItem(name: "url", value: sharedURL.absoluteString),
             URLQueryItem(name: "ext", value: "1"),
         ]
+        // Instagram : le téléphone lit aussi la page publique, en parallèle du
+        // chargement de la page d'import (cf. InstagramRelay). `igref` relie les deux.
+        let igRef = InstagramRelay.accepts(sharedURL) ? UUID().uuidString.lowercased() : nil
+        if let igRef = igRef {
+            comps.queryItems?.append(URLQueryItem(name: "igref", value: igRef))
+        }
         guard let importURL = comps.url else {
             showMessage(NSLocalizedString("share.badLink", comment: "Share sheet: import URL could not be built"))
             return
+        }
+        if let igRef = igRef {
+            InstagramRelay.relay(sharedURL, ref: igRef, domain: domain, sessionToken: token)
         }
 
         // Injecter le cookie AVANT de charger, puis charger.
@@ -211,5 +220,82 @@ class ShareViewController: UIViewController, WKScriptMessageHandler {
             let r = Range(match.range, in: text)
         else { return nil }
         return URL(string: String(text[r]))
+    }
+}
+
+// MARK: - Instagram lu par le téléphone
+
+// Chantier « Instagram sans Apify », étape 2 (docs/specs/instagram/00-socle.md §2.2).
+// Instagram peut bloquer l'adresse du serveur ; le téléphone, lui, lit la page
+// publique partagée depuis la connexion de l'utilisateur. L'extension la
+// télécharge SANS l'analyser et la poste (compressée) au serveur, qui en extrait
+// la légende : un changement de format d'Instagram se corrige côté serveur, sans
+// nouvelle version. Au mieux en quelques secondes, sinon rien : le serveur
+// attend au plus 3 s puis lit la page lui-même. Aucun effet visible.
+private enum InstagramRelay {
+    private static let maxPageBytes = 3_000_000
+    private static let maxUploadBytes = 1_500_000
+
+    // Éphémère : aucun cookie Instagram, rien ne persiste. Délais courts.
+    private static let session: URLSession = {
+        let config = URLSessionConfiguration.ephemeral
+        config.timeoutIntervalForRequest = 4
+        config.timeoutIntervalForResource = 6
+        config.httpShouldSetCookies = false
+        config.httpCookieAcceptPolicy = .never
+        config.urlCache = nil
+        return URLSession(configuration: config)
+    }()
+
+    static func accepts(_ url: URL) -> Bool {
+        guard url.scheme == "https", let host = url.host?.lowercased() else { return false }
+        return host == "instagram.com" || host.hasSuffix(".instagram.com") || host == "instagr.am"
+    }
+
+    // Safari iPhone : la page publique contient alors la légende (og:description).
+    private static var userAgent: String {
+        let v = UIDevice.current.systemVersion.replacingOccurrences(of: ".", with: "_")
+        return "Mozilla/5.0 (iPhone; CPU iPhone OS \(v) like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1"
+    }
+
+    static func relay(_ pageURL: URL, ref: String, domain: String, sessionToken: String) {
+        var get = URLRequest(url: pageURL)
+        get.setValue(userAgent, forHTTPHeaderField: "User-Agent")
+        get.setValue(Locale.preferredLanguages.prefix(2).joined(separator: ","), forHTTPHeaderField: "Accept-Language")
+        session.dataTask(with: get) { data, response, error in
+            guard
+                error == nil,
+                let data = data,
+                let http = response as? HTTPURLResponse,
+                http.statusCode == 200,
+                data.count <= maxPageBytes
+            else { return }
+
+            var comps = URLComponents()
+            comps.scheme = "https"
+            comps.host = domain
+            comps.path = "/api/instagram/page"
+            comps.queryItems = [
+                URLQueryItem(name: "ref", value: ref),
+                // URL finale (après les redirections des liens courts).
+                URLQueryItem(name: "url", value: (http.url ?? pageURL).absoluteString),
+            ]
+            guard let postURL = comps.url else { return }
+
+            var post = URLRequest(url: postURL)
+            post.httpMethod = "POST"
+            post.timeoutInterval = 3
+            post.setValue("text/html; charset=utf-8", forHTTPHeaderField: "Content-Type")
+            post.setValue("\(sessionCookieName)=\(sessionToken)", forHTTPHeaderField: "Cookie")
+            // Deflate brut (Apple « zlib » = RFC 1951 sans en-tête) : ≈ 4,5× moins à envoyer (763 → 168 Ko mesurés).
+            if let packed = try? (data as NSData).compressed(using: .zlib) as Data {
+                post.setValue("deflate-raw", forHTTPHeaderField: "X-Mijote-Body-Encoding")
+                post.httpBody = packed
+            } else {
+                post.httpBody = data
+            }
+            guard (post.httpBody?.count ?? 0) <= maxUploadBytes else { return }
+            session.dataTask(with: post).resume()
+        }.resume()
     }
 }

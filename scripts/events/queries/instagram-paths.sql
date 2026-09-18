@@ -1,16 +1,21 @@
 -- Chantier « Instagram sans Apify » (2026-09-18) — voie de lecture de la
 -- légende des imports Instagram (`api.called` sur /api/recipes/import/url,
 -- props `ig_path` / `ig_fallback` / `ig_read_ms`), 7 derniers jours.
---   ig_path : direct_embed | direct_og (lecture directe par le VPS) | apify
+--   ig_path : device (page lue par le téléphone, extension iOS) |
+--             direct_embed | direct_og (lecture directe par le VPS) | apify
 --             (secours) | cache (déjà lue < 24 h) | failed (aucune voie)
 --   ig_fallback : raisons d'abandon de la lecture directe, page embed puis page
 --             du reel (`http_429/login_wall`, `no_caption/no_caption`…)
+--   ig_device : page du téléphone attendue mais inutilisée (absent | unparsable |
+--             mismatch | error) ; les dépôts eux-mêmes sont les api.called de
+--             /api/instagram/page (ig_device = ok | unparsable | duplicate)
 --   read_ms : lecture de la légende seule ; total_ms : tout l'appel (+ modèle)
 -- Taux de secours = (apify + failed) / lectures hors cache ; seuil d'alerte
 -- dans la Santé (> 30 % sur 24 h dès 5 lectures).
 WITH ig AS (
   SELECT props->>'ig_path' AS ig_path,
          props->>'ig_fallback' AS ig_fallback,
+         props->>'ig_device' AS ig_device,
          (props->>'ig_read_ms')::int AS read_ms,
          (props->>'duration_ms')::int AS total_ms,
          (props->>'status')::int AS status,
@@ -31,7 +36,9 @@ SELECT ig_path,
        round((percentile_cont(0.5) WITHIN GROUP (ORDER BY read_ms))::numeric) AS median_read_ms,
        round((percentile_cont(0.9) WITHIN GROUP (ORDER BY read_ms))::numeric) AS p90_read_ms,
        round((percentile_cont(0.5) WITHIN GROUP (ORDER BY total_ms))::numeric) AS median_total_ms,
-       mode() WITHIN GROUP (ORDER BY ig_fallback) AS raison_principale
+       mode() WITHIN GROUP (ORDER BY ig_fallback) AS raison_principale,
+       count(ig_device) AS telephone_attendu_inutilise,
+       mode() WITHIN GROUP (ORDER BY ig_device) AS raison_telephone
 FROM ig
 GROUP BY ig_path
 ORDER BY imports DESC;

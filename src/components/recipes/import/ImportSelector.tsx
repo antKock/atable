@@ -27,6 +27,9 @@ interface ImportSelectorProps {
   // When set (e.g. from the iOS share sheet, which loads this flow with
   // ?import=url&url=…), the URL import starts automatically on mount.
   autoImportUrl?: string | null;
+  // Extension iOS : référence de la page Instagram lue sur le téléphone, jointe
+  // à l'auto-import seulement (jamais à une saisie manuelle).
+  autoImportRef?: string | null;
   // Écran « Ta première recette » (bras B du A/B onboarding #25) : recette
   // d'exemple proposée en pied, importée par le chemin URL normal.
   sampleUrl?: string | null;
@@ -39,6 +42,7 @@ export default function ImportSelector({
   onImportComplete,
   onManual,
   autoImportUrl,
+  autoImportRef,
   sampleUrl,
 }: ImportSelectorProps) {
   const t = useT();
@@ -66,7 +70,7 @@ export default function ImportSelector({
     if (autoImportUrl && !autoStarted.current) {
       autoStarted.current = true;
       setExpanded("url");
-      void submitUrl(autoImportUrl);
+      void submitUrl(autoImportUrl, autoImportRef);
     }
     // submitUrl is stable enough for this one-shot effect; only react to the URL.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,12 +157,12 @@ export default function ImportSelector({
     );
   }
 
-  async function submitUrl(url: string) {
+  async function submitUrl(url: string, igref?: string | null) {
     await runImport(
       {
         path: "/api/recipes/import/url",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify(igref ? { url, igref } : { url }),
       },
       "url",
       (code) => {

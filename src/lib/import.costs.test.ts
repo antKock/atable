@@ -6,6 +6,7 @@ import { runApifyActor, isApifyConfigured, APIFY_PRICING } from "@/lib/apify";
 import { chatCompletion, importResult, MOCK_USAGE } from "@/test/openai-mock";
 import { AI_MODELS } from "@/lib/ai-models";
 import { getCachedCaption, setCachedCaption } from "@/lib/instagram-cache";
+import { awaitDeviceCaption } from "@/lib/instagram-device";
 import { resetInstagramAlertThrottle, type InstagramReadReport } from "./import";
 import * as Sentry from "@sentry/nextjs";
 
@@ -27,6 +28,9 @@ vi.mock("@/lib/apify", async (importOriginal) => {
   return { ...actual, runApifyActor: vi.fn(), isApifyConfigured: vi.fn(() => false) };
 });
 vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }));
+vi.mock("@/lib/instagram-device", () => ({
+  awaitDeviceCaption: vi.fn(async () => ({ ok: false, miss: "absent" })),
+}));
 vi.mock("@/lib/instagram-cache", () => ({
   getCachedCaption: vi.fn(async () => null),
   setCachedCaption: vi.fn(async () => {}),
@@ -278,6 +282,80 @@ describe("Instagram : lecture directe, Apify en secours, cache", () => {
     await extractRecipeFromUrl(IG, meta());
     expect(String(mockChat.mock.calls[0][0].messages[1].content)).toContain("Tarte 🍏");
     expect(reports).toMatchObject([{ path: "direct_embed", fallback: "too_short/http_500" }]);
+  });
+});
+
+describe("Instagram lu par le téléphone (extension iOS, étape 2)", () => {
+  const IG = "https://www.instagram.com/reel/abc123/?igsh=xyz";
+  const REF = "0f8fad5b-d9cb-469f-a165-70867728950e";
+  let reports: InstagramReadReport[];
+  const meta = () => ({
+    ...META,
+    onInstagramRead: (r: InstagramReadReport) => reports.push(r),
+    instagramDevice: { ref: REF, ownerId: "owner-1" },
+  });
+  beforeEach(() => {
+    reports = [];
+    resetInstagramAlertThrottle();
+    vi.mocked(getCachedCaption).mockResolvedValue(null);
+    vi.mocked(awaitDeviceCaption).mockResolvedValue({ ok: false, miss: "absent" });
+    mockChat.mockResolvedValue(chatCompletion(importResult()));
+  });
+
+  it("page du téléphone disponible : aucune requête du VPS, pas de cache partagé", async () => {
+    vi.mocked(awaitDeviceCaption).mockResolvedValue({
+      ok: true,
+      caption: "Tarte : pommes, pâte, sucre.",
+      code: "abc123",
+    });
+    await extractRecipeFromUrl(IG, meta());
+    expect(awaitDeviceCaption).toHaveBeenCalledWith({
+      ref: REF,
+      ownerId: "owner-1",
+      code: "abc123",
+    });
+    expect(fetch).not.toHaveBeenCalled();
+    expect(runApifyActor).not.toHaveBeenCalled();
+    expect(setCachedCaption).not.toHaveBeenCalled(); // anti-empoisonnement
+    expect(String(mockChat.mock.calls[0][0].messages[1].content)).toContain("Tarte : pommes");
+    expect(reports).toMatchObject([{ path: "device" }]);
+  });
+
+  it("déjà en cache : le cache passe avant l'attente du téléphone", async () => {
+    vi.mocked(getCachedCaption).mockResolvedValue({ caption: "Tarte.", source: "direct_embed" });
+    await extractRecipeFromUrl(IG, meta());
+    expect(awaitDeviceCaption).not.toHaveBeenCalled();
+    expect(reports).toMatchObject([{ path: "cache" }]);
+  });
+
+  it("rien reçu du téléphone : lecture par le VPS, la raison est gardée", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(`<div class="Caption">Tarte : pommes, pâte, sucre, beurre.</div>`),
+    );
+    await extractRecipeFromUrl(IG, meta());
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(reports).toMatchObject([{ path: "direct_embed", device: "absent" }]);
+  });
+
+  it("lien court : le téléphone passe AVANT la résolution par le VPS", async () => {
+    vi.mocked(awaitDeviceCaption).mockResolvedValue({
+      ok: true,
+      caption: "Tarte : pommes, pâte, sucre.",
+      code: "abc123",
+    });
+    await extractRecipeFromUrl("https://www.instagram.com/share/reel/BAxyz/", meta());
+    expect(awaitDeviceCaption).toHaveBeenCalledWith(expect.objectContaining({ code: null }));
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("sans igref (versions installées) : aucune attente, chaîne de l'étape 1", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(
+      new Response(`<div class="Caption">Tarte : pommes, pâte, sucre, beurre.</div>`),
+    );
+    await extractRecipeFromUrl(IG, { ...META, onInstagramRead: (r) => reports.push(r) });
+    expect(awaitDeviceCaption).not.toHaveBeenCalled();
+    expect(reports).toMatchObject([{ path: "direct_embed" }]);
+    expect(reports[0]).not.toHaveProperty("device");
   });
 });
 

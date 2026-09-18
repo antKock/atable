@@ -5,6 +5,7 @@ import {
   householdCreateRateLimit,
   demoSessionRateLimit,
   shareRateLimit,
+  instagramPageRateLimit,
 } from "@/lib/redis";
 import { getT } from "@/lib/i18n/server";
 import type { Ratelimit } from "@upstash/ratelimit";
@@ -65,4 +66,9 @@ export function enforceDemoSessionQuota(ip: string): Promise<NextResponse | null
 /** Copie d'une recette partagée (résolution de jeton), plafond par owner — même limiteur que /r/[token]. */
 export function enforceShareCopyQuota(ownerId: string): Promise<NextResponse | null> {
   return enforceQuota(shareRateLimit, ownerId, (t) => t.join.rateLimited, "SHARE_QUOTA");
+}
+
+/** Page Instagram déposée par l'extension iOS (étape 2), plafond par owner. */
+export function enforceInstagramPageQuota(ownerId: string): Promise<NextResponse | null> {
+  return enforceQuota(instagramPageRateLimit, ownerId, (t) => t.join.rateLimited, "IG_PAGE_QUOTA");
 }
