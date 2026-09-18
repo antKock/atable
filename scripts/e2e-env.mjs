@@ -28,6 +28,8 @@ export const PINNED_LOCAL_ONLY = {
   S3_ENDPOINT: "",
   S3_REGION: "",
   S3_PUBLIC_URL: "",
+  // Envois d'import gardés : bucket privé OVH (jamais depuis la stack locale).
+  IMPORT_POOL_BUCKET: "",
 };
 
 export function loadTestEnv(rootDir = process.cwd()) {

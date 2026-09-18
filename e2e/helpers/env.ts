@@ -28,6 +28,12 @@ const PINNED_DEFAULTS: Record<string, string> = {
   // le cookie `mijote_ab_onboarding` elles-mêmes (le proxy respecte un cookie
   // existant), les autres restent en A via `abArm("a")`.
   AB_ONBOARDING_ENABLED: "1",
+  // Conservation 30 jours des envois d'import : allumée en E2E (mention, refus,
+  // réglage). Le harnais est sonde par défaut → rien n'est gardé, sauf dans les
+  // specs qui créent un visiteur sans sonde. Le bucket OVH n'est JAMAIS atteint
+  // (IMPORT_POOL_BUCKET pinné vide ci-dessous → repli Supabase Storage local).
+  IMPORT_POOL_ENABLED: "1",
+  IMPORT_POOL_BUCKET: "",
   // Migration Supabase → VPS (2026-09-12) : .env.local porte désormais le
   // PostgREST staging (via tunnel SSH) et le S3 OVH. Sans ces pins, le serveur
   // E2E écrirait dans la base STAGING et non dans le Supabase local — vécu le
