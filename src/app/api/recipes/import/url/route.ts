@@ -90,9 +90,7 @@ async function handle(
     const formData = await extractRecipeFromUrl(parsed.data.url, {
       householdId,
       onInstagramRead,
-      ...(parsed.data.igref
-        ? { instagramDevice: { ref: parsed.data.igref, ownerId } }
-        : {}),
+      ...(parsed.data.igref ? { instagramDevice: { ref: parsed.data.igref, ownerId } } : {}),
     });
     return NextResponse.json(formData);
   } catch (error) {
