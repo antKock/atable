@@ -42,7 +42,7 @@ describe("textCostUsd", () => {
 
 describe("imageCostUsd", () => {
   it("prices low/1024² at the observed flat rate", () => {
-    expect(imageCostUsd("low", "1024x1024")).toBe(0.011);
+    expect(imageCostUsd("low", "1024x1024")).toBe(0.0064);
   });
 
   it("prices higher qualities more", () => {

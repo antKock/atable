@@ -1,0 +1,27 @@
+{
+  "id": "hand-wellcome-creme-au-chocolat",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Crême au chocolat",
+  "ingredients": [
+    "deux tablettes de chocolat",
+    "un demi quarteron de sucre",
+    "une chopine de lait",
+    "un demi setier de crême",
+    "5 jaunes d'oeufs"
+  ],
+  "steps": [
+    "Rapez deux tablettes de chocolat & les mettez dans une casserole avec un demi quarteron de sucre, une chopine de lait, un demi setier de crême,",
+    "faites bouillir jusqu'à ce qu'elle soit diminuée d'un tiers;",
+    "quand elle sera à demi froide, délayez y 5 jaunes d'oeufs,",
+    "passez la au tamis pour la mettre dans le plat que vous devez servir,",
+    "qu'il doit être sur une casserole où il y a de l'eau prête à bouillir,",
+    "couvrez d'un couvercle de casserole avec un peu de feu dessus,",
+    "faites bouillir jusqu'à ce que la crême soit prise.",
+    "Servez chaudement."
+  ],
+  "notes": "Recette à cheval sur deux pages (p. 21 → p. 22). Ignorer la fin de la recette précédente en haut de la p. 21 (« …faites les frire jusqu'à ce qu'elles soient d'une belle couleur dressez pour hors d'oeuvres. Vous pouvez en faire aussi avec un reste de hachis. ») et les recettes qui suivent sur la p. 22 (« Victoria Cake », « To preserve Apples with Ginger »). Orthographe d'époque conservée (crême).",
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}

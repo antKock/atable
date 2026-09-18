@@ -1,0 +1,28 @@
+{
+  "id": "hand-pz-moka",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Moka",
+  "ingredients": [
+    "300 gr. farine",
+    "4 oeufs",
+    "200 gr. beurre",
+    "150 gr. sucre fin",
+    "1 verre lait",
+    "25 gr. levure boulanger",
+    "crème au beurre vanillée ou chocolatée"
+  ],
+  "steps": [
+    "Réduire en crème sucre et jaunes d'oeufs farine lait levure",
+    "Verser dans un moule beurré long",
+    "cuire à four chaud 1 heure",
+    "laisser refroidir",
+    "ensuite partager le gâteau en 2",
+    "fourrer avec une crème au beurre vanillée ou chocolatée",
+    "en enduire le gâteau"
+  ],
+  "notes": null,
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}

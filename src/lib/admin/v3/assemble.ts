@@ -2,6 +2,7 @@
 // app_store_daily). Aucune I/O : testable, et partagé par la page et le digest
 // hebdo (bloc 1). Les lectures Supabase sont dans data.ts.
 
+import { APIFY_USAGE_ALERT_RATIO } from "@/lib/apify";
 import {
   dayList,
   hotIndicator,
@@ -124,6 +125,10 @@ export type RawV3 = {
   /** Veilleur ops (#27) : dernière sauvegarde S3 de l'env (null = inconnue), 5xx Traefik par jour. */
   backupLastAt: string | null;
   edgeErrors: { day: string; traefik_5xx: number }[];
+  /** Imports Instagram des dernières 24 h : voie de lecture (`api.called.props.ig_path`, journal #28). */
+  instagramReads: { ig_path: string | null }[];
+  /** Crédit Apify du mois (plan gratuit) ; null = non configuré ou API muette. */
+  apifyUsage: { usedUsd: number; limitUsd: number; cycleEnd: string | null } | null;
 };
 
 const WEEKS = 12;
@@ -199,11 +204,18 @@ export type Health = {
   backup: HealthLight;
   /** Bord (Traefik) : réponses 5xx vues par le reverse proxy, hier + aujourd'hui. */
   edge: HealthLight;
+  /** Instagram : part des lectures passées au secours Apify (ou échouées) sur 24 h. */
+  instagram: HealthLight;
+  /** Crédit Apify du mois (plan gratuit, 5 $) : rouge au-delà de 80 %. */
+  apify: HealthLight;
 };
 
 /** Seuils du veilleur (#27), partagés avec /api/admin/health. */
 export const BACKUP_MAX_AGE_H = 26;
 export const EDGE_5XX_MAX_24H = 2;
+/** Instagram : rouge si > 30 % des lectures passent au secours, dès 5 lectures sur 24 h. */
+export const IG_FALLBACK_MAX_RATE = 0.3;
+export const IG_FALLBACK_MIN_READS = 5;
 
 function hoursSince(isoTs: string | null, now: Date): number | null {
   if (!isoTs) return null;
@@ -327,8 +339,19 @@ export function assembleV3(raw: RawV3) {
     (r) => num(r.traefik_5xx),
   );
   const edgeOk = edge24 <= EDGE_5XX_MAX_24H;
+  // Chantier « Instagram sans Apify » : la lecture directe peut être bloquée
+  // par Instagram (IP du VPS) — le secours Apify masque la panne mais consomme
+  // le crédit gratuit. `cache` n'est pas une lecture : hors du ratio.
+  const igReads = raw.instagramReads.filter((r) => r.ig_path && r.ig_path !== "cache");
+  const igFallbacks = igReads.filter((r) => r.ig_path === "apify" || r.ig_path === "failed").length;
+  const igRate = igReads.length ? igFallbacks / igReads.length : 0;
+  const igOk = igReads.length < IG_FALLBACK_MIN_READS || igRate <= IG_FALLBACK_MAX_RATE;
+  const apifyRatio = raw.apifyUsage?.limitUsd
+    ? raw.apifyUsage.usedUsd / raw.apifyUsage.limitUsd
+    : null;
+  const apifyOk = apifyRatio == null || apifyRatio <= APIFY_USAGE_ALERT_RATIO;
   const health: Health = {
-    ok: pipelineOk && cronsOk && demoOk && backupOk && edgeOk,
+    ok: pipelineOk && cronsOk && demoOk && backupOk && edgeOk && igOk && apifyOk,
     pipeline: {
       ok: pipelineOk,
       detail: `${Math.round(enrichedRate * 100)} % enrichies sur 4 sem. · ${num(h.recipes_failed)} en échec · ${num(h.recipes_pending_stale)} bloquée${num(h.recipes_pending_stale) > 1 ? "s" : ""}`,
@@ -351,6 +374,19 @@ export function assembleV3(raw: RawV3) {
     edge: {
       ok: edgeOk,
       detail: `${edge24} réponse${edge24 > 1 ? "s" : ""} 5xx vue${edge24 > 1 ? "s" : ""} par Traefik sur hier + aujourd'hui (max ${EDGE_5XX_MAX_24H})`,
+    },
+    instagram: {
+      ok: igOk,
+      detail: igReads.length
+        ? `${igFallbacks} lecture${igFallbacks > 1 ? "s" : ""} sur ${igReads.length} passée${igFallbacks > 1 ? "s" : ""} au secours Apify ou en échec sur 24 h (${Math.round(igRate * 100)} %, max ${Math.round(IG_FALLBACK_MAX_RATE * 100)} % dès ${IG_FALLBACK_MIN_READS} lectures)`
+        : "aucune lecture Instagram sur 24 h",
+    },
+    apify: {
+      ok: apifyOk,
+      detail:
+        raw.apifyUsage == null
+          ? "crédit illisible (APIFY_TOKEN absent ou API Apify muette)"
+          : `${raw.apifyUsage.usedUsd.toFixed(2)} $ sur ${raw.apifyUsage.limitUsd} $ ce mois-ci (${Math.round((apifyRatio ?? 0) * 100)} %, max ${Math.round(APIFY_USAGE_ALERT_RATIO * 100)} %)${raw.apifyUsage.cycleEnd ? `, cycle jusqu'au ${raw.apifyUsage.cycleEnd.slice(0, 10)}` : ""}`,
     },
   };
   const costPerActive = activeNow ? num(h.ai_cost_usd) / activeNow : 0;

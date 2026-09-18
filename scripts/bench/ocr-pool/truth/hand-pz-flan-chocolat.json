@@ -1,0 +1,25 @@
+{
+  "id": "hand-pz-flan-chocolat",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Flan [?] Jean",
+  "ingredients": [
+    "8 barres de chocolat",
+    "8 oeufs",
+    "4 cuillerées crème fraîche",
+    "500 gr beurre",
+    "crème chantilly"
+  ],
+  "steps": [
+    "faire fondre chocolat",
+    "incorporer beurre travailler petit à petit",
+    "ajouter les jaunes d'oeufs 1 par 1.",
+    "travailler entre chaque oeuf jusqu'à changement de couleur.",
+    "incorporer les blancs en neige.",
+    "Glacer et servir avec crème chantilly"
+  ],
+  "notes": "Titre souligné peu lisible : « Flan », puis un mot abrégé (St ? Ct ?), puis « Jean ». Recette de gâteau/mousse au chocolat.",
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}

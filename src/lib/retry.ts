@@ -29,6 +29,30 @@ function isRetryable(error: unknown): boolean {
   return false;
 }
 
+// Sur un 429, OpenAI dit quand revenir (`retry-after-ms` / `retry-after`, en
+// secondes) : 12 s mesurés sur le plafond images/min du Tier 1. Le backoff
+// 1 s → 2 s retombait dans la même fenêtre et l'image finissait en `failed`.
+// On attend le délai annoncé + 1 s de marge, plafonné : au-delà d'une minute,
+// c'est une limite longue (quota journalier) qu'aucune attente ne résoudra.
+const RETRY_AFTER_MARGIN_MS = 1000;
+const RETRY_AFTER_MAX_MS = 60_000;
+
+/** Délai annoncé par un 429 (en-têtes de la réponse), ou null s'il n'y en a pas. */
+export function retryAfterMs(error: unknown): number | null {
+  const err = error as { status?: number; headers?: unknown };
+  if (err.status !== 429 || !err.headers) return null;
+  const headers = err.headers as Headers | Record<string, string | undefined>;
+  const get = (name: string) =>
+    typeof (headers as Headers).get === "function"
+      ? (headers as Headers).get(name)
+      : (headers as Record<string, string | undefined>)[name];
+  const ms = Number(get("retry-after-ms"));
+  if (Number.isFinite(ms) && ms > 0) return ms;
+  const seconds = Number(get("retry-after"));
+  if (Number.isFinite(seconds) && seconds > 0) return seconds * 1000;
+  return null;
+}
+
 export async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promise<T> {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
@@ -36,7 +60,11 @@ export async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3): Promis
     } catch (error: unknown) {
       if (attempt === maxRetries - 1) throw error;
       if (!isRetryable(error)) throw error;
-      await new Promise((r) => setTimeout(r, 1000 * Math.pow(2, attempt)));
+      const announced = retryAfterMs(error);
+      if (announced !== null && announced > RETRY_AFTER_MAX_MS) throw error;
+      const delay =
+        announced !== null ? announced + RETRY_AFTER_MARGIN_MS : 1000 * Math.pow(2, attempt);
+      await new Promise((r) => setTimeout(r, delay));
     }
   }
   throw new Error("Unreachable");

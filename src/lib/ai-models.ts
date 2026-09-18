@@ -10,6 +10,10 @@
 // et enrichissement ; gpt-4o-mini-transcribe divise le WER par 3 vs whisper-1 à
 // moitié prix ; gpt-4o reste le meilleur rapport qualité/coût en OCR (la gamme
 // 5.6 compte ~4× plus de tokens image, Terra ≈ même qualité pour 2,5× le prix).
+// Image : banc du 2026-09-18 (scripts/bench/bench-image.mjs, 10 recettes prod) —
+// gpt-image-2.5-flare low ≈ gpt-image-1.5 low en fidélité, plus proche du style
+// des images existantes que gpt-image-2, pour 0,0064 $ au lieu de 0,011 $ (−41 %).
+// Alias non daté, volontairement : on suit les évolutions du modèle.
 export const AI_MODELS = {
   /** Structuration texte → JSON : imports URL/Instagram/vocal, enrichissement, image prompt. */
   text: "gpt-5.6-luna",
@@ -18,7 +22,7 @@ export const AI_MODELS = {
   /** Transcription audio : import vocal. */
   transcription: "gpt-4o-mini-transcribe",
   /** Génération d'image de plat. */
-  image: "gpt-image-1.5",
+  image: "gpt-image-2.5-flare",
 } as const;
 
 // Les gpt-5.x raisonnent par défaut et facturent ces tokens en sortie ; pour de

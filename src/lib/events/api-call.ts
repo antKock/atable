@@ -13,6 +13,13 @@ export type ApiEventExtra = {
   recipe_id?: string;
   household_id?: string;
   site?: string;
+  image_kind?: string;
+  /** Import Instagram : voie de lecture (direct_embed | direct_og | apify | cache | failed). */
+  ig_path?: string;
+  /** Import Instagram : pourquoi la lecture directe a été abandonnée (`no_caption/login_wall`). */
+  ig_fallback?: string;
+  /** Import Instagram : durée de la lecture de la légende seule, en ms. */
+  ig_read_ms?: number;
 };
 
 export function withApiEventExtra<R extends Response>(response: R, extra: ApiEventExtra): R {
@@ -30,11 +37,19 @@ function takeExtraHeader(response: Response): ApiEventExtra {
       typeof parsed[k] === "string"
         ? { [k]: (parsed[k] as string).slice(0, EVENT_STRING_MAX) }
         : {};
+    const pickInt = (k: keyof ApiEventExtra) =>
+      typeof parsed[k] === "number" && Number.isFinite(parsed[k])
+        ? { [k]: Math.max(0, Math.round(parsed[k] as number)) }
+        : {};
     return {
       ...pick("method_kind"),
       ...pick("recipe_id"),
       ...pick("household_id"),
       ...pick("site"),
+      ...pick("image_kind"),
+      ...pick("ig_path"),
+      ...pick("ig_fallback"),
+      ...pickInt("ig_read_ms"),
     };
   } catch {
     return {};

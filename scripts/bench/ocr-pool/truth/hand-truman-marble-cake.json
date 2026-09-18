@@ -1,0 +1,27 @@
+{
+  "id": "hand-truman-marble-cake",
+  "category": "handwritten",
+  "lang": "en",
+  "title": "Marble Cake",
+  "ingredients": [
+    "1/2 c butter",
+    "2 \" sugar",
+    "3 \" flour",
+    "1 teas Bkg Pdr",
+    "White 5 eggs",
+    "1 cup brown sugar",
+    "2 \" flour",
+    "egg yolks",
+    "1 tablsp. butter",
+    "1/2 c buttermilk",
+    "1/2 teas soda",
+    "1 \" allspice",
+    "1 \" cinnamon",
+    "1/2 \" cloves"
+  ],
+  "steps": ["Alternate in pan –", "Bake in pan with tube in it.", "Makes large cake –"],
+  "notes": "Deux colonnes : « White part » (5 premiers ingrédients) et « Dark » (les suivants). Guillemets de répétition conservés (\" = c pour les colonnes de gauche et du haut, = teas pour allspice/cinnamon/cloves). « egg yolks » est écrit dans l'interligne sans quantité ; un petit « 2 » accolé au « 1 » de « 1 tablsp. butter » ; « butter » est écrit au-dessus de « milk » (= buttermilk). Ligne barrée « 1 Teas Bkg Pdr » (colonne Dark) non transcrite. En-tête imprimé « United States Senate — Memorandum » à ignorer.",
+  "servings": null,
+  "truncated": false,
+  "format": "liste"
+}

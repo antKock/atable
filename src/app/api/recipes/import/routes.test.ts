@@ -12,6 +12,7 @@ import {
   ImportError,
 } from "@/lib/import";
 import { openAIError } from "@/test/openai-mock";
+import { trackEvent } from "@/lib/events/server";
 
 // Tests des trois voies d'import (revue 2026-09-12) : contrat d'erreur
 // `{ error, code }` commun, quota consommé APRÈS validation, invité refusé.
@@ -22,6 +23,7 @@ vi.mock("@/lib/auth/owner-context", async (importOriginal) => {
   return { ...actual, getOwnerContext: vi.fn(ownerContextFromTestHeaders) };
 });
 vi.mock("@/lib/import-quota", () => ({ enforceImportQuota: vi.fn() }));
+vi.mock("@/lib/events/server", () => ({ trackEvent: vi.fn(async () => {}) }));
 vi.mock("@/lib/import", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/import")>();
   return {
@@ -42,7 +44,7 @@ beforeEach(() => {
     .mockResolvedValue(IMPORTED as never);
   vi.mocked(extractRecipeFromImages)
     .mockReset()
-    .mockResolvedValue(IMPORTED as never);
+    .mockResolvedValue({ recipe: IMPORTED, imageKind: "screenshot" } as never);
   vi.mocked(extractRecipeFromVoice)
     .mockReset()
     .mockResolvedValue(IMPORTED as never);
@@ -80,7 +82,64 @@ describe("POST /api/recipes/import/url", () => {
     expect(enforceImportQuota).toHaveBeenCalledWith("household-1");
     expect(extractRecipeFromUrl).toHaveBeenCalledWith("https://example.com/r", {
       householdId: "household-1",
+      onInstagramRead: expect.any(Function),
     });
+  });
+
+  it("Instagram : la voie de lecture part au journal (api.called), jamais au client", async () => {
+    vi.mocked(extractRecipeFromUrl).mockImplementationOnce(async (_url, meta) => {
+      meta?.onInstagramRead?.({ path: "direct_og", fallback: "http_429", readMs: 812 });
+      return IMPORTED as never;
+    });
+    const res = await postUrl(
+      jsonReq("url", { url: "https://www.instagram.com/reel/DCJe4hFIGzC/?igsh=abc" }),
+    );
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual(IMPORTED);
+    expect(res.headers.get("x-mijote-event")).toBeNull();
+    const props = vi.mocked(trackEvent).mock.calls.at(-1)?.[1];
+    expect(props).toMatchObject({
+      route: "/api/recipes/import/url",
+      site: "instagram.com",
+      ig_path: "direct_og",
+      ig_fallback: "http_429",
+      ig_read_ms: 812,
+    });
+    // Identifiants et catégories seulement : ni l'URL ni la légende.
+    expect(JSON.stringify(props)).not.toMatch(/DCJe4hFIGzC|igsh/);
+  });
+
+  it("Instagram en échec : la voie `failed` est journalisée avec le code d'erreur", async () => {
+    vi.mocked(extractRecipeFromUrl).mockImplementationOnce(async (_url, meta) => {
+      meta?.onInstagramRead?.({ path: "failed", fallback: "http_429/login_wall", readMs: 40 });
+      throw new ImportError("Instagram unreachable via Apify", "SITE_UNREACHABLE");
+    });
+    const res = await postUrl(jsonReq("url", { url: "https://www.instagram.com/p/DCJe4hFIGzC/" }));
+    expect(res.status).toBe(502);
+    expect(vi.mocked(trackEvent).mock.calls.at(-1)?.[1]).toMatchObject({
+      error_code: "SITE_UNREACHABLE",
+      ig_path: "failed",
+      ig_fallback: "http_429/login_wall",
+    });
+  });
+
+  it("Instagram hors budget (TIMEOUT) sans rapport de voie : compté `failed`/`deadline`", async () => {
+    vi.mocked(extractRecipeFromUrl).mockRejectedValueOnce(
+      new ImportError("Import timed out", "TIMEOUT"),
+    );
+    const res = await postUrl(jsonReq("url", { url: "https://www.instagram.com/p/DCJe4hFIGzC/" }));
+    expect(res.status).toBe(504);
+    expect(vi.mocked(trackEvent).mock.calls.at(-1)?.[1]).toMatchObject({
+      ig_path: "failed",
+      ig_fallback: "deadline",
+    });
+  });
+
+  it("site hors Instagram : aucune prop ig_*", async () => {
+    await postUrl(jsonReq("url", { url: "https://www.marmiton.org/recettes/x.aspx" }));
+    const props = vi.mocked(trackEvent).mock.calls.at(-1)?.[1] as Record<string, unknown>;
+    expect(props.site).toBe("marmiton.org");
+    expect(Object.keys(props).filter((k) => k.startsWith("ig_"))).toEqual([]);
   });
 
   it("une URL invalide répond 400 { error, code } SANS consommer le quota", async () => {
@@ -155,6 +214,9 @@ describe("POST /api/recipes/import/screenshot", () => {
     const res = await postScreenshot(jsonReq("screenshot", { images: [IMG] }));
     expect(res.status).toBe(200);
     expect(enforceImportQuota).toHaveBeenCalledWith("household-1");
+    // La nature des images part au journal, jamais au client.
+    expect(await res.json()).toEqual(IMPORTED);
+    expect(res.headers.get("x-mijote-event")).toBeNull();
   });
 
   it("un corps invalide répond 400 INVALID_DATA sans consommer le quota", async () => {

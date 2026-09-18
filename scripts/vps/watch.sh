@@ -144,8 +144,9 @@ daily() {
       jq -r '.checks | to_entries[] | select(.value.ok == false) | "\(.key)\t\(.value.detail)"' <<<"$body" | while IFS=$'\t' read -r check detail; do
         [ -z "$check" ] && continue
         # Staging : données de test (pipeline IA, seed démo) et aucun cron posé sur le VPS
-        # (demo-reset / app-store-sync ne visent que la prod) → seuls sauvegarde et bord comptent.
-        [ "$env" = staging ] && case "$check" in pipeline|demo|crons) continue ;; esac
+        # (demo-reset / app-store-sync ne visent que la prod) → seuls sauvegarde, bord et
+        # Instagram comptent. Le crédit Apify est celui du même compte : alerté par la prod seule.
+        [ "$env" = staging ] && case "$check" in pipeline|demo|crons|apify) continue ;; esac
         sentry_event error "health/$env/$check" "Santé $env — $check : $detail" "$env" "$(jq -c '.checks' <<<"$body")"
       done
       log "health $env: $(jq -r '.ok' <<<"$body")"

@@ -5,6 +5,7 @@ import { getT } from "@/lib/i18n/server";
 import { enforceImportQuota } from "@/lib/import-quota";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
 import { resolveImportHousehold } from "@/lib/api/import-household";
+import { withApiEventExtra } from "@/lib/events/api-call";
 
 // Plafond du corps JSON, cohérent avec MAX_BASE64_LENGTH (schemas/import.ts :
 // 15 M caractères ≈ une image de 10 Mo) + enveloppe JSON. Le client
@@ -35,8 +36,13 @@ export const POST = withOwnerAuth(
       const quotaResponse = await enforceImportQuota(householdId);
       if (quotaResponse) return quotaResponse;
 
-      const formData = await extractRecipeFromImages(parsed.data.images, { householdId });
-      return NextResponse.json(formData);
+      const { recipe, imageKind } = await extractRecipeFromImages(parsed.data.images, {
+        householdId,
+      });
+      // La nature des images (capture / photo imprimée / manuscrit) va au seul
+      // journal (#28, `api.called`), jamais dans la réponse au client.
+      const response = NextResponse.json(recipe);
+      return imageKind ? withApiEventExtra(response, { image_kind: imageKind }) : response;
     } catch (error) {
       console.error("[import/screenshot] Error:", error);
       // Contrat d'erreur commun aux trois voies d'import : `{ error, code }`, le

@@ -1,0 +1,697 @@
+{
+  "_comment": "Famille B du pool OCR « pages imprimées » : textes injectés tels quels dans des gabarits de livres/magazines modernes (printed-templates.mjs), puis rendus et photographiés (distort-printed.py). La vérité terrain = ces champs, à l'identique. Sources : Wikibooks (CC BY-SA, balisage wiki retiré, texte conservé) ou rédigées pour le banc.",
+  "photos": {
+    "soupe": {
+      "file": "Latin_American_Peanut_Soup.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Latin_American_Peanut_Soup.jpg/1920px-Latin_American_Peanut_Soup.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Latin_American_Peanut_Soup.jpg",
+      "author": "Adriano Zambrana Marchetti",
+      "license": "CC0 1.0"
+    },
+    "gateau-pommes": {
+      "file": "Apple_cake_with_vanilla_ice_cream_2.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/Apple_cake_with_vanilla_ice_cream_2.jpg/1920px-Apple_cake_with_vanilla_ice_cream_2.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Apple_cake_with_vanilla_ice_cream_2.jpg",
+      "author": "W.carter",
+      "license": "CC0 1.0"
+    },
+    "salade": {
+      "file": "Salad_On_Plate.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Salad_On_Plate.jpg/1920px-Salad_On_Plate.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Salad_On_Plate.jpg",
+      "author": "KittensMittens4",
+      "license": "CC0 1.0"
+    },
+    "poulet-laque": {
+      "file": "Glazed_chicken_food.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/2/25/Glazed_chicken_food.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Glazed_chicken_food.jpg",
+      "author": "Jon Sullivan (PDPhoto.org)",
+      "license": "domaine public (dédié par l'auteur)"
+    },
+    "chili": {
+      "file": "Food_chili_cheese_bowls.jpg",
+      "url": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Food_chili_cheese_bowls.jpg",
+      "page": "https://commons.wikimedia.org/wiki/File:Food_chili_cheese_bowls.jpg",
+      "author": "Jon Sullivan (PDPhoto.org)",
+      "license": "domaine public (dédié par l'auteur)"
+    }
+  },
+  "cases": [
+    {
+      "id": "print-mod-quiche-lorraine",
+      "lang": "fr",
+      "template": "livre-colonne",
+      "variant": {
+        "accent": "#b5452b",
+        "font": "Palatino",
+        "book": "Les classiques de la cuisine familiale",
+        "folio": 42,
+        "chapter": "Entrées & tartes salées",
+        "band": 50
+      },
+      "profile": "moyen",
+      "difficulty": "moyen",
+      "source": "wikibooks-fr",
+      "source_url": "https://fr.wikibooks.org/w/index.php?title=Livre_de_cuisine/Quiche_lorraine&oldid=707790",
+      "source_title": "Wikibooks, Livre de cuisine / Quiche lorraine (révision 707790, 2023-11-04)",
+      "license": "CC BY-SA 4.0 (Wikibooks) — texte adapté : balisage et liens retirés, formulation conservée",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "intro": "La recette traditionnelle de la quiche lorraine ne contient ni lait, ni fromage bien que l'on remplace souvent la crème fraîche par du lait demi-écrémé pour la rendre plus légère.",
+      "meta": { "prep": "20 min", "cook": "1 h" },
+      "truth": {
+        "title": "Quiche lorraine",
+        "servings": null,
+        "ingredients": [
+          "1 pâte brisée ou pâte feuilletée",
+          "200 grammes de lard fumé coupé en tout petits dés",
+          "1/2 litre de crème fraîche, 10 cl de crème maigre",
+          "4 œufs",
+          "sel, poivre, noix de muscade"
+        ],
+        "steps": [
+          "Sortir préalablement la pâte que vous avez choisi, pour la mettre à température ambiante.",
+          "Étaler la pâte et la disposer au fond d'un moule à tarte.",
+          "Cuire à blanc la pâte dans votre moule, dans le four pendant 15 à 20 minutes à 180°C, disposer des poids sur la pâte pour éviter qu'elle gonfle trop.",
+          "La sortir et réserver.",
+          "À la poêle et à feu moyen faites blanchir vos lardons, puis égouttez la matière grasse.",
+          "Disposer les lardons dans le fond de tarte.",
+          "Dans un récipient, battre avec un fouet les œufs entiers comme pour une omelette et ajouter la crème fraîche puis la crème maigre et poivrer (il faut éviter de trop saler l'appareil à cause du sel contenu dans le lardon).",
+          "Verser l'appareil obtenu dans le moule à tarte sur la pâte.",
+          "Faire cuire la quiche une quarantaine de minutes au four préchauffé à 180°C."
+        ],
+        "notes": "Si vous voulez l'adoucir encore davantage, incorporez moitié lard, moitié jambon blanc coupé en petits morceaux, et ajoutez le fromage râpé."
+      }
+    },
+    {
+      "id": "print-mod-ratatouille",
+      "lang": "fr",
+      "template": "magazine-3col",
+      "variant": {
+        "accent": "#2f6d3a",
+        "magazine": "Saveurs du Marché",
+        "issue": "N° 148 — Août",
+        "folio": 56,
+        "rubric": "Cuisine de saison",
+        "neighbor": "tian"
+      },
+      "profile": "difficile",
+      "difficulty": "difficile",
+      "source": "wikibooks-fr",
+      "source_url": "https://fr.wikibooks.org/w/index.php?title=Livre_de_cuisine/Ratatouille&oldid=673826",
+      "source_title": "Wikibooks, Livre de cuisine / Ratatouille (révision 673826, 2022-04-03)",
+      "license": "CC BY-SA 4.0 (Wikibooks) — texte adapté : balisage et liens retirés, formulation conservée",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "intro": "La ratatouille est une spécialité niçoise. Comme toute recette « générique » il n'y a pas de recette précise mais des principes à respecter.",
+      "meta": { "prep": "30 min", "cook": "40 min" },
+      "truth": {
+        "title": "Ratatouille",
+        "servings": null,
+        "ingredients": [
+          "3 aubergines",
+          "2 courgettes",
+          "2 poivrons",
+          "400 g de tomates",
+          "2 gousses d'ail",
+          "3 oignons blancs",
+          "2 cl d'huile d'olive à chaque cuisson de légume",
+          "sel, laurier, thym, romarin"
+        ],
+        "steps": [
+          "Couper les aubergines en petits morceaux (~ 2 cm de côté).",
+          "Faire revenir les aubergines dégorgées au sel, que vous aurez rincées, dans l'huile.",
+          "Recommencer les mêmes opérations avec les courgettes (ne pas réutiliser l'huile des aubergines).",
+          "Faire fondre les oignons dans un peu d'huile d'olive en les remuant 10 min, ajouter les poivrons en lamelles et laisser fondre un peu.",
+          "Ajouter les courgettes et les aubergines puis les tomates en quartiers pelées et épépinées.",
+          "Rectifier l'assaisonnement, mettre une feuille de laurier et une branche de thym, l'ail avec la peau.",
+          "Cuire 20 minutes."
+        ],
+        "notes": "L'aubergine peut être juste salée après avoir été tranchée. Elle rendra son amertume et deviendra digeste : pour cela, coupez-la en deux dans le sens de la longueur puis mettez la à dégorger en tranches fines dans une jatte avec une bonne pincée de sel fin. L'idéal est de cuire les légumes séparément et de mélanger au dernier moment pour que chaque légume garde son propre goût."
+      }
+    },
+    {
+      "id": "print-mod-tarte-tatin",
+      "lang": "fr",
+      "template": "livre-epure",
+      "variant": {
+        "accent": "#8a5a2b",
+        "font": "Baskerville",
+        "book": "Desserts d'hier et d'aujourd'hui",
+        "folio": 117,
+        "facing": "photo-aplat",
+        "facingText": "Les desserts renversés"
+      },
+      "profile": "moyen",
+      "difficulty": "moyen",
+      "source": "wikibooks-fr",
+      "source_url": "https://fr.wikibooks.org/w/index.php?title=Livre_de_cuisine/Tarte_Tatin&oldid=734976",
+      "source_title": "Wikibooks, Livre de cuisine / Tarte Tatin, recette 1 (révision 734976, 2025-01-31)",
+      "license": "CC BY-SA 4.0 (Wikibooks) — texte adapté : balisage et liens retirés, formulation conservée",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "intro": "La tarte Tatin est une tarte aux pommes renversée. Ce dessert serait originaire de Lamotte-Beuvron en Sologne.",
+      "tip_label": "Ustensile",
+      "tip": "1 moule à manqué.",
+      "meta": {},
+      "truth": {
+        "title": "Tarte Tatin",
+        "servings": null,
+        "ingredients": [
+          "1 pâte brisée",
+          "6 belles pommes",
+          "60 g de beurre",
+          "50 g de sucre en poudre",
+          "100 g de sucre en morceaux"
+        ],
+        "steps": [
+          "Mettre le sucre en morceau et le beurre dans le moule à manqué. Poser celui-ci sur le feu pour faire fondre le sucre en morceau jusqu' au caramel. Lorsque le caramel commence à brunir, enlever le moule du feu et poser le sur l'eau pour arrêter la cuisson.",
+          "Peler les pommes, les épépiner et les couper en 4. Les disposer au fond du moule de telle sorte qu'elles se chevauchent tout en laissant un espace entre les pommes et le bord du moule.",
+          "Saupoudrer de sucre en poudre et arroser de jus de citron. Parsemer de petits morceaux de beurre.",
+          "Faire cuire un peu sur le feu. Il faut que le jus des pommes et le caramel se mélange. C'est le truc qui permet d'obtenir un goût très particulier.",
+          "Étaler la pâte. La piquer avec une fourchette pour éviter qu'elle ne gonfle pendant la cuisson.",
+          "Poser la pâte sur les pommes et faire un ourlet sur les bords. Aménager une petite cheminée au centre de la pâte pour évacuer l'air chaud pendant la cuisson.",
+          "Enfourner pendant 30 minutes à 210°C.",
+          "Attendre 5 à 10 minutes avant de démouler la tarte. Se déguste tiède avec de la crème fouettée ou une boule de glace à la vanille. Mais les Lichonneux de la tarte Tatin recommandent de la déguster sans glace, ni crème fouettée."
+        ],
+        "notes": "Ustensile : 1 moule à manqué."
+      }
+    },
+    {
+      "id": "print-mod-gratin-dauphinois",
+      "lang": "fr",
+      "template": "fiche",
+      "variant": {
+        "accent": "#c98a1b",
+        "font": "Avenir Next",
+        "collection": "Fiche n° 23 — Légumes",
+        "stars": 1
+      },
+      "profile": "facile",
+      "difficulty": "facile",
+      "source": "wikibooks-fr",
+      "source_url": "https://fr.wikibooks.org/w/index.php?title=Livre_de_cuisine/Gratin_dauphinois&oldid=709052",
+      "source_title": "Wikibooks, Livre de cuisine / Gratin dauphinois (révision 709052, 2023-12-11)",
+      "license": "CC BY-SA 4.0 (Wikibooks) — texte adapté : balisage et liens retirés, formulation conservée",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "meta": { "prep": "25 min", "cook": "1 h à 2 h" },
+      "truth": {
+        "title": "Gratin dauphinois",
+        "servings": 4,
+        "ingredients": [
+          "1 kg de pommes de terre à chair ferme (Charlotte)",
+          "250 ml de crème fraîche",
+          "1/4 litre de lait",
+          "sel, poivre, muscade râpée, ail",
+          "1 jaune d'œuf"
+        ],
+        "steps": [
+          "Frotter le fond d'un plat à gratin avec la gousse d'ail hachée",
+          "Faire bouillir le lait, saler, poivrer, additionner d'ail et de muscade râpée",
+          "Disposer une couche de lamelles de pommes de terre (2 mm d'épaisseur)",
+          "Ajouter une couche de crème et quelques noisettes de beurre",
+          "Recommencer jusqu'à épuisement des ingrédients, en terminant par une couche de lamelles de pommes de terre",
+          "Verser le lait dans le plat à hauteur de la dernière couche de pommes de terre",
+          "Dorer le dessus au jaune d'œuf, à l'aide d'un pinceau (la dorure au jaune d'œuf n'est pas nécessaire si la cuisson est suffisante)",
+          "Cuire à four chaud pendant au moins 1 heure (plutôt 2 bonnes heures et c'est meilleur de le cuire la veille et de le réchauffer. La cuisson est bonne quand il n'y a plus de liquide)"
+        ],
+        "notes": "Si vous ajoutez du fromage à cette préparation, ce n'est plus un gratin dauphinois mais un gratin savoyard."
+      }
+    },
+    {
+      "id": "print-mod-veloute-potimarron",
+      "lang": "fr",
+      "template": "photo-haut",
+      "variant": {
+        "accent": "#d0662a",
+        "font": "Georgia",
+        "photo": "soupe",
+        "book": "Soupes & bouillons",
+        "folio": 31
+      },
+      "profile": "facile",
+      "difficulty": "facile",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers) ; photo CC0 (Wikimedia Commons)",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "meta": { "prep": "15 min", "cook": "30 min" },
+      "tip_label": "Astuce",
+      "tip": "Le potimarron se cuisine avec sa peau : inutile de l'éplucher, elle devient fondante à la cuisson.",
+      "truth": {
+        "title": "Velouté de potimarron",
+        "servings": 4,
+        "ingredients": [
+          "1 potimarron d'environ 1,2 kg",
+          "2 pommes de terre moyennes",
+          "1 oignon jaune",
+          "1 gousse d'ail",
+          "20 g de beurre",
+          "80 cl de bouillon de volaille (ou de légumes)",
+          "10 cl de crème liquide entière",
+          "1 pincée de noix de muscade",
+          "Sel, poivre du moulin",
+          "Quelques graines de courge grillées pour servir"
+        ],
+        "steps": [
+          "Lavez le potimarron, coupez-le en deux, retirez les graines et détaillez-le en cubes sans l'éplucher.",
+          "Épluchez les pommes de terre et coupez-les en morceaux. Émincez l'oignon et l'ail.",
+          "Dans une cocotte, faites fondre le beurre et faites suer l'oignon 5 minutes à feu doux, sans coloration. Ajoutez l'ail.",
+          "Ajoutez le potimarron et les pommes de terre, mélangez 2 minutes, puis versez le bouillon chaud.",
+          "Couvrez et laissez cuire 25 minutes à frémissement : les légumes doivent s'écraser à la fourchette.",
+          "Mixez finement en ajoutant la crème et la muscade. Rectifiez l'assaisonnement.",
+          "Servez bien chaud, parsemé de graines de courge."
+        ],
+        "notes": "Astuce : le potimarron se cuisine avec sa peau : inutile de l'éplucher, elle devient fondante à la cuisson."
+      }
+    },
+    {
+      "id": "print-mod-poulet-basquaise",
+      "lang": "fr",
+      "template": "pas-a-pas",
+      "variant": {
+        "accent": "#b3202a",
+        "font": "Futura",
+        "magazine": "Cuisine Facile",
+        "folio": 22,
+        "split": 3
+      },
+      "profile": "difficile",
+      "difficulty": "difficile",
+      "pages": 2,
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers)",
+      "license_url": null,
+      "intro": "Poivrons, tomates, piment d'Espelette et jambon de Bayonne : le grand classique du Pays basque, à préparer la veille pour qu'il soit encore meilleur.",
+      "meta": { "prep": "30 min", "cook": "1 h" },
+      "tip_label": "Le conseil du chef",
+      "tip": "Servez avec un riz blanc. Le plat est encore meilleur réchauffé le lendemain.",
+      "truth": {
+        "title": "Poulet basquaise",
+        "servings": 6,
+        "ingredients": [
+          "1 poulet fermier d'1,6 kg coupé en 8 morceaux",
+          "3 poivrons (2 rouges, 1 vert)",
+          "2 oignons",
+          "3 gousses d'ail",
+          "800 g de tomates bien mûres (ou 1 grande boîte de tomates pelées)",
+          "100 g de jambon de Bayonne en tranche épaisse",
+          "15 cl de vin blanc sec",
+          "4 cuillerées à soupe d'huile d'olive",
+          "1 bouquet garni",
+          "1 cuillerée à café de piment d'Espelette",
+          "Sel"
+        ],
+        "steps": [
+          "Lavez les poivrons, retirez le pédoncule et les graines, puis taillez-les en lanières. Émincez les oignons et écrasez l'ail.",
+          "Pelez les tomates après les avoir plongées 30 secondes dans l'eau bouillante, épépinez-les et concassez-les.",
+          "Dans une grande sauteuse, chauffez 2 cuillerées d'huile et faites dorer les morceaux de poulet sur toutes les faces pendant 10 minutes. Salez, réservez.",
+          "Dans la même sauteuse, versez le reste d'huile, faites revenir les oignons et les poivrons 10 minutes, puis ajoutez l'ail et le jambon coupé en dés.",
+          "Ajoutez les tomates, le bouquet garni et le piment d'Espelette. Déglacez au vin blanc et laissez réduire 5 minutes.",
+          "Remettez le poulet dans la sauteuse, couvrez et laissez mijoter 40 minutes à feu doux en retournant les morceaux à mi-cuisson."
+        ],
+        "notes": "Le conseil du chef : servez avec un riz blanc. Le plat est encore meilleur réchauffé le lendemain."
+      }
+    },
+    {
+      "id": "print-mod-madeleines-miel",
+      "lang": "fr",
+      "template": "livre-epure",
+      "variant": {
+        "accent": "#c7952c",
+        "font": "Didot",
+        "book": "L'heure du goûter",
+        "folio": 64,
+        "yield": "Pour 24 madeleines"
+      },
+      "profile": "moyen",
+      "difficulty": "moyen",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers)",
+      "license_url": null,
+      "meta": { "prep": "15 min", "rest": "1 h", "cook": "11 min" },
+      "tip_label": "Le secret de la bosse",
+      "tip": "C'est le choc thermique entre la pâte froide et le four très chaud qui fait gonfler la bosse.",
+      "truth": {
+        "title": "Madeleines au miel",
+        "servings": null,
+        "ingredients": [
+          "3 œufs",
+          "120 g de sucre en poudre",
+          "30 g de miel liquide",
+          "150 g de farine",
+          "1 sachet de levure chimique (11 g)",
+          "150 g de beurre demi-sel fondu et refroidi",
+          "Le zeste d'un citron non traité"
+        ],
+        "steps": [
+          "Fouettez les œufs, le sucre et le miel jusqu'à ce que le mélange blanchisse et double de volume.",
+          "Ajoutez le zeste de citron, puis incorporez la farine et la levure tamisées ensemble.",
+          "Versez le beurre fondu en filet en mélangeant délicatement à la spatule.",
+          "Couvrez et laissez reposer la pâte au moins 1 heure au réfrigérateur.",
+          "Préchauffez le four à 220 °C (th. 7-8). Beurrez et farinez les moules, remplissez-les aux trois quarts.",
+          "Enfournez 5 minutes, puis baissez à 180 °C et poursuivez 5 à 6 minutes. Démoulez aussitôt."
+        ],
+        "notes": "Pour 24 madeleines. Le secret de la bosse : c'est le choc thermique entre la pâte froide et le four très chaud qui fait gonfler la bosse."
+      }
+    },
+    {
+      "id": "print-mod-dal-lentilles-corail",
+      "lang": "fr",
+      "template": "magazine-2col",
+      "variant": {
+        "accent": "#e0a100",
+        "magazine": "Le Goût du Jour",
+        "issue": "Hiver — n° 37",
+        "folio": 88,
+        "rubric": "Végétarien"
+      },
+      "profile": "moyen",
+      "difficulty": "moyen",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers)",
+      "license_url": null,
+      "intro": "Un plat réconfortant et bon marché, prêt en une demi-heure, qui fait voyager sans quitter la cuisine.",
+      "meta": { "prep": "10 min", "cook": "25 min" },
+      "tip_label": "Conservation",
+      "tip": "Le dal se garde 3 jours au réfrigérateur ; ajoutez un peu d'eau en le réchauffant.",
+      "truth": {
+        "title": "Dal de lentilles corail au lait de coco",
+        "servings": 4,
+        "ingredients": [
+          "250 g de lentilles corail",
+          "1 oignon",
+          "2 gousses d'ail",
+          "1 morceau de gingembre frais de 3 cm",
+          "1 cuillerée à soupe d'huile de coco (ou d'huile neutre)",
+          "2 cuillerées à café de curry en poudre",
+          "1 cuillerée à café de curcuma",
+          "400 g de tomates concassées en conserve",
+          "40 cl de lait de coco",
+          "50 cl d'eau",
+          "½ citron vert",
+          "Coriandre fraîche, sel"
+        ],
+        "steps": [
+          "Rincez les lentilles à l'eau froide jusqu'à ce que l'eau soit claire.",
+          "Émincez l'oignon, hachez l'ail et râpez le gingembre.",
+          "Dans une casserole, faites revenir l'oignon dans l'huile 5 minutes, puis ajoutez l'ail, le gingembre et les épices. Remuez 1 minute.",
+          "Ajoutez les lentilles, les tomates, le lait de coco et l'eau. Portez à ébullition.",
+          "Laissez cuire 20 minutes à feu doux en remuant souvent, jusqu'à ce que les lentilles se défassent.",
+          "Salez, arrosez de jus de citron vert et parsemez de coriandre ciselée. Servez avec du riz basmati ou des naans."
+        ],
+        "notes": "Conservation : le dal se garde 3 jours au réfrigérateur ; ajoutez un peu d'eau en le réchauffant."
+      }
+    },
+    {
+      "id": "print-mod-crumble-pommes-poires",
+      "lang": "fr",
+      "template": "livre-colonne",
+      "variant": {
+        "accent": "#6b4f8a",
+        "font": "Optima",
+        "book": "Desserts de tous les jours",
+        "folio": 133,
+        "chapter": "Fruits & gourmandises",
+        "facing": "autre-recette"
+      },
+      "profile": "difficile",
+      "difficulty": "difficile",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers)",
+      "license_url": null,
+      "meta": { "prep": "20 min", "cook": "40 min" },
+      "truth": {
+        "title": "Crumble pommes-poires",
+        "servings": 6,
+        "ingredients": [
+          "4 pommes (type reinette)",
+          "3 poires",
+          "1 cuillerée à soupe de sucre vanillé",
+          "½ cuillerée à café de cannelle",
+          "Pour la pâte à crumble :",
+          "150 g de farine",
+          "100 g de sucre roux",
+          "100 g de beurre froid coupé en dés",
+          "50 g de poudre d'amande",
+          "1 pincée de sel"
+        ],
+        "steps": [
+          "Préchauffez le four à 190 °C.",
+          "Épluchez les pommes et les poires, coupez-les en gros dés et disposez-les dans un plat à gratin beurré. Saupoudrez de sucre vanillé et de cannelle.",
+          "Dans un saladier, mélangez la farine, le sucre roux, la poudre d'amande et le sel.",
+          "Ajoutez le beurre et travaillez du bout des doigts jusqu'à obtenir un sable grossier.",
+          "Répartissez la pâte sur les fruits sans tasser.",
+          "Enfournez 35 à 40 minutes, jusqu'à ce que le dessus soit bien doré. Servez tiède."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-mod-shortbread",
+      "lang": "en",
+      "template": "livre-us",
+      "variant": {
+        "accent": "#1f4e79",
+        "font": "Hoefler Text",
+        "book": "Baking at Home",
+        "folio": 212,
+        "yield": "Makes 12"
+      },
+      "profile": "facile",
+      "difficulty": "facile",
+      "source": "wikibooks-en",
+      "source_url": "https://en.wikibooks.org/w/index.php?title=Cookbook:Shortbread&oldid=4515326",
+      "source_title": "Wikibooks, Cookbook:Shortbread (revision 4515326, 2025-06-19)",
+      "license": "CC BY-SA 4.0 (Wikibooks) — texte adapté : balisage, liens et références retirés, formulation conservée",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "intro": "Shortbread is a type of cookie which is traditionally made from one part white sugar, two parts butter, and three parts plain white flour.",
+      "meta": { "prep": "20 min", "cook": "40 min" },
+      "tip_label": "Note",
+      "tip": "Some recipes call for a 1-2-3 ratio of sugar, fat, and flour, but fat is often increased to prevent dryness.",
+      "truth": {
+        "title": "Shortbread",
+        "servings": 12,
+        "ingredients": [
+          "380 g (1 ½ cup / 13 ½ oz) all-purpose flour",
+          "¼ tsp salt",
+          "220 g (1 cup / 8 oz) butter",
+          "110 g (½ cup / 4 oz) white granulated sugar"
+        ],
+        "steps": [
+          "Preheat the oven to 140°C (275°F or Gas Mark 1).",
+          "Cream the butter with the sugar until light and fluffy.",
+          "Sift the flour and salt into the mixture and work into the fat and sugar until completely amalgamated.",
+          "Shape the dough into a ball and roll out to about 1.3 cm (½ inch) thick. The dough may need to be chilled for 10–15 minutes for easier handling.",
+          "Cut into squares or rectangles and prick the tops with a fork in two parallel lines.",
+          "Bake in the oven for 30–40 minutes or until the shortbread is lightly browned.",
+          "Leave them on a cooling rack to cool.",
+          "Store in a cool place in an airtight container."
+        ],
+        "notes": "Some recipes call for a 1-2-3 ratio of sugar, fat, and flour, but fat is often increased to prevent dryness."
+      }
+    },
+    {
+      "id": "print-mod-chicken-chili",
+      "lang": "en",
+      "template": "magazine-3col",
+      "variant": {
+        "accent": "#a33b1d",
+        "magazine": "Weeknight Kitchen",
+        "issue": "October Issue",
+        "folio": 74,
+        "rubric": "One-Pot Dinners",
+        "photo": "chili",
+        "neighbor": "cornbread"
+      },
+      "profile": "difficile",
+      "difficulty": "difficile",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers) ; photo domaine public (Wikimedia Commons)",
+      "license_url": null,
+      "intro": "Everything goes into one pot, and dinner is on the table in under an hour. Make a double batch and freeze the leftovers.",
+      "meta": { "prep": "15 min", "cook": "45 min" },
+      "tip_label": "Make ahead",
+      "tip": "Chili freezes well for up to 3 months.",
+      "truth": {
+        "title": "Weeknight Chicken Chili",
+        "servings": 6,
+        "ingredients": [
+          "2 tablespoons olive oil",
+          "1 large onion, diced",
+          "1 green bell pepper, diced",
+          "3 cloves garlic, minced",
+          "1 1/2 lb (680 g) boneless chicken thighs, cut into 1-inch pieces",
+          "2 tablespoons chili powder",
+          "2 teaspoons ground cumin",
+          "1 teaspoon smoked paprika",
+          "1 can (28 oz) crushed tomatoes",
+          "2 cans (15 oz each) kidney beans, drained and rinsed",
+          "1 cup chicken stock",
+          "Salt and black pepper",
+          "Sour cream, shredded cheddar and sliced scallions, for serving"
+        ],
+        "steps": [
+          "Heat the oil in a large Dutch oven over medium-high heat. Add the onion and bell pepper and cook until softened, about 6 minutes.",
+          "Stir in the garlic and cook 30 seconds, until fragrant.",
+          "Add the chicken, season with salt and pepper, and cook until no longer pink on the outside, 5 to 7 minutes.",
+          "Sprinkle in the chili powder, cumin and paprika; stir to coat and toast the spices for 1 minute.",
+          "Add the tomatoes, beans and stock. Bring to a boil, then reduce the heat and simmer, partially covered, for 30 minutes, stirring occasionally.",
+          "Taste and adjust the seasoning. Serve topped with sour cream, cheddar and scallions."
+        ],
+        "notes": "Make ahead: chili freezes well for up to 3 months."
+      }
+    },
+    {
+      "id": "print-mod-honey-garlic-chicken",
+      "lang": "en",
+      "template": "photo-haut",
+      "variant": {
+        "accent": "#9c6b12",
+        "font": "Avenir Next",
+        "photo": "poulet-laque",
+        "book": "Simple Suppers",
+        "folio": 98
+      },
+      "profile": "moyen",
+      "difficulty": "moyen",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers) ; photo domaine public (Wikimedia Commons)",
+      "license_url": null,
+      "meta": { "prep": "10 min", "cook": "40 min" },
+      "truth": {
+        "title": "Honey-Garlic Glazed Chicken Thighs",
+        "servings": 4,
+        "ingredients": [
+          "8 bone-in, skin-on chicken thighs",
+          "1 teaspoon kosher salt",
+          "1/2 teaspoon black pepper",
+          "1/3 cup honey",
+          "1/4 cup soy sauce",
+          "2 tablespoons rice vinegar",
+          "4 cloves garlic, grated",
+          "1 tablespoon grated fresh ginger",
+          "1 teaspoon cornstarch mixed with 1 tablespoon water",
+          "Sesame seeds and sliced green onions, to garnish"
+        ],
+        "steps": [
+          "Preheat the oven to 425°F (220°C). Pat the chicken dry and season with the salt and pepper.",
+          "Arrange the thighs skin side up in a baking dish and roast for 25 minutes.",
+          "Meanwhile, simmer the honey, soy sauce, vinegar, garlic and ginger in a small saucepan for 3 minutes. Stir in the cornstarch mixture and cook until glossy and thickened, about 1 minute.",
+          "Brush half of the glaze over the chicken and return to the oven for 10 to 12 minutes, until the internal temperature reaches 175°F (80°C).",
+          "Brush with the remaining glaze, sprinkle with sesame seeds and green onions, and serve."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-mod-chickpea-salad",
+      "lang": "en",
+      "template": "fiche",
+      "variant": {
+        "accent": "#3c8d5a",
+        "font": "Gill Sans",
+        "collection": "Recipe Card · Salads",
+        "stars": 1,
+        "photo": "salade"
+      },
+      "profile": "facile",
+      "difficulty": "facile",
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers) ; photo CC0 (Wikimedia Commons)",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "meta": { "prep": "15 min", "cook": "—" },
+      "truth": {
+        "title": "Chickpea & Cucumber Summer Salad",
+        "servings": 4,
+        "ingredients": [
+          "2 cans (15 oz each) chickpeas, drained and rinsed",
+          "1 English cucumber, diced",
+          "1 pint cherry tomatoes, halved",
+          "1/2 small red onion, finely chopped",
+          "1/2 cup crumbled feta",
+          "1/4 cup chopped fresh parsley",
+          "2 tablespoons chopped fresh mint",
+          "Dressing:",
+          "3 tablespoons extra-virgin olive oil",
+          "2 tablespoons lemon juice",
+          "1 teaspoon Dijon mustard",
+          "1 small garlic clove, minced",
+          "Salt and pepper to taste"
+        ],
+        "steps": [
+          "Whisk the dressing ingredients together in a large bowl.",
+          "Add the chickpeas, cucumber, tomatoes and onion; toss to coat.",
+          "Fold in the feta, parsley and mint.",
+          "Chill for at least 15 minutes before serving to let the flavors blend."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-mod-apple-cake",
+      "lang": "en",
+      "template": "livre-us",
+      "variant": {
+        "accent": "#7a2e2e",
+        "font": "Georgia",
+        "book": "The Orchard Table",
+        "folio": 58,
+        "photo": "gateau-pommes",
+        "yield": "Serves 8"
+      },
+      "profile": "moyen",
+      "difficulty": "moyen",
+      "pages": 2,
+      "source": "rédigée pour le banc",
+      "source_url": null,
+      "source_title": "Recette rédigée pour le banc OCR Mijote (2026-09-18)",
+      "license": "texte original du banc (aucun droit de tiers) ; photo CC0 (Wikimedia Commons)",
+      "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "intro": "A tender, buttery cake layered with thin slices of apple — the kind of dessert that disappears from the kitchen counter by the afternoon.",
+      "meta": { "prep": "25 min", "cook": "55 min" },
+      "tip_label": "Tip",
+      "tip": "Use a mix of tart and sweet apples, such as Granny Smith and Honeycrisp.",
+      "truth": {
+        "title": "Apple Cake",
+        "servings": 8,
+        "ingredients": [
+          "1 1/2 cups (190 g) all-purpose flour",
+          "2 teaspoons baking powder",
+          "1/2 teaspoon ground cinnamon",
+          "1/4 teaspoon salt",
+          "1/2 cup (115 g) unsalted butter, softened",
+          "3/4 cup (150 g) granulated sugar",
+          "2 large eggs, at room temperature",
+          "1 teaspoon vanilla extract",
+          "1/2 cup (120 ml) whole milk",
+          "3 medium apples, peeled, cored and thinly sliced",
+          "2 tablespoons demerara sugar, for sprinkling"
+        ],
+        "steps": [
+          "Preheat the oven to 350°F (180°C). Grease a 9-inch springform pan and line the bottom with parchment paper.",
+          "Whisk together the flour, baking powder, cinnamon and salt in a bowl.",
+          "In a separate bowl, beat the butter and sugar until pale and fluffy, about 3 minutes. Beat in the eggs one at a time, then the vanilla.",
+          "Add the dry ingredients in two additions, alternating with the milk, mixing just until combined.",
+          "Spread half of the batter in the pan and cover with half of the apple slices. Top with the remaining batter, then arrange the rest of the apples in overlapping circles on top.",
+          "Sprinkle with the demerara sugar and bake for 50 to 55 minutes, until a skewer inserted in the center comes out clean.",
+          "Let cool in the pan for 15 minutes before releasing the sides. Serve warm or at room temperature."
+        ],
+        "notes": "Tip: use a mix of tart and sweet apples, such as Granny Smith and Honeycrisp."
+      }
+    }
+  ]
+}

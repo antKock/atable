@@ -5,6 +5,8 @@ import { recordAiCost, textCostUsd } from "@/lib/ai-cost";
 import { runApifyActor, isApifyConfigured, APIFY_PRICING } from "@/lib/apify";
 import { chatCompletion, importResult, MOCK_USAGE } from "@/test/openai-mock";
 import { AI_MODELS } from "@/lib/ai-models";
+import { getCachedCaption, setCachedCaption } from "@/lib/instagram-cache";
+import type { InstagramReadReport } from "./import";
 
 // Coût enregistré par voie d'import (revue 2026-09-12 : aucun test ne vérifiait
 // `recordAiCost`) + voies Instagram et crawler Apify (zéro test avant).
@@ -23,6 +25,10 @@ vi.mock("@/lib/apify", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/apify")>();
   return { ...actual, runApifyActor: vi.fn(), isApifyConfigured: vi.fn(() => false) };
 });
+vi.mock("@/lib/instagram-cache", () => ({
+  getCachedCaption: vi.fn(async () => null),
+  setCachedCaption: vi.fn(async () => {}),
+}));
 vi.mock("node:dns/promises", () => ({
   lookup: vi.fn().mockResolvedValue([{ address: "93.184.216.34", family: 4 }]),
 }));
@@ -95,58 +101,135 @@ describe("coût enregistré par voie", () => {
   });
 });
 
-describe("Instagram (Apify reel scraper)", () => {
-  const IG = "https://www.instagram.com/reel/abc123/";
-
-  it("sans APIFY_TOKEN : SITE_UNREACHABLE, aucun fetch direct", async () => {
-    await expect(extractRecipeFromUrl(IG, META)).rejects.toMatchObject({
-      code: "SITE_UNREACHABLE",
-    });
-    expect(fetch).not.toHaveBeenCalled();
-    expect(runApifyActor).not.toHaveBeenCalled();
+describe("Instagram : lecture directe, Apify en secours, cache", () => {
+  const IG = "https://www.instagram.com/reel/abc123/?igsh=xyz";
+  const EMBED = `<div class="Caption"><a class="CaptionUsername" href="#">compte</a><br />Tarte : pommes, pâte, sucre.<br />Cuire 30 min.<div class="CaptionComments"></div></div>`;
+  const OG = `<meta property="og:description" content="12 likes, 1 comments - compte on May 1, 2026: &quot;Tarte : pommes, p&#xe2;te, sucre.\nCuire 30 min.&quot;. " />`;
+  const page = (body: string, status = 200) => new Response(body, { status });
+  let reports: InstagramReadReport[];
+  const meta = () => ({ ...META, onInstagramRead: (r: InstagramReadReport) => reports.push(r) });
+  beforeEach(() => {
+    reports = [];
+    vi.mocked(getCachedCaption).mockResolvedValue(null);
+    mockChat.mockResolvedValue(chatCompletion(importResult()));
   });
 
-  it("caption → structuration : coût Apify (forfait) puis import_instagram (tokens)", async () => {
+  it("page embed lue : aucune ligne Apify, seulement import_instagram ; légende mise en cache", async () => {
     vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockResolvedValueOnce(page(EMBED));
+    const result = await extractRecipeFromUrl(IG, meta());
+    expect(result.title).toBe("Tarte aux pommes");
+    expect(vi.mocked(fetch).mock.calls[0][0]).toBe(
+      "https://www.instagram.com/p/abc123/embed/captioned/",
+    );
+    expect(runApifyActor).not.toHaveBeenCalled();
+    expect(String(mockChat.mock.calls[0][0].messages[1].content)).toContain(
+      "Tarte : pommes, pâte, sucre.\nCuire 30 min.",
+    );
+    expect(costRows()).toMatchObject([{ callType: "import_instagram", model: AI_MODELS.text }]);
+    expect(costRows()).toHaveLength(1);
+    expect(setCachedCaption).toHaveBeenCalledWith("abc123", {
+      caption: "Tarte : pommes, pâte, sucre.\nCuire 30 min.",
+      source: "direct_embed",
+    });
+    expect(reports).toEqual([{ path: "direct_embed", readMs: expect.any(Number) }]);
+  });
+
+  it("embed bloqué → og:description de la page du reel", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(page("", 429)).mockResolvedValueOnce(page(OG));
+    await extractRecipeFromUrl(IG, meta());
+    expect(vi.mocked(fetch).mock.calls[1][0]).toBe("https://www.instagram.com/reel/abc123/");
+    expect(runApifyActor).not.toHaveBeenCalled();
+    expect(reports).toMatchObject([{ path: "direct_og", fallback: "http_429" }]);
+  });
+
+  it("déjà en cache : aucune lecture réseau, voie `cache`", async () => {
+    vi.mocked(getCachedCaption).mockResolvedValue({
+      caption: "Tarte : pommes, pâte, sucre.",
+      source: "apify",
+    });
+    await extractRecipeFromUrl(IG, meta());
+    expect(fetch).not.toHaveBeenCalled();
+    expect(runApifyActor).not.toHaveBeenCalled();
+    expect(reports).toMatchObject([{ path: "cache" }]);
+    expect(costRows()).toHaveLength(1);
+  });
+
+  it("lecture directe KO → Apify : une ligne Apify (0 $, plan gratuit) puis import_instagram", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockImplementation(async () => page("<html></html>"));
     vi.mocked(runApifyActor).mockResolvedValue([
       { caption: "Tarte : pommes, pâte, sucre. Cuire 30 min." },
     ]);
-    mockChat.mockResolvedValue(chatCompletion(importResult()));
-    const result = await extractRecipeFromUrl(IG, META);
-    expect(result.title).toBe("Tarte aux pommes");
+    await extractRecipeFromUrl(IG, meta());
     expect(vi.mocked(runApifyActor).mock.calls[0][0]).toBe("apify/instagram-reel-scraper");
     expect(vi.mocked(runApifyActor).mock.calls[0][1]).toMatchObject({
       username: [IG],
       resultsLimit: 1,
     });
-    expect(String(mockChat.mock.calls[0][0].messages[1].content)).toContain("Tarte : pommes");
     expect(costRows()).toMatchObject([
-      {
-        callType: "import_instagram",
-        model: "apify:instagram-reel-scraper",
-        costUsd: APIFY_PRICING.instagramReel,
-      },
+      { callType: "import_instagram", model: "apify:instagram-reel-scraper", costUsd: 0 },
       { callType: "import_instagram", model: AI_MODELS.text },
     ]);
+    expect(APIFY_PRICING.instagramReel).toBe(0);
+    expect(setCachedCaption).toHaveBeenCalledWith(
+      "abc123",
+      expect.objectContaining({ source: "apify" }),
+    );
+    expect(reports).toMatchObject([{ path: "apify", fallback: "no_caption/no_caption" }]);
   });
 
-  it("post sans texte : EXTRACTION_FAILED, aucun appel OpenAI (le scrape est quand même facturé)", async () => {
+  it("URL non reconnue (profil) : Apify directement, raison `unsupported_url`", async () => {
     vi.mocked(isApifyConfigured).mockReturnValue(true);
-    vi.mocked(runApifyActor).mockResolvedValue([{ caption: "   " }]);
-    await expect(extractRecipeFromUrl(IG, META)).rejects.toMatchObject({
-      code: "EXTRACTION_FAILED",
+    vi.mocked(runApifyActor).mockResolvedValue([{ caption: "Une recette de tarte aux pommes." }]);
+    await extractRecipeFromUrl("https://www.instagram.com/marmiton_org/", meta());
+    expect(fetch).not.toHaveBeenCalled();
+    expect(setCachedCaption).not.toHaveBeenCalled();
+    expect(reports).toMatchObject([{ path: "apify", fallback: "unsupported_url" }]);
+  });
+
+  it("direct KO sans APIFY_TOKEN : SITE_UNREACHABLE, voie `failed`", async () => {
+    vi.mocked(fetch).mockResolvedValue(page("", 429));
+    await expect(extractRecipeFromUrl(IG, meta())).rejects.toMatchObject({
+      code: "SITE_UNREACHABLE",
     });
+    expect(runApifyActor).not.toHaveBeenCalled();
     expect(mockChat).not.toHaveBeenCalled();
-    expect(costRows()).toHaveLength(1);
+    expect(reports).toMatchObject([{ path: "failed", fallback: "http_429/http_429" }]);
   });
 
-  it("Apify en erreur : SITE_UNREACHABLE, rien facturé", async () => {
+  it("direct KO et Apify en erreur : SITE_UNREACHABLE, rien facturé", async () => {
     vi.mocked(isApifyConfigured).mockReturnValue(true);
-    vi.mocked(runApifyActor).mockRejectedValue(new Error("Apify actor failed: 500"));
-    await expect(extractRecipeFromUrl(IG, META)).rejects.toMatchObject({
+    vi.mocked(fetch).mockResolvedValue(page("", 500));
+    vi.mocked(runApifyActor).mockRejectedValue(new Error("Apify actor failed: 402"));
+    await expect(extractRecipeFromUrl(IG, meta())).rejects.toMatchObject({
       code: "SITE_UNREACHABLE",
     });
     expect(recordAiCost).not.toHaveBeenCalled();
+    expect(reports).toMatchObject([{ path: "failed" }]);
+  });
+
+  it("post sans texte (direct et Apify) : EXTRACTION_FAILED, aucun appel OpenAI", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockImplementation(async () => page("<html></html>"));
+    vi.mocked(runApifyActor).mockResolvedValue([{ caption: "   " }]);
+    await expect(extractRecipeFromUrl(IG, meta())).rejects.toMatchObject({
+      code: "EXTRACTION_FAILED",
+    });
+    expect(mockChat).not.toHaveBeenCalled();
+    expect(costRows()).toHaveLength(1); // l'appel Apify réel reste compté
+    expect(reports).toMatchObject([{ path: "failed" }]);
+  });
+
+  it("légende directe courte et Apify KO : la légende courte sert quand même", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch)
+      .mockResolvedValueOnce(page(`<div class="Caption">Tarte 🍏</div>`))
+      .mockResolvedValueOnce(page("", 500));
+    vi.mocked(runApifyActor).mockRejectedValue(new Error("Apify actor failed: 402"));
+    await extractRecipeFromUrl(IG, meta());
+    expect(String(mockChat.mock.calls[0][0].messages[1].content)).toContain("Tarte 🍏");
+    expect(reports).toMatchObject([{ path: "direct_embed", fallback: "too_short/http_500" }]);
   });
 });
 

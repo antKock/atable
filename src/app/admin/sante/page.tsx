@@ -114,6 +114,18 @@ export default async function SantePage() {
               detail={o.health.edge.detail}
               span={6}
             />
+            <Light
+              ok={o.health.instagram.ok}
+              label="Instagram (lecture directe)"
+              detail={o.health.instagram.detail}
+              span={6}
+            />
+            <Light
+              ok={o.health.apify.ok}
+              label="Crédit Apify"
+              detail={o.health.apify.detail}
+              span={6}
+            />
           </div>
         </div>
 

@@ -9,8 +9,8 @@ import {
   APIFY_PRICING,
   INCLUDE_INSTAGRAM_TRANSCRIPT,
 } from "@/lib/apify";
-import { ImportResultSchema } from "@/lib/schemas/import";
-import type { ImportResult } from "@/lib/schemas/import";
+import { ImportResultSchema, IMAGE_KINDS } from "@/lib/schemas/import";
+import type { ImportResult, ImageKind } from "@/lib/schemas/import";
 import {
   VALID_SEASONS,
   VALID_PREP_TIMES,
@@ -20,6 +20,15 @@ import {
 } from "@/lib/schemas/enrichment";
 import { isSectionLine } from "@/lib/recipe-sections";
 import { assertPublicUrl } from "@/lib/url-guard";
+import {
+  isInstagramUrl,
+  parseInstagramUrl,
+  readInstagramDirect,
+  resolveShareLink,
+  directFailureLabel,
+  type DirectResult,
+} from "@/lib/instagram";
+import { getCachedCaption, setCachedCaption } from "@/lib/instagram-cache";
 import type { RecipeFormData } from "@/types/recipe";
 
 export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
@@ -27,7 +36,24 @@ export type ImportedRecipeData = Omit<RecipeFormData, "tags" | "photoUrl">;
 // Context for cost instrumentation. Routes pass it (household is known from the
 // session); unit tests omit it, so no DB write happens in tests. Imports run
 // before a recipe exists, so there's no recipe_id to attach yet.
-export type ImportMeta = { householdId: string };
+export type ImportMeta = {
+  householdId: string;
+  /** Import Instagram : voie de lecture utilisée, pour le journal (#28). */
+  onInstagramRead?: (report: InstagramReadReport) => void;
+};
+
+/**
+ * Voie qui a fourni la légende Instagram. `cache` = déjà lue dans les 24 h
+ * (aucune lecture réseau) ; `failed` = aucune voie n'a abouti.
+ */
+export type InstagramPath = "direct_embed" | "direct_og" | "apify" | "cache" | "failed";
+export type InstagramReadReport = {
+  path: InstagramPath;
+  /** Pourquoi la lecture directe a été abandonnée (`no_caption/login_wall`…) — enum, jamais de contenu. */
+  fallback?: string;
+  /** Durée de la lecture de la légende seule (hors structuration par le modèle). */
+  readMs: number;
+};
 
 export class ImportError extends Error {
   constructor(
@@ -114,6 +140,31 @@ const IMPORT_JSON_SCHEMA = {
     additionalProperties: false,
   },
 } as const;
+
+// OCR : même schéma + `kind`, la nature des images (chantier « OCR sur
+// l'appareil », 2026-09-18) — mesure la part captures / photos de livre /
+// manuscrits pour décider du secours gpt-4o. Placé en dernier pour ne pas
+// orienter l'extraction ; ~3 tokens de sortie en plus, aucun appel en plus.
+const OCR_JSON_SCHEMA = {
+  ...IMPORT_JSON_SCHEMA,
+  name: "recipe_import_ocr",
+  schema: {
+    ...IMPORT_JSON_SCHEMA.schema,
+    properties: {
+      ...IMPORT_JSON_SCHEMA.schema.properties,
+      kind: { type: "string", enum: [...IMAGE_KINDS] },
+    },
+    required: [...IMPORT_JSON_SCHEMA.schema.required, "kind"],
+  },
+} as const;
+
+const OCR_USER_PROMPT = `Extrais la recette de cette/ces image(s).
+
+Indique aussi dans kind la nature de l'image (la plus représentative s'il y en a plusieurs) :
+- screenshot : capture d'écran d'un téléphone ou d'un ordinateur (site, application, réseau social, message)
+- printed_photo : photo d'un texte imprimé (livre, magazine, fiche, emballage)
+- handwritten : photo d'une recette écrite à la main
+- other : tout autre cas`;
 
 // ---------- List-marker normalisation ----------
 
@@ -202,10 +253,15 @@ function toFormData(result: ImportResult): Omit<RecipeFormData, "tags" | "photoU
 
 // ---------- Screenshot OCR ----------
 
+/**
+ * `imageKind` : nature des images selon le modèle (journal #28, jamais montrée
+ * au client) ; `undefined` si la réponse n'en porte pas de valide — une
+ * catégorie manquante ne fait jamais échouer un import.
+ */
 export async function extractRecipeFromImages(
   base64Images: string[],
   meta?: ImportMeta,
-): Promise<ImportedRecipeData> {
+): Promise<{ recipe: ImportedRecipeData; imageKind?: ImageKind }> {
   console.log(`[import/screenshot] OCR extraction — ${base64Images.length} image(s)`);
   const imageContent = base64Images.map((img) => ({
     type: "image_url" as const,
@@ -213,24 +269,24 @@ export async function extractRecipeFromImages(
       url: img.startsWith("data:") ? img : `data:image/jpeg;base64,${img}`,
     },
   }));
-  return runExtraction({
+  const { recipe, raw } = await runExtraction({
     model: AI_MODELS.vision,
+    jsonSchema: OCR_JSON_SCHEMA,
     callType: "ocr",
     meta,
     messages: [
       { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
       {
         role: "user",
-        content: [
-          {
-            type: "text",
-            text: "Extrais la recette de cette/ces image(s) :",
-          },
-          ...imageContent,
-        ],
+        content: [{ type: "text", text: OCR_USER_PROMPT }, ...imageContent],
       },
     ],
   });
+  const kind = raw.kind;
+  const imageKind = (IMAGE_KINDS as readonly unknown[]).includes(kind)
+    ? (kind as ImageKind)
+    : undefined;
+  return { recipe, imageKind };
 }
 
 // ---------- Voice transcription ----------
@@ -270,7 +326,7 @@ export async function extractRecipeFromVoice(
   }
 
   // Step 2: Structure transcription into recipe JSON
-  return runExtraction({
+  const { recipe } = await runExtraction({
     model: AI_MODELS.text,
     useEffortFallback: true,
     callType: "import_voice",
@@ -283,6 +339,7 @@ export async function extractRecipeFromVoice(
       },
     ],
   });
+  return recipe;
 }
 
 // ---------- Shared text → recipe structuring ----------
@@ -295,7 +352,8 @@ type ExtractionMessages = Parameters<typeof openai.chat.completions.create>[0]["
  * retry sur erreur transitoire, validation zod, coût enregistré sur la voie
  * (`callType`) quand un foyer est connu. `useEffortFallback` : modèle texte
  * gpt-5.x (reasoning_effort « none », retenté sans le paramètre si l'API le
- * refuse — cf. ai-models.ts).
+ * refuse — cf. ai-models.ts). `raw` = le JSON brut, pour les champs que
+ * `jsonSchema` ajoute au schéma commun (`kind` de l'OCR).
  */
 async function runExtraction(opts: {
   model: string;
@@ -303,20 +361,25 @@ async function runExtraction(opts: {
   callType: AiCallType;
   meta?: ImportMeta;
   useEffortFallback?: boolean;
-}): Promise<ImportedRecipeData> {
+  jsonSchema?: typeof IMPORT_JSON_SCHEMA | typeof OCR_JSON_SCHEMA;
+}): Promise<{ recipe: ImportedRecipeData; raw: Record<string, unknown> }> {
   return withRetry(async () => {
     const call = (extra: object) =>
       openai.chat.completions.create({
         model: opts.model,
         ...extra,
-        response_format: { type: "json_schema", json_schema: IMPORT_JSON_SCHEMA },
+        response_format: {
+          type: "json_schema",
+          json_schema: opts.jsonSchema ?? IMPORT_JSON_SCHEMA,
+        },
         messages: opts.messages,
       });
     const response = opts.useEffortFallback ? await withEffortFallback(call) : await call({});
 
     const content = response.choices[0].message.content;
     if (!content) throw new Error("Empty response from OpenAI");
-    const parsed = ImportResultSchema.parse(JSON.parse(content));
+    const raw = JSON.parse(content) as Record<string, unknown>;
+    const parsed = ImportResultSchema.parse(raw);
     if (opts.meta) {
       await recordAiCost({
         householdId: opts.meta.householdId,
@@ -331,7 +394,7 @@ async function runExtraction(opts: {
         ),
       });
     }
-    return toFormData(parsed);
+    return { recipe: toFormData(parsed), raw };
   });
 }
 
@@ -353,7 +416,7 @@ function structureRecipeFromText(
       { role: "system", content: EXTRACTION_SYSTEM_PROMPT },
       { role: "user", content: `Extrais la recette depuis ce contenu :\n\n${text}` },
     ],
-  });
+  }).then((r) => r.recipe);
 }
 
 /** Record the flat-estimate cost of one Apify scrape (separate from the GPT row). */
@@ -373,16 +436,6 @@ async function recordApifyCost(
 // plain fetch can't read — fall back to the headless crawler instead of feeding
 // GPT an empty page.
 const MIN_CONTENT_LENGTH = 200;
-
-const INSTAGRAM_HOST = /(?:^|\.)(instagram\.com|instagr\.am)$/i;
-
-function isInstagramUrl(url: string): boolean {
-  try {
-    return INSTAGRAM_HOST.test(new URL(url).hostname);
-  } catch {
-    return false;
-  }
-}
 
 // Redirects are followed manually so the SSRF guard runs on every hop — a
 // public page must not be able to bounce the fetch onto a private address.
@@ -449,18 +502,8 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
     .slice(0, 50000); // ~12k tokens — generous enough for any recipe page
 }
 
-/**
- * Instagram post/reel → recipe. Uses the Apify reel scraper for the caption
- * (transcript is a paid add-on, gated behind INCLUDE_INSTAGRAM_TRANSCRIPT).
- */
-async function extractRecipeFromInstagram(
-  url: string,
-  meta?: ImportMeta,
-): Promise<ImportedRecipeData> {
-  if (!isApifyConfigured()) {
-    throw new ImportError("Instagram import unavailable", "SITE_UNREACHABLE");
-  }
-
+/** Légende via Apify (secours). `null` si Apify répond sans texte ; lève si Apify est KO. */
+async function readCaptionWithApify(url: string, meta?: ImportMeta): Promise<string | null> {
   let items: Array<{ caption?: string | null; transcript?: string | null }>;
   try {
     items = await runApifyActor(APIFY_ACTORS.instagramReel, {
@@ -472,21 +515,107 @@ async function extractRecipeFromInstagram(
   } catch {
     throw new ImportError("Instagram unreachable via Apify", "SITE_UNREACHABLE");
   }
+  // Une ligne par appel Apify réel (compteur ; 0 $ tant qu'on reste dans le
+  // crédit gratuit, cf. APIFY_PRICING) — jamais quand la lecture directe suffit.
   await recordApifyCost(
     meta,
     "import_instagram",
     "instagram-reel-scraper",
     APIFY_PRICING.instagramReel,
   );
-
   const item = items[0];
   const caption = item?.caption?.trim() || "";
   const transcript = INCLUDE_INSTAGRAM_TRANSCRIPT ? item?.transcript?.trim() || "" : "";
-  const text = [caption, transcript].filter(Boolean).join("\n\n");
-  if (!text) {
-    throw new ImportError("No recipe text found in Instagram post", "EXTRACTION_FAILED");
+  return [caption, transcript].filter(Boolean).join("\n\n") || null;
+}
+
+const DIRECT_PATH = { embed: "direct_embed", og: "direct_og" } as const;
+
+/**
+ * Instagram post/reel → légende. Chaîne (chantier « Instagram sans Apify »,
+ * 2026-09-18) : cache 24 h → lecture directe des pages publiques (embed, puis
+ * og:description du reel) → Apify en secours → erreur actuelle. Les codes
+ * d'erreur restent ceux d'avant : SITE_UNREACHABLE (aucune voie), EXTRACTION_FAILED
+ * (publication sans texte). La voie utilisée est rapportée via
+ * `meta.onInstagramRead`, en succès comme en échec.
+ */
+async function readInstagramCaption(url: string, meta: ImportMeta | undefined): Promise<string> {
+  const t0 = performance.now();
+  const report = (path: InstagramPath, fallback?: string) => {
+    const r: InstagramReadReport = {
+      path,
+      ...(fallback ? { fallback } : {}),
+      readMs: Math.round(performance.now() - t0),
+    };
+    console.info(
+      `[import/instagram] path=${r.path} read_ms=${r.readMs}${r.fallback ? ` fallback=${r.fallback}` : ""}`,
+    );
+    meta?.onInstagramRead?.(r);
+  };
+
+  const target = parseInstagramUrl(url);
+  const code =
+    target?.kind === "post"
+      ? target.code
+      : target?.kind === "share"
+        ? await resolveShareLink(target.path)
+        : null;
+
+  let fallback = target ? "share_unresolved" : "unsupported_url";
+  let short: Extract<DirectResult, { ok: false }>["short"];
+  if (code) {
+    const cached = await getCachedCaption(code);
+    if (cached) {
+      report("cache");
+      return cached.caption;
+    }
+    const direct = await readInstagramDirect(code);
+    if (direct.ok) {
+      const path = DIRECT_PATH[direct.page];
+      await setCachedCaption(code, { caption: direct.caption, source: path });
+      report(path, directFailureLabel(direct.reasons));
+      return direct.caption;
+    }
+    fallback = directFailureLabel(direct.reasons) ?? "unknown";
+    short = direct.short;
   }
 
+  // Secours Apify. Si lui aussi échoue, une légende directe jugée courte vaut
+  // mieux qu'une erreur (c'est ce qu'Apify aurait renvoyé de toute façon).
+  const keepShort = () => {
+    if (!short) return null;
+    report(DIRECT_PATH[short.page], fallback);
+    return short.caption;
+  };
+  let text: string | null;
+  try {
+    if (!isApifyConfigured()) {
+      throw new ImportError("Instagram import unavailable", "SITE_UNREACHABLE");
+    }
+    text = await readCaptionWithApify(url, meta);
+  } catch (err) {
+    const kept = keepShort();
+    if (kept) return kept;
+    report("failed", fallback);
+    throw err;
+  }
+  if (!text) {
+    const kept = keepShort();
+    if (kept) return kept;
+    report("failed", fallback);
+    throw new ImportError("No recipe text found in Instagram post", "EXTRACTION_FAILED");
+  }
+  if (code) await setCachedCaption(code, { caption: text, source: "apify" });
+  report("apify", fallback);
+  return text;
+}
+
+/** Instagram post/reel → recipe : légende (voir readInstagramCaption) structurée par le modèle texte. */
+async function extractRecipeFromInstagram(
+  url: string,
+  meta?: ImportMeta,
+): Promise<ImportedRecipeData> {
+  const text = await readInstagramCaption(url, meta);
   return structureRecipeFromText(text, { callType: "import_instagram", meta });
 }
 
@@ -542,7 +671,7 @@ async function extractRecipeFromUrlUnbounded(
   url: string,
   meta?: ImportMeta,
 ): Promise<ImportedRecipeData> {
-  // Instagram needs the dedicated scraper — a plain fetch sees nothing usable.
+  // Instagram : lecture dédiée (pages publiques, puis Apify en secours).
   if (isInstagramUrl(url)) {
     return extractRecipeFromInstagram(url, meta);
   }

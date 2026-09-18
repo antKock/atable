@@ -1,0 +1,29 @@
+{
+  "id": "hand-pz-gateau-savoie",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Gâteau Savoie",
+  "ingredients": [
+    "250 gr. farine",
+    "200 gr. sucre",
+    "3 oeufs entiers",
+    "1 tasse lait",
+    "beurre fondu (100 gr)",
+    "confiture ou crème chocolat",
+    "blancs d'oeufs",
+    "sucre glacé"
+  ],
+  "steps": [
+    "faire un trou dans farine",
+    "casser les oeufs (jaunes)",
+    "bien travailler sucre, beurre fondu (100 gr)",
+    "blancs battus en neige",
+    "beurrer le moule",
+    "Pour glacer étendre confiture ou crème chocolat",
+    "battre blancs d'oeufs avec sucre glacé recouvrir"
+  ],
+  "notes": "Mots barrés dans l'original (« blancs », « lait ») non transcrits. Aucune indication de cuisson.",
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}

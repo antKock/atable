@@ -1,0 +1,26 @@
+{
+  "id": "hand-pz-gateau-maggy",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Gâteau Maggy",
+  "ingredients": [
+    "100 gr. de beurre",
+    "2 oeufs entiers",
+    "200 gr. sucre",
+    "1 verre lait",
+    "375 gr. de farine",
+    "140 gr. de semoule de blé",
+    "fruits confits, raisins ou parfums"
+  ],
+  "steps": [
+    "Bien melanger 100 gr. de beurre 2 oeufs entiers 200 gr. sucre 1 verre lait 375 gr. de farine",
+    "Bien melanger",
+    "incorporer 140 gr. de semoule de blé",
+    "mettre dans moule à cheminée bien beurré",
+    "Ajouter soit fruits confits raisins ou parfums"
+  ],
+  "notes": "Aucune indication de cuisson sur la fiche.",
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}

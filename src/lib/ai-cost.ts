@@ -21,8 +21,8 @@ export type AiCallType =
   | "image" // dish image generation (image model)
   | "image_prompt" // image-prompt authoring before generation (text model)
   | "import_url" // recipe parse from a directly-fetched web page (text model)
-  | "import_instagram" // recipe parse from an Instagram caption (text model); also an Apify scrape row
-  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (text model); also an Apify scrape row
+  | "import_instagram" // recipe parse from an Instagram caption (text model); plus an Apify row (0 $, free plan) only when Apify was the fallback
+  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (text model); also an Apify row (0 $, free plan)
   | "import_voice" // recipe parse from a voice transcription (text model)
   | "transcription"; // voice → text (transcription model)
 
@@ -46,7 +46,7 @@ const TOKEN_PRICING: Record<string, { input: number; output: number }> = {
  * prix = spend sous-déclaré en silence dans le dashboard.
  */
 export const NON_TOKEN_PRICED_MODELS: Record<string, string> = {
-  "gpt-image-1.5": "forfait par image (IMAGE_PRICING, qualité:taille)",
+  "gpt-image-2.5-flare": "forfait par image (IMAGE_PRICING, qualité:taille)",
   "gpt-4o-mini-transcribe":
     "facturé à la seconde d'audio, durée inconnue côté serveur : ligne à 0 $ (compteur), réconciliée par la Costs API",
 };
@@ -56,12 +56,15 @@ export function hasTokenPricing(model: string): boolean {
   return model in TOKEN_PRICING;
 }
 
-// Flat USD per generated image, keyed by `quality:size`. Grounded in observed
-// gpt-image-1.5 billing (~$0.0109 all-in for low/1024² incl. text tokens).
+// Flat USD per generated image, keyed by `quality:size`, for AI_MODELS.image
+// (gpt-image-2.5-flare). Tokens mesurés le 2026-09-18 × tarif public (texte en
+// entrée 5 $/1M, ~110 tokens ; image en sortie 30 $/1M) : 196 / 439 / 1 756
+// tokens image en low / medium / high. Pas de sortie texte facturée, contrairement
+// à gpt-image-1.5 (~143 tokens à 10 $/1M). À re-mesurer si le modèle change.
 const IMAGE_PRICING: Record<string, number> = {
-  "low:1024x1024": 0.011,
-  "medium:1024x1024": 0.042,
-  "high:1024x1024": 0.167,
+  "low:1024x1024": 0.0064,
+  "medium:1024x1024": 0.014,
+  "high:1024x1024": 0.053,
 };
 
 /** Cost of a token-billed chat/vision call. Unknown models price at 0. */
