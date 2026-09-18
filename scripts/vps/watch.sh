@@ -85,8 +85,13 @@ tick() {
 
   # --- lignes ERR de Traefik (ACME, backend, middleware…), hors 5xx déjà comptés et hors
   # « peeking client hello » (connexion TLS abandonnée avant la poignée de main : scanners)
+  # et des sondes de /.well-known/acme-challenge/ sur un jeton inconnu (scanner du
+  # 2026-09-18 sur l'IP brute : « Cannot retrieve the ACME challenge … », « Unable to get
+  # token … missing token »). Un vrai échec de renouvellement s'écrit autrement
+  # (« Unable to obtain ACME certificate ») et l'échéance des certificats est vérifiée par `daily`.
   local errs; errs=$(docker logs --since "$cursor" --until "$now" "$traefik" 2>&1 | grep -a 'ERR' | grep -av '^{' \
     | grep -av 'peeking client hello' \
+    | grep -av -e 'Cannot retrieve the ACME challenge' -e 'Unable to get token' \
     | sed -E 's/\x1b\[[0-9;]*m//g; s/^[0-9T:.Z-]+ +//' | sed -E 's/(routerName|middlewareName|entryPointName)=[^ ]+//g' | sort | uniq -c | sort -rn | head -10)
   if [ -n "$errs" ]; then
     while read -r n msg; do
