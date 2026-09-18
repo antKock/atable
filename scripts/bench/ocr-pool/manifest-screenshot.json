@@ -1,0 +1,908 @@
+[
+  {
+    "id": "shot-marmiton-taboule-libanais",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-marmiton-taboule-libanais-1.jpg",
+      "screenshot/shot-marmiton-taboule-libanais-2.jpg",
+      "screenshot/shot-marmiton-taboule-libanais-3.jpg"
+    ],
+    "truth": "truth/shot-marmiton-taboule-libanais.json",
+    "source_url": "https://www.marmiton.org/recettes/recette_le-vrai-taboule-libanais_26796.aspx",
+    "source_site": "marmiton.org",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis le titre, bandeau cookies fermé, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 8/8 ingrédients et 5/8 étapes visibles"
+  },
+  {
+    "id": "shot-marmiton-carrot-cake",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-marmiton-carrot-cake-1.jpg"],
+    "truth": "truth/shot-marmiton-carrot-cake.json",
+    "source_url": "https://www.marmiton.org/recettes/recette_veritable-carrot-cake-recette-usa_83584.aspx",
+    "source_site": "marmiton.org",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 6/10 ingrédients et 0/6 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-marmiton-rougail-saucisse",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-marmiton-rougail-saucisse-1.jpg"],
+    "truth": "truth/shot-marmiton-rougail-saucisse.json",
+    "source_url": "https://www.marmiton.org/recettes/recette_rougail-saucisse_22851.aspx",
+    "source_site": "marmiton.org",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 6/11 ingrédients et 0/6 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-marmiton-riz-au-lait",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-marmiton-riz-au-lait-1.jpg",
+      "screenshot/shot-marmiton-riz-au-lait-2.jpg",
+      "screenshot/shot-marmiton-riz-au-lait-3.jpg"
+    ],
+    "truth": "truth/shot-marmiton-riz-au-lait.json",
+    "source_url": "https://www.marmiton.org/recettes/recette_riz-au-lait-facile_14999.aspx",
+    "source_site": "marmiton.org",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis le titre, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 7/7 ingrédients et 5/6 étapes visibles"
+  },
+  {
+    "id": "shot-750g-salade-lentilles",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-750g-salade-lentilles-1.jpg",
+      "screenshot/shot-750g-salade-lentilles-2.jpg",
+      "screenshot/shot-750g-salade-lentilles-3.jpg"
+    ],
+    "truth": "truth/shot-750g-salade-lentilles.json",
+    "source_url": "https://www.750g.com/salade-de-lentilles-r12441.htm",
+    "source_site": "750g.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis le titre, bandeau cookies fermé, 6 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": null
+  },
+  {
+    "id": "shot-750g-quiche-poireaux",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-750g-quiche-poireaux-1.jpg",
+      "screenshot/shot-750g-quiche-poireaux-2.jpg"
+    ],
+    "truth": "truth/shot-750g-quiche-poireaux.json",
+    "source_url": "https://www.750g.com/quiche-aux-poireaux-r2160.htm",
+    "source_site": "750g.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 5 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 7/7 ingrédients et 0/9 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-750g-pizza-maison",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-750g-pizza-maison-1.jpg"],
+    "truth": "truth/shot-750g-pizza-maison.json",
+    "source_url": "https://www.750g.com/pizza-maison-r63439.htm",
+    "source_site": "750g.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 4 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 5/11 ingrédients et 0/15 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Garniture)"
+  },
+  {
+    "id": "shot-cuisineaz-moussaka",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-cuisineaz-moussaka-1.jpg"],
+    "truth": "truth/shot-cuisineaz-moussaka.json",
+    "source_url": "https://www.cuisineaz.com/recettes/moussaka-facile-23244.aspx",
+    "source_site": "cuisineaz.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 4 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 13/18 ingrédients et 0/5 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisineaz-chouquettes",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-cuisineaz-chouquettes-1.jpg",
+      "screenshot/shot-cuisineaz-chouquettes-2.jpg"
+    ],
+    "truth": "truth/shot-cuisineaz-chouquettes.json",
+    "source_url": "https://www.cuisineaz.com/recettes/recette-chouquettes-de-mercotte-du-meilleur-patissier-125563.aspx",
+    "source_site": "cuisineaz.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 5 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 6/6 ingrédients et 2/11 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisineaz-crepes",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-cuisineaz-crepes-1.jpg"],
+    "truth": "truth/shot-cuisineaz-crepes.json",
+    "source_url": "https://www.cuisineaz.com/recettes/crepe-facile-78347.aspx",
+    "source_site": "cuisineaz.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 4 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 6/6 ingrédients et 0/3 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-jdf-poulet-moutarde",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-jdf-poulet-moutarde-1.jpg",
+      "screenshot/shot-jdf-poulet-moutarde-2.jpg",
+      "screenshot/shot-jdf-poulet-moutarde-3.jpg"
+    ],
+    "truth": "truth/shot-jdf-poulet-moutarde.json",
+    "source_url": "https://cuisine.journaldesfemmes.fr/recette/317975-emince-de-poulet-a-la-moutarde",
+    "source_site": "cuisine.journaldesfemmes.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis le titre, bandeau cookies fermé, 3 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": null
+  },
+  {
+    "id": "shot-jdf-creme-caramel",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-jdf-creme-caramel-1.jpg",
+      "screenshot/shot-jdf-creme-caramel-2.jpg"
+    ],
+    "truth": "truth/shot-jdf-creme-caramel.json",
+    "source_url": "https://cuisine.journaldesfemmes.fr/recette/322707-creme-caramel",
+    "source_site": "cuisine.journaldesfemmes.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 6/6 ingrédients et 5/6 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-jdf-tarte-figues",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-jdf-tarte-figues-1.jpg"],
+    "truth": "truth/shot-jdf-tarte-figues.json",
+    "source_url": "https://cuisine.journaldesfemmes.fr/recette/313528-tarte-aux-figues",
+    "source_site": "cuisine.journaldesfemmes.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 7/7 ingrédients et 0/5 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-ptitchef-curry-lentilles",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-ptitchef-curry-lentilles-1.jpg"],
+    "truth": "truth/shot-ptitchef-curry-lentilles.json",
+    "source_url": "https://www.ptitchef.com/recettes/plat/curry-de-lentilles-corail-au-lait-de-coco-recette-facile-et-cremeuse-fid-1614349",
+    "source_site": "ptitchef.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 11/18 ingrédients et 0/7 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-ptitchef-focaccia",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-ptitchef-focaccia-1.jpg",
+      "screenshot/shot-ptitchef-focaccia-2.jpg"
+    ],
+    "truth": "truth/shot-ptitchef-focaccia.json",
+    "source_url": "https://www.ptitchef.com/recettes/aperitif/focaccia-moelleuse-aux-tomates-cerises-aux-olives-et-a-l-origan-fid-1614320",
+    "source_site": "ptitchef.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 10/10 ingrédients et 1/14 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisineactuelle-soupe-oignon",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-cuisineactuelle-soupe-oignon-1.jpg",
+      "screenshot/shot-cuisineactuelle-soupe-oignon-2.jpg"
+    ],
+    "truth": "truth/shot-cuisineactuelle-soupe-oignon.json",
+    "source_url": "https://www.cuisineactuelle.fr/recettes/la-vraie-soupe-a-l-oignon-super-simple-106587",
+    "source_site": "cuisineactuelle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 5 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 8/8 ingrédients et 2/7 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisineactuelle-crumble-poires",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-cuisineactuelle-crumble-poires-1.jpg",
+      "screenshot/shot-cuisineactuelle-crumble-poires-2.jpg",
+      "screenshot/shot-cuisineactuelle-crumble-poires-3.jpg"
+    ],
+    "truth": "truth/shot-cuisineactuelle-crumble-poires.json",
+    "source_url": "https://www.cuisineactuelle.fr/recettes/recette-de-crumble-de-poires-au-pain-depices-218658",
+    "source_site": "cuisineactuelle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis les ingrédients, bandeau cookies fermé, 4 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisineactuelle-gateau-invisible",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-cuisineactuelle-gateau-invisible-1.jpg"],
+    "truth": "truth/shot-cuisineactuelle-gateau-invisible.json",
+    "source_url": "https://www.cuisineactuelle.fr/recettes/gateau-invisible-pommes-de-terre-et-oignons-107111",
+    "source_site": "cuisineactuelle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 4 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 8/8 ingrédients et 0/7 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-elle-carbonara-haricots",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-elle-carbonara-haricots-1.jpg",
+      "screenshot/shot-elle-carbonara-haricots-2.jpg"
+    ],
+    "truth": "truth/shot-elle-carbonara-haricots.json",
+    "source_url": "https://www.elle.fr/Elle-a-Table/Recettes-de-cuisine/Carbonara-de-haricots-verts-4584480",
+    "source_site": "elle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-elle-clafoutis-pistache",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-elle-clafoutis-pistache-1.jpg",
+      "screenshot/shot-elle-clafoutis-pistache-2.jpg"
+    ],
+    "truth": "truth/shot-elle-clafoutis-pistache.json",
+    "source_url": "https://www.elle.fr/Elle-a-Table/Recettes-de-cuisine/Clafoutis-a-la-pistache-et-aux-prunes-4558703",
+    "source_site": "elle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-femmeactuelle-tarte-peches",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-femmeactuelle-tarte-peches-1.jpg",
+      "screenshot/shot-femmeactuelle-tarte-peches-2.jpg"
+    ],
+    "truth": "truth/shot-femmeactuelle-tarte-peches.json",
+    "source_url": "https://www.femmeactuelle.fr/cuisine/recettes/dessert/tarte-aux-peches-255504",
+    "source_site": "femmeactuelle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 3 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 14/14 ingrédients et 0/4 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-femmeactuelle-gaspacho",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-femmeactuelle-gaspacho-1.jpg"],
+    "truth": "truth/shot-femmeactuelle-gaspacho.json",
+    "source_url": "https://www.femmeactuelle.fr/cuisine/recettes/entree/gaspacho-tomate-basilic-254543",
+    "source_site": "femmeactuelle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 10/10 ingrédients et 0/3 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-femmeactuelle-filet-mignon",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-femmeactuelle-filet-mignon-1.jpg",
+      "screenshot/shot-femmeactuelle-filet-mignon-2.jpg",
+      "screenshot/shot-femmeactuelle-filet-mignon-3.jpg"
+    ],
+    "truth": "truth/shot-femmeactuelle-filet-mignon.json",
+    "source_url": "https://www.femmeactuelle.fr/cuisine/recettes/plat/filet-mignon-de-porc-aux-mirabelles-miel-et-romarin-255584",
+    "source_site": "femmeactuelle.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis les ingrédients, bandeau cookies non détecté, 3 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-hervecuisine-tarte-citron",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-hervecuisine-tarte-citron-1.jpg",
+      "screenshot/shot-hervecuisine-tarte-citron-2.jpg",
+      "screenshot/shot-hervecuisine-tarte-citron-3.jpg"
+    ],
+    "truth": "truth/shot-hervecuisine-tarte-citron.json",
+    "source_url": "https://www.hervecuisine.com/recette/tarte-au-citron-classique/",
+    "source_site": "hervecuisine.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis les ingrédients, bandeau cookies fermé",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Pâte sablée, Crème au citron, Meringue (optionnel))"
+  },
+  {
+    "id": "shot-mesinspirations-poulet-gaston-gerard",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-mesinspirations-poulet-gaston-gerard-1.jpg",
+      "screenshot/shot-mesinspirations-poulet-gaston-gerard-2.jpg"
+    ],
+    "truth": "truth/shot-mesinspirations-poulet-gaston-gerard.json",
+    "source_url": "https://www.mesinspirationsculinaires.com/article-poulet-gaston-gerard.html",
+    "source_site": "mesinspirationsculinaires.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 3 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 9/9 ingrédients et 1/7 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisinonsencouleurs-tarte-prunes",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-cuisinonsencouleurs-tarte-prunes-1.jpg",
+      "screenshot/shot-cuisinonsencouleurs-tarte-prunes-2.jpg"
+    ],
+    "truth": "truth/shot-cuisinonsencouleurs-tarte-prunes.json",
+    "source_url": "https://www.cuisinonsencouleurs.fr/2026/09/tarte-aux-prunes-et-creme-damande-recette-facile.html",
+    "source_site": "cuisinonsencouleurs.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 9/9 ingrédients et 2/4 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Pour la crème amandes)"
+  },
+  {
+    "id": "shot-cuisinonsencouleurs-slata-mechouia",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-cuisinonsencouleurs-slata-mechouia-1.jpg",
+      "screenshot/shot-cuisinonsencouleurs-slata-mechouia-2.jpg"
+    ],
+    "truth": "truth/shot-cuisinonsencouleurs-slata-mechouia.json",
+    "source_url": "https://www.cuisinonsencouleurs.fr/2026/09/slata-mechouia-dip-de-poivrons-a-la-tunisienne.html",
+    "source_site": "cuisinonsencouleurs.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Pour la décoration)"
+  },
+  {
+    "id": "shot-geraldine-gougeres",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-geraldine-gougeres-1.jpg",
+      "screenshot/shot-geraldine-gougeres-2.jpg"
+    ],
+    "truth": "truth/shot-geraldine-gougeres.json",
+    "source_url": "https://lacuisinedegeraldine.fr/gougeres",
+    "source_site": "lacuisinedegeraldine.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 8/8 ingrédients et 2/9 étapes visibles"
+  },
+  {
+    "id": "shot-geraldine-courgettes-farcies",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-geraldine-courgettes-farcies-1.jpg"],
+    "truth": "truth/shot-geraldine-courgettes-farcies.json",
+    "source_url": "https://lacuisinedegeraldine.fr/courgettes-rondes-farcies-a-la-viande-et-sauce-tomate",
+    "source_site": "lacuisinedegeraldine.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 16/18 ingrédients et 0/9 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Pour les courgettes, Pour la farce, Pour la sauce tomate)"
+  },
+  {
+    "id": "shot-dejeunersoleil-curry-rouge",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-dejeunersoleil-curry-rouge-1.jpg",
+      "screenshot/shot-dejeunersoleil-curry-rouge-2.jpg"
+    ],
+    "truth": "truth/shot-dejeunersoleil-curry-rouge.json",
+    "source_url": "https://www.undejeunerdesoleil.com/2026/08/curry-rouge-thai-porc-poivrons.html",
+    "source_site": "undejeunerdesoleil.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 3 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 16/16 ingrédients et 1/12 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-dejeunersoleil-cake-citrons",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-dejeunersoleil-cake-citrons-1.jpg"],
+    "truth": "truth/shot-dejeunersoleil-cake-citrons.json",
+    "source_url": "https://www.undejeunerdesoleil.com/2026/09/cake-deux-citrons.html",
+    "source_site": "undejeunerdesoleil.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 10/11 ingrédients et 0/16 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Pour le cake aux deux citrons, Pour le glaçage au citron)"
+  },
+  {
+    "id": "shot-recettesdejulie-tarte-myrtilles",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-recettesdejulie-tarte-myrtilles-1.jpg",
+      "screenshot/shot-recettesdejulie-tarte-myrtilles-2.jpg"
+    ],
+    "truth": "truth/shot-recettesdejulie-tarte-myrtilles.json",
+    "source_url": "https://recettesdejulie.fr/49401/tarte-aux-myrtilles-alsacienne/",
+    "source_site": "recettesdejulie.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": "titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-recettesdejulie-tian",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": ["screenshot/shot-recettesdejulie-tian-1.jpg"],
+    "truth": "truth/shot-recettesdejulie-tian.json",
+    "source_url": "https://recettesdejulie.fr/36075/tian-de-legumes-a-la-provencale/",
+    "source_site": "recettesdejulie.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 7/7 ingrédients et 0/5 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cuisineculinaire-salade-nicoise",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-cuisineculinaire-salade-nicoise-1.jpg",
+      "screenshot/shot-cuisineculinaire-salade-nicoise-2.jpg",
+      "screenshot/shot-cuisineculinaire-salade-nicoise-3.jpg"
+    ],
+    "truth": "truth/shot-cuisineculinaire-salade-nicoise.json",
+    "source_url": "https://www.cuisineculinaire.com/salade-nicoise-classique/",
+    "source_site": "cuisineculinaire.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis les ingrédients, bandeau cookies fermé, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 13/13 ingrédients et 6/8 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (La salade, La vinaigrette)"
+  },
+  {
+    "id": "shot-bbc-easiest-paella",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-bbc-easiest-paella-1.jpg",
+      "screenshot/shot-bbc-easiest-paella-2.jpg",
+      "screenshot/shot-bbc-easiest-paella-3.jpg"
+    ],
+    "truth": "truth/shot-bbc-easiest-paella.json",
+    "source_url": "https://www.bbcgoodfood.com/recipes/easiest-ever-paella",
+    "source_site": "bbcgoodfood.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis le titre, bandeau cookies fermé, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld",
+    "notes": null
+  },
+  {
+    "id": "shot-allrecipes-chocolate-chip-cookies",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-allrecipes-chocolate-chip-cookies-1.jpg",
+      "screenshot/shot-allrecipes-chocolate-chip-cookies-2.jpg"
+    ],
+    "truth": "truth/shot-allrecipes-chocolate-chip-cookies.json",
+    "source_url": "https://www.allrecipes.com/recipe/10813/best-chocolate-chip-cookies/",
+    "source_site": "allrecipes.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 11/11 ingrédients et 0/9 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-seriouseats-bolognese",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": ["screenshot/shot-seriouseats-bolognese-1.jpg"],
+    "truth": "truth/shot-seriouseats-bolognese.json",
+    "source_url": "https://www.seriouseats.com/the-best-slow-cooked-bolognese-sauce-recipe",
+    "source_site": "seriouseats.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 6/24 ingrédients et 0/9 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-budgetbytes-basic-chili",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": ["screenshot/shot-budgetbytes-basic-chili-1.jpg"],
+    "truth": "truth/shot-budgetbytes-basic-chili.json",
+    "source_url": "https://www.budgetbytes.com/basic-chili/",
+    "source_site": "budgetbytes.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 7/17 ingrédients et 0/6 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (CHILI SEASONING)"
+  },
+  {
+    "id": "shot-budgetbytes-taco-soup",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": ["screenshot/shot-budgetbytes-taco-soup-1.jpg"],
+    "truth": "truth/shot-budgetbytes-taco-soup.json",
+    "source_url": "https://www.budgetbytes.com/taco-soup/",
+    "source_site": "budgetbytes.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies non détecté, 4 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 10/12 ingrédients et 0/6 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-recipetin-garlic-prawn-pasta",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-recipetin-garlic-prawn-pasta-1.jpg",
+      "screenshot/shot-recipetin-garlic-prawn-pasta-2.jpg",
+      "screenshot/shot-recipetin-garlic-prawn-pasta-3.jpg"
+    ],
+    "truth": "truth/shot-recipetin-garlic-prawn-pasta.json",
+    "source_url": "https://www.recipetineats.com/creamy-garlic-prawn-pasta/",
+    "source_site": "recipetineats.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 3 tranches depuis les ingrédients, bandeau cookies fermé",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 10/11 ingrédients et 4/9 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-recipetin-monster-cookies",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-recipetin-monster-cookies-1.jpg",
+      "screenshot/shot-recipetin-monster-cookies-2.jpg"
+    ],
+    "truth": "truth/shot-recipetin-monster-cookies.json",
+    "source_url": "https://www.recipetineats.com/monster-cookies-recipe/",
+    "source_site": "recipetineats.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 13/13 ingrédients et 0/10 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (FOR PRESSING ON ONCE BAKED (OPTIONAL))"
+  },
+  {
+    "id": "shot-loveandlemons-turkish-eggs",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": ["screenshot/shot-loveandlemons-turkish-eggs-1.jpg"],
+    "truth": "truth/shot-loveandlemons-turkish-eggs.json",
+    "source_url": "https://www.loveandlemons.com/turkish-eggs/",
+    "source_site": "loveandlemons.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 1 tranche depuis les ingrédients, bandeau cookies fermé, 2 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 11/12 ingrédients et 0/5 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-cookieandkate-blackberry-cobbler",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-cookieandkate-blackberry-cobbler-1.jpg",
+      "screenshot/shot-cookieandkate-blackberry-cobbler-2.jpg"
+    ],
+    "truth": "truth/shot-cookieandkate-blackberry-cobbler.json",
+    "source_url": "https://cookieandkate.com/blackberry-cobbler/",
+    "source_site": "cookieandkate.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 13/15 ingrédients et 0/7 étapes visibles ; titre hors champ (title: null) ; sections d'ingrédients lues dans le DOM (Filling, Topping)"
+  },
+  {
+    "id": "shot-minimalistbaker-eggplant-bolognese",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-minimalistbaker-eggplant-bolognese-1.jpg",
+      "screenshot/shot-minimalistbaker-eggplant-bolognese-2.jpg"
+    ],
+    "truth": "truth/shot-minimalistbaker-eggplant-bolognese.json",
+    "source_url": "https://minimalistbaker.com/eggplant-bolognese/",
+    "source_site": "minimalistbaker.com",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies fermé, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 13/16 ingrédients et 0/9 étapes visibles ; titre hors champ (title: null) ; 1 élément(s) JSON-LD non retrouvé(s) à l'affichage, écarté(s) de la vérité"
+  },
+  {
+    "id": "shot-jdf-spaghettis-bolognaise",
+    "category": "screenshot",
+    "subtype": "web-mobile",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-jdf-spaghettis-bolognaise-1.jpg",
+      "screenshot/shot-jdf-spaghettis-bolognaise-2.jpg"
+    ],
+    "truth": "truth/shot-jdf-spaghettis-bolognaise.json",
+    "source_url": "https://cuisine.journaldesfemmes.fr/recette/312362-spaghettis-sauce-bolognaise",
+    "source_site": "cuisine.journaldesfemmes.fr",
+    "license": "droit d'auteur de l'éditeur — capture pour test interne non diffusé (exception de fouille de textes et de données, art. L122-5-3 CPI), images hors git",
+    "provenance": "capture Playwright iPhone 390×844@2x (Safari simulé : barre d'état + barre d'adresse) le 2026-09-18, 2 tranches depuis les ingrédients, bandeau cookies non détecté, 1 surcouche(s) fermée(s) (modale / lecteur vidéo flottant)",
+    "truth_method": "json-ld-restreint-au-visible",
+    "notes": "capture incomplète : 12/12 ingrédients et 0/5 étapes visibles ; titre hors champ (title: null)"
+  },
+  {
+    "id": "shot-notes-gateau-yaourt",
+    "category": "screenshot",
+    "subtype": "app-notes",
+    "lang": "fr",
+    "images": ["screenshot/shot-notes-gateau-yaourt-1.jpg"],
+    "truth": "truth/shot-notes-gateau-yaourt.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Apple Notes iOS (Playwright iPhone 390×844@2x) le 2026-09-18, 1 capture",
+    "truth_method": "texte-injecte",
+    "notes": null
+  },
+  {
+    "id": "shot-notes-tarte-citron-meringuee",
+    "category": "screenshot",
+    "subtype": "app-notes",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-notes-tarte-citron-meringuee-1.jpg",
+      "screenshot/shot-notes-tarte-citron-meringuee-2.jpg"
+    ],
+    "truth": "truth/shot-notes-tarte-citron-meringuee.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Apple Notes iOS (Playwright iPhone 390×844@2x, mode sombre) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": "sections d'ingrédients ; étapes en paragraphes libres (une ligne de vérité par paragraphe)"
+  },
+  {
+    "id": "shot-notes-banana-bread-en",
+    "category": "screenshot",
+    "subtype": "app-notes",
+    "lang": "en",
+    "images": ["screenshot/shot-notes-banana-bread-en-1.jpg"],
+    "truth": "truth/shot-notes-banana-bread-en.json",
+    "source_url": "https://en.wikibooks.org/wiki/Cookbook:Banana_Bread_I",
+    "source_site": "en.wikibooks.org",
+    "license": "CC BY-SA 4.0 (Wikibooks / Wikilivres) — texte légèrement adapté (liens retirés)",
+    "provenance": "rendu HTML local façon Apple Notes iOS (Playwright iPhone 390×844@2x) le 2026-09-18, 1 capture",
+    "truth_method": "texte-injecte",
+    "notes": "recette Wikibooks recopiée dans Notes (liste à cocher pour les ingrédients) ; volumes seulement, colonnes poids et pourcentages omises"
+  },
+  {
+    "id": "shot-imessage-curry-poulet",
+    "category": "screenshot",
+    "subtype": "app-messages",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-imessage-curry-poulet-1.jpg",
+      "screenshot/shot-imessage-curry-poulet-2.jpg"
+    ],
+    "truth": "truth/shot-imessage-curry-poulet.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Messages iOS (iMessage) (Playwright iPhone 390×844@2x) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": "recette éclatée en plusieurs bulles, bavardage autour (exclu de la vérité)"
+  },
+  {
+    "id": "shot-whatsapp-pates-pesto",
+    "category": "screenshot",
+    "subtype": "app-messages",
+    "lang": "fr",
+    "images": ["screenshot/shot-whatsapp-pates-pesto-1.jpg"],
+    "truth": "truth/shot-whatsapp-pates-pesto.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon WhatsApp (Playwright iPhone 390×844@2x, mode sombre) le 2026-09-18, 1 capture",
+    "truth_method": "texte-injecte",
+    "notes": null
+  },
+  {
+    "id": "shot-imessage-pancakes-en",
+    "category": "screenshot",
+    "subtype": "app-messages",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-imessage-pancakes-en-1.jpg",
+      "screenshot/shot-imessage-pancakes-en-2.jpg"
+    ],
+    "truth": "truth/shot-imessage-pancakes-en.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Messages iOS (iMessage) (Playwright iPhone 390×844@2x) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": null
+  },
+  {
+    "id": "shot-insta-pates-courgettes",
+    "category": "screenshot",
+    "subtype": "instagram",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-insta-pates-courgettes-1.jpg",
+      "screenshot/shot-insta-pates-courgettes-2.jpg"
+    ],
+    "truth": "truth/shot-insta-pates-courgettes.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc (légende de prepare-fixtures.mjs)",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Instagram (publication, légende dépliée) (Playwright iPhone 390×844@2x) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": "étapes en un seul paragraphe narratif : vérité découpée par phrase ; émojis retirés de la vérité"
+  },
+  {
+    "id": "shot-insta-cookies-avoine",
+    "category": "screenshot",
+    "subtype": "instagram",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-insta-cookies-avoine-1.jpg",
+      "screenshot/shot-insta-cookies-avoine-2.jpg"
+    ],
+    "truth": "truth/shot-insta-cookies-avoine.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Instagram (publication, légende dépliée) (Playwright iPhone 390×844@2x, mode sombre) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": "étapes numérotées par émojis 1️⃣…5️⃣ (retirés de la vérité), mode sombre"
+  },
+  {
+    "id": "shot-insta-lemon-orzo-en",
+    "category": "screenshot",
+    "subtype": "instagram",
+    "lang": "en",
+    "images": [
+      "screenshot/shot-insta-lemon-orzo-en-1.jpg",
+      "screenshot/shot-insta-lemon-orzo-en-2.jpg"
+    ],
+    "truth": "truth/shot-insta-lemon-orzo-en.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon Instagram (post, caption expanded) (Playwright iPhone 390×844@2x) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": "étapes en paragraphe narratif : vérité découpée par phrase"
+  },
+  {
+    "id": "shot-app-chili-sin-carne",
+    "category": "screenshot",
+    "subtype": "app-other",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-app-chili-sin-carne-1.jpg",
+      "screenshot/shot-app-chili-sin-carne-2.jpg",
+      "screenshot/shot-app-chili-sin-carne-3.jpg"
+    ],
+    "truth": "truth/shot-app-chili-sin-carne.json",
+    "source_url": null,
+    "source_site": "rédigée pour le banc",
+    "license": "texte original rédigé pour le banc (aucune source tierce)",
+    "provenance": "rendu HTML local façon appli de recettes (fiche avec quantités en colonne) (Playwright iPhone 390×844@2x) le 2026-09-18, 3 captures",
+    "truth_method": "texte-injecte",
+    "notes": "quantités en colonne à gauche, séparées du nom ; section « Pour servir »"
+  },
+  {
+    "id": "shot-pdf-quiche-lorraine-wikilivres",
+    "category": "screenshot",
+    "subtype": "app-other",
+    "lang": "fr",
+    "images": [
+      "screenshot/shot-pdf-quiche-lorraine-wikilivres-1.jpg",
+      "screenshot/shot-pdf-quiche-lorraine-wikilivres-2.jpg"
+    ],
+    "truth": "truth/shot-pdf-quiche-lorraine-wikilivres.json",
+    "source_url": "https://fr.wikibooks.org/wiki/Livre_de_cuisine/Quiche_lorraine",
+    "source_site": "fr.wikibooks.org",
+    "license": "CC BY-SA 4.0 (Wikibooks / Wikilivres) — texte légèrement adapté (liens retirés)",
+    "provenance": "rendu HTML local façon PDF (app Fichiers) (Playwright iPhone 390×844@2x) le 2026-09-18, 2 captures",
+    "truth_method": "texte-injecte",
+    "notes": "PDF imprimé depuis Wikilivres, police serif ; le paragraphe d'introduction n'est pas dans la vérité (description, pas une note)"
+  }
+]

@@ -1,0 +1,636 @@
+{
+  "_comment": "Famille A du pool OCR « pages imprimées » : vraies pages de livres de cuisine du domaine public (Internet Archive, Gallica). `pages` = pages téléchargées ; `target` = index des pages qui portent la recette ciblée (version propre) ; `shots` = images « photo » produites (1 ou 2 pages par photo : 2 = double page). Vérité terrain : transcription faite et relue en regardant l'image (pleine page puis recadrages zoomés ; l'OCR d'archive a servi à localiser les pages), orthographe d'époque conservée, apostrophes droites.",
+  "cases": [
+    {
+      "id": "print-farmer-1918-popovers",
+      "lang": "en",
+      "source_url": "https://archive.org/details/cookingscholbost00farmrich",
+      "source_title": "Fannie Merritt Farmer, The Boston Cooking-School Cook Book (édition révisée), Boston, Little, Brown & Co.",
+      "source_date": "1918",
+      "license": "domaine public (publié aux États-Unis avant 1929 ; autrice morte en 1915) — Internet Archive « NOT_IN_COPYRIGHT »",
+      "license_url": "https://archive.org/details/cookingscholbost00farmrich",
+      "pages": [
+        {
+          "file": "farmer-1918-p76.jpg",
+          "url": "https://archive.org/download/cookingscholbost00farmrich/page/n131.jpg",
+          "label": "page imprimée 76 (n131)"
+        },
+        {
+          "file": "farmer-1918-p77.jpg",
+          "url": "https://archive.org/download/cookingscholbost00farmrich/page/n132.jpg",
+          "label": "page imprimée 77 (n132)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0, 1], "profile": "moyen" }],
+      "difficulty": "moyen",
+      "truth_method": "transcription-relue",
+      "notes": "Double page 76-77 photographiée à plat : la recette ciblée est la dernière de la page de gauche. Autres recettes visibles : Rich Corn Cake, Susie's Spider Corn Cake, White Corn Meal Cake (même page) ; Graham Pop-overs, Breakfast Puffs, Fadges, Zante Muffins, Maryland Biscuit (page d'en face) — Graham Pop-overs et Breakfast Puffs renvoient à « Pop-overs ». Fractions typographiques (⅞, ¼, ½).",
+      "truth": {
+        "title": "Pop-overs",
+        "servings": null,
+        "ingredients": [
+          "1 cup flour",
+          "1/4 teaspoon salt",
+          "7/8 cup milk",
+          "2 eggs",
+          "1/2 teaspoon melted butter"
+        ],
+        "steps": [
+          "Mix salt and flour; add milk gradually, in order to obtain a smooth batter.",
+          "Add egg, beaten until light, and butter; beat two minutes, — using egg-beater, — turn into hissing hot buttered iron gem pans, and bake thirty to thirty-five minutes in a hot oven.",
+          "They may be baked in buttered earthen cups, when the bottom will have a glazed appearance.",
+          "Small round iron gem pans are best for Pop-overs."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-beeton-1907-gingerbread",
+      "lang": "en",
+      "source_url": "https://archive.org/details/mrsbeetonshouse00beetuoft",
+      "source_title": "Mrs Beeton's Household Management: a guide to cookery in all branches, Londres, Ward, Lock & Co. (éd. revue)",
+      "source_date": "1907",
+      "license": "domaine public (Isabella Beeton morte en 1865 ; édition 1907 revue par des rédacteurs anonymes ; publiée avant 1929) — numérisation University of Toronto, Internet Archive",
+      "license_url": "https://archive.org/details/mrsbeetonshouse00beetuoft",
+      "pages": [
+        {
+          "file": "beeton-1907-p1458.jpg",
+          "url": "https://archive.org/download/mrsbeetonshouse00beetuoft/page/n1627.jpg",
+          "label": "page imprimée 1458 (n1627)"
+        },
+        {
+          "file": "beeton-1907-p1459.jpg",
+          "url": "https://archive.org/download/mrsbeetonshouse00beetuoft/page/n1628.jpg",
+          "label": "page imprimée 1459 (n1628)"
+        }
+      ],
+      "target": [1],
+      "shots": [{ "pages": [0, 1], "profile": "moyen" }],
+      "difficulty": "moyen",
+      "truth_method": "transcription-relue",
+      "notes": "Double page 1458-1459, recette ciblée en haut de la page de droite, sous l'intertitre « Gingerbread and Rusks ». Recettes voisines visibles : 3453 Gingerbread Honeycomb, 3454 Gingerbread Thick (début), et la page de gauche. Transparence (texte du verso visible). Format Beeton : Ingredients / Method / Time / Average Cost / Sufficient.",
+      "truth": {
+        "title": "Gingerbread, Andrew's (Fr. — Pain de Gingembre)",
+        "servings": null,
+        "ingredients": [
+          "1 1/4 lbs. of flour",
+          "1/4 of a lb. of sugar",
+          "6 ozs. of butter",
+          "4 eggs",
+          "1 tablespoonful of ginger",
+          "6 ozs. of golden syrup"
+        ],
+        "steps": [
+          "Beat the butter, sugar and golden syrup to a cream, and beat in the eggs one at a time : add the flour, mixed with the ginger, till the mixture is thick enough to roll out.",
+          "Roll into thin sheets, cut out with a plain round cutter, and bake on flat baking tins."
+        ],
+        "notes": "Time. — To bake, 20 to 25 minutes. Average Cost, 1s. 4d. Sufficient for about 4 dozen cakes. (Recette n° 3452.)"
+      }
+    },
+    {
+      "id": "print-picayune-1916-shrimp-jambalaya",
+      "lang": "en",
+      "source_url": "https://archive.org/details/cu31924003574187",
+      "source_title": "The Picayune Creole Cook Book, 5e édition, La Nouvelle-Orléans, The Times-Picayune",
+      "source_date": "1916",
+      "license": "domaine public (œuvre collective anonyme publiée aux États-Unis avant 1929) — numérisation Cornell University Library, Internet Archive",
+      "license_url": "https://archive.org/details/cu31924003574187",
+      "pages": [
+        {
+          "file": "picayune-1916-p117.jpg",
+          "url": "https://archive.org/download/cu31924003574187/page/n132.jpg",
+          "label": "page imprimée 117 (n132)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0], "profile": "difficile" }],
+      "difficulty": "difficile",
+      "truth_method": "transcription-relue",
+      "notes": "Page en deux colonnes, petit corps très serré. Recette ciblée : colonne de gauche. Autres recettes visibles : fin de Creole Jambalaya, A French Pilou, Chicken With Rice (colonne gauche), Pilaff of Chicken, How to Make a Rice Border, Curry of Crawfish (colonne droite). Liste d'ingrédients centrée, deux ingrédients par ligne ; « 11-2 » = 1 1/2.",
+      "truth": {
+        "title": "Shrimp Jambalaya (Jambalaya aux Chevrettes)",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "1 1-2 Cups of Rice",
+          "3 Tomatoes",
+          "80 Lake Shrimp",
+          "2 Onions",
+          "Cayenne to Taste",
+          "1 Tablespoonful Butter",
+          "1 Tablespoonful Flour",
+          "1-2 Teaspoonful of Chili Pepper",
+          "Salt",
+          "Pepper",
+          "2 Cloves of Garlic",
+          "2 Sprigs Each of Thyme and Bay Leaf"
+        ],
+        "steps": [
+          "Chop two onions very fine, and put them in a saucepan to brown with a tablespoonful of butter.",
+          "After a few minutes add a tablespoonful of flour and stir well.",
+          "Then add chopped thyme, bay leaf and parsley, and two cloves of garlic, minced very fine.",
+          "Let all of this fry five minutes longer, and be careful not to let it burn or brown too much.",
+          "Add a half teaspoonful of Chili pepper, and three large tomatoes, chopped fine, and also add the juice.",
+          "Let all brown or simmer for ten minutes longer.",
+          "When cooked add three quarts of broth or water, or, if on Friday, and you do not eat meat, add oyster water or plain water (the former preferred) which has been heated to the boiling point.",
+          "Let all boil well, and then add the lake shrimp, which you will already have boiled according to recipe. (See recipe for Boiled Shrimp.)",
+          "Let the mixture boil again for five minutes, and add one cup and a half of rice, or half a pound, which has been well washed.",
+          "Mix all well, and let boil for half or three-quarters of an hour longer, stirring every once in a while, so as to mix all together.",
+          "Serve hot."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-pilgrim-1921-apple-fritters",
+      "lang": "en",
+      "source_url": "https://archive.org/details/pilgrimcookbookc00pilg",
+      "source_title": "The Pilgrim Cook Book, containing nearly 700 carefully tested recipes, Chicago, Pilgrim Evangelical Lutheran Church",
+      "source_date": "1921",
+      "license": "domaine public (ouvrage collectif paroissial publié aux États-Unis avant 1929) — Internet Archive",
+      "license_url": "https://archive.org/details/pilgrimcookbookc00pilg",
+      "pages": [
+        {
+          "file": "pilgrim-1921-p78.jpg",
+          "url": "https://archive.org/download/pilgrimcookbookc00pilg/page/n81.jpg",
+          "label": "page imprimée 78 (n81)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0], "profile": "facile" }],
+      "difficulty": "facile",
+      "truth_method": "transcription-relue",
+      "notes": "Livre de cuisine paroissial : recettes signées par les contributrices. Recette ciblée en haut de page ; visibles aussi : Banana Fritters, Doughnuts, Snow Ball Doughnuts, Buttermilk Doughnuts (tronquée en bas de page).",
+      "truth": {
+        "title": "Apple Fritters",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "1 cup flour",
+          "1 level teaspoonful baking powder",
+          "1 level tablespoonful powdered sugar",
+          "1/4 teaspoonful salt",
+          "1 egg",
+          "1/4 cup of milk",
+          "two apples",
+          "hot fat (for frying)",
+          "powdered sugar or a jelly sauce (to serve)"
+        ],
+        "steps": [
+          "Pass through a sieve, 1 cup flour, 1 level teaspoonful baking powder, 1 level tablespoonful powdered sugar, and 1/4 teaspoonful salt.",
+          "Beat 1 egg until very light; add 1/4 cup of milk, and stir it in to the dry ingredients.",
+          "Then stir in two apples, pared, cored and cut in small bits.",
+          "Have ready a kettle of hot fat; drop the batter into the fat by spoonfuls and let fry until delicately browned.",
+          "Drain on soft paper, serve with powdered sugar or a jelly sauce."
+        ],
+        "notes": "Bananas, peaches, (fresh fruits or canned) may be used. — Mrs. Anna A. Jaekel."
+      }
+    },
+    {
+      "id": "print-gouffe-1877-gateau-semoule",
+      "lang": "fr",
+      "source_url": "https://archive.org/details/b21525778",
+      "source_title": "Jules Gouffé, Le livre de cuisine, 4e édition, Paris, Hachette",
+      "source_date": "1877",
+      "license": "domaine public (auteur mort en 1877) — numérisation University of Leeds Library, marquée « Public Domain Mark 1.0 »",
+      "license_url": "https://creativecommons.org/publicdomain/mark/1.0/",
+      "pages": [
+        {
+          "file": "gouffe-1877-p291.jpg",
+          "url": "https://archive.org/download/b21525778/page/n329.jpg",
+          "label": "page imprimée 291 (feuillet n329)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0], "profile": "moyen" }],
+      "difficulty": "moyen",
+      "truth_method": "transcription-relue",
+      "notes": "Recette ciblée au milieu de la page ; au-dessus « Riz au plat à la vanille », en dessous le début de « Croquettes de riz » (tronquée). La recette renvoie au Gâteau de riz (page 290) pour la fin : l'image ne contient pas la cuisson finale. Transparence du verso visible. Titres en petites capitales.",
+      "truth": {
+        "title": "Gâteau de semoule à la fleur d'oranger pralinée",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "1 litre et demi de lait",
+          "4 hectos de semoule",
+          "15 grammes de beurre",
+          "30 grammes de sucre en poudre",
+          "1 petite prise de sel",
+          "4 œufs",
+          "1 cuillerée à bouche de fleur d'oranger pralinée et écrasée",
+          "50 grammes de sucre en poudre"
+        ],
+        "steps": [
+          "Faites bouillir 1 litre et demi de lait dans une casserole d'une contenance de 2 litres ; quand le lait a bouilli, ajoutez 4 hectos de semoule, 15 grammes de beurre, 30 grammes de sucre en poudre et 1 petite prise de sel ;",
+          "Vous versez la semoule d'une main en remuant de l'autre avec la cuiller de bois ; quand le tout est bien mêlé, faites cuire à feu très-doux dessus et dessous pendant 20 minutes ;",
+          "Au bout de ce temps, cassez dans la casserole 4 œufs les uns après les autres, en ayant soin de n'en ajouter un que lorsque le précédent est bien mêlé ;",
+          "Mettez 1 cuillerée à bouche de fleur d'oranger pralinée et écrasée, et 50 grammes de sucre en poudre, et mêlez parfaitement ;",
+          "Finissez comme il est dit au Gâteau de riz (page 290)."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-audot-1876-crepes",
+      "lang": "fr",
+      "source_url": "https://archive.org/details/lacuisinieredela00audo",
+      "source_title": "L.-E. Audot, La cuisinière de la campagne et de la ville, ou Nouvelle cuisine économique, Paris, Audot",
+      "source_date": "1876",
+      "license": "domaine public (auteur mort en 1870) — numérisation Getty Research Institute, Internet Archive",
+      "license_url": "https://archive.org/details/lacuisinieredela00audo",
+      "pages": [
+        {
+          "file": "audot-1876-p377.jpg",
+          "url": "https://archive.org/download/lacuisinieredela00audo/page/n394.jpg",
+          "label": "page imprimée 377 (n394)"
+        },
+        {
+          "file": "audot-1876-p378.jpg",
+          "url": "https://archive.org/download/lacuisinieredela00audo/page/n395.jpg",
+          "label": "page imprimée 378 (n395)"
+        }
+      ],
+      "target": [0, 1],
+      "shots": [
+        { "pages": [0], "profile": "moyen" },
+        { "pages": [1], "profile": "moyen" }
+      ],
+      "difficulty": "moyen",
+      "truth_method": "transcription-relue",
+      "notes": "Recette à cheval sur deux pages (2 photos) : titre et début en bas de la p. 377, suite en haut de la p. 378. Autres recettes visibles : fin des beignets en volute, Pain perdu, Soupe dorée (p. 377) ; Gâteau de semoule, Gâteau de riz (p. 378). Mesure en volume (« un litre de farine »), orthographe d'époque (« très-mince »).",
+      "truth": {
+        "title": "Crêpes",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "un litre de farine",
+          "6 œufs",
+          "3 cuillerées d'eau-de-vie",
+          "une bonne pincée de sel",
+          "3 cuillerées d'huile",
+          "2 (cuillerées) de fleur d'oranger",
+          "moitié eau et moitié lait (pour l'éclaircir)",
+          "gros comme une petite noix de saindoux, sinon du beurre ou de l'huile (pour la poêle)"
+        ],
+        "steps": [
+          "Prenez un litre de farine, délayez-la avec 6 œufs, 3 cuillerées d'eau-de-vie, une bonne pincée de sel, 3 cuillerées d'huile et 2 de fleur d'oranger, moitié eau et moitié lait pour l'éclaircir et lui donner la consistance d'une bouillie.",
+          "Cette pâte doit être préparée 3 ou 4 heures à l'avance.",
+          "Allumez un feu clair de menu bois ; faites fondre à la poêle gros comme une petite noix de saindoux, sinon du beurre ou de l'huile ;",
+          "versez-y plein une cuillère à dégraisser de pâte, étendez-la de façon que le fond de la poêle en soit couvert et très-mince ;",
+          "faites cuire d'un côté, retournez de l'autre, et mangez brûlant."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-tantemarie-1910-poule-au-riz",
+      "lang": "fr",
+      "source_url": "https://archive.org/details/b21525602",
+      "source_title": "La véritable cuisine de famille, comprenant 1.000 recettes et 500 menus, par Tante Marie, Paris, A. Taride",
+      "source_date": "vers 1910",
+      "license": "domaine public (ouvrage anonyme — « Tante Marie » — publié il y a plus de 70 ans, avant 1929) — numérisation University of Leeds Library (Internet Archive, statut « non évalué » par la bibliothèque)",
+      "license_url": "https://archive.org/details/b21525602",
+      "pages": [
+        {
+          "file": "tantemarie-1910-p116.jpg",
+          "url": "https://archive.org/download/b21525602/page/n115.jpg",
+          "label": "page imprimée 116 (n115)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0], "profile": "facile" }],
+      "difficulty": "facile",
+      "truth_method": "transcription-relue",
+      "notes": "Papier très jauni (teinte jaune d'origine du scan). Au-dessus de la recette : fin d'une recette de poulet (sauce au vin blanc, croûtons). Recette en prose, sans quantités chiffrées pour la plupart.",
+      "truth": {
+        "title": "Poule au riz",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "1 poule",
+          "eau (suffisamment pour que la poule soit presque couverte)",
+          "sel, poivre",
+          "bouquet de persil, thym et laurier",
+          "deux gousses d'ail",
+          "une carotte",
+          "un oignon",
+          "trois quarts de riz"
+        ],
+        "steps": [
+          "Préparez un court-bouillon comme suit :",
+          "Mettez dans une grande casserole de l'eau suffisamment pour que votre poule soit presque couverte; mettez dans cette eau, sel, poivre, bouquet de persil, thym et laurier, deux gousses d'ail, une carotte et un oignon coupés en ronds.",
+          "Laissez bouillir une demi-heure et mettez-y votre poule que vous avez bien flambée et bridée.",
+          "Ayez soin, en la flambant, de ne pas la noircir. Pour cela, flambez-la à grande flamme avec un gros morceau de papier.",
+          "Généralement ce ne sont pas de jeunes poules que l'on accommode ainsi; il faut donc compter quatre ou cinq heures de cuisson.",
+          "Une heure avant que votre poule soit cuite, ajoutez trois quarts de riz que vous ne laissez pas trop crever (c'est-à-dire que, tout en étant cuit, le grain doit conserver sa forme).",
+          "Servez le riz dans un plat creux; débridez la poule et placez-la sur le riz."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-ouesteclair-1924-boeuf-mode",
+      "lang": "fr",
+      "source_url": "https://archive.org/details/BSG_8VSUP11242",
+      "source_title": "Le livre de cuisine de l'Ouest-Éclair (recettes de lectrices, sous la direction d'Édouard Nignon), Rennes, L'Ouest-Éclair",
+      "source_date": "1924",
+      "license": "domaine public (œuvre collective publiée en 1924 ; directeur de publication Édouard Nignon mort en 1934) — numérisation Bibliothèque Sainte-Geneviève, métadonnée « Domaine public »",
+      "license_url": "https://archive.org/details/BSG_8VSUP11242",
+      "pages": [
+        {
+          "file": "ouesteclair-1924-p141.jpg",
+          "url": "https://archive.org/download/BSG_8VSUP11242/page/n144.jpg",
+          "label": "page imprimée 141 (n144)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0], "profile": "facile" }],
+      "difficulty": "facile",
+      "truth_method": "transcription-relue",
+      "notes": "Recette de lectrice signée « Marie-Louise Collet », suivie de conseils généraux (repris en notes). Visibles aussi : fin de la recette précédente (haut de page) et début de « Daube au vin rouge » (bas de page, tronquée). Tranche et reliure du livre visibles sur le scan.",
+      "truth": {
+        "title": "Bœuf mode",
+        "format": "prose",
+        "servings": 6,
+        "ingredients": [
+          "un kilo de bon bœuf (milieu de la culotte, tranche grasse ou gîte)",
+          "un pied de veau",
+          "quelques bons os frais, à jus",
+          "gros lard pour larder (150 gr. environ)",
+          "deux tranches de lard",
+          "des couennes de lard",
+          "deux oignons",
+          "gros comme une noix de beurre",
+          "deux cuillerées de bonne eau-de-vie",
+          "un verre de vin blanc",
+          "sel",
+          "bouquet de persil avec thym, une petite feuille de laurier",
+          "quelques gousses d'ail",
+          "6 ou 8 belles carottes très rouges",
+          "une douzaine au moins de beaux pruneaux",
+          "un jaune d'œuf",
+          "cornichons"
+        ],
+        "steps": [
+          "Achetez un kilo de bon bœuf, soit du milieu de la culotte, de la tranche grasse ou du gîte; un pied de veau; quelques bons os frais, à jus.",
+          "Lardez le morceau de gros lard (150 gr. environ).",
+          "Faites fondre deux tranches de lard dans une casserole. Joignez-y des couennes de lard.",
+          "Faites roussir le bœuf, sans le dessécher, avec le pied de veau et les os, et deux oignons.",
+          "Au bout de vingt minutes, ajoutez gros comme une noix de beurre. Mouillez de deux cuillerées de bonne eau-de-vie.",
+          "Au bout d'un quart d'heure, ajoutez un verre de vin blanc, bouilli à part.",
+          "Salez, joignez bouquet de persil avec thym, une petite feuille de laurier. Découpez dessus quelques gousses d'ail très fines.",
+          "Vous avez épluché 6 ou 8 belles carottes très rouges, découpez-les en petits morceaux. Placez-les autour du bœuf.",
+          "La veille, vous avez mis à tremper une douzaine au moins de beaux pruneaux, à l'eau bouillante légèrement sucrée ; posez-les soigneusement sur le bœuf mode.",
+          "Mouillez à volonté d'un peu de jus de pruneaux. Fermez la casserole.",
+          "Laissez mijoter régulièrement à feu doux, cinq heures environ, sur le feu ou dans le four.",
+          "Dégraissez la sauce avant de servir. Faites-la réduire s'il le faut. Liez-la d'un jaune d'œuf sans laisser bouillir.",
+          "Servez sur un plat demi-creux le bœuf entouré de carottes. Garnissez le bord du plat de pruneaux et de lamelles de cornichons. Versez le jus lié sur les carottes. Servez très chaud."
+        ],
+        "notes": "La meilleure cuisine est celle où on emploie des éléments de choix, bien frais, de toute première qualité. La propreté, la minutie sont indispensables. La préparation, le degré du four, le temps de cuisson sont les principaux points. Ne jamais rempoter pour les bouillons et les sauces. Avoir toujours du jus fait avec os divers, abatis de volailles, légumes, etc. Il relève la cuisine soignée et permet d'économiser le beurre. — Marie-Louise Collet."
+      }
+    },
+    {
+      "id": "print-escoffier-1907-omelette-lorraine",
+      "lang": "fr",
+      "source_url": "https://archive.org/details/leguideculinaire00esco_0",
+      "source_title": "A. Escoffier, Le guide culinaire : aide-mémoire de cuisine pratique, 2e édition, Paris",
+      "source_date": "1907",
+      "license": "domaine public (auteur mort en 1935 ; publié avant 1929) — numérisation Getty Research Institute, Internet Archive",
+      "license_url": "https://archive.org/details/leguideculinaire00esco_0",
+      "pages": [
+        {
+          "file": "escoffier-1907-p379.jpg",
+          "url": "https://archive.org/download/leguideculinaire00esco_0/page/n404.jpg",
+          "label": "page imprimée 379 (n404)"
+        }
+      ],
+      "target": [0],
+      "shots": [{ "pages": [0], "profile": "difficile" }],
+      "difficulty": "difficile",
+      "truth_method": "transcription-relue",
+      "notes": "Page dense de 8 recettes d'omelettes en paragraphes courts (Japonaise, aux Jets de houblon, à la Jurassienne, à la Lorraine, à la Lyonnaise, à la Mancelle, Masséna, Maxim) : la recette ciblée est la 4e. Piège majeur : choisir la bonne recette. Pas de liste d'ingrédients, quantité d'œufs implicite (« comme d'habitude »).",
+      "truth": {
+        "title": "Omelette à la Lorraine",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "œufs (quantité habituelle d'une omelette, non précisée)",
+          "30 grammes de lard maigre blanchi et grillé, divisé en 6 petits rectangles",
+          "25 grammes de Gruyère frais taillé en copeaux très minces",
+          "une pincée de ciboulette hachée",
+          "une cuillerée de crème épaisse"
+        ],
+        "steps": [
+          "Ajouter aux œufs 30 grammes de lard maigre blanchi et grillé, divisé en 6 petits rectangles ; 25 grammes de Gruyère frais taillé en copeaux très minces, une pincée de ciboulette hachée, une cuillerée de crème épaisse ;",
+          "et faire l'omelette comme d'habitude."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-dubois-1890-soupe-choux-frises",
+      "lang": "fr",
+      "source_url": "https://archive.org/details/ecoledescuisinie00dubo",
+      "source_title": "Urbain Dubois, École des cuisinières : méthodes élémentaires, économiques, Paris, E. Dentu",
+      "source_date": "1890",
+      "license": "domaine public (auteur mort en 1901) — numérisation University of Illinois Urbana-Champaign, Internet Archive",
+      "license_url": "https://archive.org/details/ecoledescuisinie00dubo",
+      "pages": [
+        {
+          "file": "dubois-1890-p74.jpg",
+          "url": "https://archive.org/download/ecoledescuisinie00dubo/page/n211.jpg",
+          "label": "page imprimée 74 (n211)"
+        },
+        {
+          "file": "dubois-1890-p75.jpg",
+          "url": "https://archive.org/download/ecoledescuisinie00dubo/page/n212.jpg",
+          "label": "page imprimée 75 (n212)"
+        }
+      ],
+      "target": [1],
+      "shots": [{ "pages": [0, 1], "profile": "difficile" }],
+      "difficulty": "difficile",
+      "truth_method": "transcription-relue",
+      "notes": "Vraie double page 74-75 du livre. Recette ciblée n° 153 sur la page de droite. Six autres recettes de soupes visibles, dont 151 « Soupe aux choux » et 152 « Soupe de choux au lard » (à cheval sur les deux pages) — piège : trois recettes de soupe aux choux côte à côte. Titres numérotés en gras étroit.",
+      "truth": {
+        "title": "Soupe aux choux frisés",
+        "format": "prose",
+        "servings": null,
+        "ingredients": [
+          "2 petits choux frisés",
+          "250 grammes de lard",
+          "un morceau de beurre",
+          "un oignon haché",
+          "4 à 5 litres de bouillon",
+          "quelques poignées de riz",
+          "une pincée de poivre",
+          "parmesan râpé (servi à part)"
+        ],
+        "steps": [
+          "Coupez en quartiers 2 petits choux frisés, lavez-les et égouttez-les; émincez alors en julienne les feuilles tendres.",
+          "Coupez en dés fins 250 grammes de lard; mettez-le dans une casserole, avec un morceau de beurre et un oignon haché; faites revenir celui-ci, jusqu'à ce qu'il soit de couleur blonde;",
+          "ajoutez les choux émincés; 10 minutes après, mouillez avec 4 à 5 litres de bouillon; faites bouillir le liquide;",
+          "5 minutes après, ajoutez quelques poignées de riz, sans être ni lavé ni blanchi; couvrez la casserole.",
+          "Quand le riz est cuit, ajoutez une pincée de poivre, versez dans la soupière; envoyez séparément une assiette de parmesan râpé."
+        ],
+        "notes": null
+      }
+    },
+    {
+      "id": "print-alibab-1928-gratin-bouillon",
+      "lang": "fr",
+      "source_url": "https://gallica.bnf.fr/ark:/12148/bpt6k3041488q",
+      "source_title": "Ali-Bab (Henri Babinski), Gastronomie pratique : études culinaires, 5e édition augmentée et remaniée, Paris, Flammarion",
+      "source_date": "1928",
+      "license": "domaine public (auteur mort en 1931) — Gallica/BnF, « domaine public » ; réutilisation non commerciale libre et gratuite avec mention « Source gallica.bnf.fr / BnF » (usage : test interne non diffusé)",
+      "license_url": "https://gallica.bnf.fr/edit/und/conditions-dutilisation-des-contenus-de-gallica",
+      "pages": [
+        {
+          "file": "alibab-1928-p849.jpg",
+          "prep": { "crop": [0.03, 0.0, 0.9, 1.0] },
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k3041488q/f865/full/full/0/native.jpg",
+          "label": "page imprimée 849 (f865)"
+        },
+        {
+          "file": "alibab-1928-p850.jpg",
+          "prep": { "crop": [0.08, 0.0, 0.97, 1.0] },
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k3041488q/f866/full/full/0/native.jpg",
+          "label": "page imprimée 850 (f866)"
+        }
+      ],
+      "target": [0, 1],
+      "shots": [
+        { "pages": [0], "profile": "moyen" },
+        { "pages": [1], "profile": "moyen" }
+      ],
+      "difficulty": "moyen",
+      "truth_method": "transcription-relue",
+      "notes": "Recette à cheval sur deux pages (2 photos). Le titre « Pommes de terre au gratin » annonce trois formules : la cible est la 1re (« Au bouillon », pour trois personnes) ; les formules 2° (À la vapeur et à la crème) et 3° (Aux œufs) sont visibles en p. 850, ainsi que « Pommes de terre au jus » en p. 849 — piège fort. Liste d'ingrédients en grammes, typographie des années 1920, forte transparence du verso.",
+      "truth": {
+        "title": "Pommes de terre au gratin — 1° Au bouillon",
+        "servings": 3,
+        "ingredients": [
+          "500 grammes de pommes de terre pelées et émincées en tranches",
+          "400 grammes de bouillon",
+          "200 grammes de fromage de Gruyère en lames",
+          "80 grammes de beurre",
+          "5 grammes de sel",
+          "1 gramme de poivre",
+          "chapelure"
+        ],
+        "steps": [
+          "Beurrez un plat allant au feu, mettez dedans des couches alternées de tranches de pommes de terre crues, de lames de gruyère et de petits morceaux de beurre, salez, poivrez, terminez par du fromage ;",
+          "mouillez avec le bouillon sans couvrir la couche supérieure de fromage, saupoudrez de chapelure et faites cuire au four, à petit feu, jusqu'à ce que tout le liquide soit absorbé, ce qui demande une heure environ."
+        ],
+        "notes": "C'est le gratin savoyard."
+      }
+    },
+    {
+      "id": "print-potaufeu-1908-rollmops",
+      "lang": "fr",
+      "source_url": "https://gallica.bnf.fr/ark:/12148/bd6t5332778g",
+      "source_title": "Le Pot-au-feu : journal de cuisine pratique et d'économie domestique, Paris, année 1908 (recette signée « Le Voyageur »)",
+      "source_date": "1908",
+      "license": "domaine public (périodique de 1908, auteur pseudonyme) — Gallica/BnF, « domaine public » ; réutilisation non commerciale libre et gratuite avec mention « Source gallica.bnf.fr / BnF » (usage : test interne non diffusé)",
+      "license_url": "https://gallica.bnf.fr/edit/und/conditions-dutilisation-des-contenus-de-gallica",
+      "pages": [
+        {
+          "file": "potaufeu-1908-p10.jpg",
+          "prep": { "crop": [0.03, 0.02, 0.97, 0.985] },
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/bd6t5332778g/f10/full/full/0/native.jpg",
+          "label": "page 10 (f10)"
+        },
+        {
+          "file": "potaufeu-1908-p11.jpg",
+          "prep": { "crop": [0.0, 0.01, 0.98, 0.99] },
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/bd6t5332778g/f11/full/full/0/native.jpg",
+          "label": "page 11 (f11)"
+        }
+      ],
+      "target": [0, 1],
+      "shots": [
+        { "pages": [0], "profile": "difficile" },
+        { "pages": [1], "profile": "difficile" }
+      ],
+      "difficulty": "difficile",
+      "truth_method": "transcription-relue",
+      "notes": "Journal de cuisine en deux colonnes, photographié page par page (2 photos ; en double page à 2048 px le corps devenait illisible) : la recette commence dans la 2e colonne de la p. 10 et se termine dans la 2e colonne de la p. 11 (ordre de lecture en colonnes). Visibles aussi : fin d'une recette de bœuf (« Le jus », col. 1 p. 10, signée La Vieille Catherine) et une recette publicitaire « Potage à la Fondue de Poireaux au Tapioca-Bouillon Boudier » avec tarifs (col. 2 p. 11). Intertitres « Pour 12 paupiettes de harengs », « Préparation », sous-parties en italique.",
+      "truth": {
+        "title": "Filets de harengs roulés dits « Rollmops »",
+        "servings": null,
+        "ingredients": [
+          "6 beaux harengs, salés depuis peu, et laités de préférence",
+          "3 cuillerées de moutarde très épaisse",
+          "Une cuillerée et demie d'oignon, haché finement",
+          "6 décilitres de vinaigre",
+          "Un oignon moyen",
+          "Un bouquet garni",
+          "6 boules de gros poivre et un clou de girofle",
+          "3 cuillerées d'huile"
+        ],
+        "steps": [
+          "Les paupiettes. — Passez les harengs à l'eau froide. Essuyez-les et rangez-les ensuite l'un à côté de l'autre, dans un grand plat carré. Couvrez-les de lait coupé d'un tiers d'eau, et laissez-les dessaler pendant 2 heures. S'ils étaient très salés, il se comprend qu'il faudrait les laisser dessaler plus longtemps, soit pendant 6 ou 8 heures.",
+          "Au bout de ce temps, égouttez-les sur un linge. Epongez-les bien. Puis, enlevez la peau des deux côtés, en glissant dessous le bout de la lame d'un petit couteau. Ensuite, levez les deux filets, en rasant bien l'arête, après avoir, au préalable, retiré les laitances que vous tiendrez de côté sur une assiette. Les filets étant levés, retirez aussi complètement qu'il est possible de le faire les arêtes qui se trouvent dans les chairs.",
+          "Sur chaque filet, étalez la valeur d'une cuillerée à café de moutarde, à laquelle vous aurez mélangé l'oignon haché. Roulez le sur lui-même, de façon à obtenir une petite paupiette. Entourez cette paupiette de 2 ou 3 tours de fil que vous fixez par un nœud, et procédez de même pour les autres. Rangez ces paupiettes dans une terrine à pâté, longue ou ronde, en les serrant l'une à côté de l'autre, et placez dessus les laitances partagées chacune en deux.",
+          "Le vinaigre aromatisé. — Mettez le vinaigre dans un poêlon en cuivre ou une casserole émaillée, (de préférence à une casserole étamée). Ajoutez l'oignon, finement émincé; le bouquet garni, poivre et girofle. Faites prendre l'ébullition, laissez bouillir assez vivement pendant 7 à 8 minutes. Puis passez ce vinaigre bouillant au chinois, dans la terrine où sont les paupiettes et laitances.",
+          "Quand, au bout de quelques heures, le vinaigre est bien froid, prenez les laitances avec une fourchette et déposez-les sur une assiette. Coupez-en la moitié en gros dés et remettez-les dans la terrine avec les paupiettes. Passez le reste au tamis fin, recueillez la purée dans un grand bol, et délayez-la avec le vinaigre mis cuillerée par cuillerée pour commencer. Ajoutez l'huile, et versez le tout sur les paupiettes. Couvrez la terrine avec son couvercle. Tenez-la au frais, et laissez mariner pendant deux jours.",
+          "Pour servir. — Prenez le nombre de paupiettes nécessaire pour le service. Enlevez le fil qui les entoure. Rangez-les sur un ou deux raviers, selon ce qu'il y en a. Disposez autour une partie des dés de laitances, et arrosez assez copieusement avec de la marinade."
+        ],
+        "notes": "Pour 12 paupiettes de harengs. Parmi les hors-d'œuvre d'hiver, celui-ci est assez recommandable, parce que l'on peut le préparer à l'avance, d'abord; et, d'autre part, en préparer la quantité voulue pour deux ou trois services, sa conservation étant assurée par le vinaigre. Ces Rollmops ne sont, en réalité, que des « paupiettes de harengs salés », mais il importe encore que ceux-ci ne soient pas trop salés, comme cela arrive si on prend des harengs qui sont depuis longtemps dans la saumure. — Le Voyageur."
+      }
+    },
+    {
+      "id": "print-manuel-1881-cotelettes-mouton",
+      "lang": "fr",
+      "source_url": "https://gallica.bnf.fr/ark:/12148/bpt6k110681d",
+      "source_title": "Manuel de cuisine : recettes choisies disposées en tableaux par ordre d'opérations, 2e édition (anonyme)",
+      "source_date": "1881",
+      "license": "domaine public (ouvrage anonyme de 1881) — Gallica/BnF, « domaine public » ; réutilisation non commerciale libre et gratuite avec mention « Source gallica.bnf.fr / BnF » (usage : test interne non diffusé)",
+      "license_url": "https://gallica.bnf.fr/edit/und/conditions-dutilisation-des-contenus-de-gallica",
+      "pages": [
+        {
+          "file": "manuel-1881-p155.jpg",
+          "prep": { "crop": [0.05, 0.02, 0.88, 0.68], "paper": true },
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k110681d/f160/full/full/0/native.jpg",
+          "label": "page imprimée 155 (f160)"
+        },
+        {
+          "file": "manuel-1881-p156.jpg",
+          "prep": { "crop": [0.04, 0.02, 0.88, 0.76], "paper": true },
+          "url": "https://gallica.bnf.fr/iiif/ark:/12148/bpt6k110681d/f161/full/full/0/native.jpg",
+          "label": "page imprimée 156 (f161)"
+        }
+      ],
+      "target": [0, 1],
+      "shots": [
+        { "pages": [0], "profile": "difficile" },
+        { "pages": [1], "profile": "difficile" }
+      ],
+      "difficulty": "difficile",
+      "truth_method": "transcription-relue",
+      "notes": "Recette en TABLEAU (colonnes Ordre des opérations / Noms / Proportions / Préparations et cuisson), sur deux pages (2 photos) : n° 122, opérations 1 à 8 en bas de la p. 155, 9 à 12 en haut de la p. 156. La colonne « Noms » porte l'ingrédient concerné par l'opération (Côtelettes → 1, Sel, poivre → 4, Beurre → 5, Mie de pain → 6), sans proportions. Pièges : fin de « Mouton : boulettes frites » (p. 155) et « 123. Mouton : côtelettes sautées dans la poêle », presque identique, en p. 156. Scan microfilm bitonal gris, lignes de points de conduite.",
+      "truth": {
+        "title": "Mouton : côtelettes panées et grillées",
+        "format": "tableau",
+        "servings": null,
+        "ingredients": ["Côtelettes", "Sel, poivre", "Beurre", "Mie de pain"],
+        "steps": [
+          "Parer en ôtant les peaux et les graisses. (Côtelettes)",
+          "Les aplatir en les frappant fortement avec le plat d'un couperet mouillé (pour qu'il ne s'y attache pas).",
+          "Les arrondir en bonne forme avec le couteau.",
+          "Semer des deux côtés. (Sel, poivre)",
+          "Fondre dans la poêle sur un feu doux. (Beurre)",
+          "Emietter dans un bol. (Mie de pain)",
+          "Quand le beurre est tiède, y tremper les côtelettes.",
+          "Les plonger dans la mie de pain.",
+          "Puis les mettre à mesure sur le gril posé sur un feu doux.",
+          "Laisser cuire 10 minutes en les retournant une seule fois.",
+          "Les dresser en couronne sur le plat à servir.",
+          "Accompagner d'un jus de citron."
+        ],
+        "notes": null
+      }
+    }
+  ]
+}

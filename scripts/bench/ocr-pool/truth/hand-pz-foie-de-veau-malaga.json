@@ -1,0 +1,27 @@
+{
+  "id": "hand-pz-foie-de-veau-malaga",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Foie de veau malaga",
+  "ingredients": [
+    "foie de veau",
+    "beurre",
+    "lardons",
+    "champignons",
+    "oignons",
+    "un verre de porto",
+    "2 poignées de raisins de Malaga"
+  ],
+  "steps": [
+    "Prendre du foie de veau, faire revenir dans du beurre avec lardons champignons et oignons",
+    "y ajouter un verre de porto",
+    "retirer le foie quand il est presque cuit",
+    "jeter dans la sauce 2 poignées de raisins de Malaga.",
+    "Quand les raisins sont gonflés remettre la viande",
+    "cuire à feu très doux 1/2 heure"
+  ],
+  "notes": "« presque cuit » est ajouté en interligne au-dessus de la ligne.",
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}

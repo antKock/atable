@@ -1,0 +1,26 @@
+{
+  "id": "hand-pz-flan-breton",
+  "category": "handwritten",
+  "lang": "fr",
+  "title": "Flan breton",
+  "ingredients": [
+    "1 litre de lait",
+    "250 gr. farine",
+    "8 oeufs entiers",
+    "200 gr. sucre",
+    "rhum",
+    "pruneaux",
+    "raisins secs"
+  ],
+  "steps": [
+    "Bien mélanger,",
+    "beurrer un moule",
+    "mettre la pâte",
+    "faire cuire au four,",
+    "ajouter pruneaux et raisins secs"
+  ],
+  "notes": "Seule la première recette de la fiche est la cible. La seconde recette visible (« Oeufs aux champignons », sous le trait) est exclue.",
+  "servings": null,
+  "truncated": false,
+  "format": "prose"
+}
