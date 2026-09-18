@@ -223,8 +223,9 @@ CREATE INDEX import_samples_owner_idx ON import_samples (owner_id);
 
 Après l'extraction, **réussie ou en échec** (hors 400 de validation et 429 de quota : rien n'a été
 traité), et seulement si : flag actif, owner non démo / non sonde / non admin,
-`import_pool_opt_out = false`, **plafond non atteint** (10 envois gardés par personne et par jour,
-pour ne pas avoir un pool fait d'une seule personne ; les échecs passent toujours) :
+`import_pool_opt_out = false`, **plafond non atteint** (100 envois gardés par personne et par jour : un simple garde-fou contre un
+abus ou un script, la personne la plus active en fait 46 ; les échecs passent toujours ; le
+rééquilibrage entre personnes se fait à l'utilisation, voir §5.7):
 1. insérer `import_samples` ;
 2. écrire les fichiers dans le bucket privé ;
 3. renvoyer `sampleId` dans la réponse (un identifiant, pas du contenu) ;
@@ -262,7 +263,8 @@ Le formulaire pré-rempli garde `sampleId` et l'envoie avec `POST /api/recipes` 
 - `scripts/import-samples/pull.mjs prod|staging [--id=…] [--errors] [--method=photo|voice]` :
   télécharge localement (hors git) les échantillons non expirés ; au format du pool public pour les
   passer dans le banc (`scripts/bench/`), ou un seul échantillon (`--id`) pour reproduire une
-  erreur. Les copies locales suivent la même règle de 30 jours (le script purge les siennes).
+  erreur. Option `--max-per-owner=N` pour qu'un pool de test ne soit pas fait d'une seule
+  personne. Les copies locales suivent la même règle de 30 jours (le script purge les siennes).
 - `scripts/import-samples/replay.mjs <sampleId>` : rejoue l'import avec le code actuel et compare
   au résultat d'origine.
 
