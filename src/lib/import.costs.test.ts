@@ -6,7 +6,8 @@ import { runApifyActor, isApifyConfigured, APIFY_PRICING } from "@/lib/apify";
 import { chatCompletion, importResult, MOCK_USAGE } from "@/test/openai-mock";
 import { AI_MODELS } from "@/lib/ai-models";
 import { getCachedCaption, setCachedCaption } from "@/lib/instagram-cache";
-import type { InstagramReadReport } from "./import";
+import { resetInstagramAlertThrottle, type InstagramReadReport } from "./import";
+import * as Sentry from "@sentry/nextjs";
 
 // Coût enregistré par voie d'import (revue 2026-09-12 : aucun test ne vérifiait
 // `recordAiCost`) + voies Instagram et crawler Apify (zéro test avant).
@@ -25,6 +26,7 @@ vi.mock("@/lib/apify", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/apify")>();
   return { ...actual, runApifyActor: vi.fn(), isApifyConfigured: vi.fn(() => false) };
 });
+vi.mock("@sentry/nextjs", () => ({ captureMessage: vi.fn() }));
 vi.mock("@/lib/instagram-cache", () => ({
   getCachedCaption: vi.fn(async () => null),
   setCachedCaption: vi.fn(async () => {}),
@@ -110,6 +112,7 @@ describe("Instagram : lecture directe, Apify en secours, cache", () => {
   const meta = () => ({ ...META, onInstagramRead: (r: InstagramReadReport) => reports.push(r) });
   beforeEach(() => {
     reports = [];
+    resetInstagramAlertThrottle();
     vi.mocked(getCachedCaption).mockResolvedValue(null);
     mockChat.mockResolvedValue(chatCompletion(importResult()));
   });
@@ -177,6 +180,51 @@ describe("Instagram : lecture directe, Apify en secours, cache", () => {
       expect.objectContaining({ source: "apify" }),
     );
     expect(reports).toMatchObject([{ path: "apify", fallback: "no_caption/no_caption" }]);
+  });
+
+  it("blocage : alerte Sentry à la 3e lecture directe KO d'affilée, une seule par 10 min", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockImplementation(async () => page("", 429));
+    vi.mocked(runApifyActor).mockResolvedValue([{ caption: "Tarte : pommes, pâte, sucre." }]);
+    await extractRecipeFromUrl(IG, meta());
+    await extractRecipeFromUrl(IG, meta());
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
+    await extractRecipeFromUrl(IG, meta());
+    await extractRecipeFromUrl(IG, meta());
+    expect(Sentry.captureMessage).toHaveBeenCalledTimes(1);
+    const opts = vi.mocked(Sentry.captureMessage).mock.calls[0][1] as {
+      level: string;
+      fingerprint: string[];
+      tags: Record<string, string>;
+    };
+    expect(opts.level).toBe("error"); // seul niveau notifié par la règle Sentry
+    expect(opts.fingerprint[0]).toBe("instagram-direct-blocked");
+    expect(opts.fingerprint[1]).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(opts.tags.ig_fallback).toBe("http_429/http_429");
+  });
+
+  it("un succès entre deux échecs remet le compteur à zéro", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(runApifyActor).mockResolvedValue([{ caption: "Tarte : pommes, pâte, sucre." }]);
+    const ko = () => vi.mocked(fetch).mockImplementation(async () => page("", 429));
+    ko();
+    await extractRecipeFromUrl(IG, meta());
+    await extractRecipeFromUrl(IG, meta());
+    vi.mocked(fetch).mockImplementation(async () => page(EMBED));
+    await extractRecipeFromUrl(IG, meta());
+    ko();
+    await extractRecipeFromUrl(IG, meta());
+    await extractRecipeFromUrl(IG, meta());
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
+  });
+
+  it("lecture directe réussie ou URL non reconnue : aucune alerte", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockResolvedValueOnce(page(EMBED));
+    await extractRecipeFromUrl(IG, meta());
+    vi.mocked(runApifyActor).mockResolvedValue([{ caption: "Une recette de tarte aux pommes." }]);
+    await extractRecipeFromUrl("https://www.instagram.com/marmiton_org/", meta());
+    expect(Sentry.captureMessage).not.toHaveBeenCalled();
   });
 
   it("URL non reconnue (profil) : Apify directement, raison `unsupported_url`", async () => {
