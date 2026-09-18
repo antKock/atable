@@ -43,14 +43,19 @@ ce que Mijote coûte et ce que les utilisateurs ont apporté.
 3. **Pas d'abonnement** (trop cher perçu par les utilisateurs). Vente de **packs** en achat
    intégré consommable :
 
-   | Pack | Prix | Reste après TVA et 15 % Apple | Coût réel | Marge |
+   | Pack | Prix | Reste après TVA et 15 % Apple | Coût réel (flare, 0,0064 $/image) | Marge |
    |---|---|---|---|---|
-   | 100 recettes illustrées | **2,99 €** | ~2,12 € | ~1,10 € | ~1 € |
-   | 300 recettes illustrées | **6,99 €** | ~4,95 € | ~3,30 € | ~1,65 € |
+   | 100 recettes illustrées | **2,99 €** | ~2,12 € | ~0,60 € | ~1,50 € |
+   | 300 recettes illustrées | **6,99 €** | ~4,95 € | ~1,80 € | ~3,15 € |
 
-   - Formulation **en recettes, pas en images**, par comparaison avec un livre de cuisine.
-   - Apple propose des paliers de prix au pas de 10 centimes sous 10 € : ajustable en
-     5 minutes dans App Store Connect.
+   (Au cadrage, avec gpt-image-1.5 à ≈ 1,2 ¢, les coûts étaient 1,10 € et 3,30 €.)
+
+   - Formulation **en recettes, pas en images** : « 100 recettes illustrées » se compare à un
+     livre de cuisine (100 recettes, 15-25 €), « 100 images IA » à ChatGPT gratuit.
+   - 2,99 € = seuil psychologique d'une app (« un café ») ; au-delà de 5 €, on réfléchit. Le
+     grand pack sert d'ancrage et vise les gros importeurs (marge volontairement plus faible).
+   - Coût image passé à gpt-image-2.5-flare low le 2026-09-18 (`a5cf31d`, −41 %) : les
+     phrases de transparence (« finance ~N foyers ») se calculent en direct, jamais en dur.
 4. **Tout achat débloque pour toujours les styles de génération supplémentaires** (et sert
    de badge « soutien »).
 5. **Pourboire sans contrepartie** possible en plus (consommable, autorisé par la
@@ -95,7 +100,8 @@ ce que Mijote coûte et ce que les utilisateurs ont apporté.
 - **Un compte Apple individuel peut encaisser** : les ventes arrivent sur l'IBAN personnel.
 - **Pour vendre dans l'UE, Apple exige le statut de professionnel (DSA) et affiche l'adresse,
   le téléphone et l'e-mail du vendeur sur la fiche App Store.** En individuel, c'est
-  l'adresse personnelle (parade : domiciliation, ~10 €/mois). **À vérifier : le statut DSA
+  l'adresse personnelle (parade : domiciliation, ~10 €/mois, **écartée** ; pour le téléphone,
+  un numéro secondaire gratuit type Onoff évite d'afficher le portable). **À vérifier : le statut DSA
   actuellement déclaré dans App Store Connect.**
 - Compte Google Play : probablement **personnel** (les tests fermés à 12 testeurs sont une
   contrainte des comptes personnels). Même question le jour où Android devient payant.
@@ -142,7 +148,8 @@ ce que Mijote coûte et ce que les utilisateurs ont apporté.
       Banking »).
 - [ ] **IBAN** du bénéficiaire (personnel ou SASU).
 - [ ] **Formulaire fiscal US** : W-8BEN (individuel) ou W-8BEN-E (SASU). La convention
-      France–US ramène la retenue à la source à 0 %.
+      France–US ramène la retenue à la source à 0 % ; **sans ce formulaire, Apple retient
+      30 %** sur les ventes.
 - [ ] **Adhésion au Small Business Program** (15 % au lieu de 30 %). Elle n'est pas
       automatique et se demande à part.
 - [ ] **Statut de professionnel DSA** à jour (voir plus haut pour l'adresse affichée).
@@ -255,6 +262,10 @@ Sources :
 | 4 | **Page « Ce que coûte Mijote »** + pourboire. | lot 2 | à faire |
 | 5 | Mesure : vues SQL (stock épuisé → achat, taux de conversion, couverture du mois). | lot 2 | à faire |
 
+Estimation : lot 1 ≈ une grosse journée avec les tests ; lot 2 ≈ deux jours + délai de revue
+Apple ; lots 3 à 5 ≈ une journée chacun.
+
+**Chantier en attente (décision d'Anthony le 2026-09-18) : ne pas démarrer sans son go.**
 **Le lot 1 est prêt à démarrer** ; il avance en parallèle des démarches Apple (lot 0).
 
 ## Risques et points d'attention
