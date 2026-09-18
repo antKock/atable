@@ -38,6 +38,12 @@ jamais rechargée telle quelle).
   `http_429/login_wall`…), `ig_read_ms`. Lecture : `scripts/events/queries/instagram-paths.sql`.
   Log serveur `[import/instagram] path=… read_ms=…` (visible même pour les sondes, qui ne sont
   pas journalisées).
+- **Alerte immédiate (Sentry)** : 3 lectures directes abandonnées d'affilée (un succès remet
+  le compteur à zéro) → `captureMessage` niveau `error`, au plus une fois toutes les 10 min
+  par conteneur. L'empreinte `instagram-direct-blocked` + **jour** crée une issue neuve par
+  jour de panne : les issues ne sont jamais résolues, et la seule règle d'alerte n'envoie
+  d'e-mail que pour une issue nouvelle ou existante de **haute priorité** (un `warning`
+  resterait muet).
 - Santé (`/admin/sante`, `/api/admin/health`, veilleur #27 → Sentry une fois par jour) :
   - **Instagram** : rouge si plus de 30 % des lectures (hors cache) passent au secours ou
     échouent sur 24 h, à partir de 5 lectures ;
