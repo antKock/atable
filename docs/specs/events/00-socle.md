@@ -191,6 +191,9 @@ Vues : `v_entries` (une entrée par appareil, `source` consolidée) et `v_onboar
   `other`), la nature des images estimée par gpt-4o dans le même appel OCR (chantier « OCR sur
   l'appareil », 2026-09-18) : une catégorie, jamais le contenu ; lecture
   `scripts/events/queries/image-kinds.sql`.
+  Les trois imports ajoutent **`sample_id`** quand l'envoi est gardé 30 jours (conservation
+  des envois, `docs/specs/ocr-appareil/01-conservation-imports.md`) : un identifiant qui relie
+  un échec lu ici à ses données d'origine (`scripts/import-samples/`), jamais le contenu.
   L'import Instagram y ajoute, en succès comme en échec, **`ig_path`** (`direct_embed` /
   `direct_og` / `apify` / `cache` / `failed` — la voie qui a fourni la légende), **`ig_fallback`**
   (raisons d'abandon de la lecture directe, page embed puis page du reel : `http_429/login_wall`…)

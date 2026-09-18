@@ -426,7 +426,7 @@ async function runExtraction(opts: {
  * markdown) into form data via le modèle texte. Shared by all URL-derived import
  * paths; `callType` attributes the cost to the right voie in the dashboard.
  */
-function structureRecipeFromText(
+export function structureRecipeFromText(
   text: string,
   opts: { callType: AiCallType; meta?: ImportMeta },
 ): Promise<ImportedRecipeData> {

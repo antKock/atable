@@ -13,6 +13,33 @@
 >   partagée avec l'étape 2 du chantier Instagram (extension iOS), pour ne pas bloquer le canal
 >   `staging` → prod pendant le développement. Fusion dans `staging` quand tout est prêt.
 
+## État (2026-09-19)
+
+- **Code livré sur `imports-next`**, derrière `IMPORT_POOL_ENABLED` : migration 056, `src/lib/import-pool/`,
+  trois routes, refus (`PUT /api/owner/import-pool`), mention, réglage du profil, rattachement à la
+  recette, purge nocturne, voyant Santé, `env-check`, scripts `scripts/import-samples/`.
+- Vérifié : tsc, lint, 1 091 vitest, 65 E2E (dont `19-import-pool`), et 23 contrôles réels sur la stack
+  locale (photo, dictée, lien réussi et en échec gardés ; 400 non gardé ; bucket privé, URL publique
+  refusée ; `sample_id` au journal ; recette reliée ; purge d'un expiré ; refus = tout supprimé ;
+  mention retirée ; réglage du profil).
+- **Reste avant la mise en service** : buckets privés OVH (prod + staging) et variables Dokploy
+  (`IMPORT_POOL_BUCKET`, puis `IMPORT_POOL_ENABLED`), fusion dans `staging` (renuméroter la migration
+  si un autre chantier a pris la 056), contrôles réels sur staging, politique en prod, déclarations
+  des stores par Anthony, activation du flag en prod.
+
+### Mode d'emploi (après activation)
+
+```bash
+scripts/vps/tunnel.sh                                                     # PostgREST prod/staging
+node scripts/import-samples/pull.mjs prod --errors --since=7              # échecs de la semaine
+node scripts/import-samples/pull.mjs prod --id=<sample_id>                # un échec vu dans Parcours / Sentry
+npx tsx --tsconfig tsconfig.json scripts/import-samples/replay.mts prod <sample_id>   # rejouer
+node scripts/import-samples/pull.mjs prod --method=photo --max-per-owner=10           # pool réel
+node scripts/bench/ocr-pool/bench-ocr-pool.mjs --manifest=scripts/bench/fixtures/import-samples/prod/manifest-real.json
+```
+
+Les copies locales (hors git) sont supprimées par `pull.mjs` dès que l'échantillon expire.
+
 ## 0. Décisions et périmètre
 
 | Sujet | Choix |

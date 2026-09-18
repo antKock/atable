@@ -183,7 +183,7 @@ async function main() {
       }
       let truth;
       try {
-        truth = JSON.parse(await readFile(path.join(POOL, c.truth), "utf8"));
+        truth = JSON.parse(await readFile(path.join(c.baseDir ?? POOL, c.truth), "utf8"));
       } catch {
         // Vérités transcrites à la main (manuscrits, licences libres) : copie
         // versionnée dans ocr-pool/truth/, le dossier fixtures/ étant hors git.

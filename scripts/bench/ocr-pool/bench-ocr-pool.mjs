@@ -121,11 +121,24 @@ export const QUALITY_INSTRUCTION = `Indique aussi dans ocr_quality la qualité d
 Une recette simplement incomplète (la capture ne montre qu'une partie) mais bien lue reste good.`;
 
 // ---------- Pool ----------
-export async function loadPool() {
+// `--manifest=<fichier>` : pool supplémentaire — par exemple les envois réels
+// gardés 30 jours (scripts/import-samples/pull.mjs → manifest-real.json), dont
+// les chemins sont relatifs au dossier du manifeste (`baseDir`).
+export async function loadPool(extraManifest = argvFlag("manifest")) {
   const files = (await readdir(HERE)).filter((f) => /^manifest-.*\.json$/.test(f));
   const cases = [];
   for (const f of files) cases.push(...JSON.parse(await readFile(path.join(HERE, f), "utf8")));
+  if (extraManifest) {
+    const baseDir = path.dirname(path.resolve(extraManifest));
+    const extra = JSON.parse(await readFile(extraManifest, "utf8"));
+    cases.push(...extra.map((c) => ({ ...c, baseDir })));
+  }
   return cases;
+}
+
+function argvFlag(name) {
+  const a = process.argv.find((x) => x.startsWith(`--${name}=`));
+  return a ? a.slice(name.length + 3) : undefined;
 }
 
 // ---------- Appels ----------
@@ -158,7 +171,7 @@ async function runGpt4o(c) {
     c.images.map(async (img) => ({
       type: "image_url",
       image_url: {
-        url: `data:image/jpeg;base64,${(await readFile(path.join(POOL, img))).toString("base64")}`,
+        url: `data:image/jpeg;base64,${(await readFile(path.join(c.baseDir ?? POOL, img))).toString("base64")}`,
       },
     })),
   );
@@ -182,7 +195,7 @@ async function readVision(c, doc) {
   } catch {
     /* pas en cache */
   }
-  const args = [...(doc ? ["--doc"] : []), ...c.images.map((i) => path.join(POOL, i))];
+  const args = [...(doc ? ["--doc"] : []), ...c.images.map((i) => path.join(c.baseDir ?? POOL, i))];
   const raw = JSON.parse(
     execFileSync(VISION_BIN, args, { maxBuffer: 64 * 1024 * 1024 }).toString(),
   );
