@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import openai from "@/lib/openai";
 import { AI_MODELS, withEffortFallback } from "@/lib/ai-models";
 import { withRetry, withDeadline } from "@/lib/retry";
@@ -531,6 +532,45 @@ async function readCaptionWithApify(url: string, meta?: ImportMeta): Promise<str
 
 const DIRECT_PATH = { embed: "direct_embed", og: "direct_og" } as const;
 
+// Alerte immédiate (le voyant Santé n'est lu qu'une fois par jour) : Instagram
+// peut bloquer l'IP du VPS du jour au lendemain. Trois lectures directes
+// abandonnées D'AFFILÉE (un succès remet à zéro ; un 429 isolé ne dit rien)
+// remontent dans Sentry, au plus une fois toutes les 10 min par conteneur.
+// L'empreinte porte le jour : les issues n'étant jamais résolues, une issue
+// neuve par jour de panne = une notification par jour de panne. Niveau `error` :
+// la règle Sentry n'envoie d'e-mail que pour les issues « haute priorité »
+// (un `warning` est classé moyen, donc muet).
+const DIRECT_FAILURE_STREAK_ALERT = 3;
+const DIRECT_FALLBACK_REPORT_EVERY_MS = 10 * 60_000;
+let directFailureStreak = 0;
+let lastDirectFallbackReportAt = 0;
+function noteDirectRead(outcome: { ok: true } | { ok: false; fallback: string }): void {
+  if (outcome.ok) {
+    directFailureStreak = 0;
+    return;
+  }
+  directFailureStreak++;
+  if (directFailureStreak < DIRECT_FAILURE_STREAK_ALERT) return;
+  const now = Date.now();
+  if (now - lastDirectFallbackReportAt < DIRECT_FALLBACK_REPORT_EVERY_MS) return;
+  lastDirectFallbackReportAt = now;
+  Sentry.captureMessage(
+    `Instagram : ${directFailureStreak} lectures directes abandonnées d'affilée (${outcome.fallback}) — secours Apify`,
+    {
+      level: "error",
+      fingerprint: ["instagram-direct-blocked", new Date(now).toISOString().slice(0, 10)],
+      tags: { feature: "import-instagram", ig_fallback: outcome.fallback },
+      extra: { streak: directFailureStreak },
+    },
+  );
+}
+
+/** Tests uniquement : réarme le compteur et la limite d'envoi. */
+export function resetInstagramAlertThrottle(): void {
+  directFailureStreak = 0;
+  lastDirectFallbackReportAt = 0;
+}
+
 /**
  * Instagram post/reel → légende. Chaîne (chantier « Instagram sans Apify »,
  * 2026-09-18) : cache 24 h → lecture directe des pages publiques (embed, puis
@@ -570,6 +610,11 @@ async function readInstagramCaption(url: string, meta: ImportMeta | undefined): 
       return cached.caption;
     }
     const direct = await readInstagramDirect(code);
+    noteDirectRead(
+      direct.ok
+        ? { ok: true }
+        : { ok: false, fallback: directFailureLabel(direct.reasons) ?? "unknown" },
+    );
     if (direct.ok) {
       const path = DIRECT_PATH[direct.page];
       await setCachedCaption(code, { caption: direct.caption, source: path });
