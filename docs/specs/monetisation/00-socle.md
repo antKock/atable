@@ -1,9 +1,8 @@
 # Chantier « Monétisation » — Socle (backlog #29)
 
 > Cadrage fait avec Anthony le 2026-09-18. **Rien n'est développé.** Ce document réunit
-> les décisions prises, celles qui restent ouvertes, et le plan d'exécution, pour pouvoir
-> lancer le chantier dès que la question de l'entité qui encaisse est tranchée
-> (réponse attendue vers le 2026-09-23).
+> les décisions prises, celles qui restent ouvertes, et le plan d'exécution. L'entité qui
+> encaisse est tranchée (compte Apple individuel) ; restent D1-bis à D5.
 
 ## Objectif
 
@@ -72,7 +71,7 @@ ce que Mijote coûte et ce que les utilisateurs ont apporté.
 
 | # | Question | Qui | Quand |
 |---|---|---|---|
-| D1 | **Entité qui encaisse** : compte Apple individuel (Anthony) ou SASU. Voir scénarios ci-dessous. | Anthony | ~2026-09-23 |
+| D1 | ~~Entité qui encaisse~~ **Tranché le 2026-09-18 : scénario A (individuel)**. Reste : adresse perso affichée sur la fiche UE, acceptée ou domiciliation ? | Anthony | avant le lot 2 |
 | D2 | À qui appartiennent les crédits : à l'owner qui achète (proposé) ou au foyer ? | Anthony, sur proposition | avant le lot 2 |
 | D3 | Styles proposés (combien, lesquels). Bench à faire dans `scripts/bench/`. | Anthony | avant le lot 3 |
 | D4 | Photo d'origine des imports URL au lieu d'une illustration (droits d'auteur) | Anthony | indépendant |
@@ -100,10 +99,10 @@ ce que Mijote coûte et ce que les utilisateurs ont apporté.
 - Compte Google Play : probablement **personnel** (les tests fermés à 12 testeurs sont une
   contrainte des comptes personnels). Même question le jour où Android devient payant.
 
-### Scénario A : commencer en individuel (piste favorite d'Anthony au 2026-09-18)
+### Scénario A : commencer en individuel — **RETENU le 2026-09-18**
 
 - Aucune démarche à faire maintenant : les ventes 2026 se déclarent au printemps 2027, en
-  **revenus non commerciaux non professionnels** (formulaire 2042-C-PRO, régime micro-BNC :
+  **revenus non commerciaux non professionnels** (formulaire 2042-C-PRO, **case 5KU**, régime micro-BNC :
   abattement de 34 %, puis impôt sur le revenu et 17,2 % de prélèvements sociaux). Le fisc
   tolère ce cas pour une activité accessoire. À ces montants, l'impôt se compte en euros par
   an. **Il n'y a pas besoin de « tricher » : la voie légale ne coûte rien avant la
