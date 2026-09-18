@@ -21,6 +21,7 @@ import {
 } from "@/lib/admin/v3/assemble";
 import { addDays, iso, lastSunday } from "@/lib/admin/v3/weeks";
 import { latestBackupAt } from "@/lib/ops/backups";
+import { getApifyUsage } from "@/lib/apify";
 
 const WEEKS = 12;
 
@@ -81,6 +82,8 @@ export async function loadRawV3(
     billedUsd,
     backupLastAt,
     edgeErrors,
+    instagramReads,
+    apifyUsage,
   ] = await Promise.all([
     rpc<Person[]>("analytics_v3_people"),
     rpc<WeeklyActiveRow[]>("analytics_v3_weekly_active", { p_weeks: WEEKS + 4 }),
@@ -126,6 +129,22 @@ export async function loadRawV3(
           return (data ?? []) as { day: string; traefik_5xx: number }[];
         }),
     ),
+    // Instagram sans Apify : voie de lecture des imports des dernières 24 h
+    // (journal #28 ; sondes jamais écrites, démo comprise).
+    timed(
+      "instagram_reads",
+      supabase
+        .from("events")
+        .select("ig_path:props->>ig_path")
+        .eq("name", "api.called")
+        .not("props->>ig_path", "is", null)
+        .gte("at", new Date(now.getTime() - 24 * 3600_000).toISOString())
+        .then(({ data, error }) => {
+          if (error) throw new Error(`events (instagram): ${error.message}`);
+          return (data ?? []) as { ig_path: string | null }[];
+        }),
+    ),
+    timed("apify_usage", getApifyUsage()),
   ]);
 
   const health = healthRows[0];
@@ -145,6 +164,8 @@ export async function loadRawV3(
     billedUsd,
     backupLastAt,
     edgeErrors,
+    instagramReads,
+    apifyUsage,
     demoSeedMin: demoSeedMin(),
     now,
     timings: timings.sort((a, b) => b.ms - a.ms),

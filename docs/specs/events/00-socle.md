@@ -187,6 +187,16 @@ Vues : `v_entries` (une entrée par appareil, `source` consolidée) et `v_onboar
   **`site`** (hôte du site importé, sans `www.`) quelle que soit l'issue : « où ça échoue »
   (Q3), lisible dans `v_import_extracted.site` et `sources.sql`. Un hôte est un identifiant,
   pas du contenu ; l'URL complète, elle, n'est jamais journalisée.
+  L'import photo réussi y ajoute **`image_kind`** (`screenshot` / `printed_photo` / `handwritten` /
+  `other`), la nature des images estimée par gpt-4o dans le même appel OCR (chantier « OCR sur
+  l'appareil », 2026-09-18) : une catégorie, jamais le contenu ; lecture
+  `scripts/events/queries/image-kinds.sql`.
+  L'import Instagram y ajoute, en succès comme en échec, **`ig_path`** (`direct_embed` /
+  `direct_og` / `apify` / `cache` / `failed` — la voie qui a fourni la légende), **`ig_fallback`**
+  (raisons d'abandon de la lecture directe, page embed puis page du reel : `http_429/login_wall`…)
+  et **`ig_read_ms`** (lecture seule, hors modèle) — chantier « Instagram sans Apify », 2026-09-18.
+  Des catégories, jamais l'URL ni la légende ; lecture `scripts/events/queries/instagram-paths.sql`,
+  et le voyant « Instagram » de la Santé (taux de secours sur 24 h).
 
 ### 6.4 Explicites (les seuls faits qu'aucun flux ne voit)
 
@@ -377,6 +387,12 @@ avant** (incident 046). Q1 / Q3 / Q6 lisibles deux à trois semaines après la m
 
 ## 12. Journal
 
+- **2026-09-18 (soir)** — props `ig_path` / `ig_fallback` / `ig_read_ms` sur l'`api.called` de
+  l'import URL quand la source est Instagram (lecture directe des pages publiques, Apify en
+  secours). Pas de nouvel événement ni de vue : requête `instagram-paths.sql` + voyant Santé.
+- **2026-09-18** — prop `image_kind` sur l'`api.called` de l'import photo (étape 1 du chantier
+  « OCR sur l'appareil » : mesurer la part captures / pages imprimées / manuscrits avant de
+  pondérer le banc Apple Vision). Pas de nouvel événement ni de vue : requête `image-kinds.sql`.
 - **2026-09-16 (16 h)** — deux réglages issus des premières lectures (« go » d'Anthony, données
   voulues pour la relecture d'octobre) : `entry.in_app = "share-extension"` quand la page est chargée
   avec `?ext=1` (l'archétype « import par partage » devient mesurable) ; `data-seen` sur « Enregistrer »

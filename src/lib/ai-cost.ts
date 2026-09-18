@@ -21,8 +21,8 @@ export type AiCallType =
   | "image" // dish image generation (image model)
   | "image_prompt" // image-prompt authoring before generation (text model)
   | "import_url" // recipe parse from a directly-fetched web page (text model)
-  | "import_instagram" // recipe parse from an Instagram caption (text model); also an Apify scrape row
-  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (text model); also an Apify scrape row
+  | "import_instagram" // recipe parse from an Instagram caption (text model); plus an Apify row (0 $, free plan) only when Apify was the fallback
+  | "import_url_crawler" // recipe parse via Apify headless crawler fallback (text model); also an Apify row (0 $, free plan)
   | "import_voice" // recipe parse from a voice transcription (text model)
   | "transcription"; // voice → text (transcription model)
 

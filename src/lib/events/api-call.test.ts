@@ -165,4 +165,31 @@ describe("en-tête interne x-mijote-event", () => {
       image_kind: "printed_photo",
     });
   });
+
+  it("import Instagram : voie, raison et durée de lecture (entier), rien d'autre", async () => {
+    const res = withApiEventExtra(NextResponse.json({ title: "x" }), {
+      site: "instagram.com",
+      ig_path: "apify",
+      ig_fallback: "http_429/login_wall",
+      ig_read_ms: 8123.6,
+    });
+    res.headers.set(
+      "x-mijote-event",
+      JSON.stringify({ ...JSON.parse(res.headers.get("x-mijote-event")!), caption: "texte" }),
+    );
+    await recordApiCall({
+      request: req("/api/recipes/import/url"),
+      response: res,
+      startedAt: performance.now(),
+    });
+    const props = mockTrack.mock.calls[0][1];
+    expect(props).toMatchObject({
+      method_kind: "url",
+      site: "instagram.com",
+      ig_path: "apify",
+      ig_fallback: "http_429/login_wall",
+      ig_read_ms: 8124,
+    });
+    expect(props).not.toHaveProperty("caption");
+  });
 });

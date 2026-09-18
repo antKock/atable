@@ -73,6 +73,12 @@ export type EventProps = {
     site?: string;
     /** Import photo réussi : nature des images selon gpt-4o (screenshot | printed_photo | handwritten | other). */
     image_kind?: string;
+    /** Import Instagram : voie qui a fourni la légende (direct_embed | direct_og | apify | cache | failed). */
+    ig_path?: string;
+    /** Import Instagram : raisons d'abandon de la lecture directe, par page (`no_caption/login_wall`, `http_429/timeout`…). */
+    ig_fallback?: string;
+    /** Import Instagram : durée de lecture de la légende seule (ms), hors structuration. */
+    ig_read_ms?: number;
   };
   "ui.seen": { target: string; route: string; params?: RouteParams };
   "error.shown": { kind: string; route: string };

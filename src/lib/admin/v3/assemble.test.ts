@@ -90,6 +90,8 @@ function raw(over: Partial<RawV3> = {}): RawV3 {
     abOnboarding: [],
     backupLastAt: "2026-09-12T02:30:03Z",
     edgeErrors: [],
+    instagramReads: [],
+    apifyUsage: { usedUsd: 0.5, limitUsd: 5, cycleEnd: "2026-10-17T23:59:59.999Z" },
     health,
     appStore: [
       {
@@ -263,6 +265,49 @@ describe("assembleV3", () => {
     expect(edge.overview.health.edge.detail).toMatch(/^3 réponses 5xx/);
     const fine = assembleV3(raw({ edgeErrors: [{ day: "2026-09-12", traefik_5xx: 2 }] }));
     expect(fine.overview.health.edge.ok).toBe(true);
+  });
+
+  it("santé : Instagram rouge au-delà de 30 % de secours dès 5 lectures (cache hors ratio)", () => {
+    expect(d.overview.health.instagram).toMatchObject({ ok: true });
+    expect(d.overview.health.instagram.detail).toMatch(/aucune lecture/);
+    const reads = (...paths: string[]) => paths.map((ig_path) => ({ ig_path }));
+    // 2 secours sur 5 lectures (40 %) → rouge ; les `cache` ne comptent pas.
+    const bad = assembleV3(
+      raw({
+        instagramReads: reads(
+          "direct_embed",
+          "direct_og",
+          "direct_embed",
+          "apify",
+          "failed",
+          "cache",
+          "cache",
+        ),
+      }),
+    );
+    expect(bad.overview.health.instagram.ok).toBe(false);
+    expect(bad.overview.health.instagram.detail).toMatch(/^2 lectures sur 5 .* \(40 %/);
+    expect(bad.overview.health.ok).toBe(false);
+    // 3 lectures dont 2 en secours : trop peu pour conclure.
+    const few = assembleV3(raw({ instagramReads: reads("apify", "apify", "direct_embed") }));
+    expect(few.overview.health.instagram.ok).toBe(true);
+    // 1 secours sur 5 (20 %) → vert.
+    const fine = assembleV3(
+      raw({
+        instagramReads: reads("direct_embed", "direct_embed", "direct_og", "direct_embed", "apify"),
+      }),
+    );
+    expect(fine.overview.health.instagram.ok).toBe(true);
+  });
+
+  it("santé : crédit Apify rouge au-delà de 80 %, illisible = vert (pas d'alerte sur une API muette)", () => {
+    expect(d.overview.health.apify).toMatchObject({ ok: true });
+    const high = assembleV3(raw({ apifyUsage: { usedUsd: 4.2, limitUsd: 5, cycleEnd: null } }));
+    expect(high.overview.health.apify.ok).toBe(false);
+    expect(high.overview.health.apify.detail).toMatch(/^4\.20 \$ sur 5 \$ .*84 %/);
+    const unknown = assembleV3(raw({ apifyUsage: null }));
+    expect(unknown.overview.health.apify).toMatchObject({ ok: true });
+    expect(unknown.overview.health.apify.detail).toMatch(/illisible/);
   });
 
   it("acquisition : App Store sur 4 sem., sources nommées, démo par plateforme", () => {

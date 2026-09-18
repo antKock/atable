@@ -15,3 +15,6 @@ package-lock.json
 src/lib/db/types.ts
 _bmad
 _bmad-output
+
+# Fixtures HTML Instagram : extraits bruts des pages publiques, à ne pas reformater
+src/test/instagram/

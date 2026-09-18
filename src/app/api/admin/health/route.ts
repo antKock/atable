@@ -24,6 +24,8 @@ export async function GET(request: NextRequest) {
       demo: h.demo,
       backup: h.backup,
       edge: h.edge,
+      instagram: h.instagram,
+      apify: h.apify,
     },
     // Mesure : durée de chaque lecture de loadRawV3 (13 en parallèle, la plus
     // lente d'abord) et durée totale — pour cibler l'optimisation du dashboard.
