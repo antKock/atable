@@ -1,7 +1,7 @@
 # Chantier « Instagram sans Apify » — Socle
 
-> Cadré par Anthony le 2026-09-18. Étape 1 sur staging le 2026-09-18 (f50303d), go prod
-> en attente. Étape 2 : conception ci-dessous, **pas de code Swift avant accord**. En cas
+> Cadré par Anthony le 2026-09-18. Étape 1 **en prod** le 2026-09-18 (PR #166), alerte Sentry
+> en prod (PR #168). Étape 2 : conception ci-dessous, **pas de code Swift avant accord**. En cas
 > d'écart doc ↔ code, le code fait foi.
 
 ## 0. Pourquoi
@@ -72,20 +72,9 @@ L'extension de partage iOS en profite **sans nouvelle version** : elle charge
 
 ### 2.1 Vérification préalable : ce qu'Instagram met dans le partage
 
-**Pas encore faite** : il faut un iPhone réel avec Instagram (pas d'Instagram dans le
-simulateur), et les logs Traefik ne gardent pas les chargements `?ext=1`. Test **sans code,
-en 2 minutes**, avec l'app Raccourcis :
-
-1. Raccourcis → nouveau raccourci → *Afficher dans la feuille de partage* (types : tout).
-2. Actions : *Obtenir le type de* « Entrée du raccourci », *Afficher le résultat* ; puis une
-   seconde fois *Afficher le résultat* sur « Entrée du raccourci » elle-même.
-3. Dans Instagram, sur un reel : Partager → … → le raccourci. Noter les types (URL ? texte ?)
-   et le contenu (le lien seul, ou la légende ?).
-
-Si la légende y est, l'extension n'a rien à télécharger : elle transmet le texte (même
-mécanisme que ci-dessous, sans le téléchargement). À ma connaissance, Instagram ne partage
-que le lien (`/reel/{code}/?igsh=…`, parfois sous forme de texte, d'où le repli texte déjà
-présent dans `ShareViewController.swift`), mais c'est à confirmer.
+**Faite par Anthony le 2026-09-18 (iPhone, test Raccourcis) : Instagram ne partage que le
+lien**, sans la légende. Il faut donc que l'extension télécharge la page (§2.2). Le repli
+« texte contenant un lien » de `ShareViewController.swift` reste utile.
 
 ### 2.2 Mécanisme proposé
 
