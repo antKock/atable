@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { buildImportScreenshotSchema } from "@/lib/schemas/import";
-import { extractRecipeFromImages } from "@/lib/import";
+import { extractRecipeFromImages, type ImportTrace } from "@/lib/import";
 import { getT } from "@/lib/i18n/server";
 import { enforceImportQuota } from "@/lib/import-quota";
 import { withOwnerAuth } from "@/lib/api/with-owner-auth";
@@ -22,7 +22,8 @@ export const POST = withOwnerAuth(
     if (target instanceof NextResponse) return target;
     const { householdId } = target;
 
-    const { response, images, imageKind } = await handle(request, t, householdId);
+    const trace: ImportTrace = {};
+    const { response, images, imageKind } = await handle(request, t, householdId, trace);
     if (!images) return response;
     // Envoi gardé 30 jours (sauf refus) — docs/specs/ocr-appareil/01-conservation-imports.md.
     return keepImportSample({
@@ -31,6 +32,7 @@ export const POST = withOwnerAuth(
       method: "photo",
       response,
       imageKind,
+      trace,
       files: async () => images.map((img, i) => imageFile(img, i + 1)),
     });
   },
@@ -46,6 +48,7 @@ async function handle(
   request: NextRequest,
   t: Awaited<ReturnType<typeof getT>>,
   householdId: string,
+  trace: ImportTrace,
 ): Promise<{ response: NextResponse; images?: string[]; imageKind?: string }> {
   let images: string[] | undefined;
   try {
@@ -66,7 +69,7 @@ async function handle(
     if (quotaResponse) return { response: quotaResponse };
 
     images = parsed.data.images;
-    const { recipe, imageKind } = await extractRecipeFromImages(images, { householdId });
+    const { recipe, imageKind } = await extractRecipeFromImages(images, { householdId, trace });
     // La nature des images (capture / photo imprimée / manuscrit) va au seul
     // journal (#28, `api.called`), jamais dans la réponse au client.
     const response = NextResponse.json(recipe);
