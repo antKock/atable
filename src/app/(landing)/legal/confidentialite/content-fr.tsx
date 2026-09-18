@@ -18,7 +18,7 @@ export const metadataFr: Metadata = {
   },
 };
 
-const updatedAt = "12 septembre 2026";
+const updatedAt = "18 septembre 2026";
 const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -306,6 +306,24 @@ export default function PrivacyFr() {
               <Td>Exécution du contrat (fonctionnalité que vous déclenchez explicitement)</Td>
             </tr>
             <tr>
+              <Td>
+                Envois d&apos;import (photos, enregistrements vocaux, liens et texte des pages) et
+                ce qui en a été extrait, conservés 30 jours
+              </Td>
+              <Td>
+                Diagnostiquer et corriger les erreurs d&apos;import en les reproduisant ; tester et
+                améliorer les imports
+              </Td>
+              <Td>
+                Intérêt légitime (qualité du Service). Vous pouvez vous y opposer à tout moment,
+                sans justification (voir{" "}
+                <a href="#imports-ia" className="underline underline-offset-2">
+                  section 5
+                </a>
+                ).
+              </Td>
+            </tr>
+            <tr>
               <Td>Adresse IP</Td>
               <Td>Limiter les tentatives de connexion abusives</Td>
               <Td>Intérêt légitime (sécurité du Service)</Td>
@@ -330,21 +348,11 @@ export default function PrivacyFr() {
         <UL>
           <li>
             <strong>Import par dictée vocale</strong> : l&apos;enregistrement audio est transmis à
-            OpenAI pour transcription, puis le texte obtenu est structuré.{" "}
-            <strong>L&apos;enregistrement audio n&apos;est jamais conservé</strong> par Mijote :
-            seul le texte de la recette résultante est enregistré.
+            OpenAI pour transcription, puis le texte obtenu est structuré.
           </li>
           <li>
             <strong>Import par photo / capture d&apos;écran</strong> : l&apos;image est transmise à
-            OpenAI pour en extraire le texte de la recette.{" "}
-            <strong>Les images d&apos;import ne sont pas conservées</strong> par Mijote : seule la
-            recette structurée résultante est enregistrée. (Les photos que vous{" "}
-            <strong>ajoutez délibérément</strong> à une recette, à l&apos;inverse, sont conservées —
-            voir{" "}
-            <a href="#conservation" className="underline underline-offset-2">
-              section 8
-            </a>
-            .)
+            OpenAI pour en extraire le texte de la recette.
           </li>
           <li>
             <strong>Import par lien URL</strong> : le contenu textuel de la page web est récupéré —
@@ -353,10 +361,27 @@ export default function PrivacyFr() {
             <a href="#sous-traitants" className="underline underline-offset-2">
               section 6
             </a>
-            ) à qui l&apos;adresse est transmise — puis transmis à OpenAI pour structuration.{" "}
-            <strong>L&apos;adresse URL et le contenu brut de la page ne sont pas conservés.</strong>
+            ) à qui l&apos;adresse est transmise — puis transmis à OpenAI pour structuration.
           </li>
         </UL>
+        <P>
+          <strong>Conservation des envois d&apos;import.</strong> Ce que vous envoyez pour importer
+          une recette (photos, enregistrements vocaux, adresses de pages web et texte récupéré de
+          ces pages) est <strong>conservé 30 jours</strong> par Mijote, avec ce qui en a été
+          extrait, dans un espace de stockage privé en France, puis supprimé automatiquement. Ces
+          envois servent uniquement à diagnostiquer et corriger les erreurs d&apos;import (en les
+          reproduisant) et à améliorer les imports. Ils ne sont ni publiés, ni partagés, ni utilisés
+          pour entraîner un modèle d&apos;un tiers.{" "}
+          <strong>Vous pouvez refuser cette conservation</strong> avant l&apos;envoi, depuis
+          l&apos;écran d&apos;import (« Ne pas les garder »), ou à tout moment depuis votre profil
+          (« Aider à améliorer les imports ») : ce qui a déjà été conservé est alors supprimé. Les
+          photos que vous <strong>ajoutez délibérément</strong> à une recette sont, elles,
+          conservées tant que la recette existe (voir{" "}
+          <a href="#conservation" className="underline underline-offset-2">
+            section 8
+          </a>
+          ).
+        </P>
         <P>
           Ces traitements ne sont déclenchés que{" "}
           <strong>lorsque vous utilisez explicitement</strong> la fonction d&apos;import
@@ -387,8 +412,8 @@ export default function PrivacyFr() {
                 limitation de débit (serveur privé virtuel et stockage d&apos;objets)
               </Td>
               <Td>
-                Carnets, recettes, sessions, photos, adresse IP, données techniques de requête,
-                journaux, sauvegardes
+                Carnets, recettes, sessions, photos, envois d&apos;import (30 jours), adresse IP,
+                données techniques de requête, journaux, sauvegardes
               </Td>
               <Td>France (Gravelines)</Td>
             </tr>
@@ -518,6 +543,19 @@ export default function PrivacyFr() {
               <Td>1 heure maximum</Td>
             </tr>
             <tr>
+              <Td>
+                Envois d&apos;import (photos, enregistrements vocaux, liens et texte des pages)
+              </Td>
+              <Td>
+                30 jours après l&apos;import, puis suppression automatique ; supprimés immédiatement
+                si vous refusez la conservation ou si vous supprimez votre profil ou le carnet
+              </Td>
+            </tr>
+            <tr>
+              <Td>Sauvegardes de la base de données</Td>
+              <Td>14 jours, puis remplacement par les sauvegardes suivantes</Td>
+            </tr>
+            <tr>
               <Td>Contenu soumis aux imports, côté OpenAI</Td>
               <Td>Durée limitée fixée par OpenAI, puis suppression</Td>
             </tr>
@@ -640,6 +678,10 @@ export default function PrivacyFr() {
             Les droits de <strong>rectification</strong> et d&apos;
             <strong>effacement</strong> s&apos;exercent directement dans l&apos;Application
             (modification ou suppression de vos recettes, suppression du carnet).
+          </li>
+          <li>
+            Vous pouvez vous opposer à la conservation des envois d&apos;import directement depuis
+            l&apos;Application (écran d&apos;import ou profil), sans avoir à nous écrire.
           </li>
           <li>
             Pour toute autre demande (accès, copie de vos données, opposition), vous pouvez nous

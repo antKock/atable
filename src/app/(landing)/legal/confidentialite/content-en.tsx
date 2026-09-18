@@ -18,7 +18,7 @@ export const metadataEn: Metadata = {
   },
 };
 
-const updatedAt = "September 12, 2026";
+const updatedAt = "September 18, 2026";
 const contactEmail = "kocken.anthony@gmail.com";
 
 function H2({ id, children }: { id: string; children: React.ReactNode }) {
@@ -276,6 +276,20 @@ export default function PrivacyEn() {
               <Td>Performance of the contract (a feature you explicitly trigger)</Td>
             </tr>
             <tr>
+              <Td>
+                Import submissions (photos, voice recordings, links and page text) and what was
+                extracted from them, kept for 30 days
+              </Td>
+              <Td>
+                Diagnosing and fixing import errors by reproducing them; testing and improving
+                imports
+              </Td>
+              <Td>
+                Legitimate interest (service quality). You can object at any time, without giving a
+                reason (see <A href="#imports-ia">section 5</A>).
+              </Td>
+            </tr>
+            <tr>
               <Td>IP address</Td>
               <Td>Limiting abusive connection attempts</Td>
               <Td>Legitimate interest (security of the Service)</Td>
@@ -296,24 +310,32 @@ export default function PrivacyEn() {
         <UL>
           <li>
             <strong>Voice dictation import</strong>: the audio recording is sent to OpenAI for
-            transcription, then the resulting text is structured.{" "}
-            <strong>The audio recording is never kept</strong> by Mijote: only the resulting recipe
-            text is stored.
+            transcription, then the resulting text is structured.
           </li>
           <li>
             <strong>Photo / screenshot import</strong>: the image is sent to OpenAI to extract the
-            recipe text. <strong>Import images are not kept</strong> by Mijote: only the resulting
-            structured recipe is stored. (Photos you <strong>deliberately add</strong> to a recipe,
-            on the other hand, are kept — see <A href="#conservation">section 8</A>.)
+            recipe text.
           </li>
           <li>
             <strong>Link import</strong>: the page&apos;s text content is fetched — directly, or for
             some sources (Instagram, sites blocking automated access) through our provider{" "}
             <strong>Apify</strong> (see <A href="#sous-traitants">section 6</A>), to whom the
-            address is sent — then sent to OpenAI for structuring.{" "}
-            <strong>The URL and the raw page content are not kept.</strong>
+            address is sent — then sent to OpenAI for structuring.
           </li>
         </UL>
+        <P>
+          <strong>Retention of import submissions.</strong> What you send to import a recipe
+          (photos, voice recordings, web page addresses and the text fetched from those pages) is{" "}
+          <strong>kept for 30 days</strong> by Mijote, together with what was extracted from it, in
+          private storage in France, then deleted automatically. These submissions are only used to
+          diagnose and fix import errors (by reproducing them) and to improve imports. They are
+          never published, shared, or used to train a third party&apos;s model.{" "}
+          <strong>You can refuse this</strong> before sending, from the import screen
+          (&quot;Don&apos;t keep them&quot;), or at any time from your profile (&quot;Help improve
+          imports&quot;): anything already kept is then deleted. Photos you{" "}
+          <strong>deliberately add</strong> to a recipe are kept as long as the recipe exists (see{" "}
+          <A href="#conservation">section 8</A>).
+        </P>
         <P>
           These operations only run <strong>when you explicitly use</strong> the corresponding
           import feature.
@@ -343,8 +365,8 @@ export default function PrivacyEn() {
                 server and object storage)
               </Td>
               <Td>
-                Cookbooks, recipes, sessions, photos, IP address, technical request data, logs,
-                backups
+                Cookbooks, recipes, sessions, photos, import submissions (30 days), IP address,
+                technical request data, logs, backups
               </Td>
               <Td>France (Gravelines)</Td>
             </tr>
@@ -459,6 +481,17 @@ export default function PrivacyEn() {
               <Td>1 hour maximum</Td>
             </tr>
             <tr>
+              <Td>Import submissions (photos, voice recordings, links and page text)</Td>
+              <Td>
+                30 days after import, then deleted automatically; deleted immediately if you refuse
+                retention, or if you delete your profile or the cookbook
+              </Td>
+            </tr>
+            <tr>
+              <Td>Database backups</Td>
+              <Td>14 days, then replaced by newer backups</Td>
+            </tr>
+            <tr>
               <Td>Content submitted to imports, on OpenAI&apos;s side</Td>
               <Td>Limited period set by OpenAI, then deletion</Td>
             </tr>
@@ -568,6 +601,10 @@ export default function PrivacyEn() {
           <li>
             The rights of <strong>rectification</strong> and <strong>erasure</strong> are exercised
             directly in the App (editing or deleting your recipes, deleting the cookbook).
+          </li>
+          <li>
+            You can object to the retention of import submissions directly in the App (import screen
+            or profile), without writing to us.
           </li>
           <li>
             For any other request (access, copy of your data, objection), you can contact us at the
