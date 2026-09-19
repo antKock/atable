@@ -42,6 +42,8 @@ export type ImportMeta = {
   householdId: string;
   /** Import Instagram : voie de lecture utilisée, pour le journal (#28). */
   onInstagramRead?: (report: InstagramReadReport) => void;
+  /** Import d'une autre URL : voie de lecture de la page, pour le journal (#28). */
+  onUrlRead?: (report: UrlReadReport) => void;
   /**
    * Import lancé par l'extension de partage iOS qui lit aussi la page sur le
    * téléphone (étape 2) : référence du dépôt (`igref`) et personne qui importe.
@@ -65,6 +67,19 @@ export type InstagramReadReport = {
   readMs: number;
 };
 
+/**
+ * Voie de lecture d'une page hors Instagram : `direct` = fetch du VPS ;
+ * `crawler` = navigateur headless Apify (site bloqué ou page vide sans JS) ;
+ * `failed` = aucune n'a abouti.
+ */
+export type UrlReadReport = {
+  path: "direct" | "crawler" | "failed";
+  /** Pourquoi le fetch direct a été abandonné (`http_403`, `thin_content`, `timeout`…). */
+  fallback?: string;
+  /** Durée de lecture de la page seule (hors structuration par le modèle). */
+  readMs: number;
+};
+
 export class ImportError extends Error {
   constructor(
     message: string,
@@ -74,6 +89,8 @@ export class ImportError extends Error {
       | "EXTRACTION_FAILED"
       | "TRANSCRIPTION_FAILED"
       | "TIMEOUT",
+    /** Cause fine pour le journal (`http_403`, `timeout`…) — enum, jamais de contenu. */
+    public readonly detail?: string,
   ) {
     super(message);
     this.name = "ImportError";
@@ -459,7 +476,7 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
     try {
       await assertPublicUrl(new URL(current));
     } catch {
-      throw new ImportError("Blocked or unresolvable host", "SITE_UNREACHABLE");
+      throw new ImportError("Blocked or unresolvable host", "SITE_UNREACHABLE", "unresolvable");
     }
 
     try {
@@ -471,14 +488,19 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
         signal: AbortSignal.timeout(10000),
         redirect: "manual",
       });
-    } catch {
-      throw new ImportError("Site unreachable", "SITE_UNREACHABLE");
+    } catch (err) {
+      const name = (err as { name?: string } | null)?.name;
+      throw new ImportError(
+        "Site unreachable",
+        "SITE_UNREACHABLE",
+        name === "TimeoutError" || name === "AbortError" ? "timeout" : "network",
+      );
     }
 
     if (res.status >= 300 && res.status < 400) {
       const location = res.headers.get("location");
       if (!location || hop >= MAX_REDIRECTS) {
-        throw new ImportError("Too many redirects", "SITE_UNREACHABLE");
+        throw new ImportError("Too many redirects", "SITE_UNREACHABLE", "redirects");
       }
       current = new URL(location, current).toString();
       continue;
@@ -487,10 +509,14 @@ async function fetchAndCleanHtml(url: string): Promise<string> {
   }
 
   if (res.status === 403 || res.status === 429) {
-    throw new ImportError("Site blocked bot access", "SITE_BLOCKED");
+    throw new ImportError("Site blocked bot access", "SITE_BLOCKED", `http_${res.status}`);
   }
   if (!res.ok) {
-    throw new ImportError(`Failed to fetch URL: ${res.status}`, "SITE_UNREACHABLE");
+    throw new ImportError(
+      `Failed to fetch URL: ${res.status}`,
+      "SITE_UNREACHABLE",
+      `http_${res.status}`,
+    );
   }
 
   const html = await res.text();
@@ -697,8 +723,8 @@ async function extractRecipeFromInstagram(
   return structureRecipeFromText(text, { callType: "import_instagram", meta });
 }
 
-/** Headless-crawler fallback for sites the direct fetch can't read. */
-async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedRecipeData> {
+/** Headless-crawler fallback for sites the direct fetch can't read → page markdown. */
+async function crawlPageWithApify(url: string, meta?: ImportMeta): Promise<string> {
   let items: Array<{ markdown?: string | null; text?: string | null }>;
   try {
     items = await runApifyActor(APIFY_ACTORS.websiteCrawler, {
@@ -728,7 +754,7 @@ async function crawlWithApify(url: string, meta?: ImportMeta): Promise<ImportedR
   if (!markdown) {
     throw new ImportError("Crawler returned no content", "EXTRACTION_FAILED");
   }
-  return structureRecipeFromText(markdown, { callType: "import_url_crawler", meta });
+  return markdown;
 }
 
 // Budget global d'un import URL (fetch direct → crawler Apify → extraction),
@@ -754,11 +780,38 @@ async function extractRecipeFromUrlUnbounded(
     return extractRecipeFromInstagram(url, meta);
   }
 
+  const t0 = performance.now();
+  const report = (path: UrlReadReport["path"], fallback?: string) => {
+    const r: UrlReadReport = {
+      path,
+      ...(fallback ? { fallback } : {}),
+      readMs: Math.round(performance.now() - t0),
+    };
+    console.info(
+      `[import/url] path=${r.path} read_ms=${r.readMs}${r.fallback ? ` fallback=${r.fallback}` : ""}`,
+    );
+    meta?.onUrlRead?.(r);
+  };
+  // Crawler Apify : la voie est rapportée dès que la page est lue (ou pas),
+  // avant la structuration par le modèle.
+  const crawl = async (fallback: string) => {
+    let markdown: string;
+    try {
+      markdown = await crawlPageWithApify(url, meta);
+    } catch (err) {
+      report("failed", fallback);
+      throw err;
+    }
+    report("crawler", fallback);
+    return structureRecipeFromText(markdown, { callType: "import_url_crawler", meta });
+  };
+
   // 1. Direct fetch — free and fast, handles the large majority of sites.
   let cleaned: string;
   try {
     cleaned = await fetchAndCleanHtml(url);
   } catch (err) {
+    const fallback = err instanceof ImportError ? (err.detail ?? err.code) : "unknown";
     // 2. Blocked or unreachable → retry through the headless crawler when Apify
     //    is configured; otherwise surface the original error as before.
     if (
@@ -766,15 +819,17 @@ async function extractRecipeFromUrlUnbounded(
       (err.code === "SITE_BLOCKED" || err.code === "SITE_UNREACHABLE") &&
       isApifyConfigured()
     ) {
-      return crawlWithApify(url, meta);
+      return crawl(fallback);
     }
+    report("failed", fallback);
     throw err;
   }
 
   // 3. 200 but near-empty body → JS-rendered page; crawl instead of parsing air.
   if (cleaned.length < MIN_CONTENT_LENGTH && isApifyConfigured()) {
-    return crawlWithApify(url, meta);
+    return crawl("thin_content");
   }
 
+  report("direct");
   return structureRecipeFromText(cleaned, { callType: "import_url", meta });
 }

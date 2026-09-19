@@ -22,6 +22,12 @@ export type ApiEventExtra = {
   ig_read_ms?: number;
   /** Instagram lu par le téléphone : issue du dépôt (ok | unparsable | duplicate) ou raison de non-usage à l'import (absent | unparsable | mismatch | error). */
   ig_device?: string;
+  /** Import d'une autre URL : voie de lecture de la page (direct | crawler | failed). */
+  url_path?: string;
+  /** Import d'une autre URL : pourquoi le fetch direct a été abandonné (http_403, thin_content, timeout…). */
+  url_fallback?: string;
+  /** Import d'une autre URL : durée de lecture de la page seule, en ms. */
+  url_read_ms?: number;
 };
 
 export function withApiEventExtra<R extends Response>(response: R, extra: ApiEventExtra): R {
@@ -52,6 +58,9 @@ function takeExtraHeader(response: Response): ApiEventExtra {
       ...pick("ig_path"),
       ...pick("ig_fallback"),
       ...pick("ig_device"),
+      ...pick("url_path"),
+      ...pick("url_fallback"),
+      ...pickInt("url_read_ms"),
       ...pickInt("ig_read_ms"),
     };
   } catch {

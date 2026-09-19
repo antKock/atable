@@ -81,6 +81,12 @@ export type EventProps = {
     ig_read_ms?: number;
     /** Instagram lu par le téléphone (extension iOS) : issue du dépôt sur /api/instagram/page (ok | unparsable | duplicate), ou raison de non-usage à l'import (absent | unparsable | mismatch | error). */
     ig_device?: string;
+    /** Import d'une autre URL : voie de lecture de la page (direct | crawler = Apify | failed). */
+    url_path?: string;
+    /** Import d'une autre URL : pourquoi le fetch direct du VPS a été abandonné (http_403, http_429, thin_content, timeout, network…). */
+    url_fallback?: string;
+    /** Import d'une autre URL : durée de lecture de la page seule (ms), hors structuration. */
+    url_read_ms?: number;
   };
   "ui.seen": { target: string; route: string; params?: RouteParams };
   "error.shown": { kind: string; route: string };

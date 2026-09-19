@@ -83,6 +83,7 @@ describe("POST /api/recipes/import/url", () => {
     expect(extractRecipeFromUrl).toHaveBeenCalledWith("https://example.com/r", {
       householdId: "household-1",
       onInstagramRead: expect.any(Function),
+      onUrlRead: expect.any(Function),
     });
   });
 
@@ -148,6 +149,20 @@ describe("POST /api/recipes/import/url", () => {
       jsonReq("url", { url: "https://www.instagram.com/p/X1234/", igref: "x" }),
     );
     expect(res.status).toBe(400);
+  });
+
+  it("autre site : voie de lecture de la page au journal (url_*)", async () => {
+    vi.mocked(extractRecipeFromUrl).mockImplementationOnce(async (_url, meta) => {
+      meta?.onUrlRead?.({ path: "crawler", fallback: "http_403", readMs: 9100 });
+      return IMPORTED as never;
+    });
+    await postUrl(jsonReq("url", { url: "https://www.example.org/recette" }));
+    expect(vi.mocked(trackEvent).mock.calls.at(-1)?.[1]).toMatchObject({
+      site: "example.org",
+      url_path: "crawler",
+      url_fallback: "http_403",
+      url_read_ms: 9100,
+    });
   });
 
   it("site hors Instagram : aucune prop ig_*", async () => {

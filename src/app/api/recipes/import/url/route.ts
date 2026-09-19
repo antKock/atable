@@ -5,6 +5,7 @@ import {
   ImportError,
   URL_IMPORT_BUDGET_MS,
   type InstagramReadReport,
+  type UrlReadReport,
 } from "@/lib/import";
 import { isInstagramUrl } from "@/lib/instagram";
 import { enforceImportQuota } from "@/lib/import-quota";
@@ -32,6 +33,14 @@ function igExtra(r: InstagramReadReport): ApiEventExtra {
   };
 }
 
+function urlExtra(r: UrlReadReport): ApiEventExtra {
+  return {
+    url_path: r.path,
+    ...(r.fallback ? { url_fallback: r.fallback } : {}),
+    url_read_ms: r.readMs,
+  };
+}
+
 export const POST = withOwnerAuth(
   async (request: NextRequest, _ctx, owner) => {
     const t = await getT();
@@ -45,7 +54,11 @@ export const POST = withOwnerAuth(
     // `api.called` porte le site quelle que soit l'issue (succès, 4xx, 5xx), et
     // pour Instagram la voie de lecture de la légende (catégories, jamais l'URL).
     let ig: InstagramReadReport | undefined;
-    const response = await handle(body, t, householdId, owner.ownerId, (r) => (ig = r));
+    let page: UrlReadReport | undefined;
+    const response = await handle(body, t, householdId, owner.ownerId, {
+      onInstagramRead: (r) => (ig = r),
+      onUrlRead: (r) => (page = r),
+    });
     // Budget d'import dépassé pendant la lecture (Apify lent) : la voie n'a pas
     // eu le temps de se rapporter, l'échec compte quand même.
     if (!ig && response.status === 504 && site && isInstagramUrl(`https://${site}`)) {
@@ -54,6 +67,7 @@ export const POST = withOwnerAuth(
     const extra: ApiEventExtra = {
       ...(site ? { site } : {}),
       ...(ig ? igExtra(ig) : {}),
+      ...(page ? urlExtra(page) : {}),
     };
     return Object.keys(extra).length ? withApiEventExtra(response, extra) : response;
   },
@@ -69,7 +83,10 @@ async function handle(
   t: Awaited<ReturnType<typeof getT>>,
   householdId: string,
   ownerId: string,
-  onInstagramRead: (report: InstagramReadReport) => void,
+  reports: {
+    onInstagramRead: (report: InstagramReadReport) => void;
+    onUrlRead: (report: UrlReadReport) => void;
+  },
 ): Promise<NextResponse> {
   try {
     const parsed = buildImportUrlSchema(t).safeParse(body);
@@ -89,7 +106,7 @@ async function handle(
 
     const formData = await extractRecipeFromUrl(parsed.data.url, {
       householdId,
-      onInstagramRead,
+      ...reports,
       ...(parsed.data.igref ? { instagramDevice: { ref: parsed.data.igref, ownerId } } : {}),
     });
     return NextResponse.json(formData);

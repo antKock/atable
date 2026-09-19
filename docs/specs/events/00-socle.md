@@ -197,6 +197,11 @@ Vues : `v_entries` (une entrée par appareil, `source` consolidée) et `v_onboar
   et **`ig_read_ms`** (lecture seule, hors modèle) — chantier « Instagram sans Apify », 2026-09-18.
   Des catégories, jamais l'URL ni la légende ; lecture `scripts/events/queries/instagram-paths.sql`,
   et le voyant « Instagram » de la Santé (taux de secours sur 24 h).
+  Les autres sites y ajoutent **`url_path`** (`direct` = fetch du VPS / `crawler` = Apify /
+  `failed`), **`url_fallback`** (pourquoi le VPS a abandonné : `http_403`, `http_429`,
+  `thin_content` = page vide sans JavaScript, `timeout`, `network`…) et **`url_read_ms`**
+  (2026-09-19) — pour savoir quelle part du crawler une lecture par le téléphone éviterait.
+  Lecture `scripts/events/queries/url-paths.sql`.
 
 ### 6.4 Explicites (les seuls faits qu'aucun flux ne voit)
 
@@ -387,6 +392,8 @@ avant** (incident 046). Q1 / Q3 / Q6 lisibles deux à trois semaines après la m
 
 ## 12. Journal
 
+- **2026-09-19** — props `url_path` / `url_fallback` / `url_read_ms` sur l'`api.called` de
+  l'import URL hors Instagram (voie direct / crawler Apify et cause). Requête `url-paths.sql`.
 - **2026-09-18 (soir)** — props `ig_path` / `ig_fallback` / `ig_read_ms` sur l'`api.called` de
   l'import URL quand la source est Instagram (lecture directe des pages publiques, Apify en
   secours). Pas de nouvel événement ni de vue : requête `instagram-paths.sql` + voyant Santé.

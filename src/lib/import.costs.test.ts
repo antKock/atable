@@ -7,7 +7,11 @@ import { chatCompletion, importResult, MOCK_USAGE } from "@/test/openai-mock";
 import { AI_MODELS } from "@/lib/ai-models";
 import { getCachedCaption, setCachedCaption } from "@/lib/instagram-cache";
 import { awaitDeviceCaption } from "@/lib/instagram-device";
-import { resetInstagramAlertThrottle, type InstagramReadReport } from "./import";
+import {
+  resetInstagramAlertThrottle,
+  type InstagramReadReport,
+  type UrlReadReport,
+} from "./import";
 import * as Sentry from "@sentry/nextjs";
 
 // Coût enregistré par voie d'import (revue 2026-09-12 : aucun test ne vérifiait
@@ -409,5 +413,55 @@ describe("crawler Apify (repli du fetch direct)", () => {
     await expect(extractRecipeFromUrl(URL, META)).rejects.toMatchObject({
       code: "SITE_UNREACHABLE",
     });
+  });
+});
+
+describe("voie de lecture des autres URL (journal)", () => {
+  const URL = "https://blocked.example.com/recette";
+  const LONG =
+    "<h1>Ma Recette</h1><p>farine, œufs, sucre, beurre, lait, sel, et un texte assez long pour dépasser le seuil de contenu minimal du chemin direct, avec des étapes détaillées ligne après ligne pour la préparation de la pâte puis la cuisson au four pendant trente minutes environ.</p>";
+  let reports: UrlReadReport[];
+  const meta = () => ({ ...META, onUrlRead: (r: UrlReadReport) => reports.push(r) });
+  beforeEach(() => {
+    reports = [];
+    mockChat.mockResolvedValue(chatCompletion(importResult()));
+  });
+
+  it("fetch direct OK → direct, sans raison", async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response(LONG, { status: 200 }));
+    await extractRecipeFromUrl(URL, meta());
+    expect(reports).toEqual([{ path: "direct", readMs: expect.any(Number) }]);
+  });
+
+  it("403 → crawler, raison http_403", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockResolvedValue(new Response("", { status: 403 }));
+    vi.mocked(runApifyActor).mockResolvedValue([{ markdown: "# Tarte\n- pommes" }]);
+    await extractRecipeFromUrl(URL, meta());
+    expect(reports).toMatchObject([{ path: "crawler", fallback: "http_403" }]);
+  });
+
+  it("page vide sans JS → crawler, raison thin_content", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockResolvedValue(new Response("<div id='app'></div>", { status: 200 }));
+    vi.mocked(runApifyActor).mockResolvedValue([{ text: "Tarte : pommes, pâte" }]);
+    await extractRecipeFromUrl(URL, meta());
+    expect(reports).toMatchObject([{ path: "crawler", fallback: "thin_content" }]);
+  });
+
+  it("délai dépassé puis crawler en erreur → failed, raison timeout", async () => {
+    vi.mocked(isApifyConfigured).mockReturnValue(true);
+    vi.mocked(fetch).mockRejectedValue(Object.assign(new Error("t"), { name: "TimeoutError" }));
+    vi.mocked(runApifyActor).mockRejectedValue(new Error("boom"));
+    await expect(extractRecipeFromUrl(URL, meta())).rejects.toMatchObject({
+      code: "SITE_UNREACHABLE",
+    });
+    expect(reports).toMatchObject([{ path: "failed", fallback: "timeout" }]);
+  });
+
+  it("sans Apify : 429 → failed, raison http_429, code SITE_BLOCKED inchangé", async () => {
+    vi.mocked(fetch).mockResolvedValue(new Response("", { status: 429 }));
+    await expect(extractRecipeFromUrl(URL, meta())).rejects.toMatchObject({ code: "SITE_BLOCKED" });
+    expect(reports).toMatchObject([{ path: "failed", fallback: "http_429" }]);
   });
 });
